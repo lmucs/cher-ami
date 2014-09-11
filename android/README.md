@@ -1,1 +1,0 @@
-CherAmi android client
