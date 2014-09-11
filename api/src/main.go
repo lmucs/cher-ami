@@ -2,13 +2,14 @@ package main
 
 import (
     "github.com/ant0ine/go-json-rest/rest"
+    "gopkg.in/mgo.v2"
     "log"
     "net/http"
-    "gopkg.in/mgo.v2"
+    "fmt"
 )
 
 func main() {
-
+    port := "8228"
     handler := rest.ResourceHandler{
         EnableRelaxedContentType: true,
     }
@@ -31,7 +32,8 @@ func main() {
         log.Fatal(err)
     }
 
-    log.Fatal(http.ListenAndServe(":8228", &handler))
+    fmt.Printf("Listening on port %s\n", port)
+    log.Fatal(http.ListenAndServe(":"+port, &handler))
 }
 
 type Api struct {
