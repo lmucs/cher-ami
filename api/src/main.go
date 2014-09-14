@@ -25,7 +25,7 @@ func main() {
 
     err = handler.SetRoutes(
         //&rest.Route{"GET", "/message", GetAllMessages},
-        &rest.Route{"POST", "/message", api.CreateMessage},
+        &rest.Route{"POST", "/messages", api.CreateMessage},
         &rest.Route{"GET", "/message/:id", api.GetMessage},
         //&rest.Route{"DELETE", "/message/:id", DeleteMessage},
     )
