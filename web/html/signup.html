@@ -8,7 +8,7 @@
     <!-- Bootstrap's latest compiled and minified CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
     <!---refrence to my stylesheet-->
-    <link rel="stylesheet" type="text/css" href="..\CSS\signUp.css">
+    <link rel="stylesheet" type="text/css" href="..\css\signup.css">
   </head>
   <body>
 
@@ -24,26 +24,24 @@
         </div>
       </div>
       <div class="row top-buffer">
-        <div class="col-xs-6 col-sm-4"></div>
-        <div class="col-xs-6 col-sm-4" id="signUpContainer">
-
-          <form class="form-horizontal" role="form">
+        <div class="col-sm-6" id="signUpContainer">
+          <form method="post" class="form-horizontal" role="form">
             <div class="form-group">
-              <label for="inputEmail" class="col-sm-2 control-label">Email</label>
+              <label for="Username" class="col-sm-2 control-label">Choose a handle</label>
               <div class="col-sm-6">
-                <input type="email" class="form-control" id="inputEmail" placeholder="Email">
+                <input type="text" class="form-control" name="Username" id="username" placeholder="@handle">
               </div>
             </div>
             <div class="form-group">
-              <label for="inputName" class="col-sm-2 control-label">Tagname</label>
+              <label for="inputName" class="col-sm-2 control-label">Password</label>
               <div class="col-sm-6">
-                <input type="text" class="form-control" id="inputName" placeholder="Choose a Tagname">
+                <input type="password" class="form-control" name="Password" placeholder="********">
               </div>
             </div>
             <div class="form-group">
-              <label for="inputPassword" class="col-sm-2 control-label">Password</label>
+              <label for="inputPassword" class="col-sm-2 control-label">Confirm password</label>
               <div class="col-sm-6">
-                <input type="password" class="form-control" id="inputPassword" placeholder="Password">
+                <input type="password" class="form-control" name="ConfirmPassword" placeholder="********">
               </div>
             </div>
             <div class="form-group">
@@ -72,8 +70,6 @@
         <h1>Example page footer <small>Subtext for header</small></h1>
       </div>
     </div>
-
-
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
