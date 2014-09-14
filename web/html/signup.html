@@ -16,7 +16,7 @@
       <div class="row" id="header">
         <div class="col-xs-12 col-sm-6 col-md-8">
           <div class="page-header">
-            <h1>CherAmi <small> A Social Exclusive Content Sharing</small></h1>
+            <h1>CherAmi <small>Social, Exclusive, Content sharing</small></h1>
           </div>
         </div>
         <div class="col-xs-6 col-md-4">
@@ -25,7 +25,7 @@
       </div>
       <div class="row top-buffer">
         <div class="col-sm-6" id="signUpContainer">
-          <form method="post" class="form-horizontal" role="form">
+          <form method="post" action="/signup" id="signupform" class="form-horizontal" role="form">
             <div class="form-group">
               <label for="Username" class="col-sm-2 control-label">Choose a handle</label>
               <div class="col-sm-6">
@@ -55,7 +55,7 @@
             </div>
             <div class="form-group">
               <div class="col-sm-offset-2 col-sm-10">
-                <button type="submit" class="btn btn-default">Sign in</button>
+                <button type="submit" id="signup" class="btn btn-default">Signup</button>
               </div>
             </div>
           </form>
@@ -71,9 +71,9 @@
       </div>
     </div>
 
-    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-    <!-- Complete JavaScript -->
-    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+
+    <script src="../js/signup.js"></script>
   </body>
 </html>
