@@ -20,12 +20,12 @@ func main() {
     if err != nil {
         log.Fatal(err)
     }
+
     database := session.DB("cher-ami")
     api := Api{session, database}
 
-
     err = handler.SetRoutes(
-        &rest.Route{"POST", "/signup", api.SignUp},
+        &rest.Route{"POST", "/signup", api.Signup},
         //&rest.Route{"GET", "/message", GetAllMessages},
         &rest.Route{"POST", "/messages", api.CreateMessage},
         &rest.Route{"GET", "/message/:id", api.GetMessage},
@@ -69,19 +69,21 @@ type UserProposal struct {
     ConfirmPassword string
 }
 
+type UserId string
+
 type User struct {
     Handle string
     Password string
     Joined time.Time
-    Follows []string
-    BlockedUsers []string
+    Follows []UserId
+    BlockedUsers []UserId
 }
 
 //
 // API
 //
 
-func (a Api) SignUp(w rest.ResponseWriter, r *rest.Request) {
+func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
     proposal := UserProposal{}
 
     // expects a json POST with "Username", "Password", "ConfirmPassword"
@@ -97,13 +99,23 @@ func (a Api) SignUp(w rest.ResponseWriter, r *rest.Request) {
         rest.Error(w, proposal.Handle+" is already taken", 400)
         return
     }
+    if err != nil {
+        rest.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+    // password checks
+    if proposal.Password != proposal.ConfirmPassword {
+        rest.Error(w, "Passwords do not match", 400)
+        return
+    }
 
     user := User{
         proposal.Handle,
         proposal.Password,  // plaintext for now
         time.Now().Local(),
-        []string{},
-        []string{},
+        []UserId{},
+        []UserId{},
     }
     err = a.db.C("users").Insert(user)
     if err != nil {
