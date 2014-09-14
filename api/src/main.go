@@ -3,6 +3,7 @@ package main
 import (
     "github.com/ant0ine/go-json-rest/rest"
     "gopkg.in/mgo.v2"
+    "gopkg.in/mgo.v2/bson"
     "log"
     "net/http"
     "fmt"
@@ -24,6 +25,7 @@ func main() {
 
 
     err = handler.SetRoutes(
+        &rest.Route{"POST", "/signup", api.SignUp},
         //&rest.Route{"GET", "/message", GetAllMessages},
         &rest.Route{"POST", "/messages", api.CreateMessage},
         &rest.Route{"GET", "/message/:id", api.GetMessage},
@@ -61,14 +63,60 @@ type Message struct {
     Circles    []string
 }
 
+type UserProposal struct {
+    Handle          string
+    Password        string
+    ConfirmPassword string
+}
+
+type User struct {
+    Handle string
+    Password string
+    Joined time.Time
+    Follows []string
+    BlockedUsers []string
+}
+
 //
 // API
 //
 
+func (a Api) SignUp(w rest.ResponseWriter, r *rest.Request) {
+    proposal := UserProposal{}
+
+    // expects a json POST with "Username", "Password", "ConfirmPassword"
+    err:= r.DecodeJsonPayload(&proposal)
+    if err != nil {
+        rest.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+    // ensure unique handle
+    count, err := a.db.C("users").Find(bson.M{ "username": proposal.Handle }).Count()
+    if count > 0 {
+        rest.Error(w, proposal.Handle+" is already taken", 400)
+        return
+    }
+
+    user := User{
+        proposal.Handle,
+        proposal.Password,  // plaintext for now
+        time.Now().Local(),
+        []string{},
+        []string{},
+    }
+    err = a.db.C("users").Insert(user)
+    if err != nil {
+        log.Fatal("Can't insert user: %v\n", err)
+    }
+}
+
 func (a Api) CreateMessage(w rest.ResponseWriter, r *rest.Request) {
     message := Message{}
 
-    // expects a json object with Message properties, case-sensitive
+    // expects a json POST with Message properties, case-sensitive
+    // use custom strings as placeholders for testing. This will be
+    // remidied as the user api grows.
     err := r.DecodeJsonPayload(&message)
     if err != nil {
         rest.Error(w, err.Error(), http.StatusInternalServerError)
