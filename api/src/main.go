@@ -6,6 +6,7 @@ import (
     "log"
     "net/http"
     "fmt"
+    "time"
 )
 
 func main() {
@@ -23,10 +24,10 @@ func main() {
 
 
     err = handler.SetRoutes(
-        //&rest.Route{"GET", "/posts", GetAllPosts},
-        &rest.Route{"POST", "/posts", api.CreatePost},
-        &rest.Route{"GET", "/posts/:id", api.GetPost},
-        //&rest.Route{"DELETE", "/posts/:id", DeletePost},
+        //&rest.Route{"GET", "/message", GetAllMessages},
+        &rest.Route{"POST", "/message", api.CreateMessage},
+        &rest.Route{"GET", "/message/:id", api.GetMessage},
+        //&rest.Route{"DELETE", "/message/:id", DeleteMessage},
     )
     if err != nil {
         log.Fatal(err)
@@ -36,26 +37,65 @@ func main() {
     log.Fatal(http.ListenAndServe(":"+port, &handler))
 }
 
+//
+// Application Types
+//
+
 type Api struct {
     session *mgo.Session
     db      *mgo.Database // main db
 }
 
-type Post struct {
-    Name string
-    Content string
+//
+// Data types
+// All data types are stored in mongodb,
+// this gives them an '_id' identifier
+//
+
+type Message struct {
+    Owner      string
+    Created    time.Time
+    Content    string
+    ResponseTo string       // "" if not response
+    RepostOf   string       // "" if not repost
+    Circles    []string
 }
 
-func (a Api) CreatePost(w rest.ResponseWriter, r *rest.Request) {
-    post := Post{"A pre-created post", "Some pre-created body text"}
-    err := a.db.C("posts").Insert(post)
+//
+// API
+//
+
+func (a Api) CreateMessage(w rest.ResponseWriter, r *rest.Request) {
+    message := Message{}
+
+    // expects a json object with Message properties, case-sensitive
+    err := r.DecodeJsonPayload(&message)
+    if err != nil {
+        rest.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+    if message.Content == "" {
+        rest.Error(w, "please enter some content for your message", 400)
+        return
+    }
+    message.Created = time.Now().Local()
+    err = a.db.C("messages").Insert(message)
     if err != nil {
         log.Fatal("Can't insert document: %v\n", err)
     }
 }
 
-func (a Api) GetPost(w rest.ResponseWriter, r *rest.Request) {
+func (a Api) GetMessage(w rest.ResponseWriter, r *rest.Request) {
     id := r.PathParam("id")
-    post := Post{"Zane", "This is just a sample post with id " + id}
-    w.WriteJson(post)
+    // sample
+    message := Message{
+        id,
+        time.Now().Local(),
+        "This is a sample message, ayeee",
+        "",
+        "",
+        []string{"c_777", "c_w0qweq45", "c_888282"},
+    }
+    w.WriteJson(message)
 }
