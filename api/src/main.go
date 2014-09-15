@@ -28,7 +28,7 @@ func main() {
         &rest.Route{"POST", "/signup", api.Signup},
         //&rest.Route{"GET", "/message", GetAllMessages},
         &rest.Route{"POST", "/messages", api.CreateMessage},
-        &rest.Route{"GET", "/message/:id", api.GetMessage},
+        &rest.Route{"GET", "/messages/:id", api.GetMessage},
         //&rest.Route{"DELETE", "/message/:id", DeleteMessage},
     )
     if err != nil {
