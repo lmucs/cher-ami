@@ -4,6 +4,7 @@ import (
     "github.com/ant0ine/go-json-rest/rest"
     "gopkg.in/mgo.v2"
     "gopkg.in/mgo.v2/bson"
+    //"github.com/gorilla/sessions"
     "log"
     "net/http"
     "fmt"
@@ -17,6 +18,7 @@ func main() {
     }
 
     session, err := mgo.Dial("mongodb://localhost")
+    //store := sessions.NewCookieStore([]byte("NON_LIVE_kvqy@qsCNio6ogQ&DxyxJb"))
     if err != nil {
         log.Fatal(err)
     }
@@ -26,6 +28,7 @@ func main() {
 
     err = handler.SetRoutes(
         &rest.Route{"POST", "/signup", api.Signup},
+        &rest.Route{"POST", "/login", api.Login},
         &rest.Route{"GET", "/users/delete/:id", api.DeleteUser},
         //&rest.Route{"GET", "/message", GetAllMessages},
         &rest.Route{"POST", "/messages", api.CreateMessage},
@@ -84,6 +87,11 @@ type User struct {
     BlockedUsers []UserId
 }
 
+type UserSignIn struct {
+    Handle       string
+    Password     string
+}
+
 //
 // API
 //
@@ -125,6 +133,22 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
     err = a.db.C("users").Insert(user)
     if err != nil {
         log.Fatal("Can't insert user: %v\n", err)
+    }
+}
+
+func (a Api) Login(w rest.ResponseWriter, r *rest.Request) {
+    credentials := UserSignIn{}
+
+    err := r.DecodeJsonPayload(&credentials)
+    if err != nil {
+        rest.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+    result := User{}
+    err = a.db.C("users").Find(bson.M{"handle": credentials.Handle, "password": credentials.Password}).One(&result)
+    if err != nil {
+        rest.Error(w, err.Error(), http.StatusInternalServerError)
+        return
     }
 }
 

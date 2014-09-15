@@ -22,9 +22,15 @@ var (
     signupcss = "signup.css"
 )
 
+var (
+    JS_DIR    = filepath.Join("..", "..", "web", "js")
+    signupjs  = "signup.js"
+)
+
 var templates = template.Must(template.ParseFiles(
     filepath.Join(TMPL_DIR, signup),
     filepath.Join(CSS_DIR, signupcss),
+    filepath.Join(JS_DIR, signupjs),
 ))
 
 func renderTemplate(w http.ResponseWriter, tmpl string) {
@@ -47,7 +53,12 @@ func main() {
     
     flag.Parse()
     http.HandleFunc("/signup", signupHandler)
-    http.Handle("/css/", http.StripPrefix("/css/", http.FileServer(http.Dir("../../web/css"))))
+    http.Handle("/css/",
+        http.StripPrefix("/css/",
+        http.FileServer(http.Dir("../../web/css"))))
+    http.Handle("/js/",
+        http.StripPrefix("/js/",
+        http.FileServer(http.Dir("../../web/js"))))
 
     fmt.Printf("Listening on port %s\n", port)
     log.Fatal(http.ListenAndServe(":"+port, nil))
