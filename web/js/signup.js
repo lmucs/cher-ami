@@ -1,9 +1,10 @@
 $(function() {
 
-  $('#signupform').submit(function( event ) {
-    $.post(function (data) {
-      console.log(data);
-    })
+  $('#signup').click(function() {
+    $.post(
+      "http://localhost:8228/signup",
+      $("#signupform").serialize()
+    );
   });
 
 })
