@@ -21,6 +21,8 @@
 		132347A519BFC524002AA7D6 /* CherAmiTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 132347A419BFC524002AA7D6 /* CherAmiTests.m */; };
 		132347BA19BFD625002AA7D6 /* testHTTPViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 132347B819BFD625002AA7D6 /* testHTTPViewController.m */; };
 		132347BB19BFD625002AA7D6 /* testHTTPViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 132347B919BFD625002AA7D6 /* testHTTPViewController.xib */; };
+		13E1DA3019C6849B009C2993 /* MainStoryboard.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 13E1DA2F19C6849B009C2993 /* MainStoryboard.storyboard */; };
+		13E1DA3319C6873D009C2993 /* LoginViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 13E1DA3219C6873D009C2993 /* LoginViewController.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -53,6 +55,9 @@
 		132347B719BFD625002AA7D6 /* testHTTPViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = testHTTPViewController.h; sourceTree = "<group>"; };
 		132347B819BFD625002AA7D6 /* testHTTPViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = testHTTPViewController.m; sourceTree = "<group>"; };
 		132347B919BFD625002AA7D6 /* testHTTPViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = testHTTPViewController.xib; sourceTree = "<group>"; };
+		13E1DA2F19C6849B009C2993 /* MainStoryboard.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = MainStoryboard.storyboard; path = CherAmi/MainStoryboard.storyboard; sourceTree = "<group>"; };
+		13E1DA3119C6873D009C2993 /* LoginViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LoginViewController.h; sourceTree = "<group>"; };
+		13E1DA3219C6873D009C2993 /* LoginViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LoginViewController.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -82,6 +87,7 @@
 		1323477319BFC524002AA7D6 = {
 			isa = PBXGroup;
 			children = (
+				13E1DA2F19C6849B009C2993 /* MainStoryboard.storyboard */,
 				1323478519BFC524002AA7D6 /* CherAmi */,
 				1323479E19BFC524002AA7D6 /* CherAmiTests */,
 				1323477E19BFC524002AA7D6 /* Frameworks */,
@@ -115,6 +121,8 @@
 				1323478E19BFC524002AA7D6 /* AppDelegate.h */,
 				1323478F19BFC524002AA7D6 /* AppDelegate.m */,
 				132347B719BFD625002AA7D6 /* testHTTPViewController.h */,
+				13E1DA3119C6873D009C2993 /* LoginViewController.h */,
+				13E1DA3219C6873D009C2993 /* LoginViewController.m */,
 				132347B819BFD625002AA7D6 /* testHTTPViewController.m */,
 				132347B919BFD625002AA7D6 /* testHTTPViewController.xib */,
 				1323479119BFC524002AA7D6 /* Images.xcassets */,
@@ -229,6 +237,7 @@
 			files = (
 				1323478A19BFC524002AA7D6 /* InfoPlist.strings in Resources */,
 				132347BB19BFD625002AA7D6 /* testHTTPViewController.xib in Resources */,
+				13E1DA3019C6849B009C2993 /* MainStoryboard.storyboard in Resources */,
 				1323479219BFC524002AA7D6 /* Images.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -248,6 +257,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				13E1DA3319C6873D009C2993 /* LoginViewController.m in Sources */,
 				1323479019BFC524002AA7D6 /* AppDelegate.m in Sources */,
 				1323478C19BFC524002AA7D6 /* main.m in Sources */,
 				132347BA19BFD625002AA7D6 /* testHTTPViewController.m in Sources */,
@@ -447,6 +457,7 @@
 				132347AA19BFC524002AA7D6 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		132347AB19BFC524002AA7D6 /* Build configuration list for PBXNativeTarget "CherAmiTests" */ = {
 			isa = XCConfigurationList;
@@ -455,6 +466,7 @@
 				132347AD19BFC524002AA7D6 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

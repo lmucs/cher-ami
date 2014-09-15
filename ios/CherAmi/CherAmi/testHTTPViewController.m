@@ -67,7 +67,7 @@
         NSLog(@"value: %@", valueAsString);
     }
     
-    // extract specific value...
+    // extract specific value
     NSArray *results = [res objectForKey:@"results"];
     
     for (NSDictionary *result in results) {
