@@ -26,6 +26,7 @@ func main() {
 
     err = handler.SetRoutes(
         &rest.Route{"POST", "/signup", api.Signup},
+        &rest.Route{"GET", "/users/delete/:id", api.DeleteUser},
         //&rest.Route{"GET", "/message", GetAllMessages},
         &rest.Route{"POST", "/messages", api.CreateMessage},
         &rest.Route{"GET", "/messages/:id", api.GetMessage},
@@ -124,6 +125,16 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
     err = a.db.C("users").Insert(user)
     if err != nil {
         log.Fatal("Can't insert user: %v\n", err)
+    }
+}
+
+func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
+    bid := bson.ObjectIdHex(r.PathParam("id"))
+
+    err := a.db.C("users").Remove(bson.M{"_id": bid})
+    if err != nil {
+        rest.Error(w, err.Error(), http.StatusInternalServerError)
+        return
     }
 }
 
