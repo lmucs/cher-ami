@@ -145,7 +145,6 @@ func (a Api) Login(w rest.ResponseWriter, r *rest.Request) {
     }
     result := User{}
     err = a.db.C("users").Find(bson.M{"handle": credentials.Handle, "password": credentials.Password}).One(&result)
-    fmt.Println(result)
     if err != nil {
         rest.Error(w, err.Error(), http.StatusInternalServerError)
         return
