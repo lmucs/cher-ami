@@ -54,13 +54,19 @@ type Api struct {
 // this gives them an '_id' identifier
 //
 
+type (
+    UserId    string
+    MessageId string
+    CircleId  string
+)
+
 type Message struct {
-    Owner      string
+    Owner      UserId
     Created    time.Time
     Content    string
-    ResponseTo string       // "" if not response
-    RepostOf   string       // "" if not repost
-    Circles    []string
+    ResponseTo MessageId    // "" if not response
+    RepostOf   MessageId    // "" if not repost
+    Circles    []CircleId
 }
 
 type UserProposal struct {
@@ -69,13 +75,11 @@ type UserProposal struct {
     ConfirmPassword string
 }
 
-type UserId string
-
 type User struct {
-    Handle string
-    Password string
-    Joined time.Time
-    Follows []UserId
+    Handle       string
+    Password     string
+    Joined       time.Time
+    Follows      []UserId
     BlockedUsers []UserId
 }
 
@@ -87,7 +91,7 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
     proposal := UserProposal{}
 
     // expects a json POST with "Username", "Password", "ConfirmPassword"
-    err:= r.DecodeJsonPayload(&proposal)
+    err := r.DecodeJsonPayload(&proposal)
     if err != nil {
         rest.Error(w, err.Error(), http.StatusInternalServerError)
         return
@@ -147,7 +151,7 @@ func (a Api) CreateMessage(w rest.ResponseWriter, r *rest.Request) {
 }
 
 func (a Api) GetMessage(w rest.ResponseWriter, r *rest.Request) {
-    id := r.PathParam("id")
+    var id UserId = UserId(r.PathParam("id"))
     // sample
     message := Message{
         id,
@@ -155,7 +159,7 @@ func (a Api) GetMessage(w rest.ResponseWriter, r *rest.Request) {
         "This is a sample message, ayeee",
         "",
         "",
-        []string{"c_777", "c_w0qweq45", "c_888282"},
+        []CircleId{"c_777", "c_w0qweq45", "c_888282"},
     }
     w.WriteJson(message)
 }
