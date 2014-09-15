@@ -18,6 +18,7 @@ func main() {
     }
 
     session, err := mgo.Dial("mongodb://localhost")
+    //store := sessions.NewCookieStore([]byte("NON_LIVE_kvqy@qsCNio6ogQ&DxyxJb"))
     if err != nil {
         log.Fatal(err)
     }
