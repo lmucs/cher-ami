@@ -98,7 +98,7 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
     }
 
     // ensure unique handle
-    count, err := a.db.C("users").Find(bson.M{ "username": proposal.Handle }).Count()
+    count, err := a.db.C("users").Find(bson.M{ "handle": proposal.Handle }).Count()
     if count > 0 {
         rest.Error(w, proposal.Handle+" is already taken", 400)
         return
