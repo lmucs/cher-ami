@@ -4,8 +4,9 @@
 
 #header {
 	background-color: lightblue;
-        border-bottom: thick solid #35006F;
+    border-bottom: thick solid #35006F;
 }
+
 #footer :first-child {
 	color: white;
 }
@@ -32,6 +33,6 @@
 	padding-left: 20px;
 	margin-left: 10%
 }
-.col-xs-6 {
+.col-sm-6 {
 	width: 80%;
 }
