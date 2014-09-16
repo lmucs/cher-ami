@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-    port := "8228"
+    port    := "8228"
     handler := rest.ResourceHandler{
         EnableRelaxedContentType: true,
     }
@@ -22,16 +22,16 @@ func main() {
     }
 
     database := session.DB("cher-ami")
-    api := Api{session, database}
+    api      := Api{session, database}
 
     err = handler.SetRoutes(
-        &rest.Route{"POST", "/signup", api.Signup},
-        &rest.Route{"POST", "/login", api.Login},
-        &rest.Route{"GET", "/users/:id", api.GetUser},
+        &rest.Route{"POST",   "/signup", api.Signup},
+        &rest.Route{"POST",   "/login", api.Login},
+        &rest.Route{"GET",    "/users/:id", api.GetUser},
         &rest.Route{"DELETE", "/users/:id", api.DeleteUser},
-        //&rest.Route{"GET", "/message", GetAllMessages},
-        &rest.Route{"POST", "/messages", api.CreateMessage},
-        &rest.Route{"GET", "/messages/:id", api.GetMessage},
+        //&rest.Route{"GET",  "/message", GetAllMessages},
+        &rest.Route{"POST",   "/messages", api.CreateMessage},
+        &rest.Route{"GET",    "/messages/:id", api.GetMessage},
         &rest.Route{"DELETE", "/messages/:id", api.DeleteMessage},
     )
     if err != nil {
@@ -91,19 +91,21 @@ type User struct {
 }
 
 type UserSignIn struct {
-    Handle       string
-    Password     string
+    Handle     string
+    Password   string
 }
 
 //
 // API
 //
 
+/*
+ * Expects a json POST with "Username", "Password", "ConfirmPassword"
+ */
 func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
     proposal := UserProposal{}
 
-    // expects a json POST with "Username", "Password", "ConfirmPassword"
-    err := r.DecodeJsonPayload(&proposal)
+    err      := r.DecodeJsonPayload(&proposal)
     if err != nil {
         rest.Error(w, err.Error(), http.StatusInternalServerError)
         return
@@ -148,9 +150,11 @@ func (a Api) Login(w rest.ResponseWriter, r *rest.Request) {
         rest.Error(w, err.Error(), http.StatusInternalServerError)
         return
     }
+
     result := User{}
-    err = a.db.C("users").Find(bson.M{"handle": credentials.Handle, "password": credentials.Password}).One(&result)
-    fmt.Println(result)
+    err = a.db.C("users").
+            Find(bson.M{"handle": credentials.Handle, "password": credentials.Password}).
+            One(&result)
     if err != nil {
         rest.Error(w, err.Error(), http.StatusInternalServerError)
         return
@@ -161,11 +165,12 @@ func (a Api) GetUser(w rest.ResponseWriter, r *rest.Request) {
     type Options struct {
         Id   bson.ObjectId
     }
-    options := Options{}
-    options.Id = bson.ObjectIdHex(r.PathParam("id"))
-    found := User{}
-    err := a.db.C("users").Find(bson.M{"id": options.Id}).One(&found)
-    //fmt.Println(found)
+    options    := Options{}
+    options.Id  = bson.ObjectIdHex(r.PathParam("id"))
+    found      := User{}
+    err        := a.db.C("users").
+                    Find(bson.M{"id": options.Id}).
+                    One(&found)
     if err != nil {
         rest.Error(w, err.Error(), http.StatusInternalServerError)
         return
@@ -213,9 +218,9 @@ func (a Api) CreateMessage(w rest.ResponseWriter, r *rest.Request) {
 }
 
 func (a Api) GetMessage(w rest.ResponseWriter, r *rest.Request) {
-    bid := bson.ObjectIdHex(r.PathParam("id"))
+    bid     := bson.ObjectIdHex(r.PathParam("id"))
     message := Message{}
-    err := a.db.C("messages").Find(bson.M{"id": bid}).One(&message)
+    err     := a.db.C("messages").Find(bson.M{"id": bid}).One(&message)
     if err != nil {
         rest.Error(w, err.Error(), http.StatusInternalServerError)
         return
