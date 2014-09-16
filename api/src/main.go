@@ -4,7 +4,6 @@ import (
     "github.com/ant0ine/go-json-rest/rest"
     "gopkg.in/mgo.v2"
     "gopkg.in/mgo.v2/bson"
-    //"github.com/gorilla/sessions"
     "log"
     "net/http"
     "fmt"
@@ -18,7 +17,6 @@ func main() {
     }
 
     session, err := mgo.Dial("mongodb://localhost")
-    //store := sessions.NewCookieStore([]byte("NON_LIVE_kvqy@qsCNio6ogQ&DxyxJb"))
     if err != nil {
         log.Fatal(err)
     }
