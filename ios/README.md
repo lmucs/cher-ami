@@ -1,1 +1,0 @@
-CherAmi iOS client
