@@ -1,1 +1,0 @@
-This is the Cher-Ami Android README
