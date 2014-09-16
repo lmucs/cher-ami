@@ -213,17 +213,14 @@ func (a Api) CreateMessage(w rest.ResponseWriter, r *rest.Request) {
 }
 
 func (a Api) GetMessage(w rest.ResponseWriter, r *rest.Request) {
-    /*id := bson.ObjectId(r.PathParam("id"))
-    // sample
-    message := Message{
-        id,
-        time.Now().Local(),
-        "This is a sample message, ayeee",
-        "",
-        "",
-        []bson.ObjectId{},
+    bid := bson.ObjectIdHex(r.PathParam("id"))
+    message := Message{}
+    err := a.db.C("messages").Find(bson.M{"id": bid}).One(&message)
+    if err != nil {
+        rest.Error(w, err.Error(), http.StatusInternalServerError)
+        return
     }
-    w.WriteJson(message)*/
+    w.WriteJson(message)
 }
 
 func (a Api) DeleteMessage(w rest.ResponseWriter, r *rest.Request) {
