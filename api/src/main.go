@@ -51,6 +51,8 @@ type Api struct {
     db      *mgo.Database // main db
 }
 
+var NIL_ID bson.ObjectId = bson.NewObjectId()
+
 //
 // Data types
 // All data types are stored in mongodb,
@@ -180,11 +182,16 @@ func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
 }
 
 func (a Api) CreateMessage(w rest.ResponseWriter, r *rest.Request) {
-    message := Message{}
+    message := Message{
+        bson.NewObjectId(),
+        time.Now().Local(),
+        "",                     // content
+        NIL_ID,
+        NIL_ID,
+        []bson.ObjectId{},
+    }
 
-    // expects a json POST with Message properties, case-sensitive
-    // use custom strings as placeholders for testing. This will be
-    // remidied as the user api grows.
+    // should overwrite message with supplied properties like Content
     err := r.DecodeJsonPayload(&message)
     if err != nil {
         rest.Error(w, err.Error(), http.StatusInternalServerError)
