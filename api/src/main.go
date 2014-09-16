@@ -27,7 +27,8 @@ func main() {
     err = handler.SetRoutes(
         &rest.Route{"POST", "/signup", api.Signup},
         &rest.Route{"POST", "/login", api.Login},
-        &rest.Route{"GET", "/users/delete/:id", api.DeleteUser},
+        &rest.Route{"GET", "/users/:id", api.GetUser},
+        &rest.Route{"DELETE", "/users/:id", api.DeleteUser},
         //&rest.Route{"GET", "/message", GetAllMessages},
         &rest.Route{"POST", "/messages", api.CreateMessage},
         &rest.Route{"GET", "/messages/:id", api.GetMessage},
@@ -71,6 +72,12 @@ type Message struct {
     Circles    []CircleId
 }
 
+type Circle struct {
+    Owner      UserId
+    Members    []UserId
+    Name       string
+}
+
 type UserProposal struct {
     Handle          string
     Password        string
@@ -78,6 +85,7 @@ type UserProposal struct {
 }
 
 type User struct {
+    Id           bson.ObjectId
     Handle       string
     Password     string
     Joined       time.Time
@@ -122,6 +130,7 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
     }
 
     user := User{
+        bson.NewObjectId(),
         proposal.Handle,
         proposal.Password,  // plaintext for now
         time.Now().Local(),
@@ -144,6 +153,22 @@ func (a Api) Login(w rest.ResponseWriter, r *rest.Request) {
     }
     result := User{}
     err = a.db.C("users").Find(bson.M{"handle": credentials.Handle, "password": credentials.Password}).One(&result)
+    fmt.Println(result)
+    if err != nil {
+        rest.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+}
+
+func (a Api) GetUser(w rest.ResponseWriter, r *rest.Request) {
+    type Options struct {
+        Id   bson.ObjectId
+    }
+    options := Options{}
+    options.Id = bson.ObjectIdHex(r.PathParam("id"))
+    found := User{}
+    err := a.db.C("users").Find(bson.M{"id": options.Id}).One(&found)
+    //fmt.Println(found)
     if err != nil {
         rest.Error(w, err.Error(), http.StatusInternalServerError)
         return
