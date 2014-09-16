@@ -32,7 +32,7 @@ func main() {
         //&rest.Route{"GET", "/message", GetAllMessages},
         &rest.Route{"POST", "/messages", api.CreateMessage},
         &rest.Route{"GET", "/messages/:id", api.GetMessage},
-        //&rest.Route{"DELETE", "/message/:id", DeleteMessage},
+        &rest.Route{"DELETE", "/messages/:id", api.DeleteMessage},
     )
     if err != nil {
         log.Fatal(err)
@@ -175,7 +175,7 @@ func (a Api) GetUser(w rest.ResponseWriter, r *rest.Request) {
 func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
     bid := bson.ObjectIdHex(r.PathParam("id"))
 
-    err := a.db.C("users").Remove(bson.M{"_id": bid})
+    err := a.db.C("users").Remove(bson.M{"id": bid})
     if err != nil {
         rest.Error(w, err.Error(), http.StatusInternalServerError)
         return
@@ -185,6 +185,7 @@ func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
 func (a Api) CreateMessage(w rest.ResponseWriter, r *rest.Request) {
     message := Message{
         bson.NewObjectId(),
+        bson.NewObjectId(),     // owner ID
         time.Now().Local(),
         "",                     // content
         NIL_ID,
@@ -212,7 +213,7 @@ func (a Api) CreateMessage(w rest.ResponseWriter, r *rest.Request) {
 }
 
 func (a Api) GetMessage(w rest.ResponseWriter, r *rest.Request) {
-    id := bson.ObjectId(r.PathParam("id"))
+    /*id := bson.ObjectId(r.PathParam("id"))
     // sample
     message := Message{
         id,
@@ -222,5 +223,14 @@ func (a Api) GetMessage(w rest.ResponseWriter, r *rest.Request) {
         "",
         []bson.ObjectId{},
     }
-    w.WriteJson(message)
+    w.WriteJson(message)*/
+}
+
+func (a Api) DeleteMessage(w rest.ResponseWriter, r *rest.Request) {
+    bid := bson.ObjectIdHex(r.PathParam("id"))
+    err := a.db.C("messages").Remove(bson.M{"id": bid})
+    if err != nil {
+        rest.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
 }
