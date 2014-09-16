@@ -60,6 +60,7 @@ var NIL_ID bson.ObjectId = bson.NewObjectId()
 //
 
 type Message struct {
+    Id         bson.ObjectId
     Owner      bson.ObjectId
     Created    time.Time
     Content    string
