@@ -51,30 +51,26 @@ type Api struct {
     db      *mgo.Database // main db
 }
 
+var NIL_ID bson.ObjectId = bson.NewObjectId()
+
 //
 // Data types
 // All data types are stored in mongodb,
 // this gives them an '_id' identifier
 //
 
-type (
-    UserId    string
-    MessageId string
-    CircleId  string
-)
-
 type Message struct {
-    Owner      UserId
+    Owner      bson.ObjectId
     Created    time.Time
     Content    string
-    ResponseTo MessageId    // "" if not response
-    RepostOf   MessageId    // "" if not repost
-    Circles    []CircleId
+    ResponseTo bson.ObjectId
+    RepostOf   bson.ObjectId
+    Circles    []bson.ObjectId
 }
 
 type Circle struct {
-    Owner      UserId
-    Members    []UserId
+    Owner      bson.ObjectId
+    Members    []bson.ObjectId
     Name       string
 }
 
@@ -89,8 +85,8 @@ type User struct {
     Handle       string
     Password     string
     Joined       time.Time
-    Follows      []UserId
-    BlockedUsers []UserId
+    Follows      []bson.ObjectId
+    BlockedUsers []bson.ObjectId
 }
 
 type UserSignIn struct {
@@ -134,8 +130,8 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
         proposal.Handle,
         proposal.Password,  // plaintext for now
         time.Now().Local(),
-        []UserId{},
-        []UserId{},
+        []bson.ObjectId{},
+        []bson.ObjectId{},
     }
     err = a.db.C("users").Insert(user)
     if err != nil {
@@ -186,22 +182,28 @@ func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
 }
 
 func (a Api) CreateMessage(w rest.ResponseWriter, r *rest.Request) {
-    message := Message{}
+    message := Message{
+        bson.NewObjectId(),
+        time.Now().Local(),
+        "",                     // content
+        NIL_ID,
+        NIL_ID,
+        []bson.ObjectId{},
+    }
 
-    // expects a json POST with Message properties, case-sensitive
-    // use custom strings as placeholders for testing. This will be
-    // remidied as the user api grows.
-    err := r.DecodeJsonPayload(&message)
+    payload := Message{}
+    err     := r.DecodeJsonPayload(&payload)
     if err != nil {
         rest.Error(w, err.Error(), http.StatusInternalServerError)
         return
     }
+    message.Content = payload.Content
 
     if message.Content == "" {
         rest.Error(w, "please enter some content for your message", 400)
         return
     }
-    message.Created = time.Now().Local()
+
     err = a.db.C("messages").Insert(message)
     if err != nil {
         log.Fatal("Can't insert document: %v\n", err)
@@ -209,7 +211,7 @@ func (a Api) CreateMessage(w rest.ResponseWriter, r *rest.Request) {
 }
 
 func (a Api) GetMessage(w rest.ResponseWriter, r *rest.Request) {
-    var id UserId = UserId(r.PathParam("id"))
+    id := bson.ObjectId(r.PathParam("id"))
     // sample
     message := Message{
         id,
@@ -217,7 +219,7 @@ func (a Api) GetMessage(w rest.ResponseWriter, r *rest.Request) {
         "This is a sample message, ayeee",
         "",
         "",
-        []CircleId{"c_777", "c_w0qweq45", "c_888282"},
+        []bson.ObjectId{},
     }
     w.WriteJson(message)
 }
