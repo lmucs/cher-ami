@@ -191,18 +191,19 @@ func (a Api) CreateMessage(w rest.ResponseWriter, r *rest.Request) {
         []bson.ObjectId{},
     }
 
-    // should overwrite message with supplied properties like Content
-    err := r.DecodeJsonPayload(&message)
+    payload := Message{}
+    err     := r.DecodeJsonPayload(&payload)
     if err != nil {
         rest.Error(w, err.Error(), http.StatusInternalServerError)
         return
     }
+    message.Content = payload.Content
 
     if message.Content == "" {
         rest.Error(w, "please enter some content for your message", 400)
         return
     }
-    message.Created = time.Now().Local()
+
     err = a.db.C("messages").Insert(message)
     if err != nil {
         log.Fatal("Can't insert document: %v\n", err)
