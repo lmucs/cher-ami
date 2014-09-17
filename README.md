@@ -1,6 +1,5 @@
-CherAmi
-========
+![Logo](http://s23.postimg.org/w5t7pkcuz/Cherami_Logo_Web_Format.pngi =240px)
 
-Exclusive Content Sharing
+We're working on this README.
 
-A mobile and web app produced by LMUCS's 2015 class
+For now, go checkout the [wiki](https://github.com/rtoal/cher-ami/wiki).
