@@ -1,4 +1,4 @@
-![Logo](http://s23.postimg.org/w5t7pkcuz/Cherami_Logo_Web_Format.pngi =240px)
+![Logo](http://s23.postimg.org/w5t7pkcuz/Cherami_Logo_Web_Format.png =200x)
 
 We're working on this README.
 
