@@ -1,5 +1,3 @@
-<img src="http://s23.postimg.org/w5t7pkcuz/Cherami_Logo_Web_Format.png" style="width:200px;" alt="Logo"/>
-
 ![Logo](web/images/header-logo.png)
 
 We're working on this README.
