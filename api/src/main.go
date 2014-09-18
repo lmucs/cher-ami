@@ -27,7 +27,7 @@ func main() {
     err = handler.SetRoutes(
         &rest.Route{"POST",   "/signup", api.Signup},
         &rest.Route{"POST",   "/login", api.Login},
-        &rest.Route{"GET",    "/users/:id", api.GetUser},
+        &rest.Route{"GET",    "/users", api.GetUser},
         &rest.Route{"DELETE", "/users/:id", api.DeleteUser},
         //&rest.Route{"GET",  "/message", GetAllMessages},
         &rest.Route{"POST",   "/messages", api.CreateMessage},
@@ -162,19 +162,45 @@ func (a Api) Login(w rest.ResponseWriter, r *rest.Request) {
 }
 
 func (a Api) GetUser(w rest.ResponseWriter, r *rest.Request) {
-    type Options struct {
-        Id   bson.ObjectId
-    }
-    options    := Options{}
-    options.Id  = bson.ObjectIdHex(r.PathParam("id"))
-    found      := User{}
-    err        := a.db.C("users").
-                    Find(bson.M{"id": options.Id}).
+    querymap   := r.URL.Query()
+    
+    // Get by id
+    if id, ok  := querymap["id"]; ok {
+        found  := User{}
+        err    := a.db.C("users").
+                    Find(bson.M{ "id": bson.ObjectIdHex(id[0]) }).
                     One(&found)
-    if err != nil {
-        rest.Error(w, err.Error(), http.StatusInternalServerError)
+        if err != nil {
+            rest.Error(w, err.Error(), http.StatusInternalServerError)
+            return
+        }
+        w.WriteJson(found)
         return
     }
+
+    // Get by handle
+    if handle, ok := querymap["handle"]; ok {
+        found     := User{}
+        err       := a.db.C("users").
+                    Find(bson.M{ "handle": handle[0] }).
+                    One(&found)
+        if err != nil {
+            rest.Error(w, err.Error(), http.StatusInternalServerError)
+            return
+        }
+        w.WriteJson(found)
+        return
+    }
+
+    // All users
+    var users []interface{}
+
+    a.db.C("users").
+        Find(bson.M{}).
+        Select(bson.M{ "handle":1 }).
+        All(&users)
+
+    w.WriteJson(users)
 }
 
 func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
