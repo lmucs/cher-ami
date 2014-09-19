@@ -1,47 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"-->
-    <!--xmlns:tools="http://schemas.android.com/tools"-->
-    <!--android:layout_width="match_parent"-->
-    <!--android:layout_height="match_parent"-->
-    <!--android:orientation="horizontal">-->
-    <!--<EditText android:id="@+id/edit_message"-->
-        <!--android:layout_weight="1"-->
-        <!--android:layout_width="0dp"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:hint="@string/handle" />-->
-    <!--<EditText android:id="@+id/edit_message"-->
-        <!--android:layout_weight="1"-->
-        <!--android:layout_width="0dp"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:hint="@string/handle" />-->
-    <!--<Button-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:text="@string/button_login" />-->
-
-<!--</LinearLayout>-->
-
-
-
-<!--<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"-->
-<!--xmlns:tools="http://schemas.android.com/tools"-->
-<!--android:layout_width="match_parent"-->
-<!--android:layout_height="match_parent"-->
-<!--android:orientation="horizontal">-->
-<!--<EditText-->
-    <!--android:id="@+id/edit_message"-->
-    <!--android:layout_weight="1"-->
-    <!--android:layout_width="0dp"-->
-    <!--android:layout_height="wrap_content"-->
-    <!--android:hint="@string/handle" />-->
-
-<!--<Button-->
-    <!--android:layout_width="wrap_content"-->
-    <!--android:layout_height="wrap_content"-->
-    <!--android:text="@string/button_login" />-->
-
-<!--</RelativeLayout>-->
-
 
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
@@ -77,13 +34,9 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/login"
         android:layout_alignParentRight="true"
-        android:text="Create Account" />
+        android:text="Create Account"
+        android:onClick="createAccount" />
 </RelativeLayout>
-
-
-
-
-
 
 
 <!--<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"-->
