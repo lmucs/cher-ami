@@ -10,6 +10,7 @@
     <string name="handle">Handle/username</string>
     <string name="button_login">Log in</string>
     <string name="Password">Password</string>
+    <string name="Email">E-mail</string>
     <string name="confirmPassword">Confirm Password</string>
 
 </resources>
