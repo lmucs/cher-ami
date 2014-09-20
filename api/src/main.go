@@ -2,14 +2,19 @@ package main
 
 import (
     "github.com/ant0ine/go-json-rest/rest"
-    _ "github.com/lib/pq"
-    "database/sql"
-    "github.com/gorilla/schema"
+    "github.com/jmcvetta/neoism"
+    //"github.com/gorilla/schema"
     "log"
     "net/http"
     "fmt"
     "time"
 )
+
+func panicErr(err error) {
+    if err != nil {
+        panic(err)
+    }
+}
 
 func main() {
     port    := "8228"
@@ -17,21 +22,19 @@ func main() {
         EnableRelaxedContentType: true,
     }
 
-    db, err := sql.Open(
-        "postgres",
-        "user=pqgotest dbname=pqgotest sslmode=verify-full")
+    db, err := neoism.Connect("http://107.170.229.205:7474/data/db")
     if  err != nil {
         log.Fatal(err)
     }
 
-    // api      := Api{session, database}
+    api      := Api{db}
 
     err = handler.SetRoutes(
         &rest.Route{"POST",   "/signup", api.Signup},
         // &rest.Route{"POST",   "/login", api.Login},
         // &rest.Route{"GET",    "/users", api.GetUser},
         // &rest.Route{"DELETE", "/users/:id", api.DeleteUser},
-        // //&rest.Route{"GET",  "/message", GetAllMessages},
+        // &rest.Route{"GET",  "/message", GetAllMessages},
         // &rest.Route{"POST",   "/messages", api.CreateMessage},
         // &rest.Route{"GET",    "/messages/:id", api.GetMessage},
         // &rest.Route{"DELETE", "/messages/:id", api.DeleteMessage},
@@ -49,7 +52,7 @@ func main() {
 //
 
 type Api struct {
-    db   *sql.DB
+    db   *neoism.Database
 }
 
 //
@@ -58,7 +61,7 @@ type Api struct {
 // this gives them an '_id' identifier
 //
 
-type Message struct {
+/*type Message struct {
     Id         bson.ObjectId
     Owner      bson.ObjectId
     Created    time.Time
@@ -72,7 +75,7 @@ type Circle struct {
     Owner      bson.ObjectId
     Members    []bson.ObjectId
     Name       string
-}
+}*/
 
 type UserProposal struct {
     Handle          string
@@ -109,14 +112,41 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
         return
     }
 
-    values   := map[string][]{
-        "Handle":   { proposal.Handle },
-        "Password": { proposal.Password },
-        "Joined":   { time.Time },
+    stmt := `CREATE (user:User { handle:{handle}, password:{password}, joined: {joined} })
+             RETURN user`
+
+    res := []struct {
+        User neoism.Node
+    }{}
+
+    params := neoism.Props{
+        "handle": proposal.Handle,
+        "password": proposal.Password,
+        "joined": time.Now().Local(),
     }
 
-    
+    cq := neoism.CypherQuery {
+        Statement: stmt,
+        Parameters: params,
+        Result: &res,
+    }
 
+    err = a.db.Cypher(&cq)
+    panicErr(err)
+
+    // check results
+    if len(res) != 1 {
+        panic(fmt.Sprintf("Incorrect results len in query1()\n\tgot %d, expected 1\n", len(res)))
+    }
+
+    n := res[0].User // Only one row of data returned
+    fmt.Println("createNode()", n.Data)
+
+    //values   := map[string][]{
+    //    "Handle":   { proposal.Handle },
+    //    "Password": { proposal.Password },
+    //    "Joined":   { time.Time },
+    //}
 
     // ensure unique handle
     // count, err := a.db.C("users").Find(bson.M{ "handle": proposal.Handle }).Count()
@@ -134,19 +164,6 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
     //     rest.Error(w, "Passwords do not match", 400)
     //     return
     // }
-
-    user := User{
-        bson.NewObjectId(),
-        proposal.Handle,
-        proposal.Password,  // plaintext for now
-        time.Now().Local(),
-        []bson.ObjectId{},
-        []bson.ObjectId{},
-    }
-    err = a.db.C("users").Insert(user)
-    if err != nil {
-        log.Fatal("Can't insert user: %v\n", err)
-    }
 }
 
 /* Transition to PostgreSQL in progress */
@@ -172,7 +189,7 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 
 // func (a Api) GetUser(w rest.ResponseWriter, r *rest.Request) {
 //     querymap   := r.URL.Query()
-    
+
 //     // Get by id
 //     if id, ok  := querymap["id"]; ok {
 //         found  := User{}
