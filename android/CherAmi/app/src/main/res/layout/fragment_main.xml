@@ -4,7 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:paddingLeft="16dp"
-    android:paddingRight="16dp" >
+    android:paddingRight="16dp"
+    android:paddingBottom="16dp">
     <EditText
         android:id="@+id/name"
         android:layout_width="match_parent"
@@ -36,19 +37,32 @@
         android:layout_below="@id/textpassword"
         android:hint="@string/confirmPassword" />
     <Button
-        android:id="@+id/login"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
         android:layout_below="@id/confirmPassword"
-        android:layout_alignParentRight="true"
-        android:text="Login" />
-    <Button
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/login"
-        android:layout_alignParentRight="true"
         android:text="Create Account"
         android:onClick="createAccount"
         android:id="@+id/button" />
+    <Button
+        android:id="@+id/login"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:text="Login" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="Already Have an Account?"
+        android:id="@+id/textView"
+        android:singleLine="false"
+        android:gravity="center"
+        android:layout_marginBottom="10dp"
+        android:layout_above="@+id/login"
+        android:layout_alignLeft="@+id/login"
+        android:layout_alignStart="@+id/login" />
 
 </RelativeLayout>
