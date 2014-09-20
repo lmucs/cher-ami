@@ -16,13 +16,20 @@ func panicErr(err error) {
     }
 }
 
+func httpError(w rest.ResponseWriter, err error) {
+    if err != nil {
+        rest.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+}
+
 func main() {
     port    := "8228"
     handler := rest.ResourceHandler{
         EnableRelaxedContentType: true,
     }
 
-    db, err := neoism.Connect("http://107.170.229.205:7474/data/db")
+    db, err := neoism.Connect("http://localhost:7474/db/data")
     if  err != nil {
         log.Fatal(err)
     }
@@ -32,7 +39,7 @@ func main() {
     err = handler.SetRoutes(
         &rest.Route{"POST",   "/signup", api.Signup},
         // &rest.Route{"POST",   "/login", api.Login},
-        // &rest.Route{"GET",    "/users", api.GetUser},
+        &rest.Route{"GET",    "/users", api.GetUser},
         // &rest.Route{"DELETE", "/users/:id", api.DeleteUser},
         // &rest.Route{"GET",  "/message", GetAllMessages},
         // &rest.Route{"POST",   "/messages", api.CreateMessage},
@@ -84,12 +91,9 @@ type UserProposal struct {
     ConfirmPassword string
 }
 
-type User struct {
+type UserView struct {
     Handle       string
-    Password     string
     Joined       time.Time
-    // Follows      []bson.ObjectId
-    // BlockedUsers []bson.ObjectId
 }
 
 type UserSignIn struct {
@@ -116,7 +120,7 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
              RETURN user`
 
     res := []struct {
-        User neoism.Node
+        User   neoism.Node
     }{}
 
     params := neoism.Props{
@@ -141,12 +145,6 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 
     n := res[0].User // Only one row of data returned
     fmt.Println("createNode()", n.Data)
-
-    //values   := map[string][]{
-    //    "Handle":   { proposal.Handle },
-    //    "Password": { proposal.Password },
-    //    "Joined":   { time.Time },
-    //}
 
     // ensure unique handle
     // count, err := a.db.C("users").Find(bson.M{ "handle": proposal.Handle }).Count()
@@ -187,47 +185,61 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 //     }
 // }
 
-// func (a Api) GetUser(w rest.ResponseWriter, r *rest.Request) {
-//     querymap   := r.URL.Query()
+func (a Api) GetUser(w rest.ResponseWriter, r *rest.Request) {
+    querymap   := r.URL.Query()
 
-//     // Get by id
-//     if id, ok  := querymap["id"]; ok {
-//         found  := User{}
-//         err    := a.db.C("users").
-//                     Find(bson.M{ "id": bson.ObjectIdHex(id[0]) }).
-//                     One(&found)
-//         if err != nil {
-//             rest.Error(w, err.Error(), http.StatusInternalServerError)
-//             return
-//         }
-//         w.WriteJson(found)
-//         return
-//     }
+    // Get by handle
+    if handle, ok := querymap["handle"]; ok {
 
-//     // Get by handle
-//     if handle, ok := querymap["handle"]; ok {
-//         found     := User{}
-//         err       := a.db.C("users").
-//                     Find(bson.M{ "handle": handle[0] }).
-//                     One(&found)
-//         if err != nil {
-//             rest.Error(w, err.Error(), http.StatusInternalServerError)
-//             return
-//         }
-//         w.WriteJson(found)
-//         return
-//     }
+        stmt := `MATCH (user:User)
+                 WHERE user.handle = {handle}
+                 RETURN user`
+        params := neoism.Props{
+            "handle": handle[0],
+        }
+        res := []struct{
+            User   neoism.Node
+        }{}
 
-//     // All users
-//     var users []interface{}
+        cq := neoism.CypherQuery{
+            Statement:   stmt,
+            Parameters:  params,
+            Result:      &res,
+        }
 
-//     a.db.C("users").
-//         Find(bson.M{}).
-//         Select(bson.M{ "handle":1 }).
-//         All(&users)
+        err := a.db.Cypher(&cq)
+        panicErr(err)
 
-//     w.WriteJson(users)
-// }
+        u := res[0].User.Data
+
+        w.WriteJson(u)
+        return
+    }
+
+    // // Get by id
+    // if id, ok  := querymap["id"]; ok {
+    //     found  := User{}
+    //     err    := a.db.C("users").
+    //                 Find(bson.M{ "id": bson.ObjectIdHex(id[0]) }).
+    //                 One(&found)
+    //     if err != nil {
+    //         rest.Error(w, err.Error(), http.StatusInternalServerError)
+    //         return
+    //     }
+    //     w.WriteJson(found)
+    //     return
+    // }
+
+
+    // // All users
+    // var users []interface{}
+
+    // a.db.C("users").
+    //     Find(bson.M{}).
+    //     Select(bson.M{ "handle":1 }).
+    //     All(&users)
+
+}
 
 // func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
 //     bid := bson.ObjectIdHex(r.PathParam("id"))
