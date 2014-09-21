@@ -40,7 +40,7 @@ func main() {
 		&rest.Route{"POST", "/signup", api.Signup},
 		// &rest.Route{"POST",   "/login", api.Login},
 		&rest.Route{"GET", "/users", api.GetUser},
-		// &rest.Route{"DELETE", "/users/:id", api.DeleteUser},
+		&rest.Route{"DELETE", "/users", api.DeleteUser},
 		// &rest.Route{"GET",  "/message", GetAllMessages},
 		// &rest.Route{"POST",   "/messages", api.CreateMessage},
 		// &rest.Route{"GET",    "/messages/:id", api.GetMessage},
@@ -229,28 +229,81 @@ func (a Api) GetUser(w rest.ResponseWriter, r *rest.Request) {
 
 	if len(res) > 0 {
 		w.WriteJson(res)
-		// for _, user := range res {
-		// 	t := user.Joined.Format(time.RFC1123)
-		// 	fmt.Printf("  %-16s  %-16s\n", user.Handle, t)
-		// }
 	} else {
-		w.WriteJson(struct {
-			Response string
-		}{
-			"No results found",
+		w.WriteJson(map[string]string{
+			"Response": "No results found",
 		})
 	}
 }
 
-// func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
-//     bid := bson.ObjectIdHex(r.PathParam("id"))
+func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
+	querymap := r.URL.Query()
 
-//     err := a.db.C("users").Remove(bson.M{"id": bid})
-//     if err != nil {
-//         rest.Error(w, err.Error(), http.StatusInternalServerError)
-//         return
-//     }
-// }
+	fmt.Println(r.URL.RequestURI())
+
+	if handle, ok := querymap["handle"]; ok {
+		if password, okok := querymap["password"]; okok {
+
+			fmt.Println("Entered...")
+
+			var handle = handle[0]
+			var password = password[0]
+
+			res := []struct {
+				HandleToBeDeleted string `json:"user.handle"`
+			}{}
+			err := a.db.Cypher(&neoism.CypherQuery{
+				Statement: `
+                    MATCH (user:User {handle:{handle}, password:{password}})
+                    RETURN user.handle
+                `,
+				Parameters: neoism.Props{
+					"handle":   handle,
+					"password": password,
+				},
+				Result: &res,
+			})
+			panicErr(err)
+
+			fmt.Println("Found user to delete...")
+			fmt.Printf("res length %d\n", len(res))
+
+			if len(res) > 0 {
+				err := a.db.Cypher(&neoism.CypherQuery{
+					// Delete user node
+					Statement: `
+                        MATCH (u:User {handle: {handle}})
+                        DELETE u
+                    `,
+					Parameters: neoism.Props{
+						"handle": handle,
+					},
+					Result: nil,
+				})
+				panicErr(err)
+
+				fmt.Println("About to print json...")
+
+				w.WriteJson(map[string]string{
+					"Response": "Deleted " + handle + " and all relations",
+				})
+
+				fmt.Println("Wrote json... (done)")
+				return
+			} else {
+				w.WriteHeader(403)
+				w.WriteJson(map[string]string{
+					"Response": "Could not delete user with supplied credentials",
+				})
+				return
+			}
+		}
+	}
+	w.WriteHeader(403)
+	w.WriteJson(map[string]string{
+		"Error": "Bad request parameters for delete, expected handle:String, password:String",
+	})
+}
 
 // func (a Api) CreateMessage(w rest.ResponseWriter, r *rest.Request) {
 //     message := Message{
