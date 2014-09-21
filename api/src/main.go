@@ -91,11 +91,6 @@ type UserProposal struct {
 	ConfirmPassword string
 }
 
-type UserView struct {
-	Handle string
-	Joined time.Time
-}
-
 type UserSignIn struct {
 	Handle   string
 	Password string
@@ -116,52 +111,63 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	stmt := `CREATE (user:User { handle:{handle}, password:{password}, joined: {joined} })
-             RETURN user`
+	// Password checks
+	if proposal.Password != proposal.ConfirmPassword {
+		rest.Error(w, "Passwords do not match", 400)
+		return
+	}
 
-	res := []struct {
-		User neoism.Node
+	// Ensure unique handle
+	foundUsers := []struct {
+		Handle string `json:"user.handle"`
 	}{}
-
-	params := neoism.Props{
-		"handle":   proposal.Handle,
-		"password": proposal.Password,
-		"joined":   time.Now().Local(),
+	err = a.db.Cypher(&neoism.CypherQuery{
+		Statement: `
+            MATCH (user:User {handle:{handle}})
+            RETURN user.handle
+        `,
+		Parameters: neoism.Props{
+			"handle": proposal.Handle,
+		},
+		Result: &foundUsers,
+	})
+	httpError(w, err)
+	if len(foundUsers) > 0 {
+		rest.Error(w, proposal.Handle+" is already taken", 400)
+		return
 	}
 
-	cq := neoism.CypherQuery{
-		Statement:  stmt,
-		Parameters: params,
-		Result:     &res,
-	}
-
-	err = a.db.Cypher(&cq)
+	newUser := []struct {
+		Handle string    `json:"user.handle"`
+		Joined time.Time `json:"user.joined"`
+	}{}
+	err = a.db.Cypher(&neoism.CypherQuery{
+		Statement: `
+            CREATE (user:User { handle:{handle}, password:{password}, joined: {joined} })
+            RETURN user.handle, user.joined
+        `,
+		Parameters: neoism.Props{
+			"handle":   proposal.Handle,
+			"password": proposal.Password,
+			"joined":   time.Now().Local(),
+		},
+		Result: &newUser,
+	})
 	panicErr(err)
 
-	// check resultsGOPATH
-	if len(res) != 1 {
-		panic(fmt.Sprintf("Incorrect results len in query1()\n\tgot %d, expected 1\n", len(res)))
+	if len(newUser) != 1 {
+		panic(fmt.Sprintf("Incorrect results len in query1()\n\tgot %d, expected 1\n", len(newUser)))
 	}
 
-	n := res[0].User // Only one row of data returned
-	fmt.Println("createNode()", n.Data)
+	var handle string = newUser[0].Handle
+	var joined string = newUser[0].Joined.Format(time.RFC1123)
 
-	// ensure unique handle
-	// count, err := a.db.C("users").Find(bson.M{ "handle": proposal.Handle }).Count()
-	// if count > 0 {
-	//     rest.Error(w, proposal.Handle+" is already taken", 400)
-	//     return
-	// }
-	// if err != nil {
-	//     rest.Error(w, err.Error(), http.StatusInternalServerError)
-	//     return
-	// }
+	w.WriteJson(map[string]string{
+		"Response": "Signed up a new user!",
+		"Handle":   handle,
+		"Joined":   joined,
+	})
 
-	// password checks
-	// if proposal.Password != proposal.ConfirmPassword {
-	//     rest.Error(w, "Passwords do not match", 400)
-	//     return
-	// }
 }
 
 // func (a Api) Login(w rest.ResponseWriter, r *rest.Request) {
@@ -239,12 +245,8 @@ func (a Api) GetUser(w rest.ResponseWriter, r *rest.Request) {
 func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
 	querymap := r.URL.Query()
 
-	fmt.Println(r.URL.RequestURI())
-
 	if handle, ok := querymap["handle"]; ok {
 		if password, okok := querymap["password"]; okok {
-
-			fmt.Println("Entered...")
 
 			var handle = handle[0]
 			var password = password[0]
@@ -265,9 +267,6 @@ func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
 			})
 			panicErr(err)
 
-			fmt.Println("Found user to delete...")
-			fmt.Printf("res length %d\n", len(res))
-
 			if len(res) > 0 {
 				err := a.db.Cypher(&neoism.CypherQuery{
 					// Delete user node
@@ -282,13 +281,9 @@ func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
 				})
 				panicErr(err)
 
-				fmt.Println("About to print json...")
-
 				w.WriteJson(map[string]string{
-					"Response": "Deleted " + handle + " and all relations",
+					"Response": "Deleted " + handle,
 				})
-
-				fmt.Println("Wrote json... (done)")
 				return
 			} else {
 				w.WriteHeader(403)
