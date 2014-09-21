@@ -228,13 +228,17 @@ func (a Api) GetUser(w rest.ResponseWriter, r *rest.Request) {
 	panicErr(err)
 
 	if len(res) > 0 {
-		fmt.Println("All users:")
-		for _, user := range res {
-			t := user.Joined.Format(time.RFC1123)
-			fmt.Printf("  %-16s  %-16s\n", user.Handle, t)
-		}
+		w.WriteJson(res)
+		// for _, user := range res {
+		// 	t := user.Joined.Format(time.RFC1123)
+		// 	fmt.Printf("  %-16s  %-16s\n", user.Handle, t)
+		// }
 	} else {
-		fmt.Println("No results found")
+		w.WriteJson(struct {
+			Response string
+		}{
+			"No results found",
+		})
 	}
 }
 
