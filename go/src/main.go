@@ -4,11 +4,10 @@ import (
 	"github.com/ant0ine/go-json-rest/rest"
 	"github.com/jmcvetta/neoism"
 	//"github.com/gorilla/schema"
+	cheramiapi "./api"
 	"fmt"
 	"log"
 	"net/http"
-	"src/api"
-	"time"
 )
 
 func main() {
@@ -22,7 +21,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	api := Api{db}
+	api := &cheramiapi.Api{db}
 
 	err = handler.SetRoutes(
 		&rest.Route{"POST", "/signup", api.Signup},

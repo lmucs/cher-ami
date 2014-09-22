@@ -5,7 +5,6 @@ import (
 	"github.com/jmcvetta/neoism"
 	//"github.com/gorilla/schema"
 	"fmt"
-	"log"
 	"net/http"
 	"time"
 )
@@ -28,7 +27,7 @@ func httpError(w rest.ResponseWriter, err error) {
 //
 
 type Api struct {
-	db *neoism.Database
+	Db *neoism.Database
 }
 
 //
@@ -85,7 +84,7 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 	foundUsers := []struct {
 		Handle string `json:"user.handle"`
 	}{}
-	err = a.db.Cypher(&neoism.CypherQuery{
+	err = a.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
             MATCH (user:User {handle:{handle}})
             RETURN user.handle
@@ -105,7 +104,7 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 		Handle string    `json:"user.handle"`
 		Joined time.Time `json:"user.joined"`
 	}{}
-	err = a.db.Cypher(&neoism.CypherQuery{
+	err = a.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
             CREATE (user:User { handle:{handle}, password:{password}, joined: {joined} })
             RETURN user.handle, user.joined
@@ -149,7 +148,7 @@ func (a Api) Login(w rest.ResponseWriter, r *rest.Request) {
 	found := []struct {
 		Handle string `json:"user.handle"`
 	}{}
-	err = a.db.Cypher(&neoism.CypherQuery{
+	err = a.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
             MATCH (user:User {handle:{handle}, password:{password}})
             RETURN user.handle
@@ -188,7 +187,7 @@ func (a Api) GetUser(w rest.ResponseWriter, r *rest.Request) {
 			User neoism.Node
 		}{}
 
-		err := a.db.Cypher(&neoism.CypherQuery{
+		err := a.Db.Cypher(&neoism.CypherQuery{
 			Statement:  stmt,
 			Parameters: params,
 			Result:     &res,
@@ -210,7 +209,7 @@ func (a Api) GetUser(w rest.ResponseWriter, r *rest.Request) {
 		Joined time.Time `json:"user.joined"`
 	}{}
 
-	err := a.db.Cypher(&neoism.CypherQuery{
+	err := a.Db.Cypher(&neoism.CypherQuery{
 		Statement:  stmt,
 		Parameters: neoism.Props{},
 		Result:     &res,
@@ -238,7 +237,7 @@ func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
 			res := []struct {
 				HandleToBeDeleted string `json:"user.handle"`
 			}{}
-			err := a.db.Cypher(&neoism.CypherQuery{
+			err := a.Db.Cypher(&neoism.CypherQuery{
 				Statement: `
                     MATCH (user:User {handle:{handle}, password:{password}})
                     RETURN user.handle
@@ -252,7 +251,7 @@ func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
 			panicErr(err)
 
 			if len(res) > 0 {
-				err := a.db.Cypher(&neoism.CypherQuery{
+				err := a.Db.Cypher(&neoism.CypherQuery{
 					// Delete user node
 					Statement: `
                         MATCH (u:User {handle: {handle}})
@@ -308,7 +307,7 @@ func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
 //         return
 //     }
 
-//     err = a.db.C("messages").Insert(message)
+//     err = a.Db.C("messages").Insert(message)
 //     if err != nil {
 //         log.Fatal("Can't insert document: %v\n", err)
 //     }
@@ -317,7 +316,7 @@ func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
 // func (a Api) GetMessage(w rest.ResponseWriter, r *rest.Request) {
 //     bid     := bson.ObjectIdHex(r.PathParam("id"))
 //     message := Message{}
-//     err     := a.db.C("messages").Find(bson.M{"id": bid}).One(&message)
+//     err     := a.Db.C("messages").Find(bson.M{"id": bid}).One(&message)
 //     if err != nil {
 //         rest.Error(w, err.Error(), http.StatusInternalServerError)
 //         return
@@ -327,7 +326,7 @@ func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
 
 // func (a Api) DeleteMessage(w rest.ResponseWriter, r *rest.Request) {
 //     bid := bson.ObjectIdHex(r.PathParam("id"))
-//     err := a.db.C("messages").Remove(bson.M{"id": bid})
+//     err := a.Db.C("messages").Remove(bson.M{"id": bid})
 //     if err != nil {
 //         rest.Error(w, err.Error(), http.StatusInternalServerError)
 //         return
