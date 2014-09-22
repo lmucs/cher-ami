@@ -5,6 +5,7 @@ import (
 	"github.com/dchest/uniuri"
 	"github.com/jmcvetta/neoism"
 	//"github.com/gorilla/schema"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -58,6 +59,33 @@ type UserProposal struct {
 	Email           string
 	Password        string
 	ConfirmPassword string
+}
+
+//
+// API util
+//
+
+// Errors if authentication is not successful
+func (a Api) authenticate(w rest.ResponseWriter, handle string, sessionid string) {
+	found := []struct {
+		Handle string `json:"user.handle"`
+	}{}
+	dberr := a.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+            MATCH (user:User (handle:{handle}, sessionid:{sessionid}))
+            RETURN user.handle
+        `,
+		Parameters: neoism.Props{
+			"handle":    handle,
+			"sessionid": sessionid,
+		},
+		Result: &found,
+	})
+	panicErr(dberr)
+
+	if len(found) == 0 {
+		rest.Error(w, "Could not authenticate user "+handle, 400)
+	}
 }
 
 //
@@ -170,10 +198,10 @@ func (a Api) Login(w rest.ResponseWriter, r *rest.Request) {
 		}{}
 		a.Db.Cypher(&neoism.CypherQuery{
 			Statement: `
-				MATCH (user:User {handle:{handle}, password:{password}})
-				SET user.sessionid = {sessionid}
-				return user.sessionid
-			`,
+                MATCH (user:User {handle:{handle}, password:{password}})
+                SET user.sessionid = {sessionid}
+                return user.sessionid
+            `,
 			Parameters: neoism.Props{
 				"handle":    credentials.Handle,
 				"password":  credentials.Password,
