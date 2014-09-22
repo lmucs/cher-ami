@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/ant0ine/go-json-rest/rest"
+	"github.com/dchest/uniuri"
 	"github.com/jmcvetta/neoism"
 	//"github.com/gorilla/schema"
 	"fmt"
@@ -138,7 +139,6 @@ func (a Api) Login(w rest.ResponseWriter, r *rest.Request) {
 		Handle   string
 		Password string
 	}{}
-
 	err := r.DecodeJsonPayload(&credentials)
 	if err != nil {
 		rest.Error(w, err.Error(), http.StatusInternalServerError)
@@ -161,10 +161,33 @@ func (a Api) Login(w rest.ResponseWriter, r *rest.Request) {
 	})
 	panicErr(err)
 
+	// Add session hash (16 chars) to node and return it to client in json res
 	if len(found) > 0 {
+		sessionHash := uniuri.New()
+
+		idResponse := []struct {
+			SessionId string `json:"user.sessionid"`
+		}{}
+		a.Db.Cypher(&neoism.CypherQuery{
+			Statement: `
+				MATCH (user:User {handle:{handle}, password:{password}})
+				SET user.sessionid = {sessionid}
+				return user.sessionid
+			`,
+			Parameters: neoism.Props{
+				"handle":    credentials.Handle,
+				"password":  credentials.Password,
+				"sessionid": sessionHash,
+			},
+			Result: &idResponse,
+		})
+		if len(idResponse) != 1 {
+			panic(fmt.Sprintf("Incorrect results len in query1()\n\tgot %d, expected 1\n", len(idResponse)))
+		}
+
 		w.WriteJson(map[string]string{
-			"Response": "Correct credentials for " + credentials.Handle +
-				". However sessions are not yet implemented so this is all you get!",
+			"Response":  "Logged in " + credentials.Handle + ". Note your session id.",
+			"SessionId": sessionHash,
 		})
 		return
 	} else {

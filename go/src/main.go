@@ -1,11 +1,10 @@
 package main
 
 import (
-	"github.com/ant0ine/go-json-rest/rest"
-	"github.com/jmcvetta/neoism"
-	//"github.com/gorilla/schema"
 	cheramiapi "./api"
 	"fmt"
+	"github.com/ant0ine/go-json-rest/rest"
+	"github.com/jmcvetta/neoism"
 	"log"
 	"net/http"
 )
@@ -16,12 +15,12 @@ func main() {
 		EnableRelaxedContentType: true,
 	}
 
-	db, err := neoism.Connect("http://localhost:7474/db/data")
+	neo4jdb, err := neoism.Connect("http://localhost:7474/db/data")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	api := &cheramiapi.Api{db}
+	api := &cheramiapi.Api{neo4jdb}
 
 	err = handler.SetRoutes(
 		&rest.Route{"POST", "/signup", api.Signup},
