@@ -38,7 +38,7 @@ func main() {
 
 	err = handler.SetRoutes(
 		&rest.Route{"POST", "/signup", api.Signup},
-		// &rest.Route{"POST",   "/login", api.Login},
+		&rest.Route{"POST", "/login", api.Login},
 		&rest.Route{"GET", "/users", api.GetUser},
 		&rest.Route{"DELETE", "/users", api.DeleteUser},
 		// &rest.Route{"GET",  "/message", GetAllMessages},
@@ -89,11 +89,6 @@ type UserProposal struct {
 	Email           string
 	Password        string
 	ConfirmPassword string
-}
-
-type UserSignIn struct {
-	Handle   string
-	Password string
 }
 
 //
@@ -170,24 +165,44 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 
 }
 
-// func (a Api) Login(w rest.ResponseWriter, r *rest.Request) {
-//     credentials := UserSignIn{}
+func (a Api) Login(w rest.ResponseWriter, r *rest.Request) {
+	credentials := struct {
+		Handle   string
+		Password string
+	}{}
 
-//     err := r.DecodeJsonPayload(&credentials)
-//     if err != nil {
-//         rest.Error(w, err.Error(), http.StatusInternalServerError)
-//         return
-//     }
+	err := r.DecodeJsonPayload(&credentials)
+	if err != nil {
+		rest.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-//     result := User{}
-//     err = a.db.C("users").
-//             Find(bson.M{"handle": credentials.Handle, "password": credentials.Password}).
-//             One(&result)
-//     if err != nil {
-//         rest.Error(w, err.Error(), http.StatusInternalServerError)
-//         return
-//     }
-// }
+	found := []struct {
+		Handle string `json:"user.handle"`
+	}{}
+	err = a.db.Cypher(&neoism.CypherQuery{
+		Statement: `
+            MATCH (user:User {handle:{handle}, password:{password}})
+            RETURN user.handle
+        `,
+		Parameters: neoism.Props{
+			"handle":   credentials.Handle,
+			"password": credentials.Password,
+		},
+		Result: &found,
+	})
+	panicErr(err)
+
+	if len(found) > 0 {
+		w.WriteJson(map[string]string{
+			"Response": "Correct credentials for " + credentials.Handle +
+				". However sessions are not yet implemented so this is all you get!",
+		})
+		return
+	} else {
+		rest.Error(w, "Invaid username or password, please try again.", 400)
+	}
+}
 
 func (a Api) GetUser(w rest.ResponseWriter, r *rest.Request) {
 	querymap := r.URL.Query()
