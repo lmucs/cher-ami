@@ -32,10 +32,14 @@ type Api struct {
 	Db *neoism.Database
 }
 
+// Circle constants
+const (
+	GOLD   = "Gold"
+	PUBLIC = "Public"
+)
+
 //
 // Data types
-// All data types are stored in mongodb,
-// this gives them an '_id' identifier
 //
 
 /*type Message struct {
@@ -150,6 +154,9 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 	if len(newUser) != 1 {
 		panic(fmt.Sprintf("Incorrect results len in query1()\n\tgot %d, expected 1\n", len(newUser)))
 	}
+
+	// Add 'Gold' and 'Public' circles
+	a.makeDefaultCircles(proposal.Handle)
 
 	var handle string = newUser[0].Handle
 	var joined string = newUser[0].Joined.Format(time.RFC1123)
@@ -332,6 +339,66 @@ func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
 	w.WriteJson(map[string]string{
 		"Error": "Bad request parameters for delete, expected handle:String, password:String",
 	})
+}
+
+func (a Api) makeCircleForUser(handle string, circleName string) (err error) {
+	if circleName == GOLD || circleName == PUBLIC {
+		return errors.New(circleName + " is a reserved circle name")
+	}
+
+	made := []struct {
+		Handle string `json:"user.name"`
+		Name   string `json:"circle.name"`
+	}{}
+	dberr := a.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+            MATCH (user:User)
+            WHERE user.handle = {handle}
+            CREATE (circle:Circle {name: {name}})
+            CREATE (user)-[:CHEIF_OF]->(circle)
+            RETURN user.name, circle.name
+        `,
+		Parameters: neoism.Props{
+			"handle": handle,
+			"name":   circleName,
+		},
+		Result: &made,
+	})
+	panicErr(dberr)
+	if len(made) != 1 {
+		panic(fmt.Sprintf("Incorrect results len in query1()\n\tgot %d, expected 1\n", len(made)))
+	}
+
+	return nil
+}
+
+func (a Api) makeDefaultCircles(handle string) {
+	made := []struct {
+		Handle string `json:"user.handle"`
+		G      string `json:"g.name"`
+		P      string `json:"p.name"`
+	}{}
+	dberr := a.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+            MATCH (user:User)
+            WHERE user.handle = {handle}
+            CREATE (g:Circle {name: {gold}})
+            CREATE (p:Circle {name: {public}})
+            CREATE (user)-[:CHEIF_OF]->(g)
+            CREATE (user)-[:CHEIF_OF]->(p)
+            RETURN user.handle, g.name, p.name
+        `,
+		Parameters: neoism.Props{
+			"handle": handle,
+			"gold":   GOLD,
+			"public": PUBLIC,
+		},
+		Result: &made,
+	})
+	panicErr(dberr)
+	if len(made) != 1 {
+		panic(fmt.Sprintf("Incorrect results len in query1()\n\tgot %d, expected 1\n", len(made)))
+	}
 }
 
 // func (a Api) CreateMessage(w rest.ResponseWriter, r *rest.Request) {
