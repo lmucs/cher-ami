@@ -4,7 +4,9 @@ define(function(require, exports, module) {
 
     // Regions defined in index.html
     app.addRegions({
-
+        headerRegion: '#header',
+        mainRegion: '#main',
+        footerRegion: '#footer'
     })
 
     app.addInitializer(function() {
