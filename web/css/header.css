@@ -1,13 +1,37 @@
 body {
-	/*background-color: #1c2842;*/
-	/*background-color: #e7feff;*/
-	background-color: #2e5894;
+	width: 100%;
+	background-color: white;
 }
 
 .main-bar {
-	width: 100%;
-	background: #1c2842;
+	/*background: #1c2842;*/
+	width:105%;
+	background: lightblue;
 	height: 50px;
+	padding: 10px;
+}
+
+.profile-button {
+	color: steelblue;
+	line-height: 35px;
+	position: relative;
+	left: 100%;
+}
+
+.main-search-bar {
+	width: 100%;
+}
+
+.search-button {
+	color: steelblue;
+	position: relative;
+	left:100%;
+	bottom: 25px;
+	padding: 10px;
+}
+
+.test-color {
+	background: pink;
 }
 
 h1 {
