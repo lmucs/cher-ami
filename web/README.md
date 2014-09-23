@@ -4,7 +4,7 @@ CherAmi Web App: Marionette/Backbone/Require/Sass
 ##Getting Started
 
 ### First Time Setup
-============================
+
 ##### Install Compass/Sass
 
 	gem install compass sass
@@ -15,7 +15,6 @@ CherAmi Web App: Marionette/Backbone/Require/Sass
 	sudo npm install -g requirejs
 
 ### Terminal Commands	
-================
 
 #### Start Test Server
 
