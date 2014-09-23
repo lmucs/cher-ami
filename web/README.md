@@ -1,1 +1,59 @@
-CherAmi web app
+CherAmi Web App: Marionette/Backbone/Require/Sass
+==========================================
+
+##Getting Started
+
+### First Time Setup
+============================
+##### Install Compass/Sass
+
+	gem install compass sass
+
+
+##### Install RequireJS Globally
+
+	sudo npm install -g requirejs
+
+### Terminal Commands	
+================
+
+#### Start Test Server
+
+	make serve
+	
+#### Start Compass
+	
+	make watch
+	
+#### Start Server/Compass
+
+	make all
+
+##Dependencies
+
+* RequireJS
+* Underscore
+* Backbone
+* Marionette
+* Handlebars
+* Sass
+* Compass
+
+
+## Testing
+First time? Go to setup below. Otherwise, run this in the root of this project.
+
+	karma start
+
+#### Dependencies (WIP)
+
+* Karma
+
+#### First-Time Testing Setup
+
+	make install-test-reqs
+
+
+
+
+
