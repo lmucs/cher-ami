@@ -1,4 +1,4 @@
-![Logo](web/images/cherami-logo-300.png)
+![Logo](web/src/static/img/cherami-logo-300.png)
 
 We're working on this README.
 

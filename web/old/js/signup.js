@@ -6,7 +6,7 @@ $(function() {
       $("#signupform").serialize()
     );
   });
-  
+
   $('#pass2').keyup(function() {
     //Store the password field objects into variables ...
     var pass1 = $('#pass1');
@@ -21,24 +21,24 @@ $(function() {
     var getStrength = function(password) {
        var strength = 0;
        if (pass1.length > 7) {strength += 1};
-	   if (pass1.val().match(/([a-zA-Z])/) && pass1.val().match(/([0-9])/))  {strength += 1};
+       if (pass1.val().match(/([a-zA-Z])/) && pass1.val().match(/([0-9])/))  {strength += 1};
        if (pass1.val().match(/([!,%,&,@,#,$,^,*,?,_,~])/))  {strength += 1};
-	   if (pass1.val().match(/(.*[!,%,&,@,#,$,^,*,?,_,~].*[!,%,&,@,#,$,^,*,?,_,~])/)) {strength += 1};
-	   if(strength < 2) {
-	   	return 'Weak';
-	   } else if(strength == 2) {
-	  	return 'Strong';
-	   } else {
-	   	return 'Very Strong';
-	   }
+       if (pass1.val().match(/(.*[!,%,&,@,#,$,^,*,?,_,~].*[!,%,&,@,#,$,^,*,?,_,~])/)) {strength += 1};
+       if(strength < 2) {
+        return 'Weak';
+       } else if(strength == 2) {
+        return 'Strong';
+       } else {
+        return 'Very Strong';
+       }
     }
 
-    //Compare the values in the password field 
+    //Compare the values in the password field
     //and the confirmation field
     if(pass1.val() == pass2.val() && pass1.val().length >= 6) {
-       //The passwords match. 
+       //The passwords match.
        //Set the color to the good color and inform
-       //the user that they have entered the correct password 
+       //the user that they have entered the correct password
        pass1.css( "background-color", goodColor);
        pass2.css( "background-color", goodColor);
        message.css("color", goodColor);
