@@ -135,7 +135,7 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
             RETURN user.email
         `,
 		Parameters: neoism.Props{
-			"handle": proposal.Email,
+			"email": proposal.Email,
 		},
 		Result: &foundEmails,
 	})
@@ -504,6 +504,7 @@ func (a Api) NewMessage(w rest.ResponseWriter, r *rest.Request) {
 		},
 		Result: &created,
 	})
+	panicErr(err)
 
 	if len(created) != 1 {
 		w.WriteHeader(500)
