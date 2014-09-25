@@ -29,7 +29,7 @@ func main() {
 		&rest.Route{"GET", "/users", api.GetUser},
 		&rest.Route{"DELETE", "/users", api.DeleteUser},
 		// &rest.Route{"GET",  "/message", GetAllMessages},
-		// &rest.Route{"POST",   "/messages", api.CreateMessage},
+		&rest.Route{"POST", "/messages", api.NewMessage},
 		// &rest.Route{"GET",    "/messages/:id", api.GetMessage},
 		// &rest.Route{"DELETE", "/messages/:id", api.DeleteMessage},
 	)

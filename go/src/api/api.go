@@ -462,35 +462,60 @@ func (a Api) makeDefaultCircles(handle string) {
 	}
 }
 
-// func (a Api) CreateMessage(w rest.ResponseWriter, r *rest.Request) {
-//     message := Message{
-//         bson.NewObjectId(),
-//         bson.NewObjectId(),     // owner ID
-//         time.Now().Local(),
-//         "",                     // content
-//         NIL_ID,
-//         NIL_ID,
-//         []bson.ObjectId{},
-//     }
+/**
+ * Expects a json post with "handle", "sessionid", "content"
+ */
+func (a Api) NewMessage(w rest.ResponseWriter, r *rest.Request) {
+	payload := struct {
+		Handle    string
+		Sessionid string
+		Content   string
+	}{}
+	err := r.DecodeJsonPayload(&payload)
+	if err != nil {
+		rest.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-//     payload := Message{}
-//     err     := r.DecodeJsonPayload(&payload)
-//     if err != nil {
-//         rest.Error(w, err.Error(), http.StatusInternalServerError)
-//         return
-//     }
-//     message.Content = payload.Content
+	a.authenticate(w, payload.Handle, payload.Sessionid)
 
-//     if message.Content == "" {
-//         rest.Error(w, "please enter some content for your message", 400)
-//         return
-//     }
+	if payload.Content == "" {
+		rest.Error(w, "Please enter some content for your message", 400)
+		return
+	}
 
-//     err = a.Db.C("messages").Insert(message)
-//     if err != nil {
-//         log.Fatal("Can't insert document: %v\n", err)
-//     }
-// }
+	created := []struct {
+		Content  string      `json:"message.content"`
+		Relation neoism.Node `json:"r"`
+	}{}
+	err = a.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+			MATCH (user:User {handle: {handle}, sessionid: {sessionid}})
+			CREATE (message:Message {content: {content}})
+			CREATE (user)-[r:WROTE]->(message)
+			RETURN message.content, r
+		`,
+		Parameters: neoism.Props{
+			"handle":    payload.Handle,
+			"sessionid": payload.Sessionid,
+			"content":   payload.Content,
+		},
+		Result: &created,
+	})
+
+	if len(created) != 1 {
+		w.WriteHeader(500)
+		w.WriteJson(map[string]string{
+			"Response": "No message created",
+		})
+	} else {
+		w.WriteHeader(201)
+		w.WriteJson(map[string]interface{}{
+			"Response":  "Successfully created message for " + payload.Handle,
+			"Published": false,
+		})
+	}
+}
 
 // func (a Api) GetMessage(w rest.ResponseWriter, r *rest.Request) {
 //     bid     := bson.ObjectIdHex(r.PathParam("id"))
