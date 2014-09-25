@@ -42,7 +42,7 @@ func (a Api) authenticate(w rest.ResponseWriter, handle string, sessionid string
 	}{}
 	dberr := a.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
-            MATCH (user:User (handle:{handle}, sessionid:{sessionid}))
+            MATCH (user:User {handle:{handle}, sessionid:{sessionid}})
             RETURN user.handle
         `,
 		Parameters: neoism.Props{
