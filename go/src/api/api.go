@@ -520,16 +520,57 @@ func (a Api) NewMessage(w rest.ResponseWriter, r *rest.Request) {
 	}
 }
 
-// func (a Api) GetMessage(w rest.ResponseWriter, r *rest.Request) {
-//     bid     := bson.ObjectIdHex(r.PathParam("id"))
-//     message := Message{}
-//     err     := a.Db.C("messages").Find(bson.M{"id": bid}).One(&message)
-//     if err != nil {
-//         rest.Error(w, err.Error(), http.StatusInternalServerError)
-//         return
-//     }
-//     w.WriteJson(message)
-// }
+/**
+ * Get messages authored by user
+ * Expects query parameters "handle" and "sessionid"
+ */
+func (a Api) GetAuthoredMessages(w rest.ResponseWriter, r *rest.Request) {
+	querymap := r.URL.Query()
+
+	// Check query parameters
+	if _, ok := querymap["handle"]; !ok {
+		w.WriteHeader(400)
+		w.WriteJson(map[string]string{
+			"Response": "Bad Request, not enough parameters to authenticate user",
+		})
+	}
+	if _, ok := querymap["sessionid"]; !ok {
+		w.WriteHeader(400)
+		w.WriteJson(map[string]string{
+			"Response": "Bad Request, not enough parameters to authenticate user",
+		})
+	}
+
+	// Unmarshall
+	payload := struct {
+		Handle    string
+		Sessionid string
+	}{
+		querymap["handle"][0],
+		querymap["sessionid"][0],
+	}
+
+	a.authenticate(w, payload.Handle, payload.Sessionid)
+
+	messages := []struct {
+		Content   string    `json:"message.content"`
+		LastSaved time.Time `json:"message.lastsaved"`
+	}{}
+	err := a.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+			MATCH (user:User {handle: {handle}})-[:WROTE]->(message:Message)
+			RETURN message.content, message.lastsaved	
+		`,
+		Parameters: neoism.Props{
+			"handle": payload.Handle,
+		},
+		Result: &messages,
+	})
+	panicErr(err)
+
+	w.WriteHeader(200)
+	w.WriteJson(messages)
+}
 
 // func (a Api) DeleteMessage(w rest.ResponseWriter, r *rest.Request) {
 //     bid := bson.ObjectIdHex(r.PathParam("id"))

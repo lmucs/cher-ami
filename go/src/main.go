@@ -30,7 +30,7 @@ func main() {
 		&rest.Route{"DELETE", "/users", api.DeleteUser},
 		// &rest.Route{"GET",  "/message", GetAllMessages},
 		&rest.Route{"POST", "/messages", api.NewMessage},
-		// &rest.Route{"GET",    "/messages/:id", api.GetMessage},
+		&rest.Route{"GET", "/messages", api.GetAuthoredMessages},
 		// &rest.Route{"DELETE", "/messages/:id", api.DeleteMessage},
 	)
 	if err != nil {
