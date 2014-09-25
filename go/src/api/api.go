@@ -488,10 +488,11 @@ func (a Api) NewMessage(w rest.ResponseWriter, r *rest.Request) {
 		Content  string      `json:"message.content"`
 		Relation neoism.Node `json:"r"`
 	}{}
+	createdAt := time.Now().Local()
 	err = a.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
 			MATCH (user:User {handle: {handle}, sessionid: {sessionid}})
-			CREATE (message:Message {content: {content}})
+			CREATE (message:Message {content: {content}, created: {date}, lastsaved: {date}})
 			CREATE (user)-[r:WROTE]->(message)
 			RETURN message.content, r
 		`,
@@ -499,6 +500,7 @@ func (a Api) NewMessage(w rest.ResponseWriter, r *rest.Request) {
 			"handle":    payload.Handle,
 			"sessionid": payload.Sessionid,
 			"content":   payload.Content,
+			"date":      createdAt,
 		},
 		Result: &created,
 	})
