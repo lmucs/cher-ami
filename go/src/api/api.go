@@ -249,6 +249,48 @@ func (a Api) Login(w rest.ResponseWriter, r *rest.Request) {
 	}
 }
 
+/**
+ * Expects a json post with "handle"
+ */
+func (a Api) Logout(w rest.ResponseWriter, r *rest.Request) {
+	user := struct {
+		Handle string
+	}{}
+	err := r.DecodeJsonPayload(&user)
+	if err != nil {
+		rest.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	loggedOut := []struct {
+		Handle string `json:"user.handle"`
+	}{}
+	a.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+			MATCH (user:User {handle: {handle}})
+			REMOVE user.sessionid
+			RETURN user
+		`,
+		Parameters: neoism.Props{
+			"handle": user.Handle,
+		},
+		Result: &loggedOut,
+	})
+
+	if len(loggedOut) == 0 {
+		w.WriteHeader(403)
+		w.WriteJson(map[string]string{
+			"Response": "No user was logged out",
+		})
+		return
+	}
+
+	w.WriteHeader(200)
+	w.WriteJson(map[string]string{
+		"Response": "Logged out " + user.Handle + ", have a nice day",
+	})
+}
+
 func (a Api) GetUser(w rest.ResponseWriter, r *rest.Request) {
 	querymap := r.URL.Query()
 
