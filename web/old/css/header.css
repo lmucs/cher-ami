@@ -1,5 +1,6 @@
 body {
     width: 100%;
+    min-width: 320 ;
     background-color: white;
 }
 
@@ -13,9 +14,9 @@ body {
 
 .profile-button {
     color: steelblue;
-    line-height: 35px;
+    line-height: 40px;
     position: relative;
-    left: 100%;
+    left: 98%;
 }
 
 .main-search-bar {
@@ -26,8 +27,20 @@ body {
     color: steelblue;
     position: relative;
     left:100%;
-    bottom: 25px;
+    bottom: 30px;
     padding: 10px;
+}
+
+.notifications {
+    color: steelblue;
+    position: relative;
+    padding: 0 10px;
+    line-height: 40px;
+    left: 15%;
+}
+
+.notifications a{
+    padding: 0 5px;
 }
 
 .test-color {
