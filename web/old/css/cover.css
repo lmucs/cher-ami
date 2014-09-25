@@ -29,10 +29,7 @@ a:hover {
 html,
 body {
   height: 100%;
-  /*background-image: url('../images/jpeg.jpeg');*/
-  background-image: url('../images/brooklyn.jpg');
-  /*background-image: url('../images/background.jpg');*/
-/*  background-image: url('../images/art/kvelertak_cover.jpg');*/
+  background-image: url('http://static.tumblr.com/a29e6e349885a4f34b89d7eff602185b/o6u2ylq/Vesmsikyn/tumblr_static_brooklyn_bridge_bokeh__1_of_1_-2.jpg');
   background-color: #333;
 }
 body {
@@ -110,6 +107,10 @@ body {
 
 }
 
+.forgot {
+  color: #66FFCC;
+}
+
 @media (min-width: 768px) {
   .masthead-brand {
     float: left;
@@ -173,6 +174,6 @@ body {
   .masthead,
   .mastfoot,
   .cover-container {
-    width: 700px;
+    width: 800px;
   }
 }

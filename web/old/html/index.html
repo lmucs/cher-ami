@@ -6,22 +6,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="">
     <meta name="author" content="">
-    <link rel="icon" href="../docs/favicon.ico">
+    <link rel="icon" href="../../docs/favicon.ico">
 
     <title>Welcome</title>
 
     <!-- Bootstrap core CSS -->
-    <link href="../docs/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../../docs/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- Custom styles for this template -->
     <link href="../css/cover.css" rel="stylesheet">
 
     <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
     <!--[if lt IE 9]><script src="../../assets/js/ie8-responsive-file-warning.js"></script><![endif]-->
-    <script src="../docs/assets/js/ie-emulation-modes-warning.js"></script>
+    <script src="../../docs/assets/js/ie-emulation-modes-warning.js"></script>
 
     <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-    <script src="../docs/assets/js/ie10-viewport-bug-workaround.js"></script>
+    <script src="../../docs/assets/js/ie10-viewport-bug-workaround.js"></script>
 
     <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
@@ -43,11 +43,6 @@
 
 
                 <img data-src="holder.js/80x80/auto/vine" class="img-responsive" alt="200x200" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iIzM5REJBQyI+PC9yZWN0Pjx0ZXh0IHRleHQtYW5jaG9yPSJtaWRkbGUiIHg9IjEwMCIgeT0iMTAwIiBzdHlsZT0iZmlsbDojMUUyOTJDO2ZvbnQtd2VpZ2h0OmJvbGQ7Zm9udC1zaXplOjEzcHg7Zm9udC1mYW1pbHk6QXJpYWwsSGVsdmV0aWNhLHNhbnMtc2VyaWY7ZG9taW5hbnQtYmFzZWxpbmU6Y2VudHJhbCI+MjAweDIwMDwvdGV4dD48L3N2Zz4=">
-
-
-<!--
-                "data:image/gif;base64,R0lGODlhAQABAIAAAHd3dwAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==" alt="Generic placeholder image" style="width: 70px; height: 70px; color:fff"> -->
-
 
               </h3>
               <ul class="nav masthead-nav">
@@ -90,47 +85,42 @@
             </p>
           </div>
 
-           <!--  </div>
-            <div class="col-md-8">
-              <div class="col-sm-6" id="signUpContainer">
-          <form method="post" action="/signup" id="signupform" class="form-horizontal" role="form">
-            <div class="form-group">
-              <label for="Username" class="col-md-4 control-label">Choose a handle</label>
-              <div class="col-md-8">
-                <input type="text" class="form-control" name="Handle" id="handle" placeholder="@handle">
-              </div>
-            </div>
-            <div class="form-group">
-              <label for="inputName" class="col-md-4 control-label">Password</label>
-              <div class="col-md-8">
-                <input type="password" id ="pass1" class="form-control" name="Password" placeholder="Choose a password more than 6 characters">
-              </div>
-            </div>
-            <div class="form-group">
-              <label for="inputPassword" class="col-md-4 control-label">Confirm password</label>
-              <div class="col-md-8">
-                <input type="password" id ="pass2" class="form-control" name="ConfirmPassword" placeholder="Re-enter your password" >
-                <span id="confirmMessage" class="confirmMessage"></span>
-              </div>
-            </div>
-            <div class="form-group">
-              <div class="col-sm-offset-4 col-sm-10">
-                <div class="checkbox">
-                  <label>
-                    <input type="checkbox"> Remember me
-                  </label>
-                </div>
-              </div>
-            </div>
-            <div class="form-group">
-              <div class="col-sm-offset-4 col-sm-10">
-                <button type="submit" id="signup" class="btn btn-default">Sign up</button>
-              </div>
-            </div>
-          </form>
+            
 
-        </div> -->
-
+            <!-- LOGIN MENU -->
+            </div>
+            <div class="col-md-4">
+              <div class="col-sm-10" id="signUpContainer">
+                <form method="post" action="/signup" id="signupform" class="form-horizontal" role="form">
+                  <div class="form-group">
+                    <div class="col-md-15">
+                      <input type="text" class="form-control" name="Handle" id="handle" placeholder="Handle or Email">
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <div class="col-md-15">
+                      <input type="password" id ="pass1" class="form-control" name="Password" placeholder="Password">
+                    </div>
+                  </div>
+                  
+                  <div class="form-group">
+                    <div class="col-sm-15">
+                      <button type="submit" id="signin" class="btn btn-default">Sign in</button>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <div class="col-sm-15">
+                      <div class="checkbox">
+                        <label>
+                          <input type="checkbox"> Remember me
+                        </label>
+                      </div>
+                    </div>
+                    <span class="separator">·</span>
+                    <a class="forgot" href="/account/begin_password_reset">Forgot password?</a>
+                  </div>
+                </form>
+              </div>
             </div>
           </div>
 
@@ -172,7 +162,7 @@
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-    <script src="../docs/dist/js/bootstrap.min.js"></script>
-    <script src="../docs/assets/js/docs.min.js"></script>
+    <script src="../../docs/dist/js/bootstrap.min.js"></script>
+    <script src="../../docs/assets/js/docs.min.js"></script>
   </body>
 </html>
