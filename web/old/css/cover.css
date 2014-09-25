@@ -15,12 +15,7 @@ a:hover {
 .btn-default:focus {
   color: #333;
   text-shadow: none; /* Prevent inheritence from `body` */
- /* background-color: #fff;
-  border: 1px solid #fff;*/
-/*  background-color: transparent;*/
- /* border: none;*/
 }
-
 
 /*
  * Base structure
@@ -61,7 +56,6 @@ body {
   padding: 30px;
 
 }
-
 
 /*
  * Header
@@ -120,11 +114,9 @@ body {
   }
 }
 
-
 /*
  * Cover
  */
-
 .cover {
   padding: 0 20px;
 }
@@ -133,21 +125,17 @@ body {
   font-weight: bold;
 }
 
-
 /*
  * Footer
  */
-
 .mastfoot {
   color: #999; /* IE8 proofing */
   color: rgba(255,255,255,.5);
 }
 
-
 /*
  * Affix and center
  */
-
 @media (min-width: 768px) {
   /* Pull out the header and footer */
   .masthead {
