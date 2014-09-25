@@ -48,7 +48,8 @@
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:layout_alignParentBottom="true"
-        android:text="Login" />
+        android:text="Login"
+        android:onClick="showLogin"/>
 
     <TextView
         android:layout_width="wrap_content"
