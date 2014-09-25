@@ -1,12 +1,11 @@
 package api
 
 import (
+	"errors"
+	"fmt"
 	"github.com/ant0ine/go-json-rest/rest"
 	"github.com/dchest/uniuri"
 	"github.com/jmcvetta/neoism"
-	//"github.com/gorilla/schema"
-	"errors"
-	"fmt"
 	"net/http"
 	"time"
 )
@@ -14,12 +13,6 @@ import (
 func panicErr(err error) {
 	if err != nil {
 		panic(err)
-	}
-}
-
-func httpError(w rest.ResponseWriter, err error) {
-	if err != nil {
-		rest.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 }
@@ -37,33 +30,6 @@ const (
 	GOLD   = "Gold"
 	PUBLIC = "Public"
 )
-
-//
-// Data types
-//
-
-/*type Message struct {
-    Id         bson.ObjectId
-    Owner      bson.ObjectId
-    Created    time.Time
-    Content    string
-    ResponseTo bson.ObjectId
-    RepostOf   bson.ObjectId
-    Circles    []bson.ObjectId
-}
-
-type Circle struct {
-    Owner      bson.ObjectId
-    Members    []bson.ObjectId
-    Name       string
-}*/
-
-type UserProposal struct {
-	Handle          string
-	Email           string
-	Password        string
-	ConfirmPassword string
-}
 
 //
 // API util
@@ -97,19 +63,42 @@ func (a Api) authenticate(w rest.ResponseWriter, handle string, sessionid string
 //
 
 /*
- * Expects a json POST with "Username", "Password", "ConfirmPassword"
+ * Expects a json POST with "username", "email", "password", "confirmpassword"
  */
 func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
-	proposal := UserProposal{}
+	type Proposal struct {
+		Handle          string
+		Email           string
+		Password        string
+		ConfirmPassword string
+	}
+	proposal := Proposal{}
 	err := r.DecodeJsonPayload(&proposal)
+	fmt.Println("email: " + proposal.Email)
+	fmt.Printf("err was nil: %t\n", err == nil)
 	if err != nil {
 		rest.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	fmt.Printf("%+v\n", r.Body)
+	fmt.Println("email: " + proposal.Email)
+
+	// Handle and Email checks
+	if proposal.Handle == "" {
+		rest.Error(w, "Handle is a required field for signup", 400)
+		return
+	} else if proposal.Email == "" {
+		rest.Error(w, "Email is a required field for signup", 400)
+		return
+	}
 
 	// Password checks
+	minPasswordLength := 8
 	if proposal.Password != proposal.ConfirmPassword {
 		rest.Error(w, "Passwords do not match", 400)
+		return
+	} else if len(proposal.Password) < minPasswordLength {
+		rest.Error(w, "Passwords must be at least 8 characters long", 400)
 		return
 	}
 
@@ -119,7 +108,7 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 	}{}
 	err = a.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
-            MATCH (user:User {handle:{handle}})
+            MATCH (user:User {handle: {handle}})
             RETURN user.handle
         `,
 		Parameters: neoism.Props{
@@ -127,23 +116,51 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 		},
 		Result: &foundUsers,
 	})
-	httpError(w, err)
+	if err != nil {
+		rest.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	if len(foundUsers) > 0 {
-		rest.Error(w, proposal.Handle+" is already taken", 400)
+		rest.Error(w, "Sorry, "+proposal.Handle+" is already taken", 400)
+		return
+	}
+
+	// Ensure unique email
+	foundEmails := []struct {
+		Email string `json:"user.email"`
+	}{}
+	err = a.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+            MATCH (user:User {email: {email}})
+            RETURN user.email
+        `,
+		Parameters: neoism.Props{
+			"handle": proposal.Email,
+		},
+		Result: &foundEmails,
+	})
+	if err != nil {
+		rest.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if len(foundEmails) > 0 {
+		rest.Error(w, "Sorry, "+proposal.Email+" is already taken", 400)
 		return
 	}
 
 	newUser := []struct {
 		Handle string    `json:"user.handle"`
+		Email  string    `json:"user.email"`
 		Joined time.Time `json:"user.joined"`
 	}{}
 	err = a.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
-            CREATE (user:User { handle:{handle}, password:{password}, joined: {joined} })
-            RETURN user.handle, user.joined
+            CREATE (user:User { handle: {handle}, email: {email}, password: {password}, joined: {joined} })
+            RETURN user.handle, user.email, user.joined
         `,
 		Parameters: neoism.Props{
 			"handle":   proposal.Handle,
+			"email":    proposal.Email,
 			"password": proposal.Password,
 			"joined":   time.Now().Local(),
 		},
@@ -159,14 +176,16 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 	a.makeDefaultCircles(proposal.Handle)
 
 	var handle string = newUser[0].Handle
+	var email string = newUser[0].Email
 	var joined string = newUser[0].Joined.Format(time.RFC1123)
 
+	w.WriteHeader(201)
 	w.WriteJson(map[string]string{
 		"Response": "Signed up a new user!",
 		"Handle":   handle,
+		"Email":    email,
 		"Joined":   joined,
 	})
-
 }
 
 func (a Api) Login(w rest.ResponseWriter, r *rest.Request) {
