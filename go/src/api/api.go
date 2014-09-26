@@ -572,11 +572,40 @@ func (a Api) GetAuthoredMessages(w rest.ResponseWriter, r *rest.Request) {
 	w.WriteJson(messages)
 }
 
-// func (a Api) DeleteMessage(w rest.ResponseWriter, r *rest.Request) {
-//     bid := bson.ObjectIdHex(r.PathParam("id"))
-//     err := a.Db.C("messages").Remove(bson.M{"id": bid})
-//     if err != nil {
-//         rest.Error(w, err.Error(), http.StatusInternalServerError)
-//         return
-//     }
-// }
+/**
+ * Deletes an unpublished message
+ */
+func (a Api) DeleteMessage(w rest.ResponseWriter, r *rest.Request) {
+	payload := struct {
+		Handle    string
+		Sessionid string
+		Lastsaved time.Time
+	}{}
+	r.DecodeJsonPayload(&payload)
+
+	a.authenticate(w, payload.Handle, payload.Sessionid)
+
+	deleted := []struct {
+		Count int `json:"count(m)"`
+	}{}
+	err := a.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+		MATCH (user:User {handle: {handle}})
+		OPTIONAL MATCH (user)-[r:WROTE]->(m:Message {lastsaved: {lastsaved}})
+		DELETE r, m
+		RETURN count(m)
+		`,
+		Parameters: neoism.Props{
+			"handle":    payload.Handle,
+			"lastsaved": payload.Lastsaved,
+		},
+		Result: &deleted,
+	})
+	panicErr(err)
+
+	w.WriteHeader(200)
+	w.WriteJson(map[string]interface{}{
+		"Response": "Success!",
+		"Deleted":  deleted[0].Count,
+	})
+}

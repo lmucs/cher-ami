@@ -31,7 +31,7 @@ func main() {
 		// &rest.Route{"GET",  "/message", GetAllMessages},
 		&rest.Route{"POST", "/messages", api.NewMessage},
 		&rest.Route{"GET", "/messages", api.GetAuthoredMessages},
-		// &rest.Route{"DELETE", "/messages/:id", api.DeleteMessage},
+		&rest.Route{"DELETE", "/messages", api.DeleteMessage},
 	)
 	if err != nil {
 		log.Fatal(err)
