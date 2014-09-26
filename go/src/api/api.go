@@ -58,6 +58,25 @@ func (a Api) authenticate(w rest.ResponseWriter, handle string, sessionid string
 	}
 }
 
+func (a Api) userExists(handle string) bool {
+	found := []struct {
+		Handle string `json"user.handle"`
+	}{}
+	err := a.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+			MATCH (user:User {handle: {handle}})
+			RETURN user.handle
+		`,
+		Parameters: neoism.Props{
+			"handle": handle,
+		},
+		Request: &found,
+	})
+	panicErr(err)
+
+	return len(found) > 0
+}
+
 //
 // API
 //
@@ -533,12 +552,14 @@ func (a Api) GetAuthoredMessages(w rest.ResponseWriter, r *rest.Request) {
 		w.WriteJson(map[string]string{
 			"Response": "Bad Request, not enough parameters to authenticate user",
 		})
+		return
 	}
 	if _, ok := querymap["sessionid"]; !ok {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Bad Request, not enough parameters to authenticate user",
 		})
+		return
 	}
 
 	// Unmarshall
