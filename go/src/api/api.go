@@ -594,6 +594,63 @@ func (a Api) GetAuthoredMessages(w rest.ResponseWriter, r *rest.Request) {
 }
 
 /**
+ * Get messages authored by a User that are visible to the authenticated
+ * user. This means from all shared circles that the queried User has published to.
+ */
+func (a Api) GetMessagesByHandle(w rest.ResponseWriter, r *rest.Request) {
+	author := r.PathParam("handle")
+	querymap := r.URL.query()
+
+	a.authenticate(w, handle, sessionid)
+
+	// check query parameters
+	if _, ok := querymap["handle"]; !ok {
+		w.WriteHeader(400)
+		w.WriteJson(map[string]string{
+			"Response": "Bad Request, not enough parameters to authenticate user",
+		})
+		return
+	}
+	if _, ok := querymap["sessionid"]; !ok {
+		w.WriteHeader(400)
+		w.WriteJson(map[string]string{
+			"Response": "Bad Request, not enough parameters to authenticate user",
+		})
+		return
+	}
+
+	if !userExists(author) {
+		w.WriteHeader(404)
+		w.WriteJson(map[string]string{
+			"Response": "Bad request, user doesn't exist",
+		})
+		return
+	}
+
+	messages := []struct {
+		Content   string    `json:"message.content"`
+		Published time.Time `json:"message.published"`
+	}{}
+	err := a.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+			MATCH (author:User {handle: {author}}), (user:User {handle: {handle}})
+			OPTIONAL MATCH (user)-[r:MEMBER_OF]->(circle:Circle)
+			OPTIONAL MATCH (author)-[w:WROTE]-(visible:Message)-[p:PUB_TO]->(circle)
+			RETURN visible.content, visible.published_at
+		`,
+		Parameters: neoism.Props{
+			"author": author,
+			"handle": querymap["handle"][0],
+		},
+		Result: &messages,
+	})
+	panicErr(err)
+
+	w.WriteHeader(200)
+	w.WriteJson(messages)
+}
+
+/**
  * Deletes an unpublished message
  */
 func (a Api) DeleteMessage(w rest.ResponseWriter, r *rest.Request) {
