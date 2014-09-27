@@ -4,6 +4,7 @@ define(function(require, exports, module) {
     var marionette = require('marionette');
     var app = require('app/app');
 
+    var HeaderView = require('app/views/header-view').HeaderView;
     var SignupView = require('app/views/signup-view').SignupView;
 
     var AppController = marionette.Controller.extend({
@@ -12,6 +13,7 @@ define(function(require, exports, module) {
             this.app = app;
 
             // Initialization of views will go here.
+            this.app.headerRegion.show(new HeaderView());
             this.app.mainRegion.show(new SignupView());
         },
 
