@@ -48,7 +48,11 @@ First time? Go to setup below. Otherwise, run this in the root of this project.
 
 * Karma
 
-#### First-Time Testing Setup
+#### First, install karma
+
+	npm install karma
+	
+#### First-Time Testing Setup in the root of this project
 
 	make install-test-reqs
 
