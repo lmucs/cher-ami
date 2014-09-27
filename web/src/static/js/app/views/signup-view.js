@@ -5,6 +5,9 @@ define(function(require, exports, module) {
     var SignupView = marionette.ItemView.extend({
         template: template,
 
+        //take the div marionette creates and give it a class named mainContainer.
+        tagName: "div",
+        className: "mainContainer",
         ui: {
             handle: '#handle',
             pass: '#pass1',
@@ -14,15 +17,15 @@ define(function(require, exports, module) {
         },
 
         events: {
-            'click signup': 'onFormConfirm'
+            'click #remember-me': 'onFormConfirm'
         },
 
         initialize: function(options) {
 
         },
 
-        onFormConfirm: function(event) {
-            console.log("Test");
+        onFormConfirm: function() {
+            alert(this.ui.handle.val() + "  hola la");
         }
     });
 
