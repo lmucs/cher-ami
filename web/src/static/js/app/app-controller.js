@@ -6,6 +6,7 @@ define(function(require, exports, module) {
 
     var HeaderView = require('app/views/header-view').HeaderView;
     var SignupView = require('app/views/signup-view').SignupView;
+    var FooterView = require('app/views/footer-view').FooterView
 
     var AppController = marionette.Controller.extend({
 
@@ -15,6 +16,7 @@ define(function(require, exports, module) {
             // Initialization of views will go here.
             this.app.headerRegion.show(new HeaderView());
             this.app.mainRegion.show(new SignupView());
+            this.app.footerRegion.show(new FooterView());
         },
 
         // Needed for AppRouter to initialize index route.

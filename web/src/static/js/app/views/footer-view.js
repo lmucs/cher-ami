@@ -1,7 +1,7 @@
 define(function(require, exports, module) {
 
     var marionette = require('marionette');
-    var template = require('templates/footer-view')
+    var template = require('hbs!../templates/footer-view')
 
     var FooterView = marionette.ItemView.extend({
 
