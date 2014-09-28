@@ -17,7 +17,7 @@ Part 1 and 2 are a one-time step, skip to Part 3 if you have completed those bef
         export PATH=$PATH:$GOPATH/bin
 
 ###Part 2: Install Dependencies
-1. `cd` to the `cher-ami/api/src` directory
+1. `cd` to the `cher-ami/go/src` directory
 2. Install the dependencies. Since the packages we are using are changing rapidly, please refer to the source for packages necessary. To install, run `go get <PACKAGE_URL>`.
    
 ###Part 3: Initialize test DB & Server
