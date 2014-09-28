@@ -11,12 +11,14 @@ import android.content.Intent;
 import android.support.v13.app.FragmentPagerAdapter;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
+import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.TextView;
 
 
@@ -75,6 +77,9 @@ public class MainActivity extends Activity implements ActionBar.TabListener {
                             .setText(mSectionsPagerAdapter.getPageTitle(i))
                             .setTabListener(this));
         }
+
+        //Get handle, email, password, and confirm fields
+
     }
 
 
@@ -89,6 +94,23 @@ public class MainActivity extends Activity implements ActionBar.TabListener {
         Intent intent = new Intent(this, LoginActivity.class);
         startActivity(intent);
     }
+
+    public void attemptCreateAccount(View view) {
+        /* First, data sanitization: No fields should be left blank, email should have @ symbol,
+        password and Confirm password should be the same (this is done in back end)
+        Also, handle/username must be unique (also back end?)
+
+        Then,
+        POST to db with Handle, Email, Password, and Confirm
+        */
+    }
+
+    private boolean isEmailValid(String email) {
+        //Do more?
+        return email.contains("@");
+    }
+
+
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
