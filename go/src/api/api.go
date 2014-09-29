@@ -641,9 +641,7 @@ func (a Api) GetAuthoredMessages(w rest.ResponseWriter, r *rest.Request) {
  */
 func (a Api) GetMessagesByHandle(w rest.ResponseWriter, r *rest.Request) {
 	author := r.PathParam("handle")
-	querymap := r.URL.query()
-
-	a.authenticate(w, handle, sessionid)
+	querymap := r.URL.Query()
 
 	// check query parameters
 	if _, ok := querymap["handle"]; !ok {
@@ -660,9 +658,13 @@ func (a Api) GetMessagesByHandle(w rest.ResponseWriter, r *rest.Request) {
 		})
 		return
 	}
+	handle := querymap["handle"][0]
+	sessionid := querymap["sessionid"][0]
 
-	if !userExists(author) {
-		w.WriteHeader(404)
+	a.authenticate(w, handle, sessionid)
+
+	if !a.userExists(author) {
+		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Bad request, user doesn't exist",
 		})
