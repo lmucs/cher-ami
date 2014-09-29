@@ -70,7 +70,7 @@ func (a Api) userExists(handle string) bool {
         Parameters: neoism.Props{
             "handle": handle,
         },
-        Request: &found,
+        Result: &found,
     })
     panicErr(err)
 
