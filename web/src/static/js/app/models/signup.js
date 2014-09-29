@@ -8,7 +8,7 @@ define(function(require, exports, module) {
                 return "Must have same password/password confirmation";
             }
         },*/
-        urlRoot: 'http://localhost:8228/signup',
+        url: '/api/signup',
         defaults: {
             handle: null,
             email: null,

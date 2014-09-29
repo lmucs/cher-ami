@@ -15,9 +15,9 @@ func main() {
 		EnableRelaxedContentType: true,
 	}
 	// Locally-hosted database
-	neo4jdb, err := neoism.Connect("http://localhost:7474/db/data")
+	//neo4jdb, err := neoism.Connect("http://localhost:7474/db/data")
 	// Remotely-hosted database
-	// neo4jdb, err := neoism.Connect("http://107.170.229.205:7474/db/data")
+	neo4jdb, err := neoism.Connect("http://107.170.229.205:7474/db/data")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -40,6 +40,11 @@ func main() {
 		log.Fatal(err)
 	}
 
+    http.Handle("/api/", http.StripPrefix("/api", &handler))
+
+    http.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("../../web/src/"))))
+
 	fmt.Printf("Listening on port %s\n", port)
-	log.Fatal(http.ListenAndServe(":"+port, &handler))
+    log.Fatal(http.ListenAndServe(":"+port, nil))
+	//log.Fatal(http.ListenAndServe(":"+port, &handler))
 }
