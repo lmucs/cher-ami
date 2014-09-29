@@ -2,6 +2,8 @@ define(function(require, exports, module) {
     var marionette = require('marionette')
     var template = require('hbs!../templates/signup-view')
 
+    var Signup = require('app/models/signup').Signup;
+
     var SignupView = marionette.ItemView.extend({
         template: template,
 
@@ -10,6 +12,7 @@ define(function(require, exports, module) {
         className: "mainContainer",
         ui: {
             handle: '#handle',
+            email: '#input-email',
             pass: '#pass1',
             confirmPass: '#pass2',
             rememberMe: '#remember-me',
@@ -17,15 +20,26 @@ define(function(require, exports, module) {
         },
 
         events: {
-            'click #remember-me': 'onFormConfirm'
+            'click #remember-me': 'onRememberConfirm',
+            'click #signup': 'onFormConfirm'
         },
 
         initialize: function(options) {
 
         },
 
+        onRememberConfirm: function(options) {
+            // Session-request method goes here
+        },
+
         onFormConfirm: function() {
-            alert(this.ui.handle.val() + "  hola la");
+            var req = new Signup({
+                handle: this.ui.handle.val(),
+                email: this.ui.email.val(),
+                password: this.ui.pass.val(),
+                confirmPass: this.ui.confirmPass.val()
+            });
+            req.save();
         }
     });
 
