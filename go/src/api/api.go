@@ -582,6 +582,79 @@ func (a Api) NewMessage(w rest.ResponseWriter, r *rest.Request) {
 }
 
 /**
+ * Publishes a message identified by it's lastSaved time to a specific circle owned
+ * by the user.
+ */
+func (a Api) PublishMessage(w rest.ResponseWriter, r *rest.Request) {
+	payload := struct {
+		Handle    string
+		Sessionid string
+		LastSaved time.Time
+		Circle    string
+	}{}
+	err := r.DecodeJsonPayload(&payload)
+	if err != nil {
+		rest.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	a.authenticate(w, payload.Handle, payload.Sessionid)
+
+	if !a.circleExists(payload.Handle, payload.Circle) {
+		w.WriteHeader(400)
+		w.WriteJson(map[string]string{
+			"Response": "Bad Request, could not find specified circle to publish to",
+		})
+		return
+	}
+
+	if !a.messageExists(payload.Handle, payload.LastSaved) {
+		w.WriteHeader(400)
+		w.WriteJson(map[string]string{
+			"Response": "Bad Request, could not find intended message for publishing",
+		})
+		return
+	}
+
+	created := []struct {
+		Count int `json:"count(r)"`
+	}{}
+	err = a.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+			MATCH (u:User)
+			WHERE u.handle={handle}
+			MATCH (u)-[:CHIEF_OF]->(c:Circle)
+			WHERE c.name={name}
+			MATCH (u)-[:WROTE]->(m:Message)
+			WHERE m.lastsaved={lastsaved}
+			CREATE (m)-[r:PUB_TO]->(c)
+			SET r.publishedat={date}
+			RETURN count(r)
+		`,
+		Parameters: neoism.Props{
+			"handle":    payload.Handle,
+			"name":      payload.Circle,
+			"lastsaved": payload.LastSaved,
+			"date":      time.Now().Local(),
+		},
+		Result: &created,
+	})
+	panicErr(err)
+
+	if created[0].Count > 0 {
+		w.WriteHeader(201)
+		w.WriteJson(map[string]string{
+			"Response": "Success! Published message to " + payload.Circle,
+		})
+	} else {
+		w.WriteHeader(400)
+		w.WriteJson(map[string]string{
+			"Response": "Bad request, no message published",
+		})
+	}
+}
+
+/**
  * Get messages authored by user
  * Expects query parameters "handle" and "sessionid"
  */
