@@ -70,7 +70,7 @@ func (a Api) userExists(handle string) bool {
 		Parameters: neoism.Props{
 			"handle": handle,
 		},
-		Request: &found,
+		Result: &found,
 	})
 	panicErr(err)
 
@@ -435,7 +435,7 @@ func (a Api) makeCircleForUser(handle string, circleName string) (err error) {
             MATCH (user:User)
             WHERE user.handle = {handle}
             CREATE (circle:Circle {name: {name}})
-            CREATE (user)-[:CHEIF_OF]->(circle)
+            CREATE (user)-[:CHIEF_OF]->(circle)
             RETURN user.name, circle.name
         `,
 		Parameters: neoism.Props{
@@ -464,8 +464,8 @@ func (a Api) makeDefaultCircles(handle string) {
             WHERE user.handle = {handle}
             CREATE (g:Circle {name: {gold}})
             CREATE (p:Circle {name: {public}})
-            CREATE (user)-[:CHEIF_OF]->(g)
-            CREATE (user)-[:CHEIF_OF]->(p)
+            CREATE (user)-[:CHIEF_OF]->(g)
+            CREATE (user)-[:CHIEF_OF]->(p)
             RETURN user.handle, g.name, p.name
         `,
 		Parameters: neoism.Props{
