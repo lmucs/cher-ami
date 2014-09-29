@@ -77,6 +77,48 @@ func (a Api) userExists(handle string) bool {
 	return len(found) > 0
 }
 
+func (a Api) circleExists(handle string, circleName string) bool {
+	found := []struct {
+		Name string `json"circle.name"`
+	}{}
+	err := a.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+			MATCH (user:User {handle: {handle}})
+			OPTIONAL MATCH (circle:Circle {name: {name}})
+			RETURN circle.name
+		`,
+		Parameters: neoism.Props{
+			"handle": handle,
+			"name":   circleName,
+		},
+		Result: &found,
+	})
+	panicErr(err)
+
+	return len(found) > 0
+}
+
+func (a Api) messageExists(handle string, lastSaved time.Time) bool {
+	count := []struct {
+		Count int `json:"count(m)"`
+	}{}
+	err := a.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+		MATCH (u:User {handle: {handle}})
+		OPTIONAL MATCH (u)-[:WROTE]->(m:Message {lastsaved: {lastsaved}})
+		RETURN count(m)
+		`,
+		Parameters: neoism.Props{
+			"handle":    handle,
+			"lastsaved": lastSaved,
+		},
+		Result: &count,
+	})
+	panicErr(err)
+
+	return count[0].Count > 0
+}
+
 //
 // API
 //
@@ -435,7 +477,7 @@ func (a Api) makeCircleForUser(handle string, circleName string) (err error) {
             MATCH (user:User)
             WHERE user.handle = {handle}
             CREATE (circle:Circle {name: {name}})
-            CREATE (user)-[:CHEIF_OF]->(circle)
+            CREATE (user)-[:CHIEF_OF]->(circle)
             RETURN user.name, circle.name
         `,
 		Parameters: neoism.Props{
@@ -464,8 +506,8 @@ func (a Api) makeDefaultCircles(handle string) {
             WHERE user.handle = {handle}
             CREATE (g:Circle {name: {gold}})
             CREATE (p:Circle {name: {public}})
-            CREATE (user)-[:CHEIF_OF]->(g)
-            CREATE (user)-[:CHEIF_OF]->(p)
+            CREATE (user)-[:CHIEF_OF]->(g)
+            CREATE (user)-[:CHIEF_OF]->(p)
             RETURN user.handle, g.name, p.name
         `,
 		Parameters: neoism.Props{
@@ -540,6 +582,79 @@ func (a Api) NewMessage(w rest.ResponseWriter, r *rest.Request) {
 }
 
 /**
+ * Publishes a message identified by it's lastSaved time to a specific circle owned
+ * by the user.
+ */
+func (a Api) PublishMessage(w rest.ResponseWriter, r *rest.Request) {
+	payload := struct {
+		Handle    string
+		Sessionid string
+		LastSaved time.Time
+		Circle    string
+	}{}
+	err := r.DecodeJsonPayload(&payload)
+	if err != nil {
+		rest.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	a.authenticate(w, payload.Handle, payload.Sessionid)
+
+	if !a.circleExists(payload.Handle, payload.Circle) {
+		w.WriteHeader(400)
+		w.WriteJson(map[string]string{
+			"Response": "Bad Request, could not find specified circle to publish to",
+		})
+		return
+	}
+
+	if !a.messageExists(payload.Handle, payload.LastSaved) {
+		w.WriteHeader(400)
+		w.WriteJson(map[string]string{
+			"Response": "Bad Request, could not find intended message for publishing",
+		})
+		return
+	}
+
+	created := []struct {
+		Count int `json:"count(r)"`
+	}{}
+	err = a.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+			MATCH (u:User)
+			WHERE u.handle={handle}
+			MATCH (u)-[:CHIEF_OF]->(c:Circle)
+			WHERE c.name={name}
+			MATCH (u)-[:WROTE]->(m:Message)
+			WHERE m.lastsaved={lastsaved}
+			CREATE (m)-[r:PUB_TO]->(c)
+			SET r.publishedat={date}
+			RETURN count(r)
+		`,
+		Parameters: neoism.Props{
+			"handle":    payload.Handle,
+			"name":      payload.Circle,
+			"lastsaved": payload.LastSaved,
+			"date":      time.Now().Local(),
+		},
+		Result: &created,
+	})
+	panicErr(err)
+
+	if created[0].Count > 0 {
+		w.WriteHeader(201)
+		w.WriteJson(map[string]string{
+			"Response": "Success! Published message to " + payload.Circle,
+		})
+	} else {
+		w.WriteHeader(400)
+		w.WriteJson(map[string]string{
+			"Response": "Bad request, no message published",
+		})
+	}
+}
+
+/**
  * Get messages authored by user
  * Expects query parameters "handle" and "sessionid"
  */
@@ -584,6 +699,65 @@ func (a Api) GetAuthoredMessages(w rest.ResponseWriter, r *rest.Request) {
         `,
 		Parameters: neoism.Props{
 			"handle": payload.Handle,
+		},
+		Result: &messages,
+	})
+	panicErr(err)
+
+	w.WriteHeader(200)
+	w.WriteJson(messages)
+}
+
+/**
+ * Get messages authored by a User that are visible to the authenticated
+ * user. This means from all shared circles that the queried User has published to.
+ */
+func (a Api) GetMessagesByHandle(w rest.ResponseWriter, r *rest.Request) {
+	author := r.PathParam("handle")
+	querymap := r.URL.Query()
+
+	// check query parameters
+	if _, ok := querymap["handle"]; !ok {
+		w.WriteHeader(400)
+		w.WriteJson(map[string]string{
+			"Response": "Bad Request, not enough parameters to authenticate user",
+		})
+		return
+	}
+	if _, ok := querymap["sessionid"]; !ok {
+		w.WriteHeader(400)
+		w.WriteJson(map[string]string{
+			"Response": "Bad Request, not enough parameters to authenticate user",
+		})
+		return
+	}
+	handle := querymap["handle"][0]
+	sessionid := querymap["sessionid"][0]
+
+	a.authenticate(w, handle, sessionid)
+
+	if !a.userExists(author) {
+		w.WriteHeader(400)
+		w.WriteJson(map[string]string{
+			"Response": "Bad request, user doesn't exist",
+		})
+		return
+	}
+
+	messages := []struct {
+		Content   string    `json:"message.content"`
+		Published time.Time `json:"message.published"`
+	}{}
+	err := a.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+			MATCH (author:User {handle: {author}}), (user:User {handle: {handle}})
+			OPTIONAL MATCH (user)-[r:MEMBER_OF]->(circle:Circle)
+			OPTIONAL MATCH (author)-[w:WROTE]-(visible:Message)-[p:PUB_TO]->(circle)
+			RETURN visible.content, visible.published_at
+		`,
+		Parameters: neoism.Props{
+			"author": author,
+			"handle": querymap["handle"][0],
 		},
 		Result: &messages,
 	})
