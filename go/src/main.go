@@ -14,8 +14,9 @@ func main() {
     handler := rest.ResourceHandler{
         EnableRelaxedContentType: true,
     }
-
-    neo4jdb, err := neoism.Connect("http://localhost:7474/db/data")
+    // if testing locally, comment out remote IP and uncomment this
+    // neo4jdb, err := neoism.Connect("http://localhost:7474/db/data")
+    neo4jdb, err := neoism.Connect("http://107.170.229.205:7474/db/data")
     if err != nil {
         log.Fatal(err)
     }
