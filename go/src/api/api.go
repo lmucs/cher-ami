@@ -77,6 +77,48 @@ func (a Api) userExists(handle string) bool {
 	return len(found) > 0
 }
 
+func (a Api) circleExists(handle string, circleName string) bool {
+	found := []struct {
+		Name string `json"circle.name"`
+	}{}
+	err := a.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+			MATCH (user:User {handle: {handle}})
+			OPTIONAL MATCH (circle:Circle {name: {name}})
+			RETURN circle.name
+		`,
+		Parameters: neoism.Props{
+			"handle": handle,
+			"name":   circleName,
+		},
+		Result: &found,
+	})
+	panicErr(err)
+
+	return len(found) > 0
+}
+
+func (a Api) messageExists(handle string, lastSaved time.Time) bool {
+	count := []struct {
+		Count int `json:"count(m)"`
+	}{}
+	err := a.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+		MATCH (u:User {handle: {handle}})
+		OPTIONAL MATCH (u)-[:WROTE]->(m:Message {lastsaved: {lastsaved}})
+		RETURN count(m)
+		`,
+		Parameters: neoism.Props{
+			"handle":    handle,
+			"lastsaved": lastSaved,
+		},
+		Result: &count,
+	})
+	panicErr(err)
+
+	return count[0].Count > 0
+}
+
 //
 // API
 //
