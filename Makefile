@@ -4,7 +4,11 @@ GO_SRC = go/src
 
 .PHONY: start
 start:
-	cd $(GO_SRC); go run main.go
+	cd $(GO_SRC); go run main.go "http://107.170.229.205:7474/db/data"
+
+.PHONY: local
+local:
+	cd $(GO_SRC); go run main.go "http://localhost:7474/db/data"
 
 .PHONY: serve
 serve:
