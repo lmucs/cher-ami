@@ -32,13 +32,15 @@ define(function(require, exports, module) {
             // Session-request method goes here
         },
 
-        onFormConfirm: function() {
+        onFormConfirm: function(event) {
+            event.preventDefault();
             var req = new Signup({
                 handle: this.ui.handle.val(),
                 email: this.ui.email.val(),
                 password: this.ui.pass.val(),
-                confirmPass: this.ui.confirmPass.val()
+                confirmpassword: this.ui.confirmPass.val()
             });
+            console.log(req)
             req.save();
         }
     });
