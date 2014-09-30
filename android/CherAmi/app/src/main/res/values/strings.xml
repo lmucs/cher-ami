@@ -11,5 +11,7 @@
     <string name="Password">Password</string>
     <string name="Email">Email</string>
     <string name="confirmPassword">Confirm Password</string>
+    <string name="title_activity_content_activity">content_activity</string>
+    <string name="hello_world">Hello world!</string>
 
 </resources>
