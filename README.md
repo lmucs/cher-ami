@@ -1,5 +1,7 @@
 ![Logo](web/src/static/img/cherami-logo-300.png)
 
-We're working on this README.
+To start the API, run `make start` in this directory.
 
-For now, go checkout the [wiki](https://github.com/rtoal/cher-ami/wiki).
+README is a work in progress.
+
+Go checkout the [wiki](https://github.com/rtoal/cher-ami/wiki).

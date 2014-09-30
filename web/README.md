@@ -9,21 +9,20 @@ CherAmi Web App: Marionette/Backbone/Require/Sass
 
 	gem install compass sass
 
-
 ##### Install RequireJS Globally
 
 	sudo npm install -g requirejs
 
-### Terminal Commands	
+### Terminal Commands
 
 #### Start Test Server
 
 	make serve
-	
+
 #### Start Compass
-	
+
 	make watch
-	
+
 #### Start Server/Compass
 
 	make all
@@ -51,7 +50,7 @@ First time? Go to setup below. Otherwise, run this in the root of this project.
 #### First, install karma
 
 	npm install karma
-	
+
 #### First-Time Testing Setup in the root of this project
 
 	make install-test-reqs
