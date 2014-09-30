@@ -123,6 +123,10 @@ func (a Api) messageExists(handle string, lastSaved time.Time) bool {
 // API
 //
 
+//
+// Credentials
+//
+
 /*
  * Expects a json POST with "username", "email", "password", "confirmpassword"
  */
@@ -352,6 +356,10 @@ func (a Api) Logout(w rest.ResponseWriter, r *rest.Request) {
 	})
 }
 
+//
+// User
+//
+
 func (a Api) GetUser(w rest.ResponseWriter, r *rest.Request) {
 	querymap := r.URL.Query()
 
@@ -463,6 +471,10 @@ func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
 	})
 }
 
+//
+// Circles
+//
+
 func (a Api) makeCircleForUser(handle string, circleName string) (err error) {
 	if circleName == GOLD || circleName == PUBLIC {
 		return errors.New(circleName + " is a reserved circle name")
@@ -522,6 +534,10 @@ func (a Api) makeDefaultCircles(handle string) {
 		panic(fmt.Sprintf("Incorrect results len in query1()\n\tgot %d, expected 1\n", len(made)))
 	}
 }
+
+//
+// Messages
+//
 
 /**
  * Expects a json post with "handle", "sessionid", "content"
@@ -776,14 +792,18 @@ func (a Api) DeleteMessage(w rest.ResponseWriter, r *rest.Request) {
 		Sessionid string
 		Lastsaved time.Time
 	}{}
-	r.DecodeJsonPayload(&payload)
+	err := r.DecodeJsonPayload(&payload)
+	if err != nil {
+		rest.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 	a.authenticate(w, payload.Handle, payload.Sessionid)
 
 	deleted := []struct {
 		Count int `json:"count(m)"`
 	}{}
-	err := a.Db.Cypher(&neoism.CypherQuery{
+	err = a.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
         MATCH (user:User {handle: {handle}})
         OPTIONAL MATCH (user)-[r:WROTE]->(m:Message {lastsaved: {lastsaved}})
@@ -802,5 +822,75 @@ func (a Api) DeleteMessage(w rest.ResponseWriter, r *rest.Request) {
 	w.WriteJson(map[string]interface{}{
 		"Response": "Success!",
 		"Deleted":  deleted[0].Count,
+	})
+}
+
+//
+// Social
+//
+
+func (a Api) BlockUser(w rest.ResponseWriter, r *rest.Request) {
+	payload := struct {
+		Handle    string
+		Sessionid string
+		Target    string
+	}{}
+	err := r.DecodeJsonPayload(&payload)
+	if err != nil {
+		rest.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	a.authenticate(w, payload.Handle, payload.Sessionid)
+	if !a.userExists(payload.Target) {
+		w.WriteHeader(400)
+		w.WriteJson(map[string]string{
+			"Response": "Bad request, user " + payload.Handle + " wasn't found",
+		})
+		return
+	}
+
+	// Revoke membership to all circles
+	deleted := []struct {
+		Count int `json:"count(r)"`
+	}{}
+	err = a.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+			MATCH (u:User)
+			WHERE u.handle={handle}
+			OPTIONAL MATCH (u)-[:CHIEF_OF]->(c:Circle)
+			MATCH (t:User)
+			WHERE t.handle={target}
+			OPTIONAL MATCH (t)-[r:MEMBER_OF]->(c)
+			DELETE r
+			RETURN count(r)
+		`,
+		Parameters: neoism.Props{
+			"handle": payload.Handle,
+			"target": payload.Target,
+		},
+		Result: &deleted,
+	})
+	panicErr(err)
+
+	// Block user
+	blocked := []struct {
+		Target string      `json:"t.handle"`
+		R      neoism.Node `json:"r"`
+	}{}
+	err = a.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+			MATCH (u:User)
+			WHERE u.handle={handle}
+			MATCH (t:User)
+			WHERE t.handle={target}
+			CREATE UNIQUE (u)-[r:BLOCKED]->(t)
+			RETURN t.handle, r
+		`,
+		Parameters: neoism.Props{
+			"handle": payload.Handle,
+			"target": payload.Target,
+		},
+		Result: &blocked,
 	})
 }
