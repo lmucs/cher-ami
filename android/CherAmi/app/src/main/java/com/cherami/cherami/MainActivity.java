@@ -12,6 +12,7 @@ import android.support.v13.app.FragmentPagerAdapter;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -38,6 +39,10 @@ public class MainActivity extends Activity implements ActionBar.TabListener {
      * The {@link ViewPager} that will host the section contents.
      */
     ViewPager mViewPager;
+    EditText mUsername;
+    EditText mEmail;
+    EditText mPassword;
+    EditText mConfirmPassword;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,6 +85,7 @@ public class MainActivity extends Activity implements ActionBar.TabListener {
 
         //Get handle, email, password, and confirm fields
 
+
     }
 
 
@@ -96,18 +102,71 @@ public class MainActivity extends Activity implements ActionBar.TabListener {
     }
 
     public void attemptCreateAccount(View view) {
+        View focusView = null;
+        Boolean cancel = false;
+
+        mUsername = (EditText)findViewById(R.id.username);
+        mEmail = (EditText)findViewById(R.id.email);
+        mPassword = (EditText)findViewById(R.id.password);
+        mConfirmPassword = (EditText)findViewById(R.id.confirmPassword);
+        String username = mUsername.getText().toString();
+        String email = mEmail.getText().toString();
+        String password = mPassword.getText().toString();
+        String confrimPassword = mConfirmPassword.getText().toString();
         /* First, data sanitization: No fields should be left blank, email should have @ symbol,
         password and Confirm password should be the same (this is done in back end)
         Also, handle/username must be unique (also back end?)
-
         Then,
         POST to db with Handle, Email, Password, and Confirm
         */
+        if (TextUtils.isEmpty(username)) {
+            mUsername.setError(getString(R.string.error_field_required));
+            focusView = mUsername;
+            cancel = true;
+        }
+
+        // Check for a valid email address.
+        if (TextUtils.isEmpty(email)) {
+            mEmail.setError(getString(R.string.error_field_required));
+            focusView = mEmail;
+            cancel = true;
+        } else if (!isEmailValid(email)) {
+            mEmail.setError(getString(R.string.error_invalid_email));
+            focusView = mEmail;
+            cancel = true;
+        }
+
+        if (!TextUtils.isEmpty(password) && !isPasswordValid(password)) {
+            mPassword.setError(getString(R.string.error_invalid_password));
+            focusView = mPassword;
+            cancel = true;
+        }
+
+        if (!confrimPassword.equals(password)) {
+            mConfirmPassword.setError(getString(R.string.error_invalid_confirm));
+            focusView = mConfirmPassword;
+            cancel = true;
+        }
+
+
+        if (cancel) {
+            //Something is wrong; don't sign up
+            focusView.requestFocus();
+        } else {
+            // Sign them up
+
+        }
+
     }
 
     private boolean isEmailValid(String email) {
-        //Do more?
+        //TODO: Replace this with your own logic
         return email.contains("@");
+    }
+
+    private boolean isPasswordValid(String password) {
+        //TODO: Replace this with your own logic
+        return password.length() > 4;
     }
 
 
