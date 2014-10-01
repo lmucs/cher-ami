@@ -105,9 +105,9 @@ func (a Api) messageExists(handle string, lastSaved time.Time) bool {
 	}{}
 	err := a.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
-		MATCH (u:User {handle: {handle}})
-		OPTIONAL MATCH (u)-[:WROTE]->(m:Message {lastsaved: {lastsaved}})
-		RETURN count(m)
+			MATCH (u:User {handle: {handle}})
+			OPTIONAL MATCH (u)-[:WROTE]->(m:Message {lastsaved: {lastsaved}})
+			RETURN count(m)
 		`,
 		Parameters: neoism.Props{
 			"handle":    handle,
@@ -118,6 +118,23 @@ func (a Api) messageExists(handle string, lastSaved time.Time) bool {
 	panicErr(err)
 
 	return count[0].Count > 0
+}
+
+func (a Api) isBlocked(handle string, target string) {
+	blocked := []struct {
+		Count int `json:"count(r)"`
+	}{}
+	err := a.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+			MATCH (u:User {handle: {handle}})
+			MATCH (t:USer {handle: {targer}})
+			OPTIONAL MATCH (u)-[r:BLOCKED]->(t)
+			RETURN count(r)
+		`,
+	})
+	panicErr(err)
+
+	return blocked[0].Count > 0
 }
 
 //
