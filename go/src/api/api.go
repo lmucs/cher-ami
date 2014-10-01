@@ -56,6 +56,7 @@ func (a Api) authenticate(w rest.ResponseWriter, handle string, sessionid string
 	if len(found) == 0 {
 		rest.Error(w, "Could not authenticate user "+handle, 400)
 	}
+	return a
 }
 
 func (a Api) userExists(handle string) bool {
