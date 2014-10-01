@@ -119,11 +119,6 @@ public class MainActivity extends Activity implements ActionBar.TabListener {
         Then,
         POST to db with Handle, Email, Password, and Confirm
         */
-        if (TextUtils.isEmpty(username)) {
-            mUsername.setError(getString(R.string.error_field_required));
-            focusView = mUsername;
-            cancel = true;
-        }
 
         // Check for a valid email address.
         if (TextUtils.isEmpty(email)) {
@@ -136,7 +131,11 @@ public class MainActivity extends Activity implements ActionBar.TabListener {
             cancel = true;
         }
 
-        if (!TextUtils.isEmpty(password) && !isPasswordValid(password)) {
+        if (TextUtils.isEmpty(password)) {
+            mPassword.setError(getString(R.string.error_field_required));
+            focusView = mPassword;
+            cancel = true;
+        } else if (!isPasswordValid(password)) {
             mPassword.setError(getString(R.string.error_invalid_password));
             focusView = mPassword;
             cancel = true;
@@ -145,6 +144,12 @@ public class MainActivity extends Activity implements ActionBar.TabListener {
         if (!confrimPassword.equals(password)) {
             mConfirmPassword.setError(getString(R.string.error_invalid_confirm));
             focusView = mConfirmPassword;
+            cancel = true;
+        }
+
+        if (TextUtils.isEmpty(username)) {
+            mUsername.setError(getString(R.string.error_field_required));
+            focusView = mUsername;
             cancel = true;
         }
 
