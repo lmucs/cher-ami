@@ -36,7 +36,7 @@ const (
 //
 
 // Errors if authentication is not successful
-func (a Api) authenticate(w rest.ResponseWriter, handle string, sessionid string) {
+func (a Api) authenticate(w rest.ResponseWriter, handle string, sessionid string) Api {
 	found := []struct {
 		Handle string `json:"user.handle"`
 	}{}
@@ -120,17 +120,22 @@ func (a Api) messageExists(handle string, lastSaved time.Time) bool {
 	return count[0].Count > 0
 }
 
-func (a Api) isBlocked(handle string, target string) {
+func (a Api) isBlocked(handle string, target string) bool {
 	blocked := []struct {
 		Count int `json:"count(r)"`
 	}{}
 	err := a.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
 			MATCH (u:User {handle: {handle}})
-			MATCH (t:USer {handle: {targer}})
+			MATCH (t:User {handle: {target}})
 			OPTIONAL MATCH (u)-[r:BLOCKED]->(t)
 			RETURN count(r)
 		`,
+		Parameters: neoism.Props{
+			"handle": handle,
+			"target": target,
+		},
+		Result: &blocked,
 	})
 	panicErr(err)
 
@@ -906,5 +911,56 @@ func (a Api) BlockUser(w rest.ResponseWriter, r *rest.Request) {
 			"target": payload.Target,
 		},
 		Result: &blocked,
+	})
+}
+
+func (a Api) Follow(w rest.ResponseWriter, r *rest.Request) {
+	payload := struct {
+		Handle    string
+		Sessionid string
+		Target    string
+	}{}
+	err := r.DecodeJsonPayload(&payload)
+	if err != nil {
+		rest.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if a.isBlocked(payload.Handle, payload.Target) {
+		w.WriteHeader(403)
+		w.WriteJson(map[string]string{
+			"Response": "Server refusal to comply with follow request",
+		})
+		return
+	}
+
+	followed := []struct {
+		Target string    `json:"t.handle"`
+		At     time.Time `json:"r.at"`
+	}{}
+	at := time.Now().Local()
+	err = a.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+			MATCH (u:User)
+			WHERE u.handle={handle}
+			MATCH (t:User)-[:CHIEF_OF]->(c:Circle {name={public}})
+			WHERE t.handle={target}
+			CREATE UNIQUE (u)-[r:MEMBER_OF]->(c)
+			SET r.at={now}
+			RETURN r.at
+		`,
+		Parameters: neoism.Props{
+			"handle": payload.Handle,
+			"public": PUBLIC,
+			"target": payload.Target,
+			"now":    at,
+		},
+		Result: &followed,
+	})
+
+	w.WriteHeader(201)
+	w.WriteJson(map[string]string{
+		"Response": "Follow request successful!",
+		"Info":     payload.Handle + " now follows " + payload.Target + " as of " + at.Format(time.RFC1123),
 	})
 }
