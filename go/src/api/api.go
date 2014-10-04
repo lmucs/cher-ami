@@ -36,7 +36,7 @@ const (
 //
 
 // Errors if authentication is not successful
-func (a Api) authenticate(w rest.ResponseWriter, handle string, sessionid string) {
+func (a Api) authenticate(w rest.ResponseWriter, handle string, sessionid string) Api {
 	found := []struct {
 		Handle string `json:"user.handle"`
 	}{}
@@ -120,17 +120,22 @@ func (a Api) messageExists(handle string, lastSaved time.Time) bool {
 	return count[0].Count > 0
 }
 
-func (a Api) isBlocked(handle string, target string) {
+func (a Api) isBlocked(handle string, target string) bool {
 	blocked := []struct {
 		Count int `json:"count(r)"`
 	}{}
 	err := a.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
 			MATCH (u:User {handle: {handle}})
-			MATCH (t:USer {handle: {targer}})
+			MATCH (t:User {handle: {target}})
 			OPTIONAL MATCH (u)-[r:BLOCKED]->(t)
 			RETURN count(r)
 		`,
+		Parameters: neoism.Props{
+			"handle": handle,
+			"target": target,
+		},
+		Result: &blocked,
 	})
 	panicErr(err)
 
