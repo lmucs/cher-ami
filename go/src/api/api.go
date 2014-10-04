@@ -139,14 +139,10 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 	}
 	proposal := Proposal{}
 	err := r.DecodeJsonPayload(&proposal)
-	fmt.Println("email: " + proposal.Email)
-	fmt.Printf("err was nil: %t\n", err == nil)
 	if err != nil {
 		rest.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	fmt.Printf("%+v\n", r.Body)
-	fmt.Println("email: " + proposal.Email)
 
 	// Handle and Email checks
 	if proposal.Handle == "" {
