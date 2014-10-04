@@ -1,0 +1,40 @@
+body {
+	background-color: white;
+	width: 100%;
+	min-width: 320px;
+}
+
+.textarea-container {
+  position: relative;
+  /* you should change this*/
+  width: 100%;
+}
+
+textarea, .textarea-size {
+  min-height: 25px;
+  /* need to manually set font and font size */
+  font-family: sans-serif;
+  font-size: 14px;
+  padding: 4px;
+  border: 1px solid;
+  max-height: 300px;
+  overflow: auto;
+  width: 100%;
+  min-height: 50px;
+  max-height: 100px;
+}
+
+textarea.form-control{
+  height: 100%;
+  position: absolute;
+  resize:none;
+  white-space: normal;
+}
+
+.textarea-size {
+  visibility: hidden;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  
+
+}
