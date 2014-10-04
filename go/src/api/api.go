@@ -169,20 +169,32 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 
 	// Handle and Email checks
 	if proposal.Handle == "" {
-		rest.Error(w, "Handle is a required field for signup", 400)
+		w.WriteHeader(400)
+		w.WriteJson(map[string]string{
+			"Response": "Handle is a required field for signup",
+		})
 		return
 	} else if proposal.Email == "" {
-		rest.Error(w, "Email is a required field for signup", 400)
+		w.WriteHeader(400)
+		w.WriteJson(map[string]string{
+			"Response": "Email is a required field for signup",
+		})
 		return
 	}
 
 	// Password checks
 	minPasswordLength := 8
 	if proposal.Password != proposal.ConfirmPassword {
-		rest.Error(w, "Passwords do not match", 400)
+		w.WriteHeader(400)
+		w.WriteJson(map[string]string{
+			"Response": "Passwords do not match",
+		})
 		return
 	} else if len(proposal.Password) < minPasswordLength {
-		rest.Error(w, "Passwords must be at least 8 characters long", 400)
+		w.WriteHeader(400)
+		w.WriteJson(map[string]string{
+			"Response": "Passwords must be at least 8 characters long",
+		})
 		return
 	}
 
@@ -205,7 +217,10 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 	if len(foundUsers) > 0 {
-		rest.Error(w, "Sorry, "+proposal.Handle+" is already taken", 400)
+		w.WriteHeader(400)
+		w.WriteJson(map[string]string{
+			"Response": "Sorry, "+proposal.Handle+" is already taken",
+		})
 		return
 	}
 
@@ -228,7 +243,10 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 	if len(foundEmails) > 0 {
-		rest.Error(w, "Sorry, "+proposal.Email+" is already taken", 400)
+		w.WriteHeader(400)
+		w.WriteJson(map[string]string{
+			"Response": "Sorry, "+proposal.Email+" is already taken",
+		})
 		return
 	}
 
