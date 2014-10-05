@@ -80,13 +80,14 @@ func (a Api) userExists(handle string) bool {
 
 func (a Api) circleExists(handle string, circleName string) bool {
 	found := []struct {
-		Name string `json"circle.name"`
+		Name   string `json:"circle.name"`
+		Public bool   `json:"circle.public"`
 	}{}
 	err := a.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
 			MATCH (user:User {handle: {handle}})
 			OPTIONAL MATCH (circle:Circle {name: {name}})
-			RETURN circle.name
+			RETURN circle.name, circle.public
 		`,
 		Parameters: neoism.Props{
 			"handle": handle,
@@ -96,7 +97,7 @@ func (a Api) circleExists(handle string, circleName string) bool {
 	})
 	panicErr(err)
 
-	return len(found) > 0
+	return len(found) > 0 && found[0].Public
 }
 
 func (a Api) messageExists(handle string, lastSaved time.Time) bool {
@@ -558,8 +559,8 @@ func (a Api) makeDefaultCircles(handle string) {
 		Statement: `
             MATCH (user:User)
             WHERE user.handle = {handle}
-            CREATE (g:Circle {name: {gold}})
-            CREATE (p:Circle {name: {broadcast}})
+            CREATE (g:Circle {name: {gold}, public: false})
+            CREATE (p:Circle {name: {broadcast, public: true}})
             CREATE (user)-[:CHIEF_OF]->(g)
             CREATE (user)-[:CHIEF_OF]->(p)
             RETURN user.handle, g.name, p.name
