@@ -6,8 +6,8 @@ define(function(require, exports, module) {
     var Login = require('app/models/login').Login;
 
     var LoginView = marionette.ItemView.extend({
-
         template: template,
+
         tagName: "div",
         className: "loginContainer",
         ui: {
@@ -23,7 +23,7 @@ define(function(require, exports, module) {
         },
 
         initialize: function(options) {
-
+            this.model = new Login();
         },
 
         onRememberConfirm: function() {
@@ -32,19 +32,19 @@ define(function(require, exports, module) {
 
         onLogin: function(event) {
             event.preventDefault();
-            var req = new Login();
-            req.save({
+            var data = {
                 handle: this.ui.handle.val(),
                 password: this.ui.pass.val()
-            },
-            {
+            }
+            var callbacks = {
                 success: function() {
                     alert("It worked!");
                 },
                 error: function() {
                     alert(":(");
                 }
-            });
+            }
+            this.model.save(data, callbacks);
         }
 
     });
