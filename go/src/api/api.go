@@ -27,8 +27,8 @@ type Api struct {
 
 // Circle constants
 const (
-	GOLD   = "Gold"
-	PUBLIC = "Public"
+	GOLD      = "Gold"
+	BROADCAST = "Broadcast"
 )
 
 //
@@ -219,7 +219,7 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 	if len(foundUsers) > 0 {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
-			"Response": "Sorry, "+proposal.Handle+" is already taken",
+			"Response": "Sorry, " + proposal.Handle + " is already taken",
 		})
 		return
 	}
@@ -245,7 +245,7 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 	if len(foundEmails) > 0 {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
-			"Response": "Sorry, "+proposal.Email+" is already taken",
+			"Response": "Sorry, " + proposal.Email + " is already taken",
 		})
 		return
 	}
@@ -257,7 +257,12 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 	}{}
 	err = a.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
-            CREATE (user:User { handle: {handle}, email: {email}, password: {password}, joined: {joined} })
+            CREATE (user:User {
+            	handle:   {handle},
+            	email:    {email},
+            	password: {password},
+            	joined:   {joined}
+            })
             RETURN user.handle, user.email, user.joined
         `,
 		Parameters: neoism.Props{
@@ -274,7 +279,7 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 		panic(fmt.Sprintf("Incorrect results len in query1()\n\tgot %d, expected 1\n", len(newUser)))
 	}
 
-	// Add 'Gold' and 'Public' circles
+	// Add 'Broadcast' and 'Gold' circles
 	a.makeDefaultCircles(proposal.Handle)
 
 	var handle string = newUser[0].Handle
@@ -512,8 +517,8 @@ func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
 // Circles
 //
 
-func (a Api) makeCircleForUser(handle string, circleName string) (err error) {
-	if circleName == GOLD || circleName == PUBLIC {
+func (a Api) makeCircleForUser(handle string, circleName string) error {
+	if circleName == GOLD || circleName == BROADCAST {
 		return errors.New(circleName + " is a reserved circle name")
 	}
 
@@ -554,15 +559,15 @@ func (a Api) makeDefaultCircles(handle string) {
             MATCH (user:User)
             WHERE user.handle = {handle}
             CREATE (g:Circle {name: {gold}})
-            CREATE (p:Circle {name: {public}})
+            CREATE (p:Circle {name: {broadcast}})
             CREATE (user)-[:CHIEF_OF]->(g)
             CREATE (user)-[:CHIEF_OF]->(p)
             RETURN user.handle, g.name, p.name
         `,
 		Parameters: neoism.Props{
-			"handle": handle,
-			"gold":   GOLD,
-			"public": PUBLIC,
+			"handle":    handle,
+			"gold":      GOLD,
+			"broadcast": BROADCAST,
 		},
 		Result: &made,
 	})
@@ -961,17 +966,17 @@ func (a Api) Follow(w rest.ResponseWriter, r *rest.Request) {
 		Statement: `
 			MATCH (u:User)
 			WHERE u.handle={handle}
-			MATCH (t:User)-[:CHIEF_OF]->(c:Circle {name={public}})
+			MATCH (t:User)-[:CHIEF_OF]->(c:Circle {name={broadcast}})
 			WHERE t.handle={target}
 			CREATE UNIQUE (u)-[r:MEMBER_OF]->(c)
 			SET r.at={now}
 			RETURN r.at
 		`,
 		Parameters: neoism.Props{
-			"handle": payload.Handle,
-			"public": PUBLIC,
-			"target": payload.Target,
-			"now":    at,
+			"handle":    payload.Handle,
+			"broadcast": BROADCAST,
+			"target":    payload.Target,
+			"now":       at,
 		},
 		Result: &followed,
 	})
