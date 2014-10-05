@@ -556,15 +556,14 @@ func (a Api) makeCircleForUser(handle string, circleName string) error {
 
 	made := []struct {
 		Handle string `json:"user.name"`
-		Name   string `json:"circle.name"`
+		Name   string `json:"c.name"`
 	}{}
 	dberr := a.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
             MATCH (user:User)
             WHERE user.handle = {handle}
-            CREATE (circle:Circle {name: {name}})
-            CREATE (user)-[:CHIEF_OF]->(circle)
-            RETURN user.name, circle.name
+            CREATE UNIQUE (user)-[:CHIEF_OF]->(c:Circle {name: {name}})
+            RETURN user.name, c.name
         `,
 		Parameters: neoism.Props{
 			"handle": handle,
