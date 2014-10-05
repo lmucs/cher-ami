@@ -938,7 +938,7 @@ func (a Api) BlockUser(w rest.ResponseWriter, r *rest.Request) {
 	})
 }
 
-func (a Api) Follow(w rest.ResponseWriter, r *rest.Request) {
+func (a Api) JoinDefault(w rest.ResponseWriter, r *rest.Request) {
 	payload := struct {
 		Handle    string
 		Sessionid string
@@ -950,15 +950,17 @@ func (a Api) Follow(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
+	a.authenticate(w, payload.Handle, payload.Sessionid)
+
 	if a.isBlocked(payload.Handle, payload.Target) {
 		w.WriteHeader(403)
 		w.WriteJson(map[string]string{
-			"Response": "Server refusal to comply with follow request",
+			"Response": "Server refusal to comply with join request",
 		})
 		return
 	}
 
-	followed := []struct {
+	joined := []struct {
 		Target string    `json:"t.handle"`
 		At     time.Time `json:"r.at"`
 	}{}
@@ -979,12 +981,12 @@ func (a Api) Follow(w rest.ResponseWriter, r *rest.Request) {
 			"target":    payload.Target,
 			"now":       at,
 		},
-		Result: &followed,
+		Result: &joined,
 	})
 
 	w.WriteHeader(201)
 	w.WriteJson(map[string]string{
-		"Response": "Follow request successful!",
-		"Info":     payload.Handle + " now follows " + payload.Target + " as of " + at.Format(time.RFC1123),
+		"Response": "JoinDefault request successful!",
+		"Info":     payload.Handle + " added to " + payload.Target + "'s broadcast at " + at.Format(time.RFC1123),
 	})
 }
