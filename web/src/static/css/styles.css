@@ -86,6 +86,16 @@ h1 {
 .col-sm-6 {
     width: 80%;
 }
+#existingUserForm {
+    margin-top: 10px;
+}
+#containerHeader {
+    text-align: -webkit-center;
+    margin-top: 10px;
+    font: bold 265%/120% "Lucida Grande";
+    position: relative;
+    color: #464646;
+}
 /*** Below is the footer style section ***/
 #footer {
     width:100%;
