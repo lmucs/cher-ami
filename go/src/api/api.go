@@ -36,8 +36,9 @@ func NewApi(db *neoism.Database) *Api {
 
 // Circle constants
 const (
-	GOLD      = "Gold"
-	BROADCAST = "Broadcast"
+	GOLD          = "Gold"
+	BROADCAST     = "Broadcast"
+	PUBLIC_DOMAIN = "(p:PublicDomain {iamunique: true})"
 )
 
 //
