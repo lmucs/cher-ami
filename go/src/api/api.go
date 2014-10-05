@@ -25,6 +25,15 @@ type Api struct {
 	Db *neoism.Database
 }
 
+/**
+ * Constructor
+ */
+func NewApi(db *neoism.Database) *Api {
+	api := &Api{db}
+	api.DatabaseInit()
+	return api
+}
+
 // Circle constants
 const (
 	GOLD      = "Gold"
@@ -143,10 +152,6 @@ func (a Api) isBlocked(handle string, target string) bool {
 	return blocked[0].Count > 0
 }
 
-//
-// API
-//
-
 /**
  * Creates a Public Domain node
  * Neo4j initiation and setup should be done here
@@ -168,6 +173,10 @@ func (a Api) DatabaseInit() {
 		fmt.Println("Unexpected database state, possible lack of PublicDomain")
 	}
 }
+
+//
+// API
+//
 
 //
 // Credentials
