@@ -1,13 +1,13 @@
 define(function(require, exports, module) {
-    var marionette = require('marionette')
-    var template = require('hbs!../templates/signup-view')
+    var marionette = require('marionette');
+    var template = require('hbs!../templates/signup-view');
 
     var Signup = require('app/models/signup').Signup;
 
     var SignupView = marionette.ItemView.extend({
         template: template,
 
-        //take the div marionette creates and give it a class named mainContainer.
+        //takes the div marionette creates and give it a class named mainContainer.
         tagName: "div",
         className: "mainContainer",
         ui: {

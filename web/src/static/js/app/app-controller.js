@@ -6,7 +6,8 @@ define(function(require, exports, module) {
 
     var HeaderView = require('app/views/header-view').HeaderView;
     var SignupView = require('app/views/signup-view').SignupView;
-    var FooterView = require('app/views/footer-view').FooterView
+    var FooterView = require('app/views/footer-view').FooterView;
+    var LoginView = require('app/views/login-view').LoginView;
 
     var AppController = marionette.Controller.extend({
 
