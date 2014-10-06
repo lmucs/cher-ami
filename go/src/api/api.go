@@ -36,9 +36,8 @@ func NewApi(db *neoism.Database) *Api {
 
 // Circle constants
 const (
-	GOLD          = "Gold"
-	BROADCAST     = "Broadcast"
-	PUBLIC_DOMAIN = "(p:PublicDomain {iamunique: true})"
+	GOLD      = "Gold"
+	BROADCAST = "Broadcast"
 )
 
 //
@@ -159,8 +158,8 @@ func (a Api) isBlocked(handle string, target string) bool {
 func (a Api) DatabaseInit() {
 	var publicdomain *neoism.Node
 	// Nodes must have at least one property to allow uniquely creation
-	publicdomain, _, err := a.Db.GetOrCreateNode("PublicDomain", "iamunique", neoism.Props{
-		"iamunique": true,
+	publicdomain, _, err := a.Db.GetOrCreateNode("PublicDomain", "u", neoism.Props{
+		"u": true,
 	})
 	panicErr(err)
 	// Label (has to be) added separately
