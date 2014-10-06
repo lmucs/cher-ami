@@ -548,24 +548,55 @@ func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
 // Circles
 //
 
-func (a Api) makeCircleForUser(handle string, circleName string) error {
+func (a Api) NewCircle(w rest.ResponseWriter, r *rest.Request) {
+	payload := struct {
+		Handle     string
+		SessionId  string
+		CircleName string
+		Public     bool
+	}{}
+	r.DecodeJsonPayload(&payload)
+
+	a.authenticate(w, payload.Handle, payload.SessionId)
+
+	circleName := payload.CircleName
+
 	if circleName == GOLD || circleName == BROADCAST {
-		return errors.New(circleName + " is a reserved circle name")
+		w.WriteHeader(403)
+		w.WriteJson(map[string]string{
+			"Response": circleName + " is a reserved circle name",
+		})
+		return
+	}
+
+	statement := ``
+	if payload.Public {
+		fmt.Println("Was true... should attach to PD")
+		statement = `
+            MATCH (p:PublicDomain {u:true})
+            MATCH (u:User)
+            WHERE u.handle = {handle}
+            CREATE UNIQUE (u)-[:CHIEF_OF]->(c:Circle {name: {name}})
+            CREATE UNIQUE (c)-[:PART_OF]->(p)
+            RETURN u.name, c.name
+        `
+	} else {
+		statement = `
+            MATCH (u:User)
+            WHERE u.handle = {handle}
+            CREATE UNIQUE (u)-[:CHIEF_OF]->(c:Circle {name: {name}})
+            RETURN u.name, c.name
+        `
 	}
 
 	made := []struct {
-		Handle string `json:"user.name"`
+		Handle string `json:"u.name"`
 		Name   string `json:"c.name"`
 	}{}
 	dberr := a.Db.Cypher(&neoism.CypherQuery{
-		Statement: `
-            MATCH (user:User)
-            WHERE user.handle = {handle}
-            CREATE UNIQUE (user)-[:CHIEF_OF]->(c:Circle {name: {name}})
-            RETURN user.name, c.name
-        `,
+		Statement: statement,
 		Parameters: neoism.Props{
-			"handle": handle,
+			"handle": payload.Handle,
 			"name":   circleName,
 		},
 		Result: &made,
@@ -575,7 +606,10 @@ func (a Api) makeCircleForUser(handle string, circleName string) error {
 		panic(fmt.Sprintf("Incorrect results len in query1()\n\tgot %d, expected 1\n", len(made)))
 	}
 
-	return nil
+	w.WriteHeader(201)
+	w.WriteJson(map[string]string{
+		"Response": "Created new circle " + circleName + " for " + payload.Handle,
+	})
 }
 
 func (a Api) makeDefaultCircles(handle string) {
