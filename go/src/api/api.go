@@ -580,19 +580,20 @@ func (a Api) makeCircleForUser(handle string, circleName string) error {
 
 func (a Api) makeDefaultCircles(handle string) {
 	made := []struct {
-		Handle string `json:"user.handle"`
-		G      string `json:"g.name"`
-		P      string `json:"p.name"`
+		Handle    string `json:"u.handle"`
+		Gold      string `json:"g.name"`
+		Broadcast string `json:"br.name"`
 	}{}
 	dberr := a.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
-            MATCH (user:User)
-            WHERE user.handle = {handle}
-            CREATE (g:Circle {name: {gold}, public: false})
-            CREATE (p:Circle {name: {broadcast, public: true}})
-            CREATE (user)-[:CHIEF_OF]->(g)
-            CREATE (user)-[:CHIEF_OF]->(p)
-            RETURN user.handle, g.name, p.name
+            MATCH (u:User), (p:PublicDomain {u:true})
+            WHERE u.handle = {handle}
+            CREATE (g:Circle {name: {gold}})
+            CREATE (br:Circle {name: {broadcast}})
+            CREATE UNIQUE (br)-[:PART_OF]->(p)
+            CREATE (u)-[:CHIEF_OF]->(g)
+            CREATE (u)-[:CHIEF_OF]->(br)
+            RETURN u.handle, g.name, br.name
         `,
 		Parameters: neoism.Props{
 			"handle":    handle,
