@@ -30,18 +30,18 @@ var (
 )
 
 func setup () {
-	neo4jdb, err := neoism.Connect("http://107.170.229.205:7474/db/data")
-	if err != nil {
-		log.Fatal(err)
-	}
+    neo4jdb, err := neoism.Connect("http://107.170.229.205:7474/db/data")
+    if err != nil {
+        log.Fatal(err)
+    }
 
-	a := &api.Api{neo4jdb}
-	handler, err := routes.MakeHandler(*a)
-	if err != nil {
-		log.Fatal(err)
-	}
+    a := &api.Api{neo4jdb}
+    handler, err := routes.MakeHandler(*a)
+    if err != nil {
+        log.Fatal(err)
+    }
 
-	server = httptest.NewServer(&handler)
+    server = httptest.NewServer(&handler)
 
     signupURL = fmt.Sprintf("%s/signup", server.URL)
     loginURL = fmt.Sprintf("%s/login", server.URL)
@@ -55,144 +55,144 @@ func setup () {
 }
 
 func teardown () {
-	server.Close()
+    server.Close()
 }
 
 func postSignup (handle string, email string, password string, confirmPassword string) (*http.Response, error) {
-	proposal := "{\"Handle\": \"" + handle + "\", \"Email\": \"" + email + "\", \"Password\": \"" + password + "\", \"ConfirmPassword\": \"" + confirmPassword + "\"}"
-	
-	reader = strings.NewReader(proposal)
-	
-	request, err := http.NewRequest("POST", signupURL, reader)
-	
-	response, err := http.DefaultClient.Do(request)
-	
-	return response, err
+    proposal := "{\"Handle\": \"" + handle + "\", \"Email\": \"" + email + "\", \"Password\": \"" + password + "\", \"ConfirmPassword\": \"" + confirmPassword + "\"}"
+    
+    reader = strings.NewReader(proposal)
+    
+    request, err := http.NewRequest("POST", signupURL, reader)
+    
+    response, err := http.DefaultClient.Do(request)
+    
+    return response, err
 }
 
 func postLogin (handle string, password string) (*http.Response, error) {
-	credentials := "{\"Handle\": \"" + handle + "\", \"Password\": \"" + password + "\"}"
+    credentials := "{\"Handle\": \"" + handle + "\", \"Password\": \"" + password + "\"}"
 
-	reader = strings.NewReader(credentials)
+    reader = strings.NewReader(credentials)
 
-	request, err := http.NewRequest("POST", loginURL, reader)
+    request, err := http.NewRequest("POST", loginURL, reader)
 
-	response, err := http.DefaultClient.Do(request)
+    response, err := http.DefaultClient.Do(request)
 
-	return response, err 
+    return response, err 
 }
 
 func TestSignupEmptyHandle (t *testing.T) {
-	setup()
-	defer teardown()
+    setup()
+    defer teardown()
 
-	response, err := postSignup("", "testing123", "testing123", "testing123")
-	
-	if err != nil {
-		t.Error(err)
-	}
+    response, err := postSignup("", "testing123", "testing123", "testing123")
+    
+    if err != nil {
+        t.Error(err)
+    }
 
-	if response.StatusCode != 400 {
-		t.Errorf("HTTP Status Code: %d", response.StatusCode)
-	}
+    if response.StatusCode != 400 {
+        t.Errorf("HTTP Status Code: %d", response.StatusCode)
+    }
 }
 
 func TestSignupEmptyEmail (t *testing.T) {
-	setup()
-	defer teardown()
+    setup()
+    defer teardown()
 
-	response, err := postSignup("testing123", "", "testing123", "testing123")
-	
-	if err != nil {
-		t.Error(err)
-	}
+    response, err := postSignup("testing123", "", "testing123", "testing123")
+    
+    if err != nil {
+        t.Error(err)
+    }
 
-	if response.StatusCode != 400 {
-		t.Errorf("HTTP Status Code: %d", response.StatusCode)
-	}
+    if response.StatusCode != 400 {
+        t.Errorf("HTTP Status Code: %d", response.StatusCode)
+    }
 }
 
 func TestSignupPasswordMismatch (t *testing.T) {
-	setup()
-	defer teardown()
+    setup()
+    defer teardown()
 
-	response, err := postSignup("testing123", "testing123", "testing123", "testing321")
-	
-	if err != nil {
-		t.Error(err)
-	}
+    response, err := postSignup("testing123", "testing123", "testing123", "testing321")
+    
+    if err != nil {
+        t.Error(err)
+    }
 
-	if response.StatusCode != 400 {
-		t.Errorf("HTTP Status Code: %d", response.StatusCode)
-	}
+    if response.StatusCode != 400 {
+        t.Errorf("HTTP Status Code: %d", response.StatusCode)
+    }
 }
 
 func TestSignupPasswordTooShort (t *testing.T) {
-	setup()
-	defer teardown()
+    setup()
+    defer teardown()
 
-	entry := "testing"
+    entry := "testing"
 
-	for i := len(entry); i >= 0; i-- {
+    for i := len(entry); i >= 0; i-- {
 
-	    response, err := postSignup("testing123", "testing123", entry[:len(entry)-i], entry[:len(entry)-i])
-	
-	    if err != nil {
-		    t.Error(err)
-	    }
+        response, err := postSignup("testing123", "testing123", entry[:len(entry)-i], entry[:len(entry)-i])
+    
+        if err != nil {
+            t.Error(err)
+        }
 
-	    if response.StatusCode != 400 {
-		    t.Errorf("HTTP Status Code: %d, Password Length: %d", response.StatusCode, len(entry)-i)
-	    }
-	}
+        if response.StatusCode != 400 {
+            t.Errorf("HTTP Status Code: %d, Password Length: %d", response.StatusCode, len(entry)-i)
+        }
+    }
 }
 
 func TestSignupHandleTaken (t *testing.T) {
-	setup() 
-	defer teardown()
+    setup() 
+    defer teardown()
 
     postSignup("testing123", "testing123", "testing123", "testing123")
     response, err := postSignup("testing123", "testing321", "testing123", "testing123")
-	
-	if err != nil {
-		t.Error(err)
-	}
+    
+    if err != nil {
+        t.Error(err)
+    }
 
-	if response.StatusCode != 400 {
-		t.Errorf("HTTP Status Code: %d", response.StatusCode)
-	}
+    if response.StatusCode != 400 {
+        t.Errorf("HTTP Status Code: %d", response.StatusCode)
+    }
 }
 
 func TestSignupEmailTaken (t *testing.T) {
-	setup()
-	defer teardown()
+    setup()
+    defer teardown()
 
-	postSignup("testing123", "testing123", "testing123", "testing123")
-	response, err := postSignup("testing321", "testing123", "testing123", "testing123")
-	
-	if err != nil {
-		t.Error(err)
-	}
+    postSignup("testing123", "testing123", "testing123", "testing123")
+    response, err := postSignup("testing321", "testing123", "testing123", "testing123")
+    
+    if err != nil {
+        t.Error(err)
+    }
 
-	if response.StatusCode != 400 {
-		t.Errorf("HTTP Status Code: %d", response.StatusCode)
-	}
+    if response.StatusCode != 400 {
+        t.Errorf("HTTP Status Code: %d", response.StatusCode)
+    }
 }
 
 func TestSignupCreated (t *testing.T) {
-	setup()
-	defer teardown()
+    setup()
+    defer teardown()
 
-	postSignup("testing123", "testing123", "testing123", "testing123")
-	response, err := postSignup("testing321", "testing321", "testing123", "testing123")
-	
-	if err != nil {
-		t.Error(err)
-	}
+    postSignup("testing123", "testing123", "testing123", "testing123")
+    response, err := postSignup("testing321", "testing321", "testing123", "testing123")
+    
+    if err != nil {
+        t.Error(err)
+    }
 
-	if response.StatusCode != 201 {
-		t.Errorf("HTTP Status Code: %d", response.StatusCode)
-	}
+    if response.StatusCode != 201 {
+        t.Errorf("HTTP Status Code: %d", response.StatusCode)
+    }
 }
 
 func TestLoginInvalidUsername (t *testing.T) {
@@ -204,11 +204,11 @@ func TestLoginInvalidUsername (t *testing.T) {
     response, err := postLogin("testing321", "testing123")
 
     if err != nil {
-    	t.Error(err)
+        t.Error(err)
     }
 
     if response.StatusCode != 400 {
-    	t.Errorf("HTTP Status Code: %d", response.StatusCode)
+        t.Errorf("HTTP Status Code: %d", response.StatusCode)
     }
 }
 
@@ -221,27 +221,27 @@ func TestLoginInvalidPassword (t *testing.T) {
     response, err := postLogin("testing123", "testing321")
 
     if err != nil {
-    	t.Error(err)
+        t.Error(err)
     }
 
     if response.StatusCode != 400 {
-    	t.Errorf("HTTP Status Code: %d", response.StatusCode)
+        t.Errorf("HTTP Status Code: %d", response.StatusCode)
     }
 }
 
 func TestLoginOK (t *testing.T) {
-	setup()
-	defer teardown()
+    setup()
+    defer teardown()
 
-	postSignup("testing123", "testing123", "testing123", "testing123")
+    postSignup("testing123", "testing123", "testing123", "testing123")
 
-	response, err := postLogin("testing123", "testing123")
+    response, err := postLogin("testing123", "testing123")
 
-	if err != nil {
-		t.Error(err)
-	}
+    if err != nil {
+        t.Error(err)
+    }
 
-	if response.StatusCode != 200 {
-		t.Errorf("HTTP Status Code: %d", response.StatusCode)
-	}
+    if response.StatusCode != 200 {
+        t.Errorf("HTTP Status Code: %d", response.StatusCode)
+    }
 }
