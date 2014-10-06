@@ -1,7 +1,6 @@
 package api
 
 import (
-	"errors"
 	"fmt"
 	"github.com/ant0ine/go-json-rest/rest"
 	"github.com/dchest/uniuri"
@@ -93,10 +92,10 @@ func (a Api) circleExists(handle string, circleName string) bool {
 	}{}
 	err := a.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
-			MATCH (u:User {handle: {handle}})
-			OPTIONAL MATCH (u)-[:CHIEF_OF]->(c:Circle {name: {name}})
-			RETURN c.name
-		`,
+            MATCH (u:User {handle: {handle}})
+            OPTIONAL MATCH (u)-[:CHIEF_OF]->(c:Circle {name: {name}})
+            RETURN c.name
+        `,
 		Parameters: neoism.Props{
 			"handle": handle,
 			"name":   circleName,
@@ -114,10 +113,10 @@ func (a Api) messageExists(handle string, lastSaved time.Time) bool {
 	}{}
 	err := a.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
-			MATCH (u:User {handle: {handle}})
-			OPTIONAL MATCH (u)-[:WROTE]->(m:Message {lastsaved: {lastsaved}})
-			RETURN count(m)
-		`,
+            MATCH (u:User {handle: {handle}})
+            OPTIONAL MATCH (u)-[:WROTE]->(m:Message {lastsaved: {lastsaved}})
+            RETURN count(m)
+        `,
 		Parameters: neoism.Props{
 			"handle":    handle,
 			"lastsaved": lastSaved,
@@ -135,11 +134,11 @@ func (a Api) isBlocked(handle string, target string) bool {
 	}{}
 	err := a.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
-			MATCH (u:User {handle: {handle}})
-			MATCH (t:User {handle: {target}})
-			OPTIONAL MATCH (u)-[r:BLOCKED]->(t)
-			RETURN count(r)
-		`,
+            MATCH (u:User {handle: {handle}})
+            MATCH (t:User {handle: {target}})
+            OPTIONAL MATCH (u)-[r:BLOCKED]->(t)
+            RETURN count(r)
+        `,
 		Parameters: neoism.Props{
 			"handle": handle,
 			"target": target,
@@ -289,10 +288,10 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 	err = a.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
             CREATE (user:User {
-            	handle:   {handle},
-            	email:    {email},
-            	password: {password},
-            	joined:   {joined}
+                handle:   {handle},
+                email:    {email},
+                password: {password},
+                joined:   {joined}
             })
             RETURN user.handle, user.email, user.joined
         `,
@@ -620,7 +619,7 @@ func (a Api) makeDefaultCircles(handle string) {
 	}{}
 	dberr := a.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
-		    MATCH (p:PublicDomain {u:true})
+            MATCH (p:PublicDomain {u:true})
             MATCH (u:User)
             WHERE u.handle = {handle}
             CREATE (g:Circle {name: {gold}})
@@ -745,16 +744,16 @@ func (a Api) PublishMessage(w rest.ResponseWriter, r *rest.Request) {
 	}{}
 	err = a.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
-			MATCH (u:User)
-			WHERE u.handle={handle}
-			MATCH (u)-[:CHIEF_OF]->(c:Circle)
-			WHERE c.name={name}
-			MATCH (u)-[:WROTE]->(m:Message)
-			WHERE m.lastsaved={lastsaved}
-			CREATE (m)-[r:PUB_TO]->(c)
-			SET r.publishedat={date}
-			RETURN count(r)
-		`,
+            MATCH (u:User)
+            WHERE u.handle={handle}
+            MATCH (u)-[:CHIEF_OF]->(c:Circle)
+            WHERE c.name={name}
+            MATCH (u)-[:WROTE]->(m:Message)
+            WHERE m.lastsaved={lastsaved}
+            CREATE (m)-[r:PUB_TO]->(c)
+            SET r.publishedat={date}
+            RETURN count(r)
+        `,
 		Parameters: neoism.Props{
 			"handle":    payload.Handle,
 			"name":      payload.Circle,
@@ -874,11 +873,11 @@ func (a Api) GetMessagesByHandle(w rest.ResponseWriter, r *rest.Request) {
 	}{}
 	err := a.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
-			MATCH (author:User {handle: {author}}), (user:User {handle: {handle}})
-			OPTIONAL MATCH (user)-[r:MEMBER_OF]->(circle:Circle)
-			OPTIONAL MATCH (author)-[w:WROTE]-(visible:Message)-[p:PUB_TO]->(circle)
-			RETURN visible.content, visible.published_at
-		`,
+            MATCH (author:User {handle: {author}}), (user:User {handle: {handle}})
+            OPTIONAL MATCH (user)-[r:MEMBER_OF]->(circle:Circle)
+            OPTIONAL MATCH (author)-[w:WROTE]-(visible:Message)-[p:PUB_TO]->(circle)
+            RETURN visible.content, visible.published_at
+        `,
 		Parameters: neoism.Props{
 			"author": author,
 			"handle": querymap["handle"][0],
@@ -964,15 +963,15 @@ func (a Api) BlockUser(w rest.ResponseWriter, r *rest.Request) {
 	}{}
 	err = a.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
-			MATCH (u:User)
-			WHERE u.handle={handle}
-			OPTIONAL MATCH (u)-[:CHIEF_OF]->(c:Circle)
-			MATCH (t:User)
-			WHERE t.handle={target}
-			OPTIONAL MATCH (t)-[r:MEMBER_OF]->(c)
-			DELETE r
-			RETURN count(r)
-		`,
+            MATCH (u:User)
+            WHERE u.handle={handle}
+            OPTIONAL MATCH (u)-[:CHIEF_OF]->(c:Circle)
+            MATCH (t:User)
+            WHERE t.handle={target}
+            OPTIONAL MATCH (t)-[r:MEMBER_OF]->(c)
+            DELETE r
+            RETURN count(r)
+        `,
 		Parameters: neoism.Props{
 			"handle": payload.Handle,
 			"target": payload.Target,
@@ -988,13 +987,13 @@ func (a Api) BlockUser(w rest.ResponseWriter, r *rest.Request) {
 	}{}
 	err = a.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
-			MATCH (u:User)
-			WHERE u.handle={handle}
-			MATCH (t:User)
-			WHERE t.handle={target}
-			CREATE UNIQUE (u)-[r:BLOCKED]->(t)
-			RETURN t.handle, r
-		`,
+            MATCH (u:User)
+            WHERE u.handle={handle}
+            MATCH (t:User)
+            WHERE t.handle={target}
+            CREATE UNIQUE (u)-[r:BLOCKED]->(t)
+            RETURN t.handle, r
+        `,
 		Parameters: neoism.Props{
 			"handle": payload.Handle,
 			"target": payload.Target,
@@ -1032,14 +1031,14 @@ func (a Api) JoinDefault(w rest.ResponseWriter, r *rest.Request) {
 	at := time.Now().Local()
 	err = a.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
-			MATCH (u:User)
-			WHERE u.handle={handle}
-			MATCH (t:User)-[:CHIEF_OF]->(c:Circle {name={broadcast}})
-			WHERE t.handle={target}
-			CREATE UNIQUE (u)-[r:MEMBER_OF]->(c)
-			SET r.at={now}
-			RETURN r.at
-		`,
+            MATCH (u:User)
+            WHERE u.handle={handle}
+            MATCH (t:User)-[:CHIEF_OF]->(c:Circle {name={broadcast}})
+            WHERE t.handle={target}
+            CREATE UNIQUE (u)-[r:MEMBER_OF]->(c)
+            SET r.at={now}
+            RETURN r.at
+        `,
 		Parameters: neoism.Props{
 			"handle":    payload.Handle,
 			"broadcast": BROADCAST,
@@ -1095,14 +1094,14 @@ func (a Api) Join(w rest.ResponseWriter, r *rest.Request) {
 	at := time.Now().Local()
 	err = a.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
-			MATCH (u:User)
-			WHERE u.handle={handle}
-			MATCH (t:User)-[:CHIEF_OF]->(c:Circle {name={circle}})
-			WHERE t.handle={target}
-			CREATE UNIQUE (u)-[r:MEMBER_OF]->(c)
-			SET r.at={now}
-			RETURN r.at
-		`,
+            MATCH (u:User)
+            WHERE u.handle={handle}
+            MATCH (t:User)-[:CHIEF_OF]->(c:Circle {name={circle}})
+            WHERE t.handle={target}
+            CREATE UNIQUE (u)-[r:MEMBER_OF]->(c)
+            SET r.at={now}
+            RETURN r.at
+        `,
 		Parameters: neoism.Props{
 			"handle": payload.Handle,
 			"target": payload.Target,
