@@ -13,5 +13,6 @@
     <string name="confirmPassword">Confirm Password</string>
     <string name="title_activity_content_activity">content_activity</string>
     <string name="hello_world">Hello world!</string>
+    <string name="title_activity_feed">FeedActivity</string>
 
 </resources>
