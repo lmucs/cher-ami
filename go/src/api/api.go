@@ -586,13 +586,14 @@ func (a Api) makeDefaultCircles(handle string) {
 	}{}
 	dberr := a.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
-            MATCH (u:User), (p:PublicDomain {u:true})
+		    MATCH (p:PublicDomain {u:true})
+            MATCH (u:User)
             WHERE u.handle = {handle}
             CREATE (g:Circle {name: {gold}})
             CREATE (br:Circle {name: {broadcast}})
-            CREATE UNIQUE (br)-[:PART_OF]->(p)
             CREATE (u)-[:CHIEF_OF]->(g)
             CREATE (u)-[:CHIEF_OF]->(br)
+            CREATE UNIQUE (br)-[:PART_OF]->(p)
             RETURN u.handle, g.name, br.name
         `,
 		Parameters: neoism.Props{
