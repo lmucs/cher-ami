@@ -1,7 +1,7 @@
 package main
 
 import (
-	api "./api"
+	a "./api"
 	routes "./routes"
 	"fmt"
 	"github.com/jmcvetta/neoism"
@@ -20,8 +20,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	a := &api.Api{neo4jdb}
-	handler, err := routes.MakeHandler(*a)
+	api := a.NewApi(neo4jdb)
+	handler, err := routes.MakeHandler(*api)
 	if err != nil {
 		log.Fatal(err)
 	}

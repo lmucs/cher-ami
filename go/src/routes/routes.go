@@ -21,8 +21,10 @@ func MakeHandler(a cheramiapi.Api) (rest.ResourceHandler, error) {
 		&rest.Route{"POST", "/messages", a.NewMessage},
 		&rest.Route{"DELETE", "/messages", a.DeleteMessage},
 		&rest.Route{"POST", "/publish", a.PublishMessage},
-		&rest.Route{"POST", "/follow", a.Follow},
+		&rest.Route{"POST", "/joindefault", a.JoinDefault},
+		&rest.Route{"POST", "/join", a.Join},
 		&rest.Route{"POST", "/block", a.BlockUser},
+		&rest.Route{"POST", "/circles", a.NewCircle},
 	)
 
 	return handler, err
