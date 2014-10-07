@@ -19,4 +19,10 @@ $("#submitButton").click(function() {
 	console.log("doop:", text);
 	console.log("testPost: ", testPost);
 	$('#testPost').append(text);
-})
+});
+
+$('#postArea').keypress(function(e) {
+	if(e.which == 13) {
+		$('#submitButton').click();
+	}
+});
