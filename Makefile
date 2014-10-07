@@ -10,6 +10,10 @@ start:
 local:
 	cd $(GO_SRC); go run main.go "http://localhost:7474/db/data"
 
+.PHONY: test-api
+test-api:
+	cd $(GO_SRC); go run main.go "http://192.241.226.228:7474/db/data"
+
 .PHONY: serve
 serve:
 	cd $(WEB_SRC); python -m SimpleHTTPServer
