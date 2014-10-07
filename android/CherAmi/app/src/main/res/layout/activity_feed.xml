@@ -28,5 +28,6 @@
         android:layout_below="@+id/textView"
         android:layout_alignRight="@+id/textView"
         android:layout_alignEnd="@+id/textView"
-        android:onClick="showProfile"/>
+        android:onClick="showProfile"
+        android:clickable="true"/>
 </RelativeLayout>
