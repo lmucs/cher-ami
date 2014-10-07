@@ -1,6 +1,7 @@
 WEB_SRC = web/src
 WEB_ROOT = web
 GO_SRC = go/src
+GO_TEST_SRC = go/src/test
 
 .PHONY: start
 start:
@@ -10,9 +11,9 @@ start:
 local:
 	cd $(GO_SRC); go run main.go "http://localhost:7474/db/data"
 
-.PHONY: test-api
-test-api:
-	cd $(GO_SRC); go run main.go "http://192.241.226.228:7474/db/data"
+.PHONY: test
+test:
+	cd $(GO_TEST_SRC); go test api_test.go
 
 .PHONY: serve
 serve:
