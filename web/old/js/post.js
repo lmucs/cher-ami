@@ -13,3 +13,10 @@ document.addEventListener('DOMContentLoaded', function() {
   input.addEventListener('input', autoSize);
 });
 
+$("#submitButton").click(function() {
+	var text = $('#postArea').val();
+	var testPost = $('#testPost');
+	console.log("doop:", text);
+	console.log("testPost: ", testPost);
+	$('#testPost').append(text);
+})

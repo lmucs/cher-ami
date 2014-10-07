@@ -6,13 +6,12 @@ body {
 
 .textarea-container {
   position: relative;
-  /* you should change this*/
-  width: 100%;
+  width: 50%;
 }
 
 textarea, .textarea-size {
   min-height: 25px;
-  /* need to manually set font and font size */
+
   font-family: sans-serif;
   font-size: 14px;
   padding: 4px;
