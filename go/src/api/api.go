@@ -382,7 +382,7 @@ func (a Api) Login(w rest.ResponseWriter, r *rest.Request) {
 		})
 		return
 	} else {
-		rest.Error(w, "Invaid username or password, please try again.", 400)
+		rest.Error(w, "Invalid username or password, please try again.", 400)
 	}
 }
 
