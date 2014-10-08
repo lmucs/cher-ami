@@ -17,7 +17,7 @@ define(function(require, exports, module) {
             // Initialization of views will go here.
             this.app.headerRegion.show(new HeaderView());
             this.app.mainRegion.show(new SignupView());
-            this.app.footerRegion.show(new FooterView());
+            // this.app.footerRegion.show(new FooterView());
         },
 
         // Needed for AppRouter to initialize index route.
