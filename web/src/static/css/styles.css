@@ -123,7 +123,7 @@ h1 {
     min-width: 50%;
     margin-left: 24%;
     margin-bottom: 5%;
-    position: absolute;
+    position: relative;
     top: 15%;
     left: 0;
     width: 100%;
@@ -131,4 +131,12 @@ h1 {
 }
 #profileForm {
     margin-left: 10%;
+}
+#textArea {
+    max-width: 86%;
+    margin-bottom: 10px;
+}
+#location {
+    max-width: 86%;
+    margin-bottom: 10px;
 }
