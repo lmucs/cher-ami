@@ -215,7 +215,7 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 	} else if !unique {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
-			"Response": "Sorry, " + proposal.Handle + " is already taken",
+			"Response": "Sorry, handle or email is already taken",
 		})
 		return
 	}
@@ -227,53 +227,24 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 	} else if !unique {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
-			"Response": "Sorry, " + proposal.Email + " is already taken",
+			"Response": "Sorry, handle or email is already taken",
 		})
 		return
 	}
 
-	newUser := []struct {
-		Handle string    `json:"user.handle"`
-		Email  string    `json:"user.email"`
-		Joined time.Time `json:"user.joined"`
-	}{}
-	err = a.Svc.Db.Cypher(&neoism.CypherQuery{
-		Statement: `
-            CREATE (user:User {
-                handle:   {handle},
-                email:    {email},
-                password: {password},
-                joined:   {joined}
-            })
-            RETURN user.handle, user.email, user.joined
-        `,
-		Parameters: neoism.Props{
-			"handle":   proposal.Handle,
-			"email":    proposal.Email,
-			"password": proposal.Password,
-			"joined":   time.Now().Local(),
-		},
-		Result: &newUser,
-	})
-	panicErr(err)
-
-	if len(newUser) != 1 {
-		panic(fmt.Sprintf("Incorrect results len in query1()\n\tgot %d, expected 1\n", len(newUser)))
+	// Create new user
+	if err := a.Svc.NewUser(proposal.Handle, proposal.Email, proposal.Password); err != nil {
+		panicErr(err)
 	}
 
 	// Add 'Broadcast' and 'Gold' circles
 	a.makeDefaultCircles(proposal.Handle)
 
-	var handle string = newUser[0].Handle
-	var email string = newUser[0].Email
-	var joined string = newUser[0].Joined.Format(time.RFC1123)
-
 	w.WriteHeader(201)
 	w.WriteJson(map[string]string{
 		"Response": "Signed up a new user!",
-		"Handle":   handle,
-		"Email":    email,
-		"Joined":   joined,
+		"Handle":   proposal.Handle,
+		"Email":    proposal.Email,
 	})
 }
 

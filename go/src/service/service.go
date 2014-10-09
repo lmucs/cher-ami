@@ -4,8 +4,8 @@ import (
 	"fmt"
 	// "github.com/dchest/uniuri"
 	"github.com/jmcvetta/neoism"
-	// "time"
 	"log"
+	"time"
 )
 
 //
@@ -91,6 +91,37 @@ func (s Svc) EmailIsUnique(email string) (bool, error) {
 	})
 
 	return len(found) == 0, err
+}
+
+//
+// Creation
+//
+
+func (s Svc) NewUser(handle string, email string, password string) error {
+	newUser := []struct {
+		Handle string    `json:"user.handle"`
+		Email  string    `json:"user.email"`
+		Joined time.Time `json:"user.joined"`
+	}{}
+	err := s.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+            CREATE (user:User {
+                handle:   {handle},
+                email:    {email},
+                password: {password},
+                joined:   {joined}
+            })
+            RETURN user.handle, user.email, user.joined
+        `,
+		Parameters: neoism.Props{
+			"handle":   handle,
+			"email":    email,
+			"password": password,
+			"joined":   time.Now().Local(),
+		},
+		Result: &newUser,
+	})
+	return err
 }
 
 //
