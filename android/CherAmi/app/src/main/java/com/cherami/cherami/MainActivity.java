@@ -230,6 +230,7 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
         public Fragment getItem(int position) {
             // getItem is called to instantiate the fragment for the given page.
             // Return a PlaceholderFragment (defined as a static inner class below).
+            Log.d("Position: ", String.valueOf(position));
             return PlaceholderFragment.newInstance(position + 1);
         }
 
@@ -277,13 +278,6 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
         }
 
         public PlaceholderFragment() {
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.activity_feed, container, false);
-            return rootView;
         }
     }
 
