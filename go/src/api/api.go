@@ -209,24 +209,10 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 	}
 
 	// Ensure unique handle
-	foundUsers := []struct {
-		Handle string `json:"user.handle"`
-	}{}
-	err = a.Svc.Db.Cypher(&neoism.CypherQuery{
-		Statement: `
-            MATCH (user:User {handle: {handle}})
-            RETURN user.handle
-        `,
-		Parameters: neoism.Props{
-			"handle": proposal.Handle,
-		},
-		Result: &foundUsers,
-	})
-	if err != nil {
+	if unique, err := a.Svc.HandleIsUnique(proposal.Handle); err != nil {
 		rest.Error(w, err.Error(), http.StatusInternalServerError)
 		return
-	}
-	if len(foundUsers) > 0 {
+	} else if !unique {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Sorry, " + proposal.Handle + " is already taken",

@@ -54,6 +54,28 @@ func (s Svc) databaseInit() {
 }
 
 //
+// Checks
+//
+
+func (s Svc) HandleIsUnique(handle string) (bool, error) {
+	foundUsers := []struct {
+		Handle string `json:"u.handle"`
+	}{}
+	err := s.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+            MATCH (u:User {handle: {handle}})
+            RETURN u.handle
+        `,
+		Parameters: neoism.Props{
+			"handle": handle,
+		},
+		Result: &foundUsers,
+	})
+
+	return len(foundUsers) == 0, err
+}
+
+//
 // Errors
 //
 
