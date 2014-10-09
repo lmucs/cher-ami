@@ -1,6 +1,7 @@
 package api_test
 
 import (
+	. "gopkg.in/check.v1"
 	api "../api"
 	routes "../routes"
 	"fmt"
@@ -29,7 +30,29 @@ var (
 	reader io.Reader
 )
 
-func setup() {
+/* 
+	Hook up gocheck into the "go test" runner.
+*/
+func Test(t *testing.T) {
+	TestingT(t)
+}
+
+/*
+	Suite-based grouping of tests.
+*/
+type TestSuite struct {
+}
+
+/*
+	Suite registers the given value as a test suite to be run. 
+	Any methods starting with the Test prefix in the given value will be considered as a test method.
+*/
+var _ = Suite(&TestSuite{})
+
+/*
+	Run once when the suite starts running.
+*/
+func (s *SuiteType) SetUpSuite(c *C) {
 	uri := "http://192.241.226.228:7474/db/data"
 	neo4jdb, err := neoism.Connect(uri)
 	if err != nil {
@@ -55,7 +78,22 @@ func setup() {
 	circlesURL = fmt.Sprintf("%s/circles", server.URL)
 }
 
-func teardown() {
+/*
+	Run before each test or benchmark starts running.
+*/
+func (s *SuiteType) SetUpTest(c *C) {
+}
+
+/*
+	Run after each test or benchmark runs.
+*/
+func (s *SuiteType) TearDownTest(c *C) {
+}
+
+/*
+	Run once after all tests or benchmarks have finished running.
+*/
+func (s *SuiteType) TearDownSuite(c *C) {
 	server.Close()
 }
 
@@ -84,9 +122,6 @@ func postLogin(handle string, password string) (*http.Response, error) {
 }
 
 func TestSignupEmptyHandle(t *testing.T) {
-	setup()
-	defer teardown()
-
 	response, err := postSignup("", "testing123", "testing123", "testing123")
 
 	if err != nil {
@@ -99,9 +134,6 @@ func TestSignupEmptyHandle(t *testing.T) {
 }
 
 func TestSignupEmptyEmail(t *testing.T) {
-	setup()
-	defer teardown()
-
 	response, err := postSignup("testing123", "", "testing123", "testing123")
 
 	if err != nil {
@@ -114,9 +146,6 @@ func TestSignupEmptyEmail(t *testing.T) {
 }
 
 func TestSignupPasswordMismatch(t *testing.T) {
-	setup()
-	defer teardown()
-
 	response, err := postSignup("testing123", "testing123", "testing123", "testing321")
 
 	if err != nil {
@@ -129,9 +158,6 @@ func TestSignupPasswordMismatch(t *testing.T) {
 }
 
 func TestSignupPasswordTooShort(t *testing.T) {
-	setup()
-	defer teardown()
-
 	entry := "testing"
 
 	for i := len(entry); i >= 0; i-- {
@@ -149,9 +175,6 @@ func TestSignupPasswordTooShort(t *testing.T) {
 }
 
 func TestSignupHandleTaken(t *testing.T) {
-	setup()
-	defer teardown()
-
 	postSignup("testing123", "testing123", "testing123", "testing123")
 	response, err := postSignup("testing123", "testing321", "testing123", "testing123")
 
@@ -165,9 +188,6 @@ func TestSignupHandleTaken(t *testing.T) {
 }
 
 func TestSignupEmailTaken(t *testing.T) {
-	setup()
-	defer teardown()
-
 	postSignup("testing123", "testing123", "testing123", "testing123")
 	response, err := postSignup("testing321", "testing123", "testing123", "testing123")
 
@@ -181,9 +201,6 @@ func TestSignupEmailTaken(t *testing.T) {
 }
 
 func TestSignupCreated(t *testing.T) {
-	setup()
-	defer teardown()
-
 	postSignup("testing123", "testing123", "testing123", "testing123")
 	response, err := postSignup("testing321", "testing321", "testing123", "testing123")
 
@@ -197,9 +214,6 @@ func TestSignupCreated(t *testing.T) {
 }
 
 func TestLoginInvalidUsername(t *testing.T) {
-	setup()
-	defer teardown()
-
 	postSignup("testing123", "testing123", "testing123", "testing123")
 
 	response, err := postLogin("testing321", "testing123")
@@ -214,9 +228,6 @@ func TestLoginInvalidUsername(t *testing.T) {
 }
 
 func TestLoginInvalidPassword(t *testing.T) {
-	setup()
-	defer teardown()
-
 	postSignup("testing123", "testing123", "testing123", "testing123")
 
 	response, err := postLogin("testing123", "testing321")
@@ -231,9 +242,6 @@ func TestLoginInvalidPassword(t *testing.T) {
 }
 
 func TestLoginOK(t *testing.T) {
-	setup()
-	defer teardown()
-
 	postSignup("testing123", "testing123", "testing123", "testing123")
 
 	response, err := postLogin("testing123", "testing123")
