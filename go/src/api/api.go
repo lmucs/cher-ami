@@ -1,6 +1,7 @@
 package api
 
 import (
+	service "../service"
 	"fmt"
 	"github.com/ant0ine/go-json-rest/rest"
 	"github.com/dchest/uniuri"
@@ -21,15 +22,16 @@ func panicErr(err error) {
 //
 
 type Api struct {
-	Db *neoism.Database
+	Svc *service.Svc
 }
 
 /**
  * Constructor
  */
-func NewApi(db *neoism.Database) *Api {
-	api := &Api{db}
-	api.DatabaseInit()
+func NewApi(uri string) *Api {
+	api := &Api{
+		service.NewService(uri),
+	}
 	return api
 }
 
@@ -48,7 +50,7 @@ func (a Api) authenticate(w rest.ResponseWriter, handle string, sessionid string
 	found := []struct {
 		Handle string `json:"user.handle"`
 	}{}
-	dberr := a.Db.Cypher(&neoism.CypherQuery{
+	dberr := a.Svc.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
             MATCH (user:User {handle:{handle}, sessionid:{sessionid}})
             RETURN user.handle
@@ -71,7 +73,7 @@ func (a Api) userExists(handle string) bool {
 	found := []struct {
 		Handle string `json"user.handle"`
 	}{}
-	err := a.Db.Cypher(&neoism.CypherQuery{
+	err := a.Svc.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
             MATCH (user:User {handle: {handle}})
             RETURN user.handle
@@ -90,7 +92,7 @@ func (a Api) circleExists(handle string, circleName string) bool {
 	found := []struct {
 		Name string `json:"c.name"`
 	}{}
-	err := a.Db.Cypher(&neoism.CypherQuery{
+	err := a.Svc.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
             MATCH (u:User {handle: {handle}})
             OPTIONAL MATCH (u)-[:CHIEF_OF]->(c:Circle {name: {name}})
@@ -111,7 +113,7 @@ func (a Api) messageExists(handle string, lastSaved time.Time) bool {
 	count := []struct {
 		Count int `json:"count(m)"`
 	}{}
-	err := a.Db.Cypher(&neoism.CypherQuery{
+	err := a.Svc.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
             MATCH (u:User {handle: {handle}})
             OPTIONAL MATCH (u)-[:WROTE]->(m:Message {lastsaved: {lastsaved}})
@@ -132,7 +134,7 @@ func (a Api) isBlocked(handle string, target string) bool {
 	blocked := []struct {
 		Count int `json:"count(r)"`
 	}{}
-	err := a.Db.Cypher(&neoism.CypherQuery{
+	err := a.Svc.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
             MATCH (u:User {handle: {handle}})
             MATCH (t:User {handle: {target}})
@@ -157,7 +159,7 @@ func (a Api) isBlocked(handle string, target string) bool {
 func (a Api) DatabaseInit() {
 	var publicdomain *neoism.Node
 	// Nodes must have at least one property to allow uniquely creation
-	publicdomain, _, err := a.Db.GetOrCreateNode("PublicDomain", "u", neoism.Props{
+	publicdomain, _, err := a.Svc.Db.GetOrCreateNode("PublicDomain", "u", neoism.Props{
 		"u": true,
 	})
 	panicErr(err)
@@ -232,7 +234,7 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 	foundUsers := []struct {
 		Handle string `json:"user.handle"`
 	}{}
-	err = a.Db.Cypher(&neoism.CypherQuery{
+	err = a.Svc.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
             MATCH (user:User {handle: {handle}})
             RETURN user.handle
@@ -258,7 +260,7 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 	foundEmails := []struct {
 		Email string `json:"user.email"`
 	}{}
-	err = a.Db.Cypher(&neoism.CypherQuery{
+	err = a.Svc.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
             MATCH (user:User {email: {email}})
             RETURN user.email
@@ -285,7 +287,7 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 		Email  string    `json:"user.email"`
 		Joined time.Time `json:"user.joined"`
 	}{}
-	err = a.Db.Cypher(&neoism.CypherQuery{
+	err = a.Svc.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
             CREATE (user:User {
                 handle:   {handle},
@@ -339,7 +341,7 @@ func (a Api) Login(w rest.ResponseWriter, r *rest.Request) {
 	found := []struct {
 		Handle string `json:"user.handle"`
 	}{}
-	err = a.Db.Cypher(&neoism.CypherQuery{
+	err = a.Svc.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
             MATCH (user:User {handle:{handle}, password:{password}})
             RETURN user.handle
@@ -359,7 +361,7 @@ func (a Api) Login(w rest.ResponseWriter, r *rest.Request) {
 		idResponse := []struct {
 			SessionId string `json:"user.sessionid"`
 		}{}
-		a.Db.Cypher(&neoism.CypherQuery{
+		a.Svc.Db.Cypher(&neoism.CypherQuery{
 			Statement: `
                 MATCH (user:User {handle:{handle}, password:{password}})
                 SET user.sessionid = {sessionid}
@@ -402,7 +404,7 @@ func (a Api) Logout(w rest.ResponseWriter, r *rest.Request) {
 	loggedOut := []struct {
 		Handle string `json:"user.handle"`
 	}{}
-	a.Db.Cypher(&neoism.CypherQuery{
+	a.Svc.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
             MATCH (user:User {handle: {handle}})
             REMOVE user.sessionid
@@ -447,7 +449,7 @@ func (a Api) GetUser(w rest.ResponseWriter, r *rest.Request) {
 			User neoism.Node
 		}{}
 
-		err := a.Db.Cypher(&neoism.CypherQuery{
+		err := a.Svc.Db.Cypher(&neoism.CypherQuery{
 			Statement:  stmt,
 			Parameters: params,
 			Result:     &res,
@@ -469,7 +471,7 @@ func (a Api) GetUser(w rest.ResponseWriter, r *rest.Request) {
 		Joined time.Time `json:"user.joined"`
 	}{}
 
-	err := a.Db.Cypher(&neoism.CypherQuery{
+	err := a.Svc.Db.Cypher(&neoism.CypherQuery{
 		Statement:  stmt,
 		Parameters: neoism.Props{},
 		Result:     &res,
@@ -497,7 +499,7 @@ func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
 			res := []struct {
 				HandleToBeDeleted string `json:"user.handle"`
 			}{}
-			err := a.Db.Cypher(&neoism.CypherQuery{
+			err := a.Svc.Db.Cypher(&neoism.CypherQuery{
 				Statement: `
                     MATCH (user:User {handle:{handle}, password:{password}})
                     RETURN user.handle
@@ -511,7 +513,7 @@ func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
 			panicErr(err)
 
 			if len(res) > 0 {
-				err := a.Db.Cypher(&neoism.CypherQuery{
+				err := a.Svc.Db.Cypher(&neoism.CypherQuery{
 					// Delete user node
 					Statement: `
                         MATCH (u:User {handle: {handle}})
@@ -592,7 +594,7 @@ func (a Api) NewCircle(w rest.ResponseWriter, r *rest.Request) {
 		Handle string `json:"u.name"`
 		Name   string `json:"c.name"`
 	}{}
-	dberr := a.Db.Cypher(&neoism.CypherQuery{
+	dberr := a.Svc.Db.Cypher(&neoism.CypherQuery{
 		Statement: statement,
 		Parameters: neoism.Props{
 			"handle": payload.Handle,
@@ -617,7 +619,7 @@ func (a Api) makeDefaultCircles(handle string) {
 		Gold      string `json:"g.name"`
 		Broadcast string `json:"br.name"`
 	}{}
-	dberr := a.Db.Cypher(&neoism.CypherQuery{
+	dberr := a.Svc.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
             MATCH (p:PublicDomain {u:true})
             MATCH (u:User)
@@ -673,7 +675,7 @@ func (a Api) NewMessage(w rest.ResponseWriter, r *rest.Request) {
 		Relation neoism.Node `json:"r"`
 	}{}
 	createdAt := time.Now().Local()
-	err = a.Db.Cypher(&neoism.CypherQuery{
+	err = a.Svc.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
             MATCH (user:User {handle: {handle}, sessionid: {sessionid}})
             CREATE (message:Message {content: {content}, created: {date}, lastsaved: {date}})
@@ -742,7 +744,7 @@ func (a Api) PublishMessage(w rest.ResponseWriter, r *rest.Request) {
 	created := []struct {
 		Count int `json:"count(r)"`
 	}{}
-	err = a.Db.Cypher(&neoism.CypherQuery{
+	err = a.Svc.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
             MATCH (u:User)
             WHERE u.handle={handle}
@@ -815,7 +817,7 @@ func (a Api) GetAuthoredMessages(w rest.ResponseWriter, r *rest.Request) {
 		Content   string    `json:"message.content"`
 		LastSaved time.Time `json:"message.lastsaved"`
 	}{}
-	err := a.Db.Cypher(&neoism.CypherQuery{
+	err := a.Svc.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
             MATCH (user:User {handle: {handle}})-[:WROTE]->(message:Message)
             RETURN message.content, message.lastsaved
@@ -871,7 +873,7 @@ func (a Api) GetMessagesByHandle(w rest.ResponseWriter, r *rest.Request) {
 		Content   string    `json:"message.content"`
 		Published time.Time `json:"message.published"`
 	}{}
-	err := a.Db.Cypher(&neoism.CypherQuery{
+	err := a.Svc.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
             MATCH (author:User {handle: {author}}), (user:User {handle: {handle}})
             OPTIONAL MATCH (user)-[r:MEMBER_OF]->(circle:Circle)
@@ -910,7 +912,7 @@ func (a Api) DeleteMessage(w rest.ResponseWriter, r *rest.Request) {
 	deleted := []struct {
 		Count int `json:"count(m)"`
 	}{}
-	err = a.Db.Cypher(&neoism.CypherQuery{
+	err = a.Svc.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
         MATCH (user:User {handle: {handle}})
         OPTIONAL MATCH (user)-[r:WROTE]->(m:Message {lastsaved: {lastsaved}})
@@ -961,7 +963,7 @@ func (a Api) BlockUser(w rest.ResponseWriter, r *rest.Request) {
 	deleted := []struct {
 		Count int `json:"count(r)"`
 	}{}
-	err = a.Db.Cypher(&neoism.CypherQuery{
+	err = a.Svc.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
             MATCH (u:User)
             WHERE u.handle={handle}
@@ -985,7 +987,7 @@ func (a Api) BlockUser(w rest.ResponseWriter, r *rest.Request) {
 		Target string      `json:"t.handle"`
 		R      neoism.Node `json:"r"`
 	}{}
-	err = a.Db.Cypher(&neoism.CypherQuery{
+	err = a.Svc.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
             MATCH (u:User)
             WHERE u.handle={handle}
@@ -1029,7 +1031,7 @@ func (a Api) JoinDefault(w rest.ResponseWriter, r *rest.Request) {
 		At     time.Time `json:"r.at"`
 	}{}
 	at := time.Now().Local()
-	err = a.Db.Cypher(&neoism.CypherQuery{
+	err = a.Svc.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
             MATCH (u:User)
             WHERE u.handle={handle}
@@ -1092,7 +1094,7 @@ func (a Api) Join(w rest.ResponseWriter, r *rest.Request) {
 		Target string
 	}{}
 	at := time.Now().Local()
-	err = a.Db.Cypher(&neoism.CypherQuery{
+	err = a.Svc.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
             MATCH (u:User)
             WHERE u.handle={handle}

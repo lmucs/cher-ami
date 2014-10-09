@@ -4,7 +4,6 @@ import (
 	a "./api"
 	routes "./routes"
 	"fmt"
-	"github.com/jmcvetta/neoism"
 	"log"
 	"net/http"
 	"os"
@@ -15,12 +14,8 @@ func main() {
 	port := "8228"
 
 	uri := args[0]
-	neo4jdb, err := neoism.Connect(uri)
-	if err != nil {
-		log.Fatal(err)
-	}
 
-	api := a.NewApi(neo4jdb)
+	api := a.NewApi(uri)
 	handler, err := routes.MakeHandler(*api)
 	if err != nil {
 		log.Fatal(err)
