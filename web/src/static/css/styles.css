@@ -109,3 +109,26 @@ h1 {
 #footer :first-child {
     color: BLACK;
 }
+
+#profileContainer {
+    border-radius: 14px;
+    background: hsla(181, 100%, 87%, 0.4); 
+    box-shadow: 0 1px 5px rgba(0,0,0,0.75);
+
+    padding-top: 15px;
+    padding-bottom: 15px;
+    padding-right: 20px;
+    padding-left: 20px;
+    max-width: 55%;
+    min-width: 50%;
+    margin-left: 24%;
+    margin-bottom: 5%;
+    position: absolute;
+    top: 15%;
+    left: 0;
+    width: 100%;
+    height: 80%;
+}
+#profileForm {
+    margin-left: 10%;
+}

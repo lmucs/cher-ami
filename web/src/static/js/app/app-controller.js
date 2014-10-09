@@ -12,6 +12,7 @@ define(function(require, exports, module) {
     var MessageView = require('app/views/message-view').MessageView;
     var Message = require('app/models/message').Message;
     var Messages = require('app/collections/messages').Messages;
+    var ProfileView = require('app/views/profile-view').ProfileView;
 
     var AppController = marionette.Controller.extend({
 
@@ -25,7 +26,7 @@ define(function(require, exports, module) {
             /*this.app.mainRegion.show(new MessagesView({
                 collection: test
             }));*/
-            this.app.mainRegion.show(new SignupView());
+            this.app.mainRegion.show(new ProfileView());
             // this.app.footerRegion.show(new FooterView());
         },
 
