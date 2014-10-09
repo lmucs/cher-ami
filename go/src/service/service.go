@@ -2,7 +2,7 @@ package service
 
 import (
 	"fmt"
-	// "github.com/dchest/uniuri"
+	"github.com/dchest/uniuri"
 	"github.com/jmcvetta/neoism"
 	"log"
 	"time"
@@ -122,6 +122,25 @@ func (s Svc) GoodSessionCredentials(handle string, sessionid string) (bool, erro
 	return len(found) == 1, err
 }
 
+func (s Svc) GoodLoginCredentials(handle string, password string) (bool, error) {
+	found := []struct {
+		Handle string `json:"user.handle"`
+	}{}
+	err := s.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+            MATCH (user:User {handle:{handle}, password:{password}})
+            RETURN user.handle
+        `,
+		Parameters: neoism.Props{
+			"handle":   handle,
+			"password": password,
+		},
+		Result: &found,
+	})
+
+	return len(found) == 1, err
+}
+
 //
 // Creation
 //
@@ -193,4 +212,34 @@ func panicErr(err error) {
 		panic(err)
 		return
 	}
+}
+
+//
+// Node Setting
+//
+
+func (s Svc) SetAndGetNewSessionId(handle string, password string) (sessionid string, err error) {
+	sessionHash := uniuri.New()
+
+	created := []struct {
+		SessionId string `json:"u.sessionid"`
+	}{}
+	err = s.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+                MATCH (u:User {handle:{handle}, password:{password}})
+                SET u.sessionid = {sessionid}
+                return u.sessionid
+            `,
+		Parameters: neoism.Props{
+			"handle":    handle,
+			"password":  password,
+			"sessionid": sessionHash,
+		},
+		Result: &created,
+	})
+	if len(created) != 1 {
+		panic(fmt.Sprintf("Incorrect results len in query1()\n\tgot %d, expected 1\n", len(created)))
+	}
+
+	return created[0].SessionId, err
 }

@@ -4,7 +4,6 @@ import (
 	service "../service"
 	"fmt"
 	"github.com/ant0ine/go-json-rest/rest"
-	"github.com/dchest/uniuri"
 	"github.com/jmcvetta/neoism"
 	"net/http"
 	"time"
@@ -245,57 +244,26 @@ func (a Api) Login(w rest.ResponseWriter, r *rest.Request) {
 		Handle   string
 		Password string
 	}{}
-	err := r.DecodeJsonPayload(&credentials)
-	if err != nil {
+	if err := r.DecodeJsonPayload(&credentials); err != nil {
 		rest.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	handle := credentials.Handle
+	password := credentials.Password
 
-	found := []struct {
-		Handle string `json:"user.handle"`
-	}{}
-	err = a.Svc.Db.Cypher(&neoism.CypherQuery{
-		Statement: `
-            MATCH (user:User {handle:{handle}, password:{password}})
-            RETURN user.handle
-        `,
-		Parameters: neoism.Props{
-			"handle":   credentials.Handle,
-			"password": credentials.Password,
-		},
-		Result: &found,
-	})
-	panicErr(err)
-
-	// Add session hash (16 chars) to node and return it to client in json res
-	if len(found) > 0 {
-		sessionHash := uniuri.New()
-
-		idResponse := []struct {
-			SessionId string `json:"user.sessionid"`
-		}{}
-		a.Svc.Db.Cypher(&neoism.CypherQuery{
-			Statement: `
-                MATCH (user:User {handle:{handle}, password:{password}})
-                SET user.sessionid = {sessionid}
-                return user.sessionid
-            `,
-			Parameters: neoism.Props{
-				"handle":    credentials.Handle,
-				"password":  credentials.Password,
-				"sessionid": sessionHash,
-			},
-			Result: &idResponse,
-		})
-		if len(idResponse) != 1 {
-			panic(fmt.Sprintf("Incorrect results len in query1()\n\tgot %d, expected 1\n", len(idResponse)))
+	// Add session hash to node and return it to client
+	if ok, err := a.Svc.GoodLoginCredentials(handle, password); err != nil {
+		panicErr(err)
+	} else if ok {
+		if sessionid, err := a.Svc.SetAndGetNewSessionId(handle, password); err != nil {
+			panicErr(err)
+		} else {
+			w.WriteJson(map[string]string{
+				"Response":  "Logged in " + credentials.Handle + ". Note your session id.",
+				"SessionId": sessionid,
+			})
+			return
 		}
-
-		w.WriteJson(map[string]string{
-			"Response":  "Logged in " + credentials.Handle + ". Note your session id.",
-			"SessionId": sessionHash,
-		})
-		return
 	} else {
 		rest.Error(w, "Invalid username or password, please try again.", 400)
 	}
