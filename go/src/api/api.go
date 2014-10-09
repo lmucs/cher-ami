@@ -232,13 +232,17 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	// Create new user
-	if err := a.Svc.NewUser(proposal.Handle, proposal.Email, proposal.Password); err != nil {
+	if err := a.Svc.CreateNewUser(
+		proposal.Handle,
+		proposal.Email,
+		proposal.Password,
+	); err != nil {
 		panicErr(err)
 	}
 
-	// Add 'Broadcast' and 'Gold' circles
-	a.makeDefaultCircles(proposal.Handle)
+	if err := a.Svc.MakeDefaultCirclesFor(proposal.Handle); err != nil {
+		panicErr(err)
+	}
 
 	w.WriteHeader(201)
 	w.WriteJson(map[string]string{

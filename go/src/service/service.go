@@ -9,6 +9,16 @@ import (
 )
 
 //
+// Constants
+//
+
+const (
+	// Reserved Circles
+	GOLD      = "Gold"
+	BROADCAST = "Broadcast"
+)
+
+//
 // Service Types
 //
 
@@ -97,7 +107,7 @@ func (s Svc) EmailIsUnique(email string) (bool, error) {
 // Creation
 //
 
-func (s Svc) NewUser(handle string, email string, password string) error {
+func (s Svc) CreateNewUser(handle string, email string, password string) error {
 	newUser := []struct {
 		Handle string    `json:"user.handle"`
 		Email  string    `json:"user.email"`
@@ -121,6 +131,37 @@ func (s Svc) NewUser(handle string, email string, password string) error {
 		},
 		Result: &newUser,
 	})
+	return err
+}
+
+func (s Svc) MakeDefaultCirclesFor(handle string) error {
+	made := []struct {
+		Handle    string `json:"u.handle"`
+		Gold      string `json:"g.name"`
+		Broadcast string `json:"br.name"`
+	}{}
+	err := s.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+            MATCH (p:PublicDomain {u:true})
+            MATCH (u:User)
+            WHERE u.handle = {handle}
+            CREATE (g:Circle {name: {gold}})
+            CREATE (br:Circle {name: {broadcast}})
+            CREATE (u)-[:CHIEF_OF]->(g)
+            CREATE (u)-[:CHIEF_OF]->(br)
+            CREATE UNIQUE (br)-[:PART_OF]->(p)
+            RETURN u.handle, g.name, br.name
+        `,
+		Parameters: neoism.Props{
+			"handle":    handle,
+			"gold":      GOLD,
+			"broadcast": BROADCAST,
+		},
+		Result: &made,
+	})
+	if len(made) != 1 {
+		panic(fmt.Sprintf("Incorrect results len in query1()\n\tgot %d, expected 1\n", len(made)))
+	}
 	return err
 }
 
