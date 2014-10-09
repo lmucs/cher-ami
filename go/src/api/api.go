@@ -152,28 +152,6 @@ func (a Api) isBlocked(handle string, target string) bool {
 	return blocked[0].Count > 0
 }
 
-/**
- * Creates a Public Domain node
- * Neo4j initiation and setup should be done here
- */
-func (a Api) DatabaseInit() {
-	var publicdomain *neoism.Node
-	// Nodes must have at least one property to allow uniquely creation
-	publicdomain, _, err := a.Svc.Db.GetOrCreateNode("PublicDomain", "u", neoism.Props{
-		"u": true,
-	})
-	panicErr(err)
-	// Label (has to be) added separately
-	err = publicdomain.AddLabel("PublicDomain")
-	panicErr(err)
-
-	if publicdomain != nil {
-		fmt.Println("Public Domain available")
-	} else {
-		fmt.Println("Unexpected database state, possible lack of PublicDomain")
-	}
-}
-
 //
 // API
 //
