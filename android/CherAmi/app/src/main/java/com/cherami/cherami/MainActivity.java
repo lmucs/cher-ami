@@ -24,7 +24,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 
-public class MainActivity extends Activity implements ActionBar.TabListener, Feed.OnFragmentInteractionListener {
+public class MainActivity extends Activity implements ActionBar.TabListener, Feed.OnFragmentInteractionListener, Circles.OnFragmentInteractionListener, Profile.OnFragmentInteractionListener {
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -56,18 +56,6 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
         actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
         actionBar.setDisplayShowTitleEnabled(false);
 
-        ActionBar.Tab tab = actionBar.newTab()
-                .setText(R.string.title_section1)
-                .setTabListener(new TabListener<Feed>(
-                        this, "", Feed.class));
-        actionBar.addTab(tab);
-
-        tab = actionBar.newTab()
-                .setText(R.string.title_section2)
-                .setTabListener(new TabListener<Feed>(
-                        this, "album", Feed.class));
-        actionBar.addTab(tab);
-
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
         mSectionsPagerAdapter = new SectionsPagerAdapter(getFragmentManager());
@@ -86,17 +74,22 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
             }
         });
 
-        // For each of the sections in the app, add a tab to the action bar.
-        for (int i = 0; i < mSectionsPagerAdapter.getCount(); i++) {
-            // Create a tab with text corresponding to the page title defined by
-            // the adapter. Also specify this Activity object, which implements
-            // the TabListener interface, as the callback (listener) for when
-            // this tab is selected.
-            actionBar.addTab(
-                    actionBar.newTab()
-                            .setText(mSectionsPagerAdapter.getPageTitle(i))
-                            .setTabListener(this));
-        }
+
+        actionBar.addTab(
+                actionBar.newTab()
+                        .setText(mSectionsPagerAdapter.getPageTitle(0))
+                        .setTabListener(new TabListener<Feed>(
+                                this, "", Feed.class)));
+        actionBar.addTab(
+                actionBar.newTab()
+                        .setText(mSectionsPagerAdapter.getPageTitle(1))
+                        .setTabListener(new TabListener<Circles>(
+                                this, "", Circles.class)));
+        actionBar.addTab(
+                actionBar.newTab()
+                        .setText(mSectionsPagerAdapter.getPageTitle(2))
+                        .setTabListener(new TabListener<Profile>(
+                                this, "", Profile.class)));
 
         //Get handle, email, password, and confirm fields
 
@@ -251,11 +244,11 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
             Locale l = Locale.getDefault();
             switch (position) {
                 case 0:
-                    return getString(R.string.title_section1).toUpperCase(l);
+                    return getString(R.string.tab1).toUpperCase(l);
                 case 1:
-                    return getString(R.string.title_section2).toUpperCase(l);
+                    return getString(R.string.tab2).toUpperCase(l);
                 case 2:
-                    return getString(R.string.title_section3).toUpperCase(l);
+                    return getString(R.string.tab3).toUpperCase(l);
             }
             return null;
         }
