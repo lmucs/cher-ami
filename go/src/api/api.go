@@ -221,24 +221,10 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 	}
 
 	// Ensure unique email
-	foundEmails := []struct {
-		Email string `json:"user.email"`
-	}{}
-	err = a.Svc.Db.Cypher(&neoism.CypherQuery{
-		Statement: `
-            MATCH (user:User {email: {email}})
-            RETURN user.email
-        `,
-		Parameters: neoism.Props{
-			"email": proposal.Email,
-		},
-		Result: &foundEmails,
-	})
-	if err != nil {
+	if unique, err := a.Svc.EmailIsUnique(proposal.Email); err != nil {
 		rest.Error(w, err.Error(), http.StatusInternalServerError)
 		return
-	}
-	if len(foundEmails) > 0 {
+	} else if !unique {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Sorry, " + proposal.Email + " is already taken",
