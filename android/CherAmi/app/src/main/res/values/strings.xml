@@ -3,7 +3,7 @@
 
     <string name="app_name">CherAmi</string>
     <string name="title_section1">Feed</string>
-    <string name="title_section2">Messages</string>
+    <string name="title_section2">Circles</string>
     <string name="title_section3">Profile</string>
     <string name="action_settings">Settings</string>
     <string name="handle">Handle/username</string>
@@ -14,5 +14,6 @@
     <string name="title_activity_content_activity">content_activity</string>
     <string name="hello_world">Hello world!</string>
     <string name="title_activity_feed">FeedActivity</string>
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 
 </resources>
