@@ -52,7 +52,7 @@ var _ = Suite(&TestSuite{})
 /*
 	Run once when the suite starts running.
 */
-func (s *SuiteType) SetUpSuite(c *C) {
+func (s *TestSuite) SetUpSuite(c *C) {
 	uri := "http://192.241.226.228:7474/db/data"
 	neo4jdb, err := neoism.Connect(uri)
 	if err != nil {
@@ -81,19 +81,19 @@ func (s *SuiteType) SetUpSuite(c *C) {
 /*
 	Run before each test or benchmark starts running.
 */
-func (s *SuiteType) SetUpTest(c *C) {
+func (s *TestSuite) SetUpTest(c *C) {
 }
 
 /*
 	Run after each test or benchmark runs.
 */
-func (s *SuiteType) TearDownTest(c *C) {
+func (s *TestSuite) TearDownTest(c *C) {
 }
 
 /*
 	Run once after all tests or benchmarks have finished running.
 */
-func (s *SuiteType) TearDownSuite(c *C) {
+func (s *TestSuite) TearDownSuite(c *C) {
 	server.Close()
 }
 
@@ -121,136 +121,108 @@ func postLogin(handle string, password string) (*http.Response, error) {
 	return response, err
 }
 
-func TestSignupEmptyHandle(t *testing.T) {
+func (s *TestSuite) TestSignupEmptyHandle(c *C) {
 	response, err := postSignup("", "testing123", "testing123", "testing123")
-
 	if err != nil {
 		t.Error(err)
 	}
 
-	if response.StatusCode != 400 {
-		t.Errorf("HTTP Status Code: %d", response.StatusCode)
-	}
+	c.Assert(response.StatusCode, Equals, 400)
 }
 
-func TestSignupEmptyEmail(t *testing.T) {
+func (s *TestSuite) TestSignupEmptyEmail(c *C) {
 	response, err := postSignup("testing123", "", "testing123", "testing123")
-
 	if err != nil {
 		t.Error(err)
 	}
 
-	if response.StatusCode != 400 {
-		t.Errorf("HTTP Status Code: %d", response.StatusCode)
-	}
+	c.Assert(response.StatusCode, Equals, 400)
 }
 
-func TestSignupPasswordMismatch(t *testing.T) {
+func (s *TestSuite) TestSignupPasswordMismatch(c *C) {
 	response, err := postSignup("testing123", "testing123", "testing123", "testing321")
-
 	if err != nil {
 		t.Error(err)
 	}
 
-	if response.StatusCode != 400 {
-		t.Errorf("HTTP Status Code: %d", response.StatusCode)
-	}
+	c.Assert(response.StatusCode, Equals, 400)
 }
 
-func TestSignupPasswordTooShort(t *testing.T) {
+func (s *TestSuite) TestSignupPasswordTooShort(c *C) {
 	entry := "testing"
 
 	for i := len(entry); i >= 0; i-- {
-
 		response, err := postSignup("testing123", "testing123", entry[:len(entry)-i], entry[:len(entry)-i])
-
 		if err != nil {
 			t.Error(err)
 		}
 
-		if response.StatusCode != 400 {
-			t.Errorf("HTTP Status Code: %d, Password Length: %d", response.StatusCode, len(entry)-i)
-		}
+		c.Assert(response.StatusCode, Equals, 400, Commentf("Password length = %d.", len(entry)-i))
 	}
 }
 
-func TestSignupHandleTaken(t *testing.T) {
+func (s *TestSuite) TestSignupHandleTaken(c *C) {
 	postSignup("testing123", "testing123", "testing123", "testing123")
+	
 	response, err := postSignup("testing123", "testing321", "testing123", "testing123")
-
 	if err != nil {
 		t.Error(err)
 	}
 
-	if response.StatusCode != 400 {
-		t.Errorf("HTTP Status Code: %d", response.StatusCode)
-	}
+	c.Assert(response.StatusCode, Equals, 400)
 }
 
-func TestSignupEmailTaken(t *testing.T) {
+func (s *TestSuite) TestSignupEmailTaken(c *C) {
 	postSignup("testing123", "testing123", "testing123", "testing123")
+	
 	response, err := postSignup("testing321", "testing123", "testing123", "testing123")
-
 	if err != nil {
 		t.Error(err)
 	}
 
-	if response.StatusCode != 400 {
-		t.Errorf("HTTP Status Code: %d", response.StatusCode)
-	}
+	c.Assert(response.StatusCode, Equals, 400)
 }
 
-func TestSignupCreated(t *testing.T) {
+func (s *TestSuite) TestSignupCreated(c *C) {
 	postSignup("testing123", "testing123", "testing123", "testing123")
+	
 	response, err := postSignup("testing321", "testing321", "testing123", "testing123")
-
 	if err != nil {
 		t.Error(err)
 	}
 
-	if response.StatusCode != 201 {
-		t.Errorf("HTTP Status Code: %d", response.StatusCode)
-	}
+	c.Assert(response.StatusCode, Equals, 201)
 }
 
-func TestLoginInvalidUsername(t *testing.T) {
+func (s *TestSuite) TestLoginInvalidUsername(c *C) {
 	postSignup("testing123", "testing123", "testing123", "testing123")
 
 	response, err := postLogin("testing321", "testing123")
-
 	if err != nil {
 		t.Error(err)
 	}
 
-	if response.StatusCode != 400 {
-		t.Errorf("HTTP Status Code: %d", response.StatusCode)
-	}
+	c.Assert(response.StatusCode, Equals, 400)
 }
 
-func TestLoginInvalidPassword(t *testing.T) {
+func (s *TestSuite) TestLoginInvalidPassword(c *C) {
 	postSignup("testing123", "testing123", "testing123", "testing123")
 
 	response, err := postLogin("testing123", "testing321")
-
 	if err != nil {
 		t.Error(err)
 	}
 
-	if response.StatusCode != 400 {
-		t.Errorf("HTTP Status Code: %d", response.StatusCode)
-	}
+	c.Assert(response.StatusCode, Equals, 400)
 }
 
-func TestLoginOK(t *testing.T) {
+func (s *TestSuite) TestLoginOK(c *C) {
 	postSignup("testing123", "testing123", "testing123", "testing123")
 
 	response, err := postLogin("testing123", "testing123")
-
 	if err != nil {
 		t.Error(err)
 	}
 
-	if response.StatusCode != 200 {
-		t.Errorf("HTTP Status Code: %d", response.StatusCode)
-	}
+	c.Assert(response.StatusCode, Equals, 200)
 }
