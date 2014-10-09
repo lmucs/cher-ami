@@ -45,25 +45,13 @@ const (
 // API util
 //
 
-// Errors if authentication is not successful
+/**
+ * Requests
+ */
 func (a Api) authenticate(w rest.ResponseWriter, handle string, sessionid string) Api {
-	found := []struct {
-		Handle string `json:"user.handle"`
-	}{}
-	dberr := a.Svc.Db.Cypher(&neoism.CypherQuery{
-		Statement: `
-            MATCH (user:User {handle:{handle}, sessionid:{sessionid}})
-            RETURN user.handle
-        `,
-		Parameters: neoism.Props{
-			"handle":    handle,
-			"sessionid": sessionid,
-		},
-		Result: &found,
-	})
-	panicErr(dberr)
-
-	if len(found) == 0 {
+	if ok, err := a.Svc.GoodSessionCredentials(handle, sessionid); err != nil {
+		panicErr(err)
+	} else if !ok {
 		rest.Error(w, "Could not authenticate user "+handle, 400)
 	}
 	return a

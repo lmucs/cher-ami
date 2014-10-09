@@ -103,6 +103,25 @@ func (s Svc) EmailIsUnique(email string) (bool, error) {
 	return len(found) == 0, err
 }
 
+func (s Svc) GoodSessionCredentials(handle string, sessionid string) (bool, error) {
+	found := []struct {
+		Handle string `json:"user.handle"`
+	}{}
+	err := s.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+            MATCH (user:User {handle:{handle}, sessionid:{sessionid}})
+            RETURN user.handle
+        `,
+		Parameters: neoism.Props{
+			"handle":    handle,
+			"sessionid": sessionid,
+		},
+		Result: &found,
+	})
+
+	return len(found) == 1, err
+}
+
 //
 // Creation
 //
