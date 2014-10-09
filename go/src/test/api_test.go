@@ -124,7 +124,7 @@ func postLogin(handle string, password string) (*http.Response, error) {
 func (s *TestSuite) TestSignupEmptyHandle(c *C) {
 	response, err := postSignup("", "testing123", "testing123", "testing123")
 	if err != nil {
-		t.Error(err)
+		c.Error(err)
 	}
 
 	c.Assert(response.StatusCode, Equals, 400)
@@ -133,7 +133,7 @@ func (s *TestSuite) TestSignupEmptyHandle(c *C) {
 func (s *TestSuite) TestSignupEmptyEmail(c *C) {
 	response, err := postSignup("testing123", "", "testing123", "testing123")
 	if err != nil {
-		t.Error(err)
+		c.Error(err)
 	}
 
 	c.Assert(response.StatusCode, Equals, 400)
@@ -142,7 +142,7 @@ func (s *TestSuite) TestSignupEmptyEmail(c *C) {
 func (s *TestSuite) TestSignupPasswordMismatch(c *C) {
 	response, err := postSignup("testing123", "testing123", "testing123", "testing321")
 	if err != nil {
-		t.Error(err)
+		c.Error(err)
 	}
 
 	c.Assert(response.StatusCode, Equals, 400)
@@ -154,7 +154,7 @@ func (s *TestSuite) TestSignupPasswordTooShort(c *C) {
 	for i := len(entry); i >= 0; i-- {
 		response, err := postSignup("testing123", "testing123", entry[:len(entry)-i], entry[:len(entry)-i])
 		if err != nil {
-			t.Error(err)
+			c.Error(err)
 		}
 
 		c.Assert(response.StatusCode, Equals, 400, Commentf("Password length = %d.", len(entry)-i))
@@ -166,7 +166,7 @@ func (s *TestSuite) TestSignupHandleTaken(c *C) {
 	
 	response, err := postSignup("testing123", "testing321", "testing123", "testing123")
 	if err != nil {
-		t.Error(err)
+		c.Error(err)
 	}
 
 	c.Assert(response.StatusCode, Equals, 400)
@@ -177,7 +177,7 @@ func (s *TestSuite) TestSignupEmailTaken(c *C) {
 	
 	response, err := postSignup("testing321", "testing123", "testing123", "testing123")
 	if err != nil {
-		t.Error(err)
+		c.Error(err)
 	}
 
 	c.Assert(response.StatusCode, Equals, 400)
@@ -188,7 +188,7 @@ func (s *TestSuite) TestSignupCreated(c *C) {
 	
 	response, err := postSignup("testing321", "testing321", "testing123", "testing123")
 	if err != nil {
-		t.Error(err)
+		c.Error(err)
 	}
 
 	c.Assert(response.StatusCode, Equals, 201)
@@ -199,7 +199,7 @@ func (s *TestSuite) TestLoginInvalidUsername(c *C) {
 
 	response, err := postLogin("testing321", "testing123")
 	if err != nil {
-		t.Error(err)
+		c.Error(err)
 	}
 
 	c.Assert(response.StatusCode, Equals, 400)
@@ -210,7 +210,7 @@ func (s *TestSuite) TestLoginInvalidPassword(c *C) {
 
 	response, err := postLogin("testing123", "testing321")
 	if err != nil {
-		t.Error(err)
+		c.Error(err)
 	}
 
 	c.Assert(response.StatusCode, Equals, 400)
@@ -221,7 +221,7 @@ func (s *TestSuite) TestLoginOK(c *C) {
 
 	response, err := postLogin("testing123", "testing123")
 	if err != nil {
-		t.Error(err)
+		c.Error(err)
 	}
 
 	c.Assert(response.StatusCode, Equals, 200)
