@@ -4,9 +4,11 @@ import (
 	. "gopkg.in/check.v1"
 	api "../api"
 	routes "../routes"
+	"encoding/json"
 	"fmt"
 	"github.com/jmcvetta/neoism"
 	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -129,12 +131,47 @@ func postLogin(handle string, password string) (*http.Response, error) {
 	return response, err
 }
 
+func getJsonResponseMessage(response *http.Response) (string) {
+	type Json struct {
+		Response string
+	}
+
+	var message Json
+
+	body, err := ioutil.ReadAll(response.Body)  
+
+	err = json.Unmarshal(body, &message)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return message.Response
+}
+
+func getJsonErrorMessage(response *http.Response) (string) {
+	type Json struct {
+		Error string
+	}
+
+	var message Json
+
+	body, err := ioutil.ReadAll(response.Body)
+
+	err = json.Unmarshal(body, &message)
+	if err != nil {
+		log.Fatal(err)
+	}
+ 
+	return message.Error
+}
+
 func (s *TestSuite) TestSignupEmptyHandle(c *C) {
 	response, err := postSignup("", "testing123", "testing123", "testing123")
 	if err != nil {
 		c.Error(err)
 	}
 
+	c.Check(getJsonResponseMessage(response), Equals, "Handle is a required field for signup")
 	c.Assert(response.StatusCode, Equals, 400)
 }
 
@@ -144,6 +181,7 @@ func (s *TestSuite) TestSignupEmptyEmail(c *C) {
 		c.Error(err)
 	}
 
+	c.Check(getJsonResponseMessage(response), Equals, "Email is a required field for signup")
 	c.Assert(response.StatusCode, Equals, 400)
 }
 
@@ -153,6 +191,7 @@ func (s *TestSuite) TestSignupPasswordMismatch(c *C) {
 		c.Error(err)
 	}
 
+	c.Check(getJsonResponseMessage(response), Equals, "Passwords do not match")
 	c.Assert(response.StatusCode, Equals, 400)
 }
 
@@ -165,6 +204,7 @@ func (s *TestSuite) TestSignupPasswordTooShort(c *C) {
 			c.Error(err)
 		}
 
+		c.Check(getJsonResponseMessage(response), Equals, "Passwords must be at least 8 characters long")
 		c.Assert(response.StatusCode, Equals, 400, Commentf("Password length = %d.", len(entry)-i))
 	}
 }
@@ -177,6 +217,7 @@ func (s *TestSuite) TestSignupHandleTaken(c *C) {
 		c.Error(err)
 	}
 
+	c.Check(getJsonResponseMessage(response), Equals, "Sorry, testing123 is already taken")
 	c.Assert(response.StatusCode, Equals, 400)
 }
 
@@ -188,6 +229,7 @@ func (s *TestSuite) TestSignupEmailTaken(c *C) {
 		c.Error(err)
 	}
 
+	c.Check(getJsonResponseMessage(response), Equals, "Sorry, testing123 is already taken")
 	c.Assert(response.StatusCode, Equals, 400)
 }
 
@@ -199,6 +241,7 @@ func (s *TestSuite) TestSignupCreated(c *C) {
 		c.Error(err)
 	}
 
+	c.Check(getJsonResponseMessage(response), Equals, "Signed up a new user!")
 	c.Assert(response.StatusCode, Equals, 201)
 }
 
@@ -210,6 +253,7 @@ func (s *TestSuite) TestLoginInvalidUsername(c *C) {
 		c.Error(err)
 	}
 
+	c.Check(getJsonErrorMessage(response), Equals, "Invalid username or password, please try again.")
 	c.Assert(response.StatusCode, Equals, 400)
 }
 
@@ -221,6 +265,7 @@ func (s *TestSuite) TestLoginInvalidPassword(c *C) {
 		c.Error(err)
 	}
 
+	c.Check(getJsonErrorMessage(response), Equals, "Invalid username or password, please try again.")
 	c.Assert(response.StatusCode, Equals, 400)
 }
 
@@ -232,5 +277,6 @@ func (s *TestSuite) TestLoginOK(c *C) {
 		c.Error(err)
 	}
 
+	c.Check(getJsonResponseMessage(response), Equals, "Logged in testing123. Note your session id.")
 	c.Assert(response.StatusCode, Equals, 200)
 }
