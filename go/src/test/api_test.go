@@ -16,6 +16,7 @@ import (
 
 var (
 	server *httptest.Server
+	a *api.Api
 
 	signupURL   string
 	loginURL    string
@@ -59,7 +60,7 @@ func (s *TestSuite) SetUpSuite(c *C) {
 		log.Fatal(err)
 	}
 
-	a := &api.Api{neo4jdb}
+	a = &api.Api{neo4jdb}
 	handler, err := routes.MakeHandler(*a)
 	if err != nil {
 		log.Fatal(err)
@@ -88,6 +89,13 @@ func (s *TestSuite) SetUpTest(c *C) {
 	Run after each test or benchmark runs.
 */
 func (s *TestSuite) TearDownTest(c *C) {
+	a.Db.Cypher(&neoism.CypherQuery {
+		Statement: `
+            MATCH (n)
+            OPTIONAL MATCH (n)-[r]-()
+            DELETE n, r
+        `,
+	})
 }
 
 /*
