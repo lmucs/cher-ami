@@ -85,6 +85,7 @@ func (s *TestSuite) SetUpSuite(c *C) {
 	Run before each test or benchmark starts running.
 */
 func (s *TestSuite) SetUpTest(c *C) {
+	a.DatabaseInit()
 }
 
 /*
@@ -138,7 +139,10 @@ func getJsonResponseMessage(response *http.Response) (string) {
 
 	var message Json
 
-	body, err := ioutil.ReadAll(response.Body)  
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		log.Fatal(err)
+	}  
 
 	err = json.Unmarshal(body, &message)
 	if err != nil {
@@ -156,6 +160,9 @@ func getJsonErrorMessage(response *http.Response) (string) {
 	var message Json
 
 	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	err = json.Unmarshal(body, &message)
 	if err != nil {
