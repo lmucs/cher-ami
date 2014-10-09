@@ -13,7 +13,6 @@ define(function(require, exports, module) {
     var Message = require('app/models/message').Message;
     var Messages = require('app/collections/messages').Messages;
 
-
     var AppController = marionette.Controller.extend({
 
         initialize: function(options) {
@@ -23,9 +22,10 @@ define(function(require, exports, module) {
 
             // Initialization of views will go here.
             this.app.headerRegion.show(new HeaderView());
-            this.app.mainRegion.show(new MessagesView({
+            /*this.app.mainRegion.show(new MessagesView({
                 collection: test
-            }));
+            }));*/
+            this.app.mainRegion.show(new SignupView());
             // this.app.footerRegion.show(new FooterView());
         },
 
