@@ -273,6 +273,16 @@ func (s *TestSuite) TestSignupCreated(c *C) {
 	c.Assert(response.StatusCode, Equals, 201)
 }
 
+func (s *TestSuite) TestLoginUserNoExist(c *C) {
+	response, err := postLogin("testing123", "testing123")
+	if err != nil {
+		c.Error(err)
+	}
+
+	c.Check(getJsonErrorMessage(response), Equals, "Invalid username or password, please try again.")
+	c.Assert(response.StatusCode, Equals, 400)
+}
+
 func (s *TestSuite) TestLoginInvalidUsername(c *C) {
 	postSignup("testing123", "testing123", "testing123", "testing123")
 
