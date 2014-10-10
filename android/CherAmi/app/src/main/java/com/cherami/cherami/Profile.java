@@ -1,6 +1,7 @@
 package com.cherami.cherami;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
@@ -90,6 +91,11 @@ public class Profile extends Fragment {
     public void onDetach() {
         super.onDetach();
         mListener = null;
+    }
+
+    public void showLogin(View view) {
+        Intent intent = new Intent(getActivity(), LoginActivity.class);
+        startActivity(intent);
     }
 
     /**
