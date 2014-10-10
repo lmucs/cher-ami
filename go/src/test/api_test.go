@@ -108,6 +108,10 @@ func (s *TestSuite) TearDownSuite(c *C) {
 	server.Close()
 }
 
+/*
+	Send/Receive Calls to API:
+*/
+
 func postSignup(handle string, email string, password string, confirmPassword string) (*http.Response, error) {
 	proposal := "{\"Handle\": \"" + handle + "\", \"Email\": \"" + email + "\", \"Password\": \"" + password + "\", \"ConfirmPassword\": \"" + confirmPassword + "\"}"
 
@@ -153,6 +157,10 @@ func postLogout(handle string) (*http.Response, error) {
 	return response, err
 }
 
+/*
+	Read Body of Response:
+*/
+
 func getJsonResponseMessage(response *http.Response) (string) {
 	type Json struct {
 		Response string
@@ -192,6 +200,10 @@ func getJsonErrorMessage(response *http.Response) (string) {
  
 	return message.Error
 }
+
+/*
+	Signup Tests:
+*/
 
 func (s *TestSuite) TestSignupEmptyHandle(c *C) {
 	response, err := postSignup("", "testing123", "testing123", "testing123")
@@ -273,6 +285,10 @@ func (s *TestSuite) TestSignupCreated(c *C) {
 	c.Assert(response.StatusCode, Equals, 201)
 }
 
+/*
+	Login Tests:
+*/
+
 func (s *TestSuite) TestLoginUserNoExist(c *C) {
 	response, err := postLogin("testing123", "testing123")
 	if err != nil {
@@ -318,6 +334,10 @@ func (s *TestSuite) TestLoginOK(c *C) {
 	c.Check(getJsonResponseMessage(response), Equals, "Logged in testing123. Note your session id.")
 	c.Assert(response.StatusCode, Equals, 200)
 }
+
+/*
+	Logout Tests:
+*/
 
 func (s *TestSuite) TestLogoutUserNoExist(c *C) {
 	response, err := postLogout("testing123")
