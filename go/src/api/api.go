@@ -399,6 +399,21 @@ func (a Api) Logout(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
+    session := []struct {
+        Id string `json:"user.sessionid"`
+    }{}
+	a.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+            MATCH (user:User {handle: {handle}})
+            WHERE HAS (user.sessionid)
+            RETURN user
+        `,
+		Parameters: neoism.Props{
+			"handle": user.Handle,
+		},
+		Result: &session,
+	})
+
 	loggedOut := []struct {
 		Handle string `json:"user.handle"`
 	}{}
@@ -414,7 +429,7 @@ func (a Api) Logout(w rest.ResponseWriter, r *rest.Request) {
 		Result: &loggedOut,
 	})
 
-	if len(loggedOut) == 0 {
+	if len(loggedOut) == 0 || len(session) == 0 {
 		w.WriteHeader(403)
 		w.WriteJson(map[string]string{
 			"Response": "No user was logged out",
