@@ -114,6 +114,9 @@ func postSignup(handle string, email string, password string, confirmPassword st
 	reader = strings.NewReader(proposal)
 
 	request, err := http.NewRequest("POST", signupURL, reader)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	response, err := http.DefaultClient.Do(request)
 
@@ -126,6 +129,24 @@ func postLogin(handle string, password string) (*http.Response, error) {
 	reader = strings.NewReader(credentials)
 
 	request, err := http.NewRequest("POST", loginURL, reader)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	response, err := http.DefaultClient.Do(request)
+
+	return response, err
+}
+
+func postLogout(handle string) (*http.Response, error) {
+	user := "{\"Handle\": \"" + handle + "\"}"
+
+	reader = strings.NewReader(user)
+
+	request, err := http.NewRequest("POST", logoutURL, reader)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	response, err := http.DefaultClient.Do(request)
 
@@ -285,5 +306,43 @@ func (s *TestSuite) TestLoginOK(c *C) {
 	}
 
 	c.Check(getJsonResponseMessage(response), Equals, "Logged in testing123. Note your session id.")
+	c.Assert(response.StatusCode, Equals, 200)
+}
+
+func (s *TestSuite) TestLogoutUserNoExist(c *C) {
+	response, err := postLogout("testing123")
+	if err != nil {
+		c.Error(err)
+	}
+
+	c.Check(getJsonResponseMessage(response), Equals, "No user was logged out")
+	c.Assert(response.StatusCode, Equals, 403)
+}
+
+func (s *TestSuite) TestLogoutUserNoLogin(c *C) {
+	postSignup("testing123", "testing123", "testing123", "testing123")
+
+	postLogout("testing123")
+
+	response, err := postLogout("testing123")
+	if err != nil {
+		c.Error(err)
+	}
+
+	c.Check(getJsonResponseMessage(response), Equals, "No user was logged out")
+	c.Assert(response.StatusCode, Equals, 403)
+}
+
+func (s *TestSuite) TestLogoutOK(c *C) {
+	postSignup("testing123", "testing123", "testing123", "testing123")
+
+	postLogin("testing123", "testing123")
+
+	response, err := postLogout("testing123")
+	if err != nil {
+		c.Error(err)
+	}
+
+	c.Check(getJsonResponseMessage(response), Equals, "Logged out testing123, have a nice day")
 	c.Assert(response.StatusCode, Equals, 200)
 }
