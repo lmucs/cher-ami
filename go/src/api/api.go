@@ -448,6 +448,49 @@ func (a Api) Logout(w rest.ResponseWriter, r *rest.Request) {
 //
 
 func (a Api) GetUser(w rest.ResponseWriter, r *rest.Request) {
+	user := struct {
+		Handle string
+	}{}
+	err := r.DecodeJsonPayload(&user)
+	if err != nil {
+		rest.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	res := []struct {
+		User neoism.Node
+	}{}
+	err := a.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+            MATCH (user:User)
+            WHERE user.handle = {handle}
+            RETURN user
+        `,
+		Parameters: neoism.Props{
+			"handle": user.Handle,
+		},
+		Result: &data,
+	})
+	panicErr(err)
+
+	if len(res) > 0 {
+		w.WriteHeader(200)
+		w.WriteJson(res[0].User.Data)
+	} else {
+		w.WriteHeader(404)
+		w.WriteJson(map[string]string{
+			"Response": "No results found",
+		})
+	}
+}
+
+func (a Api) GetUsers(w rest.ResponseWriter, r *rest.Request) {
+	// To Do (Just Signature ATM)
+}
+
+// Old GetUser
+/*
+func (a Api) GetUser(w rest.ResponseWriter, r *rest.Request) {
 	querymap := r.URL.Query()
 
 	// Get by handle
@@ -499,6 +542,7 @@ func (a Api) GetUser(w rest.ResponseWriter, r *rest.Request) {
 		})
 	}
 }
+*/
 
 func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
 	querymap := r.URL.Query()
@@ -539,6 +583,7 @@ func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
 				})
 				panicErr(err)
 
+				w.WriteHeader(200)
 				w.WriteJson(map[string]string{
 					"Response": "Deleted " + handle,
 				})
