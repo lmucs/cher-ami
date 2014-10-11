@@ -389,21 +389,7 @@ func (s *TestSuite) TestLogoutUserNoExist(c *C) {
 		c.Error(err)
 	}
 
-	c.Check(getJsonResponseMessage(response), Equals, "No user was logged out")
-	c.Assert(response.StatusCode, Equals, 403)
-}
-
-func (s *TestSuite) TestLogoutUserNoLogin(c *C) {
-	postSignup("testing123", "testing123", "testing123", "testing123")
-
-	postLogout("testing123")
-
-	response, err := postLogout("testing123")
-	if err != nil {
-		c.Error(err)
-	}
-
-	c.Check(getJsonResponseMessage(response), Equals, "No user was logged out")
+	c.Check(getJsonResponseMessage(response), Equals, "That user doesn't exist")
 	c.Assert(response.StatusCode, Equals, 403)
 }
 
@@ -417,7 +403,7 @@ func (s *TestSuite) TestLogoutOK(c *C) {
 		c.Error(err)
 	}
 
-	c.Check(getJsonResponseMessage(response), Equals, "Logged out testing123, have a nice day")
+	c.Check(getJsonResponseMessage(response), Equals, "Goodbye testing123, have a nice day")
 	c.Assert(response.StatusCode, Equals, 200)
 }
 
