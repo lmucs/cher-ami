@@ -435,7 +435,7 @@ func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
 			Statement: `
                 MATCH (user:User)-[r]->()
                 WHERE user.handle = {handle}
-                DELETE r, user
+                DELETE user, r
             `,
 		    Parameters: neoism.Props{
 			    "handle":   credentials.Handle,
