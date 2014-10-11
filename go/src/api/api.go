@@ -291,11 +291,12 @@ func (a Api) Logout(w rest.ResponseWriter, r *rest.Request) {
 	}
 
 	if err := a.Svc.UnsetSessionId(user.Handle); err != nil {
-	panicErr(err)
+		panicErr(err)
+	}
 
 	w.WriteHeader(200)
 	w.WriteJson(map[string]string{
-		"Response": "Logged out " + user.Handle + ", have a nice day",
+		"Response": "Goodbye " + user.Handle + ", have a nice day",
 	})
 }
 
