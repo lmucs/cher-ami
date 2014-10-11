@@ -460,7 +460,7 @@ func (a Api) GetUser(w rest.ResponseWriter, r *rest.Request) {
 	res := []struct {
 		User neoism.Node
 	}{}
-	err := a.Db.Cypher(&neoism.CypherQuery{
+	err = a.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
             MATCH (user:User)
             WHERE user.handle = {handle}
