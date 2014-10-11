@@ -413,38 +413,39 @@ func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
 	}
 
 	res := []struct {
-		HandleToBeDeleted string `json:"user.handle"`
+		User neoism.Node
 	}{}
-	err := a.Svc.Db.Cypher(&neoism.CypherQuery{
+	err = a.Svc.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
-            MATCH (user:User {handle:{handle}, password:{password}})
-            RETURN user.handle
+            MATCH (user:User)
+            WHERE user.handle = {handle} AND user.password = {password}
+            RETURN user
         `,
 		Parameters: neoism.Props{
-			"handle":   handle,
-			"password": password,
+			"handle":   credentials.Handle,
+			"password": credentials.Password,
 		},
 		Result: &res,
 	})
 	panicErr(err)
 
 	if len(res) > 0 {
-		err := a.Svc.Db.Cypher(&neoism.CypherQuery{
-			// Delete user node
+		// Delete user:
+		err = a.Svc.Db.Cypher(&neoism.CypherQuery{
 			Statement: `
-                MATCH (u:User {handle: {handle}})
-                DELETE u
+                MATCH (user:User)-[r]->()
+                WHERE user.handle = {handle}
+                DELETE r, user
             `,
-			Parameters: neoism.Props{
-				"handle": handle,
-			},
-			Result: nil,
+		    Parameters: neoism.Props{
+			    "handle":   credentials.Handle,
+		    },
 		})
 		panicErr(err)
-
+		
 		w.WriteHeader(200)
 		w.WriteJson(map[string]string{
-			"Response": "Deleted " + handle,
+			"Response": "Deleted " + credentials.Handle,
 		})
 	} else {
 		w.WriteHeader(403)
@@ -792,7 +793,7 @@ func (a Api) DeleteMessage(w rest.ResponseWriter, r *rest.Request) {
 	deleted := []struct {
 		Count int `json:"count(m)"`
 	}{}
-	err = a.Svc.Db.Cypher(&neoism.CypherQuery{
+	a.Svc.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
         MATCH (user:User {handle: {handle}})
         OPTIONAL MATCH (user)-[r:WROTE]->(m:Message {lastsaved: {lastsaved}})
