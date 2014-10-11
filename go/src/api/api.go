@@ -342,64 +342,32 @@ func (a Api) GetUser(w rest.ResponseWriter, r *rest.Request) {
 }
 
 func (a Api) GetUsers(w rest.ResponseWriter, r *rest.Request) {
-	// To Do (Just Signature ATM)
-}
-
-// Old GetUser
-/*
-func (a Api) GetUser(w rest.ResponseWriter, r *rest.Request) {
-	querymap := r.URL.Query()
-
-	// Get by handle
-	if handle, ok := querymap["handle"]; ok {
-		stmt := `MATCH (user:User)
-                 WHERE user.handle = {handle}
-                 RETURN user`
-		params := neoism.Props{
-			"handle": handle[0],
-		}
-		res := []struct {
-			User neoism.Node
-		}{}
-
-		err := a.Svc.Db.Cypher(&neoism.CypherQuery{
-			Statement:  stmt,
-			Parameters: params,
-			Result:     &res,
-		})
-		panicErr(err)
-
-		u := res[0].User.Data
-
-		w.WriteJson(u)
-		return
-	}
-
-	// All users
-	stmt := `MATCH (user:User)
-             RETURN user.handle, user.joined
-             ORDER BY user.handle`
 	res := []struct {
 		Handle string    `json:"user.handle"`
 		Joined time.Time `json:"user.joined"`
 	}{}
 
 	err := a.Svc.Db.Cypher(&neoism.CypherQuery{
-		Statement:  stmt,
+		Statement:  `
+		    MATCH (user:User)
+            RETURN user.handle, user.joined
+            ORDER BY user.handle
+        `,
 		Parameters: neoism.Props{},
 		Result:     &res,
 	})
 	panicErr(err)
 
 	if len(res) > 0 {
+		w.WriteHeader(200)
 		w.WriteJson(res)
 	} else {
+		w.WriteHeader(404)
 		w.WriteJson(map[string]string{
 			"Response": "No results found",
 		})
 	}
 }
-*/
 
 func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
 	credentials := struct {
