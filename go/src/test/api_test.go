@@ -1,12 +1,11 @@
 package api_test
 
 import (
-	. "gopkg.in/check.v1"
 	api "../api"
 	routes "../routes"
 	"encoding/json"
 	"fmt"
-	"github.com/jmcvetta/neoism"
+	. "gopkg.in/check.v1"
 	"io"
 	"io/ioutil"
 	"log"
@@ -18,7 +17,7 @@ import (
 
 var (
 	server *httptest.Server
-	a *api.Api
+	a      *api.Api
 
 	signupURL   string
 	loginURL    string
@@ -57,12 +56,9 @@ var _ = Suite(&TestSuite{})
 */
 func (s *TestSuite) SetUpSuite(c *C) {
 	uri := "http://192.241.226.228:7474/db/data"
-	neo4jdb, err := neoism.Connect(uri)
-	if err != nil {
-		log.Fatal(err)
-	}
 
-	a = &api.Api{neo4jdb}
+	a = api.NewApi(uri)
+
 	handler, err := routes.MakeHandler(*a)
 	if err != nil {
 		log.Fatal(err)
@@ -85,20 +81,14 @@ func (s *TestSuite) SetUpSuite(c *C) {
 	Run before each test or benchmark starts running.
 */
 func (s *TestSuite) SetUpTest(c *C) {
-	a.DatabaseInit()
+	// a.DatabaseInit() [DEPRACATED, db init occurs on api.NewApi call]
 }
 
 /*
 	Run after each test or benchmark runs.
 */
 func (s *TestSuite) TearDownTest(c *C) {
-	a.Db.Cypher(&neoism.CypherQuery {
-		Statement: `
-            MATCH (n)
-            OPTIONAL MATCH (n)-[r]-()
-            DELETE n, r
-        `,
-	})
+	a.Svc.FreshInitialState()
 }
 
 /*
@@ -132,27 +122,23 @@ func postLogin(handle string, password string) (*http.Response, error) {
 	return response, err
 }
 
-func getJsonResponseMessage(response *http.Response) (string) {
+func getJsonResponseMessage(response *http.Response) string {
 	type Json struct {
 		Response string
 	}
 
 	var message Json
 
-	body, err := ioutil.ReadAll(response.Body)
-	if err != nil {
+	if body, err := ioutil.ReadAll(response.Body); err != nil {
 		log.Fatal(err)
-	}  
-
-	err = json.Unmarshal(body, &message)
-	if err != nil {
+	} else if err := json.Unmarshal(body, &message); err != nil {
 		log.Fatal(err)
 	}
 
 	return message.Response
 }
 
-func getJsonErrorMessage(response *http.Response) (string) {
+func getJsonErrorMessage(response *http.Response) string {
 	type Json struct {
 		Error string
 	}
@@ -168,7 +154,7 @@ func getJsonErrorMessage(response *http.Response) (string) {
 	if err != nil {
 		log.Fatal(err)
 	}
- 
+
 	return message.Error
 }
 
@@ -218,31 +204,31 @@ func (s *TestSuite) TestSignupPasswordTooShort(c *C) {
 
 func (s *TestSuite) TestSignupHandleTaken(c *C) {
 	postSignup("testing123", "testing123", "testing123", "testing123")
-	
+
 	response, err := postSignup("testing123", "testing321", "testing123", "testing123")
 	if err != nil {
 		c.Error(err)
 	}
 
-	c.Check(getJsonResponseMessage(response), Equals, "Sorry, testing123 is already taken")
+	c.Check(getJsonResponseMessage(response), Equals, "Sorry, handle or email is already taken")
 	c.Assert(response.StatusCode, Equals, 400)
 }
 
 func (s *TestSuite) TestSignupEmailTaken(c *C) {
 	postSignup("testing123", "testing123", "testing123", "testing123")
-	
+
 	response, err := postSignup("testing321", "testing123", "testing123", "testing123")
 	if err != nil {
 		c.Error(err)
 	}
 
-	c.Check(getJsonResponseMessage(response), Equals, "Sorry, testing123 is already taken")
+	c.Check(getJsonResponseMessage(response), Equals, "Sorry, handle or email is already taken")
 	c.Assert(response.StatusCode, Equals, 400)
 }
 
 func (s *TestSuite) TestSignupCreated(c *C) {
 	postSignup("testing123", "testing123", "testing123", "testing123")
-	
+
 	response, err := postSignup("testing321", "testing321", "testing123", "testing123")
 	if err != nil {
 		c.Error(err)
