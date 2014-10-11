@@ -13,6 +13,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	//"time"
 )
 
 var (
@@ -163,6 +164,17 @@ func getUser(handle string) (*http.Response, error) {
 	return response, err
 }
 
+func getUsers() (*http.Response, error) {
+	request, err := http.NewRequest("GET", usersURL, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	response, err := http.DefaultClient.Do(request)
+
+	return response, err
+}
+
 func deleteUser(handle string, password string) (*http.Response, error) {
 	credentials := "{\"Handle\": \"" + handle + "\", \"Password\": \"" + password + "\"}"
 
@@ -224,7 +236,30 @@ func getJsonUserData(response *http.Response) (string, string, string) {
 		Password string
 	}
 
-	var data Json
+	var user Json
+
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = json.Unmarshal(body, &user)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return user.Handle, user.Email, user.Password
+}
+
+func getJsonUsersData(response *http.Response) ([]string) {
+	type Json struct {
+		Handle string
+		Joined string
+	}
+
+	var users []Json
+	data := []map[string]string{}
+	var handles []string 
 
 	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
@@ -236,7 +271,13 @@ func getJsonUserData(response *http.Response) (string, string, string) {
 		log.Fatal(err)
 	}
 
-	return data.Handle, data.Email, data.Password
+	for i := range data {
+		user := Json{data[i]["Handle"], data[i]["Joined"]}
+		users = append(users, user)
+		handles = append(handles, data[i]["Handle"])
+	}
+
+	return handles 
 }
 
 /*
@@ -428,6 +469,44 @@ func (s *TestSuite) TestGetUserOK(c *C) {
 	c.Check(handle, Equals, "testing123")
 	c.Check(email, Equals, "testing123")
 	c.Check(password, Equals, "testing123")
+	c.Assert(response.StatusCode, Equals, 200)
+}
+
+/*
+	Get Users Tests:
+*/
+
+func (s *TestSuite) TestGetUsersNotFound(c *C) {
+	response, err := getUsers()
+	if err != nil {
+		c.Error(err)
+	}
+
+	c.Check(getJsonResponseMessage(response), Equals, "No results found")
+	c.Assert(response.StatusCode, Equals, 404)
+}
+
+func (s *TestSuite) TestGetUsersOK(c *C) {
+	postSignup("testing123", "testing123", "testing123", "testing123")
+	postSignup("testing132", "testing132", "testing132", "testing132")
+	postSignup("testing213", "testing213", "testing213", "testing213")
+	postSignup("testing231", "testing231", "testing231", "testing231")
+	postSignup("testing312", "testing312", "testing312", "testing312")
+	postSignup("testing321", "testing321", "testing321", "testing321")
+
+	response, err := getUsers()
+	if err != nil {
+		c.Error(err)
+	}
+
+	handles := getJsonUsersData(response)
+
+	c.Check(handles[0], Equals, "testing123")
+	c.Check(handles[1], Equals, "testing132")
+	c.Check(handles[2], Equals, "testing213")
+	c.Check(handles[3], Equals, "testing231")
+	c.Check(handles[4], Equals, "testing312")
+	c.Check(handles[5], Equals, "testing321")
 	c.Assert(response.StatusCode, Equals, 200)
 }
 
