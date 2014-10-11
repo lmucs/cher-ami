@@ -349,18 +349,28 @@ func (a Api) GetUsers(w rest.ResponseWriter, r *rest.Request) {
 
 	err := a.Svc.Db.Cypher(&neoism.CypherQuery{
 		Statement:  `
-		    MATCH (user:User)
+            MATCH (user:User)
             RETURN user.handle, user.joined
             ORDER BY user.handle
         `,
 		Parameters: neoism.Props{},
-		Result:     &res,
+		Result: &res,
 	})
 	panicErr(err)
 
 	if len(res) > 0 {
+		users := []map[string]string{}
+
+		for i := range res {
+			user := map[string]string{
+				"Handle": res[i].Handle,
+				"Joined": res[i].Joined.Format("Jan 2, 2006 at 3:04 PM (MST)"),
+			}
+			users = append(users, user)
+		}
+
 		w.WriteHeader(200)
-		w.WriteJson(res)
+		w.WriteJson(users)
 	} else {
 		w.WriteHeader(404)
 		w.WriteJson(map[string]string{
