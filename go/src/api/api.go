@@ -402,62 +402,56 @@ func (a Api) GetUser(w rest.ResponseWriter, r *rest.Request) {
 */
 
 func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
-	querymap := r.URL.Query()
-
-	if handle, ok := querymap["handle"]; ok {
-		if password, okok := querymap["password"]; okok {
-
-			var handle = handle[0]
-			var password = password[0]
-
-			res := []struct {
-				HandleToBeDeleted string `json:"user.handle"`
-			}{}
-			err := a.Svc.Db.Cypher(&neoism.CypherQuery{
-				Statement: `
-                    MATCH (user:User {handle:{handle}, password:{password}})
-                    RETURN user.handle
-                `,
-				Parameters: neoism.Props{
-					"handle":   handle,
-					"password": password,
-				},
-				Result: &res,
-			})
-			panicErr(err)
-
-			if len(res) > 0 {
-				err := a.Svc.Db.Cypher(&neoism.CypherQuery{
-					// Delete user node
-					Statement: `
-                        MATCH (u:User {handle: {handle}})
-                        DELETE u
-                    `,
-					Parameters: neoism.Props{
-						"handle": handle,
-					},
-					Result: nil,
-				})
-				panicErr(err)
-
-				w.WriteHeader(200)
-				w.WriteJson(map[string]string{
-					"Response": "Deleted " + handle,
-				})
-				return
-			} else {
-				w.WriteHeader(403)
-				w.WriteJson(map[string]string{
-					"Response": "Could not delete user with supplied credentials",
-				})
-				return
-			}
-		}
+	credentials := struct {
+		Handle string
+		Password string
+	}{}
+	err := r.DecodeJsonPayload(&credentials)
+	if err != nil {
+		rest.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
-	w.WriteHeader(403)
-	w.WriteJson(map[string]string{
-		"Error": "Bad request parameters for delete, expected handle:String, password:String",
+
+	res := []struct {
+		HandleToBeDeleted string `json:"user.handle"`
+	}{}
+	err := a.Svc.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+            MATCH (user:User {handle:{handle}, password:{password}})
+            RETURN user.handle
+        `,
+		Parameters: neoism.Props{
+			"handle":   handle,
+			"password": password,
+		},
+		Result: &res,
 	})
+	panicErr(err)
+
+	if len(res) > 0 {
+		err := a.Svc.Db.Cypher(&neoism.CypherQuery{
+			// Delete user node
+			Statement: `
+                MATCH (u:User {handle: {handle}})
+                DELETE u
+            `,
+			Parameters: neoism.Props{
+				"handle": handle,
+			},
+			Result: nil,
+		})
+		panicErr(err)
+
+		w.WriteHeader(200)
+		w.WriteJson(map[string]string{
+			"Response": "Deleted " + handle,
+		})
+	} else {
+		w.WriteHeader(403)
+		w.WriteJson(map[string]string{
+			"Response": "Could not delete user with supplied credentials",
+		})
+	}
 }
 
 //
