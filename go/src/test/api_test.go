@@ -83,7 +83,6 @@ func (s *TestSuite) SetUpSuite(c *C) {
 	Run before each test or benchmark starts running.
 */
 func (s *TestSuite) SetUpTest(c *C) {
-	// a.DatabaseInit() [DEPRACATED, db init occurs on api.NewApi call]
 }
 
 /*
@@ -164,16 +163,12 @@ func getUser(handle string) (*http.Response, error) {
 	return response, err
 }
 
-/*
 func deleteUser(handle string, password string) (*http.Response, error) {
-	user := map[string]string {
-		"handle": handle,
-		"password": password,
-	}
+	credentials := "{\"Handle\": \"" + handle + "\", \"Password\": \"" + password + "\"}"
 
-	reader = strings.NewReader(user)
+	reader = strings.NewReader(credentials)
 
-	request, err := http.NewRequest("DELETE", usersURL, reader)
+	request, err := http.NewRequest("DELETE", userURL, reader)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -182,7 +177,6 @@ func deleteUser(handle string, password string) (*http.Response, error) {
 
 	return response, err
 }
-*/
 
 /*
 	Read Body of Response:
@@ -435,4 +429,61 @@ func (s *TestSuite) TestGetUserOK(c *C) {
 	c.Check(email, Equals, "testing123")
 	c.Check(password, Equals, "testing123")
 	c.Assert(response.StatusCode, Equals, 200)
+}
+
+/*
+	Delete User Tests:
+*/
+
+func (s *TestSuite) TestDeleteUserNoExist(c *C) {
+	response, err := deleteUser("testing123", "testing123")
+	if err != nil {
+		c.Error(err)
+	}
+
+	c.Check(getJsonResponseMessage(response), Equals, "Could not delete user with supplied credentials")
+	c.Assert(response.StatusCode, Equals, 403)
+}
+
+func (s *TestSuite) TestDeleteUserInvalidUsername(c *C) {
+	postSignup("testing123", "testing123", "testing123", "testing123")
+
+	response, err := deleteUser("testing321", "testing123")
+	if err != nil {
+		c.Error(err)
+	}
+
+	c.Check(getJsonResponseMessage(response), Equals, "Could not delete user with supplied credentials")
+	c.Assert(response.StatusCode, Equals, 403)
+}
+
+func (s *TestSuite) TestDeleteUserInvalidPassword(c *C) {
+	postSignup("testing123", "testing123", "testing123", "testing123")
+
+	response, err := deleteUser("testing123", "testing321")
+	if err != nil {
+		c.Error(err)
+	}
+
+	c.Check(getJsonResponseMessage(response), Equals, "Could not delete user with supplied credentials")
+	c.Assert(response.StatusCode, Equals, 403)
+}
+
+func (s *TestSuite) TestDeleteUserOK(c *C) {
+	postSignup("testing123", "testing123", "testing123", "testing123")
+
+	deleteUserResponse, err := deleteUser("testing123", "testing123")
+	if err != nil {
+		c.Error(err)
+	}
+
+	getUserResponse, err := getUser("testing123")
+	if err != nil {
+		c.Error(err)
+	}
+
+	c.Check(getJsonResponseMessage(deleteUserResponse), Equals, "Deleted testing123")
+	c.Check(deleteUserResponse.StatusCode, Equals, 200)
+	c.Check(getJsonResponseMessage(getUserResponse), Equals, "No results found")
+	c.Assert(getUserResponse.StatusCode, Equals, 404)
 }
