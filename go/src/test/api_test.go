@@ -23,6 +23,7 @@ var (
 	signupURL   string
 	loginURL    string
 	logoutURL   string
+	userURL     string
 	usersURL    string
 	messagesURL string
 	publishURL  string
@@ -73,6 +74,7 @@ func (s *TestSuite) SetUpSuite(c *C) {
 	signupURL = fmt.Sprintf("%s/signup", server.URL)
 	loginURL = fmt.Sprintf("%s/login", server.URL)
 	logoutURL = fmt.Sprintf("%s/logout", server.URL)
+	userURL = fmt.Sprintf("%s/users/user", server.URL)
 	usersURL = fmt.Sprintf("%s/users", server.URL)
 	messagesURL = fmt.Sprintf("%s/messages", server.URL)
 	publishURL = fmt.Sprintf("%s/publish", server.URL)
@@ -157,6 +159,41 @@ func postLogout(handle string) (*http.Response, error) {
 	return response, err
 }
 
+func getUser(handle string) (*http.Response, error) {
+	user := "{\"Handle\": \"" + handle + "\"}"
+
+	reader = strings.NewReader(user)
+
+	request, err := http.NewRequest("GET", userURL, reader)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	response, err := http.DefaultClient.Do(request)
+
+	return response, err
+}
+
+/*
+func deleteUser(handle string, password string) (*http.Response, error) {
+	user := map[string]string {
+		"handle": handle,
+		"password": password,
+	}
+
+	reader = strings.NewReader(user)
+
+	request, err := http.NewRequest("DELETE", usersURL, reader)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	response, err := http.DefaultClient.Do(request)
+
+	return response, err
+}
+*/
+
 /*
 	Read Body of Response:
 */
@@ -199,6 +236,28 @@ func getJsonErrorMessage(response *http.Response) (string) {
 	}
  
 	return message.Error
+}
+
+func getJsonUserData(response *http.Response) (string, string, string) {
+	type Json struct {
+		Handle string
+		Email string
+		Password string
+	}
+
+	var data Json
+
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = json.Unmarshal(body, &data)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return data.Handle, data.Email, data.Password
 }
 
 /*
@@ -374,5 +433,35 @@ func (s *TestSuite) TestLogoutOK(c *C) {
 	}
 
 	c.Check(getJsonResponseMessage(response), Equals, "Logged out testing123, have a nice day")
+	c.Assert(response.StatusCode, Equals, 200)
+}
+
+/*
+	Get User Tests:
+*/
+
+func (s *TestSuite) TestGetUserNotFound(c *C) {
+	response, err := getUser("testing123")
+	if err != nil {
+		c.Error(err)
+	}
+
+	c.Check(getJsonResponseMessage(response), Equals, "No results found")
+	c.Assert(response.StatusCode, Equals, 404)
+}
+
+func (s *TestSuite) TestGetUserOK(c *C) {
+	postSignup("testing123", "testing123", "testing123", "testing123")
+
+	response, err := getUser("testing123")
+	if err != nil {
+		c.Error(err)
+	}
+
+	handle, email, password := getJsonUserData(response)
+
+	c.Check(handle, Equals, "testing123")
+	c.Check(email, Equals, "testing123")
+	c.Check(password, Equals, "testing123")
 	c.Assert(response.StatusCode, Equals, 200)
 }
