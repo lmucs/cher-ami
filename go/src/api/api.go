@@ -469,7 +469,7 @@ func (a Api) GetUser(w rest.ResponseWriter, r *rest.Request) {
 		Parameters: neoism.Props{
 			"handle": user.Handle,
 		},
-		Result: &data,
+		Result: &res,
 	})
 	panicErr(err)
 
