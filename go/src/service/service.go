@@ -1,6 +1,7 @@
 package service
 
 import (
+	// "bytes"
 	"fmt"
 	"github.com/dchest/uniuri"
 	"github.com/jmcvetta/neoism"
@@ -47,9 +48,9 @@ func NewService(uri string) *Svc {
 func (s Svc) databaseInit() {
 	var publicdomain *neoism.Node
 	// Initialize PublicDomain node
-	// Nodes must have at least one property to allow uniquely creation
-	publicdomain, _, err := s.Db.GetOrCreateNode("PublicDomain", "u", neoism.Props{
-		"u": true,
+	// Nodes must have at least one property to allow unique creation
+	publicdomain, _, err := s.Db.GetOrCreateNode("PublicDomain", "iam", neoism.Props{
+		"iam": "PublicDomain",
 	})
 	panicErr(err)
 	// Label (has to be) added separately
@@ -180,7 +181,8 @@ func (s Svc) MakeDefaultCirclesFor(handle string) error {
 	}{}
 	err := s.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
-            MATCH (p:PublicDomain {u:true})
+            MATCH (p:PublicDomain)
+            WHERE p.iam = "PublicDomain"
             MATCH (u:User)
             WHERE u.handle = {handle}
             CREATE (g:Circle {name: {gold}})
@@ -203,19 +205,62 @@ func (s Svc) MakeDefaultCirclesFor(handle string) error {
 	return err
 }
 
-//
-// Errors
-//
-
-func panicErr(err error) {
-	if err != nil {
-		panic(err)
-		return
+func (s Svc) NewCircle(handle string, circle_name string, is_public bool) error {
+	query := `
+        MATCH (u:User)
+        WHERE u.handle = {handle}
+        CREATE UNIQUE (u)-[:CHIEF_OF]->(c:Circle {name: {name}})
+    `
+	if is_public {
+		query = query + `
+            MATCH (p:PublicDomain {u:true})
+            CREATE UNIQUE (c)-[:PART_OF]->(p)
+        `
 	}
+	query = query + `
+        RETURN c.name
+    `
+
+	fmt.Println(query)
+
+	made := []struct {
+		CircleName string `json:"c.name"`
+	}{}
+	err := s.Db.Cypher(&neoism.CypherQuery{
+		Statement: query,
+		Parameters: neoism.Props{
+			"handle": handle,
+			"name":   circle_name,
+		},
+		Result: &made,
+	})
+	if len(made) != 1 {
+		panic(fmt.Sprintf("Incorrect results len in query1()\n\tgot %d, expected 1\n", len(made)))
+	}
+
+	return err
 }
 
 //
-// Node Setting
+// Deletion
+//
+func (s Svc) DeleteAllNodesAndRelations() {
+	s.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+            MATCH (n)
+            OPTIONAL MATCH (n)-[r]-()
+            DELETE n, r
+        `,
+	})
+}
+
+func (s Svc) FreshInitialState() {
+	s.DeleteAllNodesAndRelations()
+	s.databaseInit()
+}
+
+//
+// Node State
 //
 
 func (s Svc) SetAndGetNewSessionId(handle string, password string) (sessionid string, err error) {
@@ -242,4 +287,34 @@ func (s Svc) SetAndGetNewSessionId(handle string, password string) (sessionid st
 	}
 
 	return created[0].SessionId, err
+}
+
+func (s Svc) UnsetSessionId(handle string) (bool, error) {
+	loggedOut := []struct {
+		Handle string `json:"u.handle"`
+	}{}
+	err := s.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+            MATCH (u:User {handle: {handle}})
+            REMOVE u.sessionid
+            RETURN u
+        `,
+		Parameters: neoism.Props{
+			"handle": handle,
+		},
+		Result: &loggedOut,
+	})
+
+	return len(loggedOut) == 1, err
+}
+
+//
+// Errors
+//
+
+func panicErr(err error) {
+	if err != nil {
+		panic(err)
+		return
+	}
 }

@@ -282,22 +282,9 @@ func (a Api) Logout(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	loggedOut := []struct {
-		Handle string `json:"user.handle"`
-	}{}
-	a.Svc.Db.Cypher(&neoism.CypherQuery{
-		Statement: `
-            MATCH (user:User {handle: {handle}})
-            REMOVE user.sessionid
-            RETURN user
-        `,
-		Parameters: neoism.Props{
-			"handle": user.Handle,
-		},
-		Result: &loggedOut,
-	})
-
-	if len(loggedOut) == 0 {
+	if removed, err := a.Svc.UnsetSessionId(user.Handle); err != nil {
+		panicErr(err)
+	} else if !removed {
 		w.WriteHeader(403)
 		w.WriteJson(map[string]string{
 			"Response": "No user was logged out",
@@ -439,58 +426,29 @@ func (a Api) NewCircle(w rest.ResponseWriter, r *rest.Request) {
 	}{}
 	r.DecodeJsonPayload(&payload)
 
-	a.authenticate(w, payload.Handle, payload.SessionId)
+	handle := payload.Handle
+	sessionid := payload.SessionId
+	circle_name := payload.CircleName
+	is_public := payload.Public
 
-	circleName := payload.CircleName
+	fmt.Println(is_public)
 
-	if circleName == GOLD || circleName == BROADCAST {
+	a.authenticate(w, handle, sessionid)
+
+	if circle_name == GOLD || circle_name == BROADCAST {
 		w.WriteHeader(403)
 		w.WriteJson(map[string]string{
-			"Response": circleName + " is a reserved circle name",
+			"Response": circle_name + " is a reserved circle name",
 		})
 		return
 	}
 
-	statement := ``
-	if payload.Public {
-		fmt.Println("Was true... should attach to PD")
-		statement = `
-            MATCH (p:PublicDomain {u:true})
-            MATCH (u:User)
-            WHERE u.handle = {handle}
-            CREATE UNIQUE (u)-[:CHIEF_OF]->(c:Circle {name: {name}})
-            CREATE UNIQUE (c)-[:PART_OF]->(p)
-            RETURN u.name, c.name
-        `
-	} else {
-		statement = `
-            MATCH (u:User)
-            WHERE u.handle = {handle}
-            CREATE UNIQUE (u)-[:CHIEF_OF]->(c:Circle {name: {name}})
-            RETURN u.name, c.name
-        `
-	}
-
-	made := []struct {
-		Handle string `json:"u.name"`
-		Name   string `json:"c.name"`
-	}{}
-	dberr := a.Svc.Db.Cypher(&neoism.CypherQuery{
-		Statement: statement,
-		Parameters: neoism.Props{
-			"handle": payload.Handle,
-			"name":   circleName,
-		},
-		Result: &made,
-	})
-	panicErr(dberr)
-	if len(made) != 1 {
-		panic(fmt.Sprintf("Incorrect results len in query1()\n\tgot %d, expected 1\n", len(made)))
-	}
+	err := a.Svc.NewCircle(handle, circle_name, is_public)
+	panicErr(err)
 
 	w.WriteHeader(201)
 	w.WriteJson(map[string]string{
-		"Response": "Created new circle " + circleName + " for " + payload.Handle,
+		"Response": "Created new circle " + circle_name + " for " + handle,
 	})
 }
 
