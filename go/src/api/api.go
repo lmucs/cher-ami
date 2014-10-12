@@ -850,7 +850,7 @@ func (a Api) BlockUser(w rest.ResponseWriter, r *rest.Request) {
             WHERE u.handle={handle}
             MATCH (t:User)
             WHERE t.handle={target}
-            CREATE UNIQUE (u)-[r:BLOCKED]->(t)
+            CREATE UNIQUE (t)-[r:BLOCKED]->(u)
         `,
 		Parameters: neoism.Props{
 			"handle": payload.Handle,
