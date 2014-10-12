@@ -941,7 +941,7 @@ func (a Api) Join(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	if !a.authenticate(w, payload.Handle, payload.Target) {
+	if !a.authenticate(w, payload.Handle, payload.Sessionid) {
 		return
 	}
 
