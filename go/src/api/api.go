@@ -47,13 +47,14 @@ const (
 /**
  * Requests
  */
-func (a Api) authenticate(w rest.ResponseWriter, handle string, sessionid string) Api {
-	if ok, err := a.Svc.GoodSessionCredentials(handle, sessionid); err != nil {
+func (a Api) authenticate(w rest.ResponseWriter, handle string, sessionid string) bool {
+	ok, err := a.Svc.GoodSessionCredentials(handle, sessionid)
+	if err != nil {
 		panicErr(err)
 	} else if !ok {
-		rest.Error(w, "Could not authenticate user "+handle, 400)
+		rest.Error(w, "Could not authenticate user " + handle, 400)
 	}
-	return a
+	return ok
 }
 
 func (a Api) userExists(handle string) bool {
@@ -453,23 +454,28 @@ func (a Api) NewCircle(w rest.ResponseWriter, r *rest.Request) {
 
 	fmt.Println(is_public)
 
-	a.authenticate(w, handle, sessionid)
-
-	if circle_name == GOLD || circle_name == BROADCAST {
-		w.WriteHeader(403)
-		w.WriteJson(map[string]string{
-			"Response": circle_name + " is a reserved circle name",
-		})
+	if ok := a.authenticate(w, handle, sessionid); !ok {
 		return
+	} else {
+
+		if circle_name == GOLD || circle_name == BROADCAST {
+			w.WriteHeader(403)
+			w.WriteJson(map[string]string{
+				"Response": circle_name + " is a reserved circle name",
+			})
+			return
+		}
+
+		err := a.Svc.NewCircle(handle, circle_name, is_public)
+		if err != nil {
+			panicErr(err)
+		}
+
+		w.WriteHeader(201)
+		w.WriteJson(map[string]string{
+			"Response": "Created new circle " + circle_name + " for " + handle,
+		})
 	}
-
-	err := a.Svc.NewCircle(handle, circle_name, is_public)
-	panicErr(err)
-
-	w.WriteHeader(201)
-	w.WriteJson(map[string]string{
-		"Response": "Created new circle " + circle_name + " for " + handle,
-	})
 }
 
 func (a Api) makeDefaultCircles(handle string) {
