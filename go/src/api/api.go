@@ -467,9 +467,7 @@ func (a Api) NewCircle(w rest.ResponseWriter, r *rest.Request) {
 		}
 
 		err := a.Svc.NewCircle(handle, circle_name, is_public)
-		if err != nil {
-			panicErr(err)
-		}
+		panicErr(err)
 
 		w.WriteHeader(201)
 		w.WriteJson(map[string]string{
