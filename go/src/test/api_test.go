@@ -11,6 +11,7 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"strings"
 	"testing"
 	//"time"
@@ -190,6 +191,21 @@ func deleteUser(handle string, password string) (*http.Response, error) {
 	return response, err
 }
 
+func postCircles(handle string, sessionId string, circleName string, public bool) (*http.Response, error) {
+	payload := "{\"Handle\": \"" + handle + "\", \"SessionId\": \"" + sessionId + "\", \"CircleName\": \"" + circleName + "\", \"Public\": \"" + strconv.FormatBool(public) + "\"}"
+
+	reader = strings.NewReader(payload)
+
+	request, err := http.NewRequest("POST", circlesURL, reader)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	response, err := http.DefaultClient.Do(request)
+
+	return response, err
+}
+
 /*
 	Read Body of Response:
 */
@@ -227,6 +243,27 @@ func getJsonErrorMessage(response *http.Response) string {
 	}
 
 	return message.Error
+}
+
+func getJsonAuthenticationData(response *http.Response) (string, string) {
+	type Json struct {
+		Response string
+		SessionId string
+	}
+
+	var authentication Json
+
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = json.Unmarshal(body, &authentication)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return authentication.Response, authentication.SessionId
 }
 
 func getJsonUserData(response *http.Response) (string, string, string) {
@@ -565,4 +602,103 @@ func (s *TestSuite) TestDeleteUserOK(c *C) {
 	c.Check(deleteUserResponse.StatusCode, Equals, 200)
 	c.Check(getJsonResponseMessage(getUserResponse), Equals, "No results found")
 	c.Assert(getUserResponse.StatusCode, Equals, 404)
+}
+
+/*
+	Post Circles Tests:
+*/
+
+func (s *TestSuite) TestPostCirclesUserNoExist(c *C) {
+	postSignup("testing123", "testing123", "testing123", "testing123")
+
+	response, _ := postLogin("testing123", "testing123")
+	_, sessionId := getJsonAuthenticationData(response)
+
+	deleteUser("testing123", "testing123")
+
+	response, err := postCircles("testing123", sessionId, "testing123", true)
+	if err != nil {
+		c.Error(err)
+	}
+
+	c.Check(getJsonResponseMessage(response), Equals, "Could not authenticate user testing123")
+	c.Assert(response.StatusCode, Equals, 400)
+}
+
+func (s *TestSuite) TestPostCirclesUserNoSession(c *C) {
+	postSignup("testing123", "testing123", "testing123", "testing123")
+
+	response, _ := postLogin("testing123", "testing123")
+	_, sessionId := getJsonAuthenticationData(response)
+
+	postLogout("testing123")
+
+	response, err := postCircles("testing123", sessionId, "testing123", true)
+	if err != nil {
+		c.Error(err)
+	}
+
+	c.Check(getJsonResponseMessage(response), Equals, "Could not authenticate user testing123")
+	c.Assert(response.StatusCode, Equals, 400)
+}
+
+func (s *TestSuite) TestPostCirclesNameReservedGold(c *C) {
+	postSignup("testing123", "testing123", "testing123", "testing123")
+
+	response, _ := postLogin("testing123", "testing123")
+	_, sessionId := getJsonAuthenticationData(response)
+
+	response, err := postCircles("testing123", sessionId, "Gold", false)
+	if err != nil {
+		c.Error(err)
+	}
+
+	c.Check(getJsonResponseMessage(response), Equals, "Gold is a reserved circle name")
+	c.Assert(response.StatusCode, Equals, 403)
+}
+
+func (s *TestSuite) TestPostCirclesNameReservedBroadcast(c *C) {
+	// create user, login user, create circle (name = "Broadcast") => error
+	postSignup("testing123", "testing123", "testing123", "testing123")
+
+	response, _ := postLogin("testing123", "testing123")
+	_, sessionId := getJsonAuthenticationData(response)
+
+	response, err := postCircles("testing123", sessionId, "Broadcast", true)
+	if err != nil {
+		c.Error(err)
+	}
+
+	c.Check(getJsonResponseMessage(response), Equals, "Broadcast is a reserved circle name")
+	c.Assert(response.StatusCode, Equals, 403)
+}
+
+func (s *TestSuite) TestPostCirclesPublicCircleCreated(c *C) {
+	postSignup("testing123", "testing123", "testing123", "testing123")
+
+	response, _ := postLogin("testing123", "testing123")
+	_, sessionId := getJsonAuthenticationData(response)
+
+	response, err := postCircles("testing123", sessionId, "testing123", true)
+	if err != nil {
+		c.Error(err)
+	}
+
+	c.Check(getJsonResponseMessage(response), Equals, "Created new circle testing123 for testing123")
+	c.Assert(response.StatusCode, Equals, 201)
+}
+
+func (s *TestSuite) TestPostCirclesPrivateCircleCreated(c *C) {
+	postSignup("testing123", "testing123", "testing123", "testing123")
+
+	response, _ := postLogin("testing123", "testing123")
+	_, sessionId := getJsonAuthenticationData(response)
+
+	response, err := postCircles("testing123", sessionId, "testing123", false)
+	if err != nil {
+		c.Error(err)
+	}
+
+	c.Check(getJsonResponseMessage(response), Equals, "Created new circle testing123 for testing123")
+	c.Assert(response.StatusCode, Equals, 201)
 }
