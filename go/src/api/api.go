@@ -823,35 +823,27 @@ func (a Api) BlockUser(w rest.ResponseWriter, r *rest.Request) {
 		})
 		return
 	}
-
+	
 	// Revoke membership to all circles
-	deleted := []struct {
-		Count int `json:"count(r)"`
-	}{}
 	err = a.Svc.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
             MATCH (u:User)
             WHERE u.handle={handle}
-            OPTIONAL MATCH (u)-[:CHIEF_OF]->(c:Circle)
             MATCH (t:User)
             WHERE t.handle={target}
+            OPTIONAL MATCH (u)-[:CHIEF_OF]->(c:Circle)
             OPTIONAL MATCH (t)-[r:MEMBER_OF]->(c)
             DELETE r
-            RETURN count(r)
         `,
 		Parameters: neoism.Props{
 			"handle": payload.Handle,
 			"target": payload.Target,
 		},
-		Result: &deleted,
 	})
 	panicErr(err)
-
+	
+	
 	// Block user
-	blocked := []struct {
-		Target string      `json:"t.handle"`
-		R      neoism.Node `json:"r"`
-	}{}
 	err = a.Svc.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
             MATCH (u:User)
@@ -859,20 +851,18 @@ func (a Api) BlockUser(w rest.ResponseWriter, r *rest.Request) {
             MATCH (t:User)
             WHERE t.handle={target}
             CREATE UNIQUE (u)-[r:BLOCKED]->(t)
-            RETURN t.handle, r
         `,
 		Parameters: neoism.Props{
 			"handle": payload.Handle,
 			"target": payload.Target,
 		},
-		Result: &blocked,
 	})
+	panicErr(err)
 
 	w.WriteHeader(200)
 	w.WriteJson(map[string]string{
 		"Response": "User " + payload.Target + " has been blocked",
 	})
-	return
 }
 
 func (a Api) JoinDefault(w rest.ResponseWriter, r *rest.Request) {
