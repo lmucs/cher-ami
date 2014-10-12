@@ -31,16 +31,12 @@ public class LoginActivity extends Activity {
      * may be best to switch to a
      * {@link android.support.v13.app.FragmentStatePagerAdapter}.
      */
-    SectionsPagerAdapter mSectionsPagerAdapter;
 
     /**
      * The {@link android.support.v4.view.ViewPager} that will host the section contents.
      */
-    ViewPager mViewPager;
     EditText mUsername;
-    EditText mEmail;
     EditText mPassword;
-    EditText mConfirmPassword;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,35 +57,14 @@ public class LoginActivity extends Activity {
         startActivity(intent);
     }
 
-    public void attemptCreateAccount(View view) {
+    public void attemptLoginUser(View view) {
         View focusView = null;
         Boolean cancel = false;
 
-        mUsername = (EditText)findViewById(R.id.username);
-        mEmail = (EditText)findViewById(R.id.email);
-        mPassword = (EditText)findViewById(R.id.password);
-        mConfirmPassword = (EditText)findViewById(R.id.confirmPassword);
+        mUsername = (EditText) findViewById(R.id.username);
+        mPassword = (EditText) findViewById(R.id.password);
         String username = mUsername.getText().toString();
-        String email = mEmail.getText().toString();
         String password = mPassword.getText().toString();
-        String confrimPassword = mConfirmPassword.getText().toString();
-        /* First, data sanitization: No fields should be left blank, email should have @ symbol,
-        password and Confirm password should be the same (this is done in back end)
-        Also, handle/username must be unique (also back end?)
-        Then,
-        POST to db with Handle, Email, Password, and Confirm
-        */
-
-        // Check for a valid email address.
-        if (TextUtils.isEmpty(email)) {
-            mEmail.setError(getString(R.string.error_field_required));
-            focusView = mEmail;
-            cancel = true;
-        } else if (!isEmailValid(email)) {
-            mEmail.setError(getString(R.string.error_invalid_email));
-            focusView = mEmail;
-            cancel = true;
-        }
 
         if (TextUtils.isEmpty(password)) {
             mPassword.setError(getString(R.string.error_field_required));
@@ -101,39 +76,27 @@ public class LoginActivity extends Activity {
             cancel = true;
         }
 
-        if (!confrimPassword.equals(password)) {
-            mConfirmPassword.setError(getString(R.string.error_invalid_confirm));
-            focusView = mConfirmPassword;
-            cancel = true;
-        }
-
         if (TextUtils.isEmpty(username)) {
             mUsername.setError(getString(R.string.error_field_required));
             focusView = mUsername;
             cancel = true;
         }
 
-
         if (cancel) {
             //Something is wrong; don't sign up
             focusView.requestFocus();
         } else {
-            // Sign them up
-
+            // Sign them up; for now, redirect to Main
+            Intent intent = new Intent(this, MainActivity.class);
+            startActivity(intent);
         }
 
-    }
-
-    private boolean isEmailValid(String email) {
-        //TODO: Replace this with your own logic
-        return email.contains("@");
     }
 
     private boolean isPasswordValid(String password) {
         //TODO: Replace this with your own logic
         return password.length() > 4;
     }
-
 
 
     @Override
@@ -146,76 +109,5 @@ public class LoginActivity extends Activity {
             return true;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    /**
-     * A {@link android.support.v13.app.FragmentPagerAdapter} that returns a fragment corresponding to
-     * one of the sections/tabs/pages.
-     */
-    public class SectionsPagerAdapter extends FragmentPagerAdapter {
-
-        public SectionsPagerAdapter(FragmentManager fm) {
-            super(fm);
-        }
-
-        @Override
-        public Fragment getItem(int position) {
-            // getItem is called to instantiate the fragment for the given page.
-            // Return a PlaceholderFragment (defined as a static inner class below).
-            return PlaceholderFragment.newInstance(position + 1);
-        }
-
-        @Override
-        public int getCount() {
-            // Show 3 total pages.
-            return 3;
-        }
-
-        @Override
-        public CharSequence getPageTitle(int position) {
-            Locale l = Locale.getDefault();
-            switch (position) {
-                case 0:
-                    return getString(R.string.tab1).toUpperCase(l);
-                case 1:
-                    return getString(R.string.tab2).toUpperCase(l);
-                case 2:
-                    return getString(R.string.tab3).toUpperCase(l);
-            }
-            return null;
-        }
-    }
-
-    /**
-     * A placeholder fragment containing a simple view.
-     */
-    public static class PlaceholderFragment extends Fragment {
-        /**
-         * The fragment argument representing the section number for this
-         * fragment.
-         */
-        private static final String ARG_SECTION_NUMBER = "section_number";
-
-        /**
-         * Returns a new instance of this fragment for the given section
-         * number.
-         */
-        public static PlaceholderFragment newInstance(int sectionNumber) {
-            PlaceholderFragment fragment = new PlaceholderFragment();
-            Bundle args = new Bundle();
-            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-            fragment.setArguments(args);
-            return fragment;
-        }
-
-        public PlaceholderFragment() {
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-            return rootView;
-        }
     }
 }

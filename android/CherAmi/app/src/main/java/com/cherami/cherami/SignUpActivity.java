@@ -13,7 +13,6 @@ import android.widget.EditText;
 
 public class SignUpActivity extends Activity {
 
-    ViewPager mViewPager;
     EditText mUsername;
     EditText mEmail;
     EditText mPassword;
