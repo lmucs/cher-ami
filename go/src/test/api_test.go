@@ -38,6 +38,7 @@ var (
 /* 
 	Hook up gocheck into the "go test" runner.
 */
+
 func Test(t *testing.T) {
 	TestingT(t)
 }
@@ -45,6 +46,7 @@ func Test(t *testing.T) {
 /*
 	Suite-based grouping of tests.
 */
+
 type TestSuite struct {
 }
 
@@ -52,11 +54,13 @@ type TestSuite struct {
 	Suite registers the given value as a test suite to be run. 
 	Any methods starting with the Test prefix in the given value will be considered as a test method.
 */
+
 var _ = Suite(&TestSuite{})
 
 /*
 	Run once when the suite starts running.
 */
+
 func (s *TestSuite) SetUpSuite(c *C) {
 	uri := "http://192.241.226.228:7474/db/data"
 
@@ -84,12 +88,14 @@ func (s *TestSuite) SetUpSuite(c *C) {
 /*
 	Run before each test or benchmark starts running.
 */
+
 func (s *TestSuite) SetUpTest(c *C) {
 }
 
 /*
 	Run after each test or benchmark runs.
 */
+
 func (s *TestSuite) TearDownTest(c *C) {
 	a.Svc.FreshInitialState()
 }
@@ -97,6 +103,7 @@ func (s *TestSuite) TearDownTest(c *C) {
 /*
 	Run once after all tests or benchmarks have finished running.
 */
+
 func (s *TestSuite) TearDownSuite(c *C) {
 	server.Close()
 }
@@ -206,9 +213,25 @@ func postCircles(handle string, sessionId string, circleName string, public bool
 	return response, err
 }
 
+func postBlock(handle string, sessionId string, target string) (*http.Response, error) {
+	payload := "{\"Handle\": \"" + handle + "\", \"SessionId\": \"" + sessionId + "\", \"Target\": \"" + target + "\"}"
+
+	reader = strings.NewReader(payload)
+
+	request, err := http.NewRequest("POST", blockURL, reader)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	response, err := http.DefaultClient.Do(request)
+
+	return response, err
+}
+
 /*
 	Read Body of Response:
 */
+
 func getJsonResponseMessage(response *http.Response) string {
 	type Json struct {
 		Response string
@@ -658,7 +681,6 @@ func (s *TestSuite) TestPostCirclesNameReservedGold(c *C) {
 }
 
 func (s *TestSuite) TestPostCirclesNameReservedBroadcast(c *C) {
-	// create user, login user, create circle (name = "Broadcast") => error
 	postSignup("testing123", "testing123", "testing123", "testing123")
 
 	response, _ := postLogin("testing123", "testing123")
@@ -701,4 +723,78 @@ func (s *TestSuite) TestPostCirclesPrivateCircleCreated(c *C) {
 
 	c.Check(getJsonResponseMessage(response), Equals, "Created new circle testing123 for testing123")
 	c.Assert(response.StatusCode, Equals, 201)
+}
+
+/*
+	Post Block Tests:
+*/
+
+func (s *TestSuite) TestPostBlockUserNoExist(c *C) {
+	postSignup("testing123", "testing123", "testing123", "testing123")
+	postSignup("testing321", "testing321", "testing321", "testing321")
+
+	response, _ := postLogin("testing123", "testing123")
+	_, sessionId := getJsonAuthenticationData(response)
+
+	deleteUser("testing123", "testing123")
+
+	response, err := postBlock("testing123", sessionId, "testing321")
+	if err != nil {
+		c.Error(err)
+	}
+
+	c.Check(getJsonErrorMessage(response), Equals, "Could not authenticate user testing123")
+	c.Assert(response.StatusCode, Equals, 400)
+}
+
+func (s *TestSuite) TestPostBlockTargetNoExist(c *C) {
+	postSignup("testing123", "testing123", "testing123", "testing123")
+	postSignup("testing321", "testing321", "testing321", "testing321")
+
+	response, _ := postLogin("testing123", "testing123")
+	_, sessionId := getJsonAuthenticationData(response)
+
+	deleteUser("testing321", "testing321")
+
+	response, err := postBlock("testing123", sessionId, "testing321")
+	if err != nil {
+		c.Error(err)
+	}
+
+	c.Check(getJsonResponseMessage(response), Equals, "Bad request, user testing321 wasn't found")
+	c.Assert(response.StatusCode, Equals, 400)
+}
+
+func (s *TestSuite) TestPostBlockUserNoSession(c *C) {
+	postSignup("testing123", "testing123", "testing123", "testing123")
+	postSignup("testing321", "testing321", "testing321", "testing321")
+
+	response, _ := postLogin("testing123", "testing123")
+	_, sessionId := getJsonAuthenticationData(response)
+
+	postLogout("testing123")
+
+	response, err := postBlock("testing123", sessionId, "testing321")
+	if err != nil {
+		c.Error(err)
+	}
+
+	c.Check(getJsonErrorMessage(response), Equals, "Could not authenticate user testing123")
+	c.Assert(response.StatusCode, Equals, 400)
+}
+
+func (s *TestSuite) TestPostBlockOK(c *C) {
+	postSignup("testing123", "testing123", "testing123", "testing123")
+	postSignup("testing321", "testing321", "testing321", "testing321")
+
+	response, _ := postLogin("testing123", "testing123")
+	_, sessionId := getJsonAuthenticationData(response)
+
+	response, err := postBlock("testing123", sessionId, "testing321")
+	if err != nil {
+		c.Error(err)
+	}
+
+	c.Check(getJsonResponseMessage(response), Equals, "User testing321 has been blocked")
+	c.Assert(response.StatusCode, Equals, 200)
 }
