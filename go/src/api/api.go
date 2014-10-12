@@ -881,6 +881,14 @@ func (a Api) JoinDefault(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
+	if !a.userExists(payload.Target) {
+		w.WriteHeader(400)
+		w.WriteJson(map[string]string{
+			"Response": "Bad request, user " + payload.Target + " wasn't found",
+		})
+		return
+	}
+
 	if a.isBlocked(payload.Handle, payload.Target) {
 		w.WriteHeader(403)
 		w.WriteJson(map[string]string{
