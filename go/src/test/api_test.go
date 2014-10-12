@@ -621,7 +621,7 @@ func (s *TestSuite) TestPostCirclesUserNoExist(c *C) {
 		c.Error(err)
 	}
 
-	c.Check(getJsonResponseMessage(response), Equals, "Could not authenticate user testing123")
+	c.Check(getJsonErrorMessage(response), Equals, "Could not authenticate user testing123")
 	c.Assert(response.StatusCode, Equals, 400)
 }
 
@@ -638,7 +638,7 @@ func (s *TestSuite) TestPostCirclesUserNoSession(c *C) {
 		c.Error(err)
 	}
 
-	c.Check(getJsonResponseMessage(response), Equals, "Could not authenticate user testing123")
+	c.Check(getJsonErrorMessage(response), Equals, "Could not authenticate user testing123")
 	c.Assert(response.StatusCode, Equals, 400)
 }
 
