@@ -16,7 +16,7 @@ define(function(require, exports, module) {
 
         events: {
             'click #submitButton': 'onSubmit',
-            'keypress postArea': 'onConfirm'
+            'keypress #postArea': 'onConfirm'
         },
 
         onSubmit: function() {
@@ -30,9 +30,10 @@ define(function(require, exports, module) {
             var enterkey = 13;
             if (event.which === enterkey) {
                 this.collection.add({
-                    messageData: ui.postArea.val()
+                messageData: this.ui.postArea.val()
                 })
             }
+            console.log("Enter key was pressed");
         },
 
         initialize: function(options) {

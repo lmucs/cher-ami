@@ -23,10 +23,10 @@ define(function(require, exports, module) {
 
             // Initialization of views will go here.
             this.app.headerRegion.show(new HeaderView());
-            /*this.app.mainRegion.show(new MessagesView({
+            this.app.mainRegion.show(new MessagesView({
                 collection: test
-            }));*/
-            this.app.mainRegion.show(new ProfileView());
+            }));
+            //this.app.mainRegion.show(new ProfileView());
             // this.app.footerRegion.show(new FooterView());
         },
 
