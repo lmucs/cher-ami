@@ -244,6 +244,7 @@ func (s Svc) NewCircle(handle string, circle_name string, is_public bool) error 
 //
 // Deletion
 //
+
 func (s Svc) DeleteAllNodesAndRelations() {
 	s.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
@@ -260,7 +261,36 @@ func (s Svc) FreshInitialState() {
 }
 
 //
-// Node State
+// Get
+//
+
+func (s Svc) GetHandleAndNameOf(user string) (handle string, name string, found bool) {
+	res = []struct {
+		Handle string `json:"u.handle"`
+		Name   string `json:"u.name"`
+	}{}
+	if err := a.Svc.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+            MATCH (u:User)
+            WHERE u.handle = {handle}
+            RETURN u.handle, u.name
+        `,
+		Parameters: neoism.Props{
+			"handle": user.Handle,
+		},
+		Result: &res,
+	}); err != nil {
+		panicErr(err)
+	}
+	if len(created) != 1 {
+		panic(fmt.Sprintf("Incorrect results len in query1()\n\tgot %d, expected 1\n", len(created)))
+	}
+
+	return res[0].Handle, res[0].Name, len(res) > 0
+}
+
+//
+// Node Attributes
 //
 
 func (s Svc) SetAndGetNewSessionId(handle string, password string) (sessionid string, err error) {
@@ -303,6 +333,31 @@ func (s Svc) UnsetSessionId(handle string) error {
 	})
 
 	return err
+}
+
+func (s Svc) SetGetName(handle string, name string) {
+	user := []struct {
+		Name string
+	}{}
+	err := s.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+            MATCH (u:User)
+            WHERE u.handle = {handle}
+            SET u.name = {name}
+            RETURN u.name
+        `,
+		Parameters: neoism.Props{
+			"handle": handle,
+			"name":   name,
+		},
+		Result: &user,
+	})
+
+	if len(user) != 1 {
+		panic(fmt.Sprintf("Incorrect results len in query1()\n\tgot %d, expected 1\n", len(created)))
+	}
+
+	return user[0].Name
 }
 
 //

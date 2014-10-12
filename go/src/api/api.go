@@ -52,7 +52,7 @@ func (a Api) authenticate(w rest.ResponseWriter, handle string, sessionid string
 	if err != nil {
 		panicErr(err)
 	} else if !ok {
-		rest.Error(w, "Could not authenticate user " + handle, 400)
+		rest.Error(w, "Could not authenticate user "+handle, 400)
 	}
 	return ok
 }
@@ -309,31 +309,17 @@ func (a Api) GetUser(w rest.ResponseWriter, r *rest.Request) {
 	user := struct {
 		Handle string
 	}{}
-	err := r.DecodeJsonPayload(&user)
-	if err != nil {
+	if err := r.DecodeJsonPayload(&user); err != nil {
 		rest.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	res := []struct {
-		User neoism.Node
-	}{}
-	err = a.Svc.Db.Cypher(&neoism.CypherQuery{
-		Statement: `
-            MATCH (user:User)
-            WHERE user.handle = {handle}
-            RETURN user
-        `,
-		Parameters: neoism.Props{
-			"handle": user.Handle,
-		},
-		Result: &res,
-	})
-	panicErr(err)
-
-	if len(res) > 0 {
+	if handle, name, found := a.Svc.GetHandleAndNameOf(user.Handle); found {
 		w.WriteHeader(200)
-		w.WriteJson(res[0].User.Data)
+		w.WriteJson(map[string]string{
+			"handle": handle,
+			"name":   name,
+		})
 	} else {
 		w.WriteHeader(404)
 		w.WriteJson(map[string]string{
@@ -349,13 +335,13 @@ func (a Api) GetUsers(w rest.ResponseWriter, r *rest.Request) {
 	}{}
 
 	err := a.Svc.Db.Cypher(&neoism.CypherQuery{
-		Statement:  `
+		Statement: `
             MATCH (user:User)
             RETURN user.handle, user.joined
             ORDER BY user.handle
         `,
 		Parameters: neoism.Props{},
-		Result: &res,
+		Result:     &res,
 	})
 	panicErr(err)
 
@@ -382,7 +368,7 @@ func (a Api) GetUsers(w rest.ResponseWriter, r *rest.Request) {
 
 func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
 	credentials := struct {
-		Handle string
+		Handle   string
 		Password string
 	}{}
 	err := r.DecodeJsonPayload(&credentials)
@@ -416,12 +402,12 @@ func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
                 WHERE user.handle = {handle}
                 DELETE user, r
             `,
-		    Parameters: neoism.Props{
-			    "handle":   credentials.Handle,
-		    },
+			Parameters: neoism.Props{
+				"handle": credentials.Handle,
+			},
 		})
 		panicErr(err)
-		
+
 		w.WriteHeader(200)
 		w.WriteJson(map[string]string{
 			"Response": "Deleted " + credentials.Handle,
@@ -823,7 +809,7 @@ func (a Api) BlockUser(w rest.ResponseWriter, r *rest.Request) {
 		})
 		return
 	}
-	
+
 	// Revoke membership to all circles
 	err = a.Svc.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
@@ -841,8 +827,7 @@ func (a Api) BlockUser(w rest.ResponseWriter, r *rest.Request) {
 		},
 	})
 	panicErr(err)
-	
-	
+
 	// Block user
 	err = a.Svc.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
@@ -913,10 +898,10 @@ func (a Api) JoinDefault(w rest.ResponseWriter, r *rest.Request) {
             RETURN r.at
         `,
 		Parameters: neoism.Props{
-		    "handle":    payload.Handle,
-		    "broadcast": BROADCAST,
-		    "target":    payload.Target,
-		    "now":       at,
+			"handle":    payload.Handle,
+			"broadcast": BROADCAST,
+			"target":    payload.Target,
+			"now":       at,
 		},
 		Result: &joined,
 	})
@@ -986,9 +971,9 @@ func (a Api) Join(w rest.ResponseWriter, r *rest.Request) {
             RETURN r.at
         `,
 		Parameters: neoism.Props{
-		    "handle": payload.Handle,
-		    "target": payload.Target,
-		    "now":    at,
+			"handle": payload.Handle,
+			"target": payload.Target,
+			"now":    at,
 		},
 		Result: &joined,
 	})
