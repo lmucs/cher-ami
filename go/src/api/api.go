@@ -870,8 +870,9 @@ func (a Api) BlockUser(w rest.ResponseWriter, r *rest.Request) {
 
 	w.WriteHeader(200)
 	w.WriteJson(map[string]string{
-		"Response": "User " + payload.Target + " has been blocked"
+		"Response": "User " + payload.Target + " has been blocked",
 	})
+	return
 }
 
 func (a Api) JoinDefault(w rest.ResponseWriter, r *rest.Request) {
