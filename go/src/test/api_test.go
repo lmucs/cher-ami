@@ -21,49 +21,49 @@ var (
 	server *httptest.Server
 	a      *api.Api
 
-	signupURL       string
-	loginURL        string
-	logoutURL       string
-	userURL         string
-	usersURL        string
-	messagesURL     string
-	publishURL      string
-	joindefaultURL  string
-	joinURL         string
-	blockURL        string
-	circlesURL      string
+	signupURL      string
+	loginURL       string
+	logoutURL      string
+	userURL        string
+	usersURL       string
+	messagesURL    string
+	publishURL     string
+	joindefaultURL string
+	joinURL        string
+	blockURL       string
+	circlesURL     string
 
 	reader io.Reader
 )
 
-/* 
-	Hook up gocheck into the "go test" runner.
-*/
+//
+// Hook up gocheck into the "go test" runner.
+//
 
 func Test(t *testing.T) {
 	TestingT(t)
 }
 
-/*
-	Suite-based grouping of tests.
-*/
+//
+// Suite-based grouping of tests.
+//
 
 type TestSuite struct {
 }
 
-/*
-	Suite registers the given value as a test suite to be run. 
-	Any methods starting with the Test prefix in the given value will be considered as a test method.
-*/
+//
+// Suite registers the given value as a test suite to be run.
+// Any methods starting with the Test prefix in the given value will be considered as a test method.
+//
 
 var _ = Suite(&TestSuite{})
 
-/*
-	Run once when the suite starts running.
-*/
+//
+// Run once when the suite starts running.
+//
 
 func (s *TestSuite) SetUpSuite(c *C) {
-	uri := "http://192.241.226.228:7474/db/data"
+	uri := "http://localhost:7474/db/data"
 
 	a = api.NewApi(uri)
 
@@ -87,32 +87,32 @@ func (s *TestSuite) SetUpSuite(c *C) {
 	circlesURL = fmt.Sprintf("%s/circles", server.URL)
 }
 
-/*
-	Run before each test or benchmark starts running.
-*/
+//
+// Run before each test or benchmark starts running.
+//
 
 func (s *TestSuite) SetUpTest(c *C) {
 }
 
-/*
-	Run after each test or benchmark runs.
-*/
+//
+// Run after each test or benchmark runs.
+//
 
 func (s *TestSuite) TearDownTest(c *C) {
 	a.Svc.FreshInitialState()
 }
 
-/*
-	Run once after all tests or benchmarks have finished running.
-*/
+//
+// Run once after all tests or benchmarks have finished running.
+//
 
 func (s *TestSuite) TearDownSuite(c *C) {
 	server.Close()
 }
 
-/*
-	Send/Receive Calls to API:
-*/
+//
+// Send/Receive Calls to API:
+//
 
 func postSignup(handle string, email string, password string, confirmPassword string) (*http.Response, error) {
 	proposal := "{\"Handle\": \"" + handle + "\", \"Email\": \"" + email + "\", \"Password\": \"" + password + "\", \"ConfirmPassword\": \"" + confirmPassword + "\"}"
@@ -260,9 +260,9 @@ func postJoin(handle string, sessionId string, target string, circle string) (*h
 	return response, err
 }
 
-/*
-	Read Body of Response:
-*/
+//
+// Read Body of Response:
+//
 
 func getJsonResponseMessage(response *http.Response) string {
 	type Json struct {
@@ -302,7 +302,7 @@ func getJsonErrorMessage(response *http.Response) string {
 
 func getJsonAuthenticationData(response *http.Response) (string, string) {
 	type Json struct {
-		Response string
+		Response  string
 		SessionId string
 	}
 
@@ -321,10 +321,10 @@ func getJsonAuthenticationData(response *http.Response) (string, string) {
 	return authentication.Response, authentication.SessionId
 }
 
-func getJsonUserData(response *http.Response) (string) {
+func getJsonUserData(response *http.Response) string {
 	type Json struct {
-		Handle   string
-		Name     string
+		Handle string
+		Name   string
 	}
 
 	var user Json
@@ -342,7 +342,7 @@ func getJsonUserData(response *http.Response) (string) {
 	return user.Handle
 }
 
-func getJsonUsersData(response *http.Response) ([]string) {
+func getJsonUsersData(response *http.Response) []string {
 	type Json struct {
 		Handle string
 		Joined string
@@ -350,7 +350,7 @@ func getJsonUsersData(response *http.Response) ([]string) {
 
 	var users []Json
 	data := []map[string]string{}
-	var handles []string 
+	var handles []string
 
 	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
@@ -368,12 +368,12 @@ func getJsonUsersData(response *http.Response) ([]string) {
 		handles = append(handles, data[i]["Handle"])
 	}
 
-	return handles 
+	return handles
 }
 
-/*
-	Signup Tests:
-*/
+//
+// Signup Tests:
+//
 
 func (s *TestSuite) TestSignupEmptyHandle(c *C) {
 	response, err := postSignup("", "testing123", "testing123", "testing123")
@@ -455,9 +455,9 @@ func (s *TestSuite) TestSignupCreated(c *C) {
 	c.Assert(response.StatusCode, Equals, 201)
 }
 
-/*
-	Login Tests:
-*/
+//
+// Login Tests:
+//
 
 func (s *TestSuite) TestLoginUserNoExist(c *C) {
 	response, err := postLogin("testing123", "testing123")
@@ -505,9 +505,9 @@ func (s *TestSuite) TestLoginOK(c *C) {
 	c.Assert(response.StatusCode, Equals, 200)
 }
 
-/*
-	Logout Tests:
-*/
+//
+// Logout Tests:
+//
 
 func (s *TestSuite) TestLogoutUserNoExist(c *C) {
 	response, err := postLogout("testing123")
@@ -533,9 +533,9 @@ func (s *TestSuite) TestLogoutOK(c *C) {
 	c.Assert(response.StatusCode, Equals, 200)
 }
 
-/*
-	Get User Tests:
-*/
+//
+// Get User Tests:
+//
 
 func (s *TestSuite) TestGetUserNotFound(c *C) {
 	response, err := getUser("testing123")
@@ -544,7 +544,7 @@ func (s *TestSuite) TestGetUserNotFound(c *C) {
 	}
 
 	c.Check(getJsonResponseMessage(response), Equals, "No results found")
-	c.Assert(response.StatusCode, Equals, 200)
+	c.Assert(response.StatusCode, Equals, 404)
 }
 
 func (s *TestSuite) TestGetUserOK(c *C) {
@@ -561,9 +561,9 @@ func (s *TestSuite) TestGetUserOK(c *C) {
 	c.Assert(response.StatusCode, Equals, 200)
 }
 
-/*
-	Get Users Tests:
-*/
+//
+// Get Users Tests:
+//
 
 func (s *TestSuite) TestGetUsersNotFound(c *C) {
 	response, err := getUsers()
@@ -599,9 +599,9 @@ func (s *TestSuite) TestGetUsersOK(c *C) {
 	c.Assert(response.StatusCode, Equals, 200)
 }
 
-/*
-	Delete User Tests:
-*/
+//
+// Delete User Tests:
+//
 
 func (s *TestSuite) TestDeleteUserNoExist(c *C) {
 	response, err := deleteUser("testing123", "testing123")
@@ -638,125 +638,125 @@ func (s *TestSuite) TestDeleteUserInvalidPassword(c *C) {
 }
 
 func (s *TestSuite) TestDeleteUserOK(c *C) {
-	postSignup("testing123", "testing123", "testing123", "testing123")
+	postSignup("handleA", "handleA@test.io", "password1", "password1")
 
-	deleteUserResponse, err := deleteUser("testing123", "testing123")
+	deleteUserResponse, err := deleteUser("handleA", "password1")
 	if err != nil {
 		c.Error(err)
 	}
 
-	getUserResponse, err := getUser("testing123")
+	getUserResponse, err := getUser("handleA")
 	if err != nil {
 		c.Error(err)
 	}
 
-	c.Check(getJsonResponseMessage(deleteUserResponse), Equals, "Deleted testing123")
+	c.Check(getJsonResponseMessage(deleteUserResponse), Equals, "Deleted handleA")
 	c.Check(deleteUserResponse.StatusCode, Equals, 200)
 	c.Check(getJsonResponseMessage(getUserResponse), Equals, "No results found")
 	c.Assert(getUserResponse.StatusCode, Equals, 404)
 }
 
-/*
-	Post Circles Tests:
-*/
+//
+// Post Circles Tests:
+//
 
-func (s *TestSuite) TestPostCirclesUserNoExist(c *C) {
-	postSignup("testing123", "testing123", "testing123", "testing123")
+// func (s *TestSuite) TestPostCirclesUserNoExist(c *C) {
+// 	postSignup("testing123", "testing123", "testing123", "testing123")
 
-	response, _ := postLogin("testing123", "testing123")
-	_, sessionId := getJsonAuthenticationData(response)
+// 	response, _ := postLogin("testing123", "testing123")
+// 	_, sessionId := getJsonAuthenticationData(response)
 
-	deleteUser("testing123", "testing123")
+// 	deleteUser("testing123", "testing123")
 
-	response, err := postCircles("testing123", sessionId, "testing123", true)
-	if err != nil {
-		c.Error(err)
-	}
+// 	response, err := postCircles("testing123", sessionId, "testing123", true)
+// 	if err != nil {
+// 		c.Error(err)
+// 	}
 
-	c.Check(getJsonErrorMessage(response), Equals, "Could not authenticate user testing123")
-	c.Assert(response.StatusCode, Equals, 400)
-}
+// 	c.Check(getJsonErrorMessage(response), Equals, "Could not authenticate user testing123")
+// 	c.Assert(response.StatusCode, Equals, 400)
+// }
 
-func (s *TestSuite) TestPostCirclesUserNoSession(c *C) {
-	postSignup("testing123", "testing123", "testing123", "testing123")
+// func (s *TestSuite) TestPostCirclesUserNoSession(c *C) {
+// 	postSignup("testing123", "testing123", "testing123", "testing123")
 
-	response, _ := postLogin("testing123", "testing123")
-	_, sessionId := getJsonAuthenticationData(response)
+// 	response, _ := postLogin("testing123", "testing123")
+// 	_, sessionId := getJsonAuthenticationData(response)
 
-	postLogout("testing123")
+// 	postLogout("testing123")
 
-	response, err := postCircles("testing123", sessionId, "testing123", true)
-	if err != nil {
-		c.Error(err)
-	}
+// 	response, err := postCircles("testing123", sessionId, "testing123", true)
+// 	if err != nil {
+// 		c.Error(err)
+// 	}
 
-	c.Check(getJsonErrorMessage(response), Equals, "Could not authenticate user testing123")
-	c.Assert(response.StatusCode, Equals, 400)
-}
+// 	c.Check(getJsonErrorMessage(response), Equals, "Could not authenticate user testing123")
+// 	c.Assert(response.StatusCode, Equals, 400)
+// }
 
-func (s *TestSuite) TestPostCirclesNameReservedGold(c *C) {
-	postSignup("testing123", "testing123", "testing123", "testing123")
+// func (s *TestSuite) TestPostCirclesNameReservedGold(c *C) {
+// 	postSignup("testing123", "testing123", "testing123", "testing123")
 
-	response, _ := postLogin("testing123", "testing123")
-	_, sessionId := getJsonAuthenticationData(response)
+// 	response, _ := postLogin("testing123", "testing123")
+// 	_, sessionId := getJsonAuthenticationData(response)
 
-	response, err := postCircles("testing123", sessionId, "Gold", false)
-	if err != nil {
-		c.Error(err)
-	}
+// 	response, err := postCircles("testing123", sessionId, "Gold", false)
+// 	if err != nil {
+// 		c.Error(err)
+// 	}
 
-	c.Check(getJsonResponseMessage(response), Equals, "Gold is a reserved circle name")
-	c.Assert(response.StatusCode, Equals, 403)
-}
+// 	c.Check(getJsonResponseMessage(response), Equals, "Gold is a reserved circle name")
+// 	c.Assert(response.StatusCode, Equals, 403)
+// }
 
-func (s *TestSuite) TestPostCirclesNameReservedBroadcast(c *C) {
-	postSignup("testing123", "testing123", "testing123", "testing123")
+// func (s *TestSuite) TestPostCirclesNameReservedBroadcast(c *C) {
+// 	postSignup("testing123", "testing123", "testing123", "testing123")
 
-	response, _ := postLogin("testing123", "testing123")
-	_, sessionId := getJsonAuthenticationData(response)
+// 	response, _ := postLogin("testing123", "testing123")
+// 	_, sessionId := getJsonAuthenticationData(response)
 
-	response, err := postCircles("testing123", sessionId, "Broadcast", true)
-	if err != nil {
-		c.Error(err)
-	}
+// 	response, err := postCircles("testing123", sessionId, "Broadcast", true)
+// 	if err != nil {
+// 		c.Error(err)
+// 	}
 
-	c.Check(getJsonResponseMessage(response), Equals, "Broadcast is a reserved circle name")
-	c.Assert(response.StatusCode, Equals, 403)
-}
+// 	c.Check(getJsonResponseMessage(response), Equals, "Broadcast is a reserved circle name")
+// 	c.Assert(response.StatusCode, Equals, 403)
+// }
 
-func (s *TestSuite) TestPostCirclesPublicCircleCreated(c *C) {
-	postSignup("testing123", "testing123", "testing123", "testing123")
+// func (s *TestSuite) TestPostCirclesPublicCircleCreated(c *C) {
+// 	postSignup("testing123", "testing123", "testing123", "testing123")
 
-	response, _ := postLogin("testing123", "testing123")
-	_, sessionId := getJsonAuthenticationData(response)
+// 	response, _ := postLogin("testing123", "testing123")
+// 	_, sessionId := getJsonAuthenticationData(response)
 
-	response, err := postCircles("testing123", sessionId, "testing123", true)
-	if err != nil {
-		c.Error(err)
-	}
+// 	response, err := postCircles("testing123", sessionId, "testing123", true)
+// 	if err != nil {
+// 		c.Error(err)
+// 	}
 
-	c.Check(getJsonResponseMessage(response), Equals, "Created new circle testing123 for testing123")
-	c.Assert(response.StatusCode, Equals, 201)
-}
+// 	c.Check(getJsonResponseMessage(response), Equals, "Created new circle testing123 for testing123")
+// 	c.Assert(response.StatusCode, Equals, 201)
+// }
 
-func (s *TestSuite) TestPostCirclesPrivateCircleCreated(c *C) {
-	postSignup("testing123", "testing123", "testing123", "testing123")
+// func (s *TestSuite) TestPostCirclesPrivateCircleCreated(c *C) {
+// 	postSignup("testing123", "testing123", "testing123", "testing123")
 
-	response, _ := postLogin("testing123", "testing123")
-	_, sessionId := getJsonAuthenticationData(response)
+// 	response, _ := postLogin("testing123", "testing123")
+// 	_, sessionId := getJsonAuthenticationData(response)
 
-	response, err := postCircles("testing123", sessionId, "testing123", false)
-	if err != nil {
-		c.Error(err)
-	}
+// 	response, err := postCircles("testing123", sessionId, "testing123", false)
+// 	if err != nil {
+// 		c.Error(err)
+// 	}
 
-	c.Check(getJsonResponseMessage(response), Equals, "Created new circle testing123 for testing123")
-	c.Assert(response.StatusCode, Equals, 201)
-}
+// 	c.Check(getJsonResponseMessage(response), Equals, "Created new circle testing123 for testing123")
+// 	c.Assert(response.StatusCode, Equals, 201)
+// }
 
-/*
-	Post Block Tests:
-*/
+//
+// Post Block Tests:
+//
 
 func (s *TestSuite) TestPostBlockUserNoExist(c *C) {
 	postSignup("testing123", "testing123", "testing123", "testing123")
@@ -817,9 +817,9 @@ func (s *TestSuite) TestPostBlockOK(c *C) {
 	postSignup("testing321", "testing321", "testing321", "testing321")
 
 	response, _ := postLogin("testing123", "testing123")
-	_, sessionId := getJsonAuthenticationData(response)
+	_, sessionid := getJsonAuthenticationData(response)
 
-	response, err := postBlock("testing123", sessionId, "testing321")
+	response, err := postBlock("testing123", sessionid, "testing321")
 	if err != nil {
 		c.Error(err)
 	}
@@ -828,11 +828,12 @@ func (s *TestSuite) TestPostBlockOK(c *C) {
 	c.Assert(response.StatusCode, Equals, 200)
 }
 
-/*
-	Post Join Default Tests:
-*/
+//
+// Post Join Default Tests:
+//
 
 func (s *TestSuite) TestPostJoinDefaultUserNoExist(c *C) {
+	fmt.Println("is the bug here???")
 	postSignup("testing123", "testing123", "testing123", "testing123")
 	postSignup("testing321", "testing321", "testing321", "testing321")
 
@@ -917,15 +918,15 @@ func (s *TestSuite) TestPostJoinDefaultCreated(c *C) {
 	response, err := postJoinDefault("testing123", sessionId, "testing123")
 	if err != nil {
 		c.Error(err)
-	}	
+	}
 
 	c.Check(getJsonResponseMessage(response), Equals, "JoinDefault request successful!")
 	c.Assert(response.StatusCode, Equals, 201)
 }
 
-/*
-	Post Join Tests:
-*/
+//
+// Post Join Tests:
+//
 
 func (s *TestSuite) TestPostJoinUserNoExist(c *C) {
 	postSignup("testing123", "testing123", "testing123", "testing123")
@@ -981,7 +982,7 @@ func (s *TestSuite) TestPostJoinTargetNoExist(c *C) {
 	_, sessionId := getJsonAuthenticationData(response)
 
 	postCircles("testing321", sessionId, "testing321", true)
-	
+
 	response, _ = postLogin("testing123", "testing123")
 	_, sessionId = getJsonAuthenticationData(response)
 
@@ -1020,13 +1021,13 @@ func (s *TestSuite) TestPostJoinUserBlocked(c *C) {
 }
 
 func (s *TestSuite) TestPostJoinCircleNoExist(c *C) {
-	postSignup("testing123", "testing123", "testing123", "testing123")
-	postSignup("testing321", "testing321", "testing321", "testing321")
+	postSignup("handleA", "testA@test.io", "password1", "password1")
+	postSignup("handleB", "testB@test.io", "password2", "password2")
 
-	response, _ := postLogin("testing123", "testing123")
+	response, _ := postLogin("handleA", "password1")
 	_, sessionId := getJsonAuthenticationData(response)
 
-	response, err := postJoin("testing123", sessionId, "testing321", "testing321")
+	response, err := postJoin("testing123", sessionId, "handleB", "NonExistentCircle")
 	if err != nil {
 		c.Error(err)
 	}
@@ -1034,25 +1035,24 @@ func (s *TestSuite) TestPostJoinCircleNoExist(c *C) {
 	c.Check(getJsonResponseMessage(response), Equals, "Could not find target circle, join failed")
 	c.Assert(response.StatusCode, Equals, 404)
 }
-/*
-func (s *TestSuite) TestPostJoinCreated(c *C) {
-	postSignup("testing123", "testing123", "testing123", "testing123")
-	postSignup("testing321", "testing321", "testing321", "testing321")
 
-	response, _ := postLogin("testing321", "testing321")
-	_, sessionId := getJsonAuthenticationData(response)
+// func (s *TestSuite) TestPostJoinCreated(c *C) {
+// 	postSignup("handleA", "testA@test.io", "password1", "password1")
+// 	postSignup("handleB", "testB@test.io", "password2", "password2")
 
-	postCircles("testing321", sessionId, "testing321", true)
+// 	response_B, _ := postLogin("handleB", "password2")
+// 	_, sessionid_B := getJsonAuthenticationData(response_B)
 
-	response, _ = postLogin("testing123", "testing123")
-	_, sessionId = getJsonAuthenticationData(response)
+// 	postCircles("handleB", sessionid_B, "MyCircle", true)
 
-	response, err := postJoin("testing123", sessionId, "testing321", "testing321")
-	if err != nil {
-		c.Error(err)
-	}
-	
-	c.Check(getJsonResponseMessage(response), Equals, "Join request successful!")
-	c.Assert(response.StatusCode, Equals, 201)
-}
-*/
+// 	response_A, _ := postLogin("handleA", "password1")
+// 	_, sessionid_A := getJsonAuthenticationData(response_A)
+
+// 	response, err := postJoin("handleA", sessionid_A, "handleB", "MyCircle")
+// 	if err != nil {
+// 		c.Error(err)
+// 	}
+
+// 	c.Check(getJsonResponseMessage(response), Equals, "Join request successful!")
+// 	c.Assert(response.StatusCode, Equals, 201)
+// }

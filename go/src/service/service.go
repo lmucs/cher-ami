@@ -156,6 +156,7 @@ func (s Svc) CreateNewUser(handle string, email string, password string) error {
 		Statement: `
             CREATE (user:User {
                 handle:   {handle},
+                name:     "I AM A NAME!!!!!!",
                 email:    {email},
                 password: {password},
                 joined:   {joined}
@@ -241,6 +242,37 @@ func (s Svc) NewCircle(handle string, circle_name string, is_public bool) error 
 	return err
 }
 
+func (s Svc) JoinCircle(handle string, target string, target_circle string) (at time.Time, did_join bool) {
+	joined := []struct {
+		At time.Time `json:"r.at"`
+	}{}
+	now := time.Now().Local()
+	if err := s.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+            MATCH (u:User)
+            WHERE u.handle = {handle}
+            MATCH (t:User)-[:CHIEF_OF]->(c:Circle)
+            WHERE t.handle = {target}
+            AND   c.name   = {circle}
+            CREATE (u)-[r:MEMBER_OF {at: {now}}]->(c)
+            RETURN r.at
+        `,
+		Parameters: neoism.Props{
+			"handle": handle,
+			"target": target,
+			"circle": target_circle,
+			"now":    now,
+		},
+		Result: &joined,
+	}); err != nil {
+		panicErr(err)
+	} else if len(joined) != 1 {
+		return time.Time{}, false
+	}
+
+	return joined[0].At, len(joined) > 0
+}
+
 //
 // Deletion
 //
@@ -282,7 +314,7 @@ func (s Svc) GetHandleAndNameOf(user string) (handle string, name string, found 
 	}); err != nil {
 		panicErr(err)
 	} else if len(res) != 1 {
-		panic(fmt.Sprintf("Incorrect results len in query1()\n\tgot %d, expected 1\n", len(res)))
+		return "", "", len(res) > 0
 	}
 
 	return res[0].Handle, res[0].Name, len(res) > 0

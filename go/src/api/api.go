@@ -54,12 +54,13 @@ func (a Api) authenticate(w rest.ResponseWriter, handle string, sessionid string
 	} else if !ok {
 		rest.Error(w, "Could not authenticate user "+handle, 400)
 	}
+
 	return ok
 }
 
 func (a Api) userExists(handle string) bool {
 	found := []struct {
-		Handle string `json"user.handle"`
+		Handle string `json:"user.handle"`
 	}{}
 	err := a.Svc.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
@@ -76,18 +77,20 @@ func (a Api) userExists(handle string) bool {
 	return len(found) > 0
 }
 
-func (a Api) circleExists(handle string, circleName string) bool {
+func (a Api) circleExists(target string, circleName string) bool {
 	found := []struct {
 		Name string `json:"c.name"`
 	}{}
 	err := a.Svc.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
-            MATCH (u:User {handle: {handle}})
-            OPTIONAL MATCH (u)-[:CHIEF_OF]->(c:Circle {name: {name}})
+            MATCH (t:User)
+            WHERE t.handle = {target}
+            MATCH (t)-[:CHIEF_OF]->(c:Circle) 
+            WHERE c.name = {name}
             RETURN c.name
         `,
 		Parameters: neoism.Props{
-			"handle": handle,
+			"handle": target,
 			"name":   circleName,
 		},
 		Result: &found,
@@ -118,7 +121,7 @@ func (a Api) messageExists(handle string, lastSaved time.Time) bool {
 	return count[0].Count > 0
 }
 
-func (a Api) isBlocked(handle string, target string) bool {
+func (a Api) hasBlocked(handle string, target string) bool {
 	blocked := []struct {
 		Count int `json:"count(r)"`
 	}{}
@@ -874,7 +877,7 @@ func (a Api) JoinDefault(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	if a.isBlocked(payload.Handle, payload.Target) {
+	if a.hasBlocked(payload.Handle, payload.Target) {
 		w.WriteHeader(403)
 		w.WriteJson(map[string]string{
 			"Response": "Server refusal to comply with join request",
@@ -916,21 +919,28 @@ func (a Api) JoinDefault(w rest.ResponseWriter, r *rest.Request) {
 func (a Api) Join(w rest.ResponseWriter, r *rest.Request) {
 	payload := struct {
 		Handle    string
-		Sessionid string
+		SessionId string
 		Target    string
 		Circle    string
 	}{}
-	err := r.DecodeJsonPayload(&payload)
-	if err != nil {
+	if err := r.DecodeJsonPayload(&payload); err != nil {
 		rest.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	if !a.authenticate(w, payload.Handle, payload.Sessionid) {
+	handle := payload.Handle
+	sessionid := payload.SessionId
+	target := payload.Target
+	circle := payload.Circle
+
+	if !a.authenticate(w, handle, sessionid) {
+		w.WriteJson(map[string]string{
+			"Response": "Failed to authenticate user request",
+		})
 		return
 	}
 
-	if !a.userExists(payload.Target) {
+	if !a.userExists(target) {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Bad request, user " + payload.Target + " wasn't found",
@@ -938,7 +948,7 @@ func (a Api) Join(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	if a.isBlocked(payload.Handle, payload.Target) {
+	if a.hasBlocked(handle, target) {
 		w.WriteHeader(403)
 		w.WriteJson(map[string]string{
 			"Response": "Server refusal to comply with join request",
@@ -946,7 +956,7 @@ func (a Api) Join(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	if a.circleExists(payload.Target, payload.Circle) {
+	if !a.circleExists(target, circle) {
 		w.WriteHeader(404)
 		w.WriteJson(map[string]string{
 			"Response": "Could not find target circle, join failed",
@@ -954,33 +964,16 @@ func (a Api) Join(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	joined := []struct {
-		Handle string
-		Circle string
-		Target string
-	}{}
-	at := time.Now().Local()
-	err = a.Svc.Db.Cypher(&neoism.CypherQuery{
-		Statement: `
-            MATCH (u:User)
-            WHERE u.handle={handle}
-            MATCH (t:User)-[:CHIEF_OF]->(c:Circle {name={circle}})
-            WHERE t.handle={target}
-            CREATE UNIQUE (u)-[r:MEMBER_OF]->(c)
-            SET r.at={now}
-            RETURN r.at
-        `,
-		Parameters: neoism.Props{
-			"handle": payload.Handle,
-			"target": payload.Target,
-			"now":    at,
-		},
-		Result: &joined,
-	})
-
-	w.WriteHeader(201)
-	w.WriteJson(map[string]string{
-		"Response": "Join request successful!",
-		"Info":     payload.Handle + " joined " + payload.Circle + " of " + payload.Target + " at " + at.Format(time.RFC1123),
-	})
+	if at, did_join := a.Svc.JoinCircle(handle, target, circle); did_join {
+		w.WriteHeader(201)
+		w.WriteJson(map[string]string{
+			"Response": "Join request successful!",
+			"Info":     handle + " joined " + circle + " of " + target + " at " + at.Format(time.RFC1123),
+		})
+	} else {
+		w.WriteHeader(400)
+		w.WriteJson(map[string]string{
+			"Response": "Unexpected failure to join circle, join failed",
+		})
+	}
 }
