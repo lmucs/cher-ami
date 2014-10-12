@@ -454,26 +454,25 @@ func (a Api) NewCircle(w rest.ResponseWriter, r *rest.Request) {
 
 	fmt.Println(is_public)
 
-	if ok := a.authenticate(w, handle, sessionid); !ok {
+	if !a.authenticate(w, handle, sessionid) {
 		return
-	} else {
-
-		if circle_name == GOLD || circle_name == BROADCAST {
-			w.WriteHeader(403)
-			w.WriteJson(map[string]string{
-				"Response": circle_name + " is a reserved circle name",
-			})
-			return
-		}
-
-		err := a.Svc.NewCircle(handle, circle_name, is_public)
-		panicErr(err)
-
-		w.WriteHeader(201)
-		w.WriteJson(map[string]string{
-			"Response": "Created new circle " + circle_name + " for " + handle,
-		})
 	}
+
+	if circle_name == GOLD || circle_name == BROADCAST {
+		w.WriteHeader(403)
+		w.WriteJson(map[string]string{
+			"Response": circle_name + " is a reserved circle name",
+		})
+		return
+	}
+
+	err := a.Svc.NewCircle(handle, circle_name, is_public)
+	panicErr(err)
+
+	w.WriteHeader(201)
+	w.WriteJson(map[string]string{
+		"Response": "Created new circle " + circle_name + " for " + handle,
+	})
 }
 
 func (a Api) makeDefaultCircles(handle string) {
@@ -813,7 +812,10 @@ func (a Api) BlockUser(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	a.authenticate(w, payload.Handle, payload.Sessionid)
+	if !a.authenticate(w, payload.Handle, payload.Sessionid) {
+		return
+	}
+	
 	if !a.userExists(payload.Target) {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
@@ -879,7 +881,9 @@ func (a Api) JoinDefault(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	a.authenticate(w, payload.Handle, payload.Sessionid)
+	if !a.authenticate(w, payload.Handle, payload.Sessionid) {
+		return
+	}
 
 	if a.isBlocked(payload.Handle, payload.Target) {
 		w.WriteHeader(403)
@@ -905,10 +909,10 @@ func (a Api) JoinDefault(w rest.ResponseWriter, r *rest.Request) {
             RETURN r.at
         `,
 		Parameters: neoism.Props{
-			"handle":    payload.Handle,
-			"broadcast": BROADCAST,
-			"target":    payload.Target,
-			"now":       at,
+		    "handle":    payload.Handle,
+		    "broadcast": BROADCAST,
+		    "target":    payload.Target,
+		    "now":       at,
 		},
 		Result: &joined,
 	})
@@ -933,7 +937,9 @@ func (a Api) Join(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	a.authenticate(w, payload.Handle, payload.Target)
+	if !a.authenticate(w, payload.Handle, payload.Target) {
+		return
+	}
 
 	if a.isBlocked(payload.Handle, payload.Target) {
 		w.WriteHeader(403)
@@ -968,9 +974,9 @@ func (a Api) Join(w rest.ResponseWriter, r *rest.Request) {
             RETURN r.at
         `,
 		Parameters: neoism.Props{
-			"handle": payload.Handle,
-			"target": payload.Target,
-			"now":    at,
+		    "handle": payload.Handle,
+		    "target": payload.Target,
+		    "now":    at,
 		},
 		Result: &joined,
 	})
@@ -980,5 +986,4 @@ func (a Api) Join(w rest.ResponseWriter, r *rest.Request) {
 		"Response": "Join request successful!",
 		"Info":     payload.Handle + " joined " + payload.Circle + " of " + payload.Target + " at " + at.Format(time.RFC1123),
 	})
-
 }
