@@ -24,7 +24,10 @@ public class SignUpActivity extends Activity {
         setContentView(R.layout.activity_sign_up);
 
         //Get handle, email, password, and confirm fields
-
+        mUsername = (EditText)findViewById(R.id.username);
+        mEmail = (EditText)findViewById(R.id.email);
+        mPassword = (EditText)findViewById(R.id.password);
+        mConfirmPassword = (EditText)findViewById(R.id.confirmPassword);
 
     }
 
@@ -37,10 +40,6 @@ public class SignUpActivity extends Activity {
         View focusView = null;
         Boolean cancel = false;
 
-        mUsername = (EditText)findViewById(R.id.username);
-        mEmail = (EditText)findViewById(R.id.email);
-        mPassword = (EditText)findViewById(R.id.password);
-        mConfirmPassword = (EditText)findViewById(R.id.confirmPassword);
         String username = mUsername.getText().toString();
         String email = mEmail.getText().toString();
         String password = mPassword.getText().toString();
