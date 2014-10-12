@@ -245,6 +245,21 @@ func postJoinDefault(handle string, sessionId string, target string) (*http.Resp
 	return response, err
 }
 
+func postJoin(handle string, sessionId string, target string, circle string) (*http.Response, error) {
+	payload := "{\"Handle\": \"" + handle + "\", \"SessionId\": \"" + sessionId + "\", \"Target\": \"" + target + "\"}"
+
+	reader = strings.NewReader(payload)
+
+	request, err := http.NewRequest("POST", joinURL, reader)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	response, err := http.DefaultClient.Do(request)
+
+	return response, err
+}
+
 /*
 	Read Body of Response:
 */
@@ -908,5 +923,138 @@ func (s *TestSuite) TestPostJoinDefaultCreated(c *C) {
 	}	
 
 	c.Check(getJsonResponseMessage(response), Equals, "JoinDefault request successful!")
+	c.Assert(response.StatusCode, Equals, 201)
+}
+
+/*
+	Post Join Tests:
+*/
+
+func (s *TestSuite) TestPostJoinUserNoExist(c *C) {
+	postSignup("testing123", "testing123", "testing123", "testing123")
+	postSignup("testing321", "testing321", "testing321", "testing321")
+
+	response, _ := postLogin("testing321", "testing321")
+	_, sessionId := getJsonAuthenticationData(response)
+
+	postCircles("testing321", sessionId, "testing321", true)
+
+	response, _ = postLogin("testing123", "testing123")
+	_, sessionId = getJsonAuthenticationData(response)
+
+	deleteUser("testing123", "testing123")
+
+	response, err := postJoin("testing123", sessionId, "testing321", "testing321")
+	if err != nil {
+		c.Error(err)
+	}
+
+	c.Check(getJsonErrorMessage(response), Equals, "Could not authenticate user testing123")
+	c.Assert(response.StatusCode, Equals, 400)
+}
+
+func (s *TestSuite) TestPostJoinUserNoSession(c *C) {
+	postSignup("testing123", "testing123", "testing123", "testing123")
+	postSignup("testing321", "testing321", "testing321", "testing321")
+
+	response, _ := postLogin("testing321", "testing321")
+	_, sessionId := getJsonAuthenticationData(response)
+
+	postCircles("testing321", sessionId, "testing321", true)
+
+	response, _ = postLogin("testing123", "testing123")
+	_, sessionId = getJsonAuthenticationData(response)
+
+	postLogout("testing123")
+
+	response, err := postJoin("testing123", sessionId, "testing321", "testing321")
+	if err != nil {
+		c.Error(err)
+	}
+
+	c.Check(getJsonErrorMessage(response), Equals, "Could not authenticate user testing123")
+	c.Assert(response.StatusCode, Equals, 400)
+}
+
+func (s *TestSuite) TestPostJoinTargetNoExist(c *C) {
+	postSignup("testing123", "testing123", "testing123", "testing123")
+	postSignup("testing321", "testing321", "testing321", "testing321")
+
+	response, _ := postLogin("testing321", "testing321")
+	_, sessionId := getJsonAuthenticationData(response)
+
+	postCircles("testing321", sessionId, "testing321", true)
+	
+	response, _ = postLogin("testing123", "testing123")
+	_, sessionId = getJsonAuthenticationData(response)
+
+	deleteUser("testing321", "testing321")
+
+	response, err := postJoin("testing123", sessionId, "testing321", "testing321")
+	if err != nil {
+		c.Error(err)
+	}
+
+	c.Check(getJsonResponseMessage(response), Equals, "Bad request, user testing321 wasn't found")
+	c.Assert(response.StatusCode, Equals, 400)
+}
+
+func (s *TestSuite) TestPostJoinUserBlocked(c *C) {
+	postSignup("testing123", "testing123", "testing123", "testing123")
+	postSignup("testing321", "testing321", "testing321", "testing321")
+
+	response, _ := postLogin("testing321", "testing321")
+	_, sessionId := getJsonAuthenticationData(response)
+
+	postCircles("testing321", sessionId, "testing321", true)
+
+	postBlock("testing321", sessionId, "testing123")
+
+	response, _ = postLogin("testing123", "testing123")
+	_, sessionId = getJsonAuthenticationData(response)
+
+	response, err := postJoin("testing123", sessionId, "testing321", "testing321")
+	if err != nil {
+		c.Error(err)
+	}
+
+	c.Check(getJsonResponseMessage(response), Equals, "Server refusal to comply with join request")
+	c.Assert(response.StatusCode, Equals, 403)
+}
+
+func (s *TestSuite) TestPostJoinCircleNoExist(c *C) {
+	postSignup("testing123", "testing123", "testing123", "testing123")
+	postSignup("testing321", "testing321", "testing321", "testing321")
+
+	response, _ := postLogin("testing123", "testing123")
+	_, sessionId := getJsonAuthenticationData(response)
+
+	response, err := postJoin("testing123", sessionId, "testing321", "testing321")
+	if err != nil {
+		c.Error(err)
+	}
+
+	c.Check(getJsonResponseMessage(response), Equals, "Could not find target circle, join failed")
+	c.Assert(response.StatusCode, Equals, 404)
+}
+
+func (s *TestSuite) TestPostJoinCreated(c *C) {
+	postSignup("testing123", "testing123", "testing123", "testing123")
+	postSignup("testing321", "testing321", "testing321", "testing321")
+
+	response, _ := postLogin("testing321", "testing321")
+	_, sessionId := getJsonAuthenticationData(response)
+
+	postCircles("testing321", sessionId, "testing321", true)
+
+	response, _ = postLogin("testing123", "testing123")
+	_, sessionId = getJsonAuthenticationData(response)
+
+	response, err := postJoin("testing123", sessionId, "testing321", "testing321")
+	if err != nil {
+		c.Error(err)
+	}
+	
+	c.Check(getJsonResponseMessage(response), Equals, "Join request successful!")
 	c.Assert(response.StatusCode, Equals, 201)
 }
