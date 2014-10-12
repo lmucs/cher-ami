@@ -1,9 +1,12 @@
-# CherAmi API Documentation
+# The CherAmi Server
 
-Aside from the source, check out our evolving [API docs on the CherAmi wiki](https://github.com/rtoal/cher-ami/wiki/API-Documentation).
+Here is a server for CherAmi, exposing a REST API.  It's written in Go.
 
-##To set up the Go Server on Mac:
-Part 1 and 2 are a one-time step, skip to Part 3 if you have completed those before.
+To learn about the API, look at the source code, and our always-in-progress [API docs on the CherAmi wiki](https://github.com/rtoal/cher-ami/wiki/API-Documentation).
+
+##Setting Up the Server
+
+Parts 1 and 2 are done only once, so skip to Part 3 if you have completed those before.
 
 ###Part 1: Initialize $GOPATH
 
@@ -17,12 +20,13 @@ Part 1 and 2 are a one-time step, skip to Part 3 if you have completed those bef
         export PATH=$PATH:$GOPATH/bin
 
 ###Part 2: Install Dependencies
+
 1. `cd` to the `cher-ami/go/src` directory
-2. Install the dependencies. Since the packages we are using are changing rapidly, please refer to the source for packages necessary. To install, run `go get <PACKAGE_URL>`.
+2. Install the dependencies. Since the packages we are using are changing frequently, please refer to the source for packages necessary. To install, run `go get <PACKAGE_URL>`.
    
 ###Part 3: Initialize test DB & Server
-1. If you haven't install mongodb, do so. It must be running in order to access the API (`mongod`).
-2. Start up the server:
-    `go run main.go`
+
+1. In the `cher-ami` directory:
+    `make start`
 
 The API is now accessible on port 8228 locally.
