@@ -815,11 +815,11 @@ func (a Api) BlockUser(w rest.ResponseWriter, r *rest.Request) {
 	if !a.authenticate(w, payload.Handle, payload.Sessionid) {
 		return
 	}
-	
+
 	if !a.userExists(payload.Target) {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
-			"Response": "Bad request, user " + payload.Handle + " wasn't found",
+			"Response": "Bad request, user " + payload.Target + " wasn't found",
 		})
 		return
 	}
