@@ -21,16 +21,17 @@ var (
 	server *httptest.Server
 	a      *api.Api
 
-	signupURL   string
-	loginURL    string
-	logoutURL   string
-	userURL     string
-	usersURL    string
-	messagesURL string
-	publishURL  string
-	followURL   string
-	blockURL    string
-	circlesURL  string
+	signupURL       string
+	loginURL        string
+	logoutURL       string
+	userURL         string
+	usersURL        string
+	messagesURL     string
+	publishURL      string
+	joindefaultURL  string
+	joinURL         string
+	blockURL        string
+	circlesURL      string
 
 	reader io.Reader
 )
@@ -80,7 +81,8 @@ func (s *TestSuite) SetUpSuite(c *C) {
 	usersURL = fmt.Sprintf("%s/users", server.URL)
 	messagesURL = fmt.Sprintf("%s/messages", server.URL)
 	publishURL = fmt.Sprintf("%s/publish", server.URL)
-	followURL = fmt.Sprintf("%s/follow", server.URL)
+	joindefaultURL = fmt.Sprintf("%s/joindefault", server.URL)
+	joinURL = fmt.Sprintf("%s/join", server.URL)
 	blockURL = fmt.Sprintf("%s/block", server.URL)
 	circlesURL = fmt.Sprintf("%s/circles", server.URL)
 }
@@ -219,6 +221,21 @@ func postBlock(handle string, sessionId string, target string) (*http.Response, 
 	reader = strings.NewReader(payload)
 
 	request, err := http.NewRequest("POST", blockURL, reader)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	response, err := http.DefaultClient.Do(request)
+
+	return response, err
+}
+
+func postJoinDefault(handle string, sessionId string, target string) (*http.Response, error) {
+	payload := "{\"Handle\": \"" + handle + "\", \"SessionId\": \"" + sessionId + "\", \"Target\": \"" + target + "\"}"
+
+	reader = strings.NewReader(payload)
+
+	request, err := http.NewRequest("POST", joindefaultURL, reader)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -797,4 +814,99 @@ func (s *TestSuite) TestPostBlockOK(c *C) {
 
 	c.Check(getJsonResponseMessage(response), Equals, "User testing321 has been blocked")
 	c.Assert(response.StatusCode, Equals, 200)
+}
+
+/*
+	Post Join Default Tests:
+*/
+
+func (s *TestSuite) TestPostJoinDefaultUserNoExist(c *C) {
+	postSignup("testing123", "testing123", "testing123", "testing123")
+	postSignup("testing321", "testing321", "testing321", "testing321")
+
+	response, _ := postLogin("testing123", "testing123")
+	_, sessionId := getJsonAuthenticationData(response)
+
+	deleteUser("testing123", "testing123")
+
+	response, err := postJoinDefault("testing123", sessionId, "testing321")
+	if err != nil {
+		c.Error(err)
+	}
+
+	c.Check(getJsonErrorMessage(response), Equals, "Could not authenticate user testing123")
+	c.Assert(response.StatusCode, Equals, 400)
+}
+
+func (s *TestSuite) TestPostJoinDefaultUserNoSession(c *C) {
+	postSignup("testing123", "testing123", "testing123", "testing123")
+	postSignup("testing321", "testing321", "testing321", "testing321")
+
+	response, _ := postLogin("testing123", "testing123")
+	_, sessionId := getJsonAuthenticationData(response)
+
+	postLogout("testing123")
+
+	response, err := postJoinDefault("testing123", sessionId, "testing321")
+	if err != nil {
+		c.Error(err)
+	}
+
+	c.Check(getJsonErrorMessage(response), Equals, "Could not authenticate user testing123")
+	c.Assert(response.StatusCode, Equals, 400)
+}
+
+func (s *TestSuite) TestPostJoinDefaultTargetNoExist(c *C) {
+	postSignup("testing123", "testing123", "testing123", "testing123")
+	postSignup("testing321", "testing321", "testing321", "testing321")
+
+	response, _ := postLogin("testing123", "testing123")
+	_, sessionId := getJsonAuthenticationData(response)
+
+	deleteUser("testing321", "testing321")
+
+	response, err := postJoinDefault("testing123", sessionId, "testing321")
+	if err != nil {
+		c.Error(err)
+	}
+
+	c.Check(getJsonResponseMessage(response), Equals, "Bad request, user testing321 wasn't found")
+	c.Assert(response.StatusCode, Equals, 400)
+}
+
+func (s *TestSuite) TestPostJoinDefaultUserBlocked(c *C) {
+	postSignup("testing123", "testing123", "testing123", "testing123")
+	postSignup("testing321", "testing321", "testing321", "testing321")
+
+	response, _ := postLogin("testing321", "testing321")
+	_, sessionId := getJsonAuthenticationData(response)
+
+	postBlock("testing321", sessionId, "testing123")
+
+	response, _ = postLogin("testing123", "testing123")
+	_, sessionId = getJsonAuthenticationData(response)
+
+	response, err := postJoinDefault("testing123", sessionId, "testing321")
+	if err != nil {
+		c.Error(err)
+	}
+
+	c.Check(getJsonResponseMessage(response), Equals, "Server refusal to comply with join request")
+	c.Assert(response.StatusCode, Equals, 403)
+}
+
+func (s *TestSuite) TestPostJoinDefaultCreated(c *C) {
+	postSignup("testing123", "testing123", "testing123", "testing123")
+	postSignup("testing321", "testing321", "testing321", "testing321")
+
+	response, _ := postLogin("testing123", "testing123")
+	_, sessionId := getJsonAuthenticationData(response)
+
+	response, err := postJoinDefault("testing123", sessionId, "testing123")
+	if err != nil {
+		c.Error(err)
+	}	
+
+	c.Check(getJsonResponseMessage(response), Equals, "JoinDefault request successful!")
+	c.Assert(response.StatusCode, Equals, 201)
 }
