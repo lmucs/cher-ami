@@ -419,7 +419,7 @@ func (s *TestSuite) TestSignupCreated(c *C) {
 //
 
 func (s *TestSuite) TestLoginUserNoExist(c *C) {
-	response, err := postLogin("testing123", "testing123")
+	response, err := postLogin("handleA", "password1")
 	if err != nil {
 		c.Error(err)
 	}
@@ -429,9 +429,9 @@ func (s *TestSuite) TestLoginUserNoExist(c *C) {
 }
 
 func (s *TestSuite) TestLoginInvalidUsername(c *C) {
-	postSignup("testing123", "testing123", "testing123", "testing123")
+	postSignup("handleA", "test@test.io", "password1", "password1")
 
-	response, err := postLogin("testing321", "testing123")
+	response, err := postLogin("wrong_username", "password1")
 	if err != nil {
 		c.Error(err)
 	}
@@ -441,9 +441,9 @@ func (s *TestSuite) TestLoginInvalidUsername(c *C) {
 }
 
 func (s *TestSuite) TestLoginInvalidPassword(c *C) {
-	postSignup("testing123", "testing123", "testing123", "testing123")
+	postSignup("handleA", "test@test.io", "password1", "password1")
 
-	response, err := postLogin("testing123", "testing321")
+	response, err := postLogin("handleA", "wrong_password")
 	if err != nil {
 		c.Error(err)
 	}
@@ -453,14 +453,14 @@ func (s *TestSuite) TestLoginInvalidPassword(c *C) {
 }
 
 func (s *TestSuite) TestLoginOK(c *C) {
-	postSignup("testing123", "testing123", "testing123", "testing123")
+	postSignup("handleA", "test@test.io", "password1", "password1")
 
-	response, err := postLogin("testing123", "testing123")
+	response, err := postLogin("handleA", "password1")
 	if err != nil {
 		c.Error(err)
 	}
 
-	c.Check(getJsonResponseMessage(response), Equals, "Logged in testing123. Note your session id.")
+	c.Check(getJsonResponseMessage(response), Equals, "Logged in handleA. Note your session id.")
 	c.Assert(response.StatusCode, Equals, 200)
 }
 
