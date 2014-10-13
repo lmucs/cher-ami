@@ -124,9 +124,7 @@ func postSignup(handle string, email string, password string, confirmPassword st
 		log.Fatal(err)
 	}
 
-	response, err := http.DefaultClient.Do(request)
-
-	return response, err
+	return http.DefaultClient.Do(request)
 }
 
 func postLogin(handle string, password string) (*http.Response, error) {
@@ -139,9 +137,7 @@ func postLogin(handle string, password string) (*http.Response, error) {
 		log.Fatal(err)
 	}
 
-	response, err := http.DefaultClient.Do(request)
-
-	return response, err
+	return http.DefaultClient.Do(request)
 }
 
 func postLogout(handle string) (*http.Response, error) {
@@ -154,9 +150,7 @@ func postLogout(handle string) (*http.Response, error) {
 		log.Fatal(err)
 	}
 
-	response, err := http.DefaultClient.Do(request)
-
-	return response, err
+	return http.DefaultClient.Do(request)
 }
 
 func getUser(handle string) (*http.Response, error) {
@@ -169,9 +163,7 @@ func getUser(handle string) (*http.Response, error) {
 		log.Fatal(err)
 	}
 
-	response, err := http.DefaultClient.Do(request)
-
-	return response, err
+	return http.DefaultClient.Do(request)
 }
 
 func getUsers() (*http.Response, error) {
@@ -180,9 +172,7 @@ func getUsers() (*http.Response, error) {
 		log.Fatal(err)
 	}
 
-	response, err := http.DefaultClient.Do(request)
-
-	return response, err
+	return http.DefaultClient.Do(request)
 }
 
 func deleteUser(handle string, password string) (*http.Response, error) {
@@ -195,9 +185,7 @@ func deleteUser(handle string, password string) (*http.Response, error) {
 		log.Fatal(err)
 	}
 
-	response, err := http.DefaultClient.Do(request)
-
-	return response, err
+	return http.DefaultClient.Do(request)
 }
 
 func postCircles(handle string, sessionId string, circleName string, public bool) (*http.Response, error) {
@@ -210,9 +198,7 @@ func postCircles(handle string, sessionId string, circleName string, public bool
 		log.Fatal(err)
 	}
 
-	response, err := http.DefaultClient.Do(request)
-
-	return response, err
+	return http.DefaultClient.Do(request)
 }
 
 func postBlock(handle string, sessionId string, target string) (*http.Response, error) {
@@ -225,9 +211,7 @@ func postBlock(handle string, sessionId string, target string) (*http.Response, 
 		log.Fatal(err)
 	}
 
-	response, err := http.DefaultClient.Do(request)
-
-	return response, err
+	return http.DefaultClient.Do(request)
 }
 
 func postJoinDefault(handle string, sessionId string, target string) (*http.Response, error) {
@@ -240,9 +224,7 @@ func postJoinDefault(handle string, sessionId string, target string) (*http.Resp
 		log.Fatal(err)
 	}
 
-	response, err := http.DefaultClient.Do(request)
-
-	return response, err
+	return http.DefaultClient.Do(request)
 }
 
 func postJoin(handle string, sessionId string, target string, circle string) (*http.Response, error) {
@@ -255,9 +237,7 @@ func postJoin(handle string, sessionId string, target string, circle string) (*h
 		log.Fatal(err)
 	}
 
-	response, err := http.DefaultClient.Do(request)
-
-	return response, err
+	return http.DefaultClient.Do(request)
 }
 
 //
