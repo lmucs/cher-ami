@@ -265,7 +265,6 @@ func postJoin(handle string, sessionId string, target string, circle string) (*h
 //
 
 func getJsonResponseMessage(response *http.Response) string {
-	fmt.Println("Trying to get response message")
 	type Json struct {
 		Response string
 	}
@@ -641,99 +640,99 @@ func (s *TestSuite) TestDeleteUserOK(c *C) {
 // Post Circles Tests:
 //
 
-// func (s *TestSuite) TestPostCirclesUserNoExist(c *C) {
-// 	postSignup("testing123", "testing123", "testing123", "testing123")
+func (s *TestSuite) TestPostCirclesUserNoExist(c *C) {
+	postSignup("testing123", "testing123", "testing123", "testing123")
 
-// 	response, _ := postLogin("testing123", "testing123")
-// 	_, sessionId := getJsonAuthenticationData(response)
+	response, _ := postLogin("testing123", "testing123")
+	_, sessionId := getJsonAuthenticationData(response)
 
-// 	deleteUser("testing123", "testing123")
+	deleteUser("testing123", "testing123")
 
-// 	response, err := postCircles("testing123", sessionId, "testing123", true)
-// 	if err != nil {
-// 		c.Error(err)
-// 	}
+	response, err := postCircles("testing123", sessionId, "testing123", true)
+	if err != nil {
+		c.Error(err)
+	}
 
-// 	c.Check(getJsonResponseMessage(response), Equals, "Could not authenticate user testing123")
-// 	c.Assert(response.StatusCode, Equals, 400)
-// }
+	c.Check(getJsonResponseMessage(response), Equals, "Failed to authenticate user request")
+	c.Assert(response.StatusCode, Equals, 400)
+}
 
-// func (s *TestSuite) TestPostCirclesUserNoSession(c *C) {
-// 	postSignup("testing123", "testing123", "testing123", "testing123")
+func (s *TestSuite) TestPostCirclesUserNoSession(c *C) {
+	postSignup("testing123", "testing123", "testing123", "testing123")
 
-// 	response, _ := postLogin("testing123", "testing123")
-// 	_, sessionId := getJsonAuthenticationData(response)
+	response, _ := postLogin("testing123", "testing123")
+	_, sessionId := getJsonAuthenticationData(response)
 
-// 	postLogout("testing123")
+	postLogout("testing123")
 
-// 	response, err := postCircles("testing123", sessionId, "testing123", true)
-// 	if err != nil {
-// 		c.Error(err)
-// 	}
+	response, err := postCircles("testing123", sessionId, "testing123", true)
+	if err != nil {
+		c.Error(err)
+	}
 
-// 	c.Check(getJsonResponseMessage(response), Equals, "Could not authenticate user testing123")
-// 	c.Assert(response.StatusCode, Equals, 400)
-// }
+	c.Check(getJsonResponseMessage(response), Equals, "Failed to authenticate user request")
+	c.Assert(response.StatusCode, Equals, 400)
+}
 
-// func (s *TestSuite) TestPostCirclesNameReservedGold(c *C) {
-// 	postSignup("testing123", "testing123", "testing123", "testing123")
+func (s *TestSuite) TestPostCirclesNameReservedGold(c *C) {
+	postSignup("testing123", "testing123", "testing123", "testing123")
 
-// 	response, _ := postLogin("testing123", "testing123")
-// 	_, sessionId := getJsonAuthenticationData(response)
+	response, _ := postLogin("testing123", "testing123")
+	_, sessionId := getJsonAuthenticationData(response)
 
-// 	response, err := postCircles("testing123", sessionId, "Gold", false)
-// 	if err != nil {
-// 		c.Error(err)
-// 	}
+	response, err := postCircles("testing123", sessionId, "Gold", false)
+	if err != nil {
+		c.Error(err)
+	}
 
-// 	c.Check(getJsonResponseMessage(response), Equals, "Gold is a reserved circle name")
-// 	c.Assert(response.StatusCode, Equals, 403)
-// }
+	c.Check(getJsonResponseMessage(response), Equals, "Gold is a reserved circle name")
+	c.Assert(response.StatusCode, Equals, 403)
+}
 
-// func (s *TestSuite) TestPostCirclesNameReservedBroadcast(c *C) {
-// 	postSignup("testing123", "testing123", "testing123", "testing123")
+func (s *TestSuite) TestPostCirclesNameReservedBroadcast(c *C) {
+	postSignup("testing123", "testing123", "testing123", "testing123")
 
-// 	response, _ := postLogin("testing123", "testing123")
-// 	_, sessionId := getJsonAuthenticationData(response)
+	response, _ := postLogin("testing123", "testing123")
+	_, sessionId := getJsonAuthenticationData(response)
 
-// 	response, err := postCircles("testing123", sessionId, "Broadcast", true)
-// 	if err != nil {
-// 		c.Error(err)
-// 	}
+	response, err := postCircles("testing123", sessionId, "Broadcast", true)
+	if err != nil {
+		c.Error(err)
+	}
 
-// 	c.Check(getJsonResponseMessage(response), Equals, "Broadcast is a reserved circle name")
-// 	c.Assert(response.StatusCode, Equals, 403)
-// }
+	c.Check(getJsonResponseMessage(response), Equals, "Broadcast is a reserved circle name")
+	c.Assert(response.StatusCode, Equals, 403)
+}
 
-// func (s *TestSuite) TestPostCirclesPublicCircleCreated(c *C) {
-// 	postSignup("testing123", "testing123", "testing123", "testing123")
+func (s *TestSuite) TestPostCirclesPublicCircleCreated(c *C) {
+	postSignup("testing123", "testing123", "testing123", "testing123")
 
-// 	response, _ := postLogin("testing123", "testing123")
-// 	_, sessionId := getJsonAuthenticationData(response)
+	response, _ := postLogin("testing123", "testing123")
+	_, sessionId := getJsonAuthenticationData(response)
 
-// 	response, err := postCircles("testing123", sessionId, "testing123", true)
-// 	if err != nil {
-// 		c.Error(err)
-// 	}
+	response, err := postCircles("testing123", sessionId, "testing123", true)
+	if err != nil {
+		c.Error(err)
+	}
 
-// 	c.Check(getJsonResponseMessage(response), Equals, "Created new circle testing123 for testing123")
-// 	c.Assert(response.StatusCode, Equals, 201)
-// }
+	c.Check(getJsonResponseMessage(response), Equals, "Created new circle testing123 for testing123")
+	c.Assert(response.StatusCode, Equals, 201)
+}
 
-// func (s *TestSuite) TestPostCirclesPrivateCircleCreated(c *C) {
-// 	postSignup("testing123", "testing123", "testing123", "testing123")
+func (s *TestSuite) TestPostCirclesPrivateCircleCreated(c *C) {
+	postSignup("testing123", "testing123", "testing123", "testing123")
 
-// 	response, _ := postLogin("testing123", "testing123")
-// 	_, sessionId := getJsonAuthenticationData(response)
+	response, _ := postLogin("testing123", "testing123")
+	_, sessionId := getJsonAuthenticationData(response)
 
-// 	response, err := postCircles("testing123", sessionId, "testing123", false)
-// 	if err != nil {
-// 		c.Error(err)
-// 	}
+	response, err := postCircles("testing123", sessionId, "testing123", false)
+	if err != nil {
+		c.Error(err)
+	}
 
-// 	c.Check(getJsonResponseMessage(response), Equals, "Created new circle testing123 for testing123")
-// 	c.Assert(response.StatusCode, Equals, 201)
-// }
+	c.Check(getJsonResponseMessage(response), Equals, "Created new circle testing123 for testing123")
+	c.Assert(response.StatusCode, Equals, 201)
+}
 
 //
 // Post Block Tests:
@@ -814,7 +813,6 @@ func (s *TestSuite) TestPostBlockOK(c *C) {
 //
 
 func (s *TestSuite) TestPostJoinDefaultUserNoExist(c *C) {
-	fmt.Println("is the bug here???")
 	postSignup("testing123", "testing123", "testing123", "testing123")
 	postSignup("testing321", "testing321", "testing321", "testing321")
 
@@ -928,11 +926,8 @@ func (s *TestSuite) TestPostJoinUserNoExist(c *C) {
 		c.Error(err)
 	}
 
-	fmt.Printf("ALMOST the end of TestPostJoinUserNoExist\n")
 	c.Check(getJsonResponseMessage(response), Equals, "Failed to authenticate user request")
-	fmt.Printf("half-way....\n")
 	c.Assert(response.StatusCode, Equals, 400)
-	fmt.Printf("End of TestPostJoinUserNoExist\n")
 }
 
 func (s *TestSuite) TestPostJoinUserNoSession(c *C) {
@@ -1020,23 +1015,23 @@ func (s *TestSuite) TestPostJoinCircleNoExist(c *C) {
 	c.Assert(response.StatusCode, Equals, 404)
 }
 
-// func (s *TestSuite) TestPostJoinCreated(c *C) {
-// 	postSignup("handleA", "testA@test.io", "password1", "password1")
-// 	postSignup("handleB", "testB@test.io", "password2", "password2")
+func (s *TestSuite) TestPostJoinCreated(c *C) {
+	postSignup("handleA", "testA@test.io", "password1", "password1")
+	postSignup("handleB", "testB@test.io", "password2", "password2")
 
-// 	response_B, _ := postLogin("handleB", "password2")
-// 	_, sessionid_B := getJsonAuthenticationData(response_B)
+	response_B, _ := postLogin("handleB", "password2")
+	_, sessionid_B := getJsonAuthenticationData(response_B)
 
-// 	postCircles("handleB", sessionid_B, "MyCircle", true)
+	postCircles("handleB", sessionid_B, "MyCircle", true)
 
-// 	response_A, _ := postLogin("handleA", "password1")
-// 	_, sessionid_A := getJsonAuthenticationData(response_A)
+	response_A, _ := postLogin("handleA", "password1")
+	_, sessionid_A := getJsonAuthenticationData(response_A)
 
-// 	response, err := postJoin("handleA", sessionid_A, "handleB", "MyCircle")
-// 	if err != nil {
-// 		c.Error(err)
-// 	}
+	response, err := postJoin("handleA", sessionid_A, "handleB", "MyCircle")
+	if err != nil {
+		c.Error(err)
+	}
 
-// 	c.Check(getJsonResponseMessage(response), Equals, "Join request successful!")
-// 	c.Assert(response.StatusCode, Equals, 201)
-// }
+	c.Check(getJsonResponseMessage(response), Equals, "Join request successful!")
+	c.Assert(response.StatusCode, Equals, 201)
+}

@@ -222,8 +222,6 @@ func (s Svc) NewCircle(handle string, circle_name string, is_public bool) error 
         RETURN c.name
     `
 
-	fmt.Println(query)
-
 	made := []struct {
 		CircleName string `json:"c.name"`
 	}{}
