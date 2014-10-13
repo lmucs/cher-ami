@@ -162,3 +162,19 @@ h1 {
     border: 2px solid gold;
     margin-top: 8px;
 }
+
+#submitButton {
+    background-color: steelblue;
+    border-color: steelblue;
+    color: white;
+    position: relative;
+    float: right;
+    margin-top: 10px;
+    border-radius: 5px;
+    padding: 4px 8px;
+}
+
+#message-box {
+    background-color: pink;
+    position: relative;
+}
