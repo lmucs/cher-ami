@@ -5,15 +5,19 @@ GO_TEST_SRC = go/src/test
 
 .PHONY: start
 start:
-	cd $(GO_SRC); go run main.go "http://107.170.229.205:7474/db/data"
+	cd $(GO_SRC); go run main.go
 
 .PHONY: local
 local:
-	cd $(GO_SRC); go run main.go "http://localhost:7474/db/data"
+	cd $(GO_SRC); go run main.go local
 
 .PHONY: test
 test:
 	cd $(GO_TEST_SRC); go test api_test.go
+
+.PHONY: localtest
+localtest:
+	cd $(GO_TEST_SRC); go test api_test.go local
 
 .PHONY: serve
 serve:
