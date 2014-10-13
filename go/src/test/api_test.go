@@ -336,7 +336,7 @@ func getJsonUsersData(response *http.Response) []string {
 //
 
 func (s *TestSuite) TestSignupEmptyHandle(c *C) {
-	response, err := postSignup("", "testing123", "testing123", "testing123")
+	response, err := postSignup("", "test@test.io", "password1", "password1")
 	if err != nil {
 		c.Error(err)
 	}
@@ -346,7 +346,7 @@ func (s *TestSuite) TestSignupEmptyHandle(c *C) {
 }
 
 func (s *TestSuite) TestSignupEmptyEmail(c *C) {
-	response, err := postSignup("testing123", "", "testing123", "testing123")
+	response, err := postSignup("handleA", "", "password1", "password1")
 	if err != nil {
 		c.Error(err)
 	}
@@ -356,7 +356,7 @@ func (s *TestSuite) TestSignupEmptyEmail(c *C) {
 }
 
 func (s *TestSuite) TestSignupPasswordMismatch(c *C) {
-	response, err := postSignup("testing123", "testing123", "testing123", "testing321")
+	response, err := postSignup("handleA", "handleA@test.io", "testing777", "testing888")
 	if err != nil {
 		c.Error(err)
 	}
@@ -370,7 +370,7 @@ func (s *TestSuite) TestSignupPasswordTooShort(c *C) {
 
 	for i := len(entry); i >= 0; i-- {
 		pass := entry[:len(entry)-i]
-		response, err := postSignup("testing123", "testing123", pass, pass)
+		response, err := postSignup("handleA", "test@test.io", pass, pass)
 		if err != nil {
 			c.Error(err)
 		}
@@ -381,9 +381,9 @@ func (s *TestSuite) TestSignupPasswordTooShort(c *C) {
 }
 
 func (s *TestSuite) TestSignupHandleTaken(c *C) {
-	postSignup("testing123", "testing123", "testing123", "testing123")
+	postSignup("handleA", "test@test.io", "password1", "password1")
 
-	response, err := postSignup("testing123", "testing321", "testing123", "testing123")
+	response, err := postSignup("handleA", "b@test.io", "password2", "password2")
 	if err != nil {
 		c.Error(err)
 	}
@@ -393,9 +393,9 @@ func (s *TestSuite) TestSignupHandleTaken(c *C) {
 }
 
 func (s *TestSuite) TestSignupEmailTaken(c *C) {
-	postSignup("testing123", "testing123", "testing123", "testing123")
+	postSignup("handleA", "test@test.io", "password1", "password1")
 
-	response, err := postSignup("testing321", "testing123", "testing123", "testing123")
+	response, err := postSignup("handleB", "test@test.io", "password2", "password2")
 	if err != nil {
 		c.Error(err)
 	}
@@ -405,9 +405,7 @@ func (s *TestSuite) TestSignupEmailTaken(c *C) {
 }
 
 func (s *TestSuite) TestSignupCreated(c *C) {
-	postSignup("testing123", "testing123", "testing123", "testing123")
-
-	response, err := postSignup("testing321", "testing321", "testing123", "testing123")
+	response, err := postSignup("handleA", "test@test.io", "password1", "password1")
 	if err != nil {
 		c.Error(err)
 	}
