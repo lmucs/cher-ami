@@ -270,6 +270,63 @@ func (s Svc) JoinCircle(handle string, target string, target_circle string) (at 
 	return joined[0].At, len(joined) > 0
 }
 
+func (s Svc) JoinBroadcast(handle string, target string) (at time.Time, did_join bool) {
+	joined := []struct {
+		Target string    `json:"t.handle"`
+		At     time.Time `json:"r.at"`
+	}{}
+	now := time.Now().Local()
+	if err := s.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+            MATCH (u:User)
+            WHERE u.handle = {handle}
+            MATCH (t:User)-[:CHIEF_OF]->(c:Circle)
+            WHERE t.handle = {target} AND c.name = {broadcast}
+            CREATE UNIQUE (u)-[r:MEMBER_OF]->(c)
+            SET r.at = {now}
+            RETURN r.at
+        `,
+		Parameters: neoism.Props{
+			"handle":    handle,
+			"broadcast": BROADCAST,
+			"target":    target,
+			"now":       now,
+		},
+		Result: &joined,
+	}); err != nil {
+		panicErr(err)
+	} else if len(joined) != 1 {
+		return time.Time{}, false
+	}
+
+	return now, true
+}
+
+func (s Svc) AddBlockedRelation(handle string, target string) (block_occured bool, err error) {
+	res := []struct {
+		Handle string      `json:"u.handle"`
+		Target string      `json:"t.handle"`
+		R      neoism.Node `json:"r"`
+	}{}
+	err = s.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+            MATCH (u:User)
+            WHERE u.handle = {handle}
+            MATCH (t:User)
+            WHERE t.handle = {target}
+            CREATE UNIQUE (t)-[r:BLOCKED]->(u)
+            RETURN u.handle, t.handle, r
+        `,
+		Parameters: neoism.Props{
+			"handle": handle,
+			"target": target,
+		},
+		Result: &res,
+	})
+
+	return len(res) > 0, err
+}
+
 //
 // Deletion
 //
@@ -287,6 +344,26 @@ func (s Svc) DeleteAllNodesAndRelations() {
 func (s Svc) FreshInitialState() {
 	s.DeleteAllNodesAndRelations()
 	s.databaseInit()
+}
+
+func (s Svc) RevokeMembershipBetween(handle string, target string) {
+	if err := s.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+            MATCH (u:User)
+            WHERE u.handle={handle}
+            MATCH (t:User)
+            WHERE t.handle={target}
+            OPTIONAL MATCH (u)-[:CHIEF_OF]->(c:Circle)
+            OPTIONAL MATCH (t)-[r:MEMBER_OF]->(c)
+            DELETE r
+        `,
+		Parameters: neoism.Props{
+			"handle": handle,
+			"target": target,
+		},
+	}); err != nil {
+		panicErr(err)
+	}
 }
 
 //

@@ -861,44 +861,23 @@ func (a Api) BlockUser(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	// Revoke membership to all circles
-	err := a.Svc.Db.Cypher(&neoism.CypherQuery{
-		Statement: `
-            MATCH (u:User)
-            WHERE u.handle={handle}
-            MATCH (t:User)
-            WHERE t.handle={target}
-            OPTIONAL MATCH (u)-[:CHIEF_OF]->(c:Circle)
-            OPTIONAL MATCH (t)-[r:MEMBER_OF]->(c)
-            DELETE r
-        `,
-		Parameters: neoism.Props{
-			"handle": handle,
-			"target": target,
-		},
-	})
-	panicErr(err)
+	a.Svc.RevokeMembershipBetween(handle, target)
 
 	// Block user
-	err = a.Svc.Db.Cypher(&neoism.CypherQuery{
-		Statement: `
-            MATCH (u:User)
-            WHERE u.handle={handle}
-            MATCH (t:User)
-            WHERE t.handle={target}
-            CREATE UNIQUE (t)-[r:BLOCKED]->(u)
-        `,
-		Parameters: neoism.Props{
-			"handle": handle,
-			"target": target,
-		},
-	})
-	panicErr(err)
+	if block_occured, err := a.Svc.AddBlockedRelation(handle, target); err != nil {
+		panicErr(err)
+	} else if block_occured {
+		w.WriteHeader(200)
+		w.WriteJson(map[string]string{
+			"Response": "User " + target + " has been blocked",
+		})
+	} else {
+		w.WriteHeader(400)
+		w.WriteJson(map[string]string{
+			"Response": "Unexpected failure to block user",
+		})
+	}
 
-	w.WriteHeader(200)
-	w.WriteJson(map[string]string{
-		"Response": "User " + target + " has been blocked",
-	})
 }
 
 func (a Api) JoinDefault(w rest.ResponseWriter, r *rest.Request) {
@@ -940,37 +919,18 @@ func (a Api) JoinDefault(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	joined := []struct {
-		Target string    `json:"t.handle"`
-		At     time.Time `json:"r.at"`
-	}{}
-	now := time.Now().Local()
-	if err := a.Svc.Db.Cypher(&neoism.CypherQuery{
-		Statement: `
-            MATCH (u:User)
-            WHERE u.handle={handle}
-            MATCH (t:User)-[:CHIEF_OF]->(c:Circle {name: {broadcast}})
-            WHERE t.handle={target}
-            CREATE UNIQUE (u)-[r:MEMBER_OF]->(c)
-            SET r.at={now}
-            RETURN r.at
-        `,
-		Parameters: neoism.Props{
-			"handle":    handle,
-			"broadcast": BROADCAST,
-			"target":    target,
-			"now":       now,
-		},
-		Result: &joined,
-	}); err != nil {
-		panicErr(err)
+	if at, did_join := a.Svc.JoinBroadcast(handle, target); did_join {
+		w.WriteHeader(201)
+		w.WriteJson(map[string]string{
+			"Response": "JoinDefault request successful!",
+			"Info":     handle + " added to " + target + "'s broadcast at " + at.Format(time.RFC1123),
+		})
+	} else {
+		w.WriteHeader(400)
+		w.WriteJson(map[string]string{
+			"Response": "Unexpected failure to join Broadcast",
+		})
 	}
-
-	w.WriteHeader(201)
-	w.WriteJson(map[string]string{
-		"Response": "JoinDefault request successful!",
-		"Info":     handle + " added to " + target + "'s broadcast at " + now.Format(time.RFC1123),
-	})
 }
 
 func (a Api) Join(w rest.ResponseWriter, r *rest.Request) {

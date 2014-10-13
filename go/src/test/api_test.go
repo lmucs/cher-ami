@@ -389,7 +389,8 @@ func (s *TestSuite) TestSignupPasswordTooShort(c *C) {
 	entry := "testing"
 
 	for i := len(entry); i >= 0; i-- {
-		response, err := postSignup("testing123", "testing123", entry[:len(entry)-i], entry[:len(entry)-i])
+		pass := entry[:len(entry)-i]
+		response, err := postSignup("testing123", "testing123", pass, pass)
 		if err != nil {
 			c.Error(err)
 		}
