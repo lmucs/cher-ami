@@ -16,24 +16,27 @@ define(function(require, exports, module) {
 
         events: {
             'click #submitButton': 'onSubmit',
-            'keypress #postArea': 'onConfirm'
+            'keydown #postArea': 'onConfirm'
         },
 
         onSubmit: function() {
             this.collection.add({
                 messageData: this.ui.postArea.val()
             })
+            this.ui.postArea.val('');
             console.log("Added");
         },
 
         onConfirm: function(event) {
-            var enterkey = 13;
-            if (event.which === enterkey) {
+            /*var enterkey = 13;
+            if (event.which == enterkey && event.ctrlKey) {
                 this.collection.add({
                 messageData: this.ui.postArea.val()
                 })
+                this.ui.postArea.val('');
+                console.log(this.ui.postArea.val().length);
             }
-            console.log("Enter key was pressed");
+            console.log("Enter key was pressed");*/
         },
 
         initialize: function(options) {
