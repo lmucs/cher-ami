@@ -47,12 +47,10 @@ const (
 /**
  * Requests
  */
-func (a Api) authenticate(w rest.ResponseWriter, handle string, sessionid string) bool {
+func (a Api) authenticate(handle string, sessionid string) bool {
 	ok, err := a.Svc.GoodSessionCredentials(handle, sessionid)
 	if err != nil {
 		panicErr(err)
-	} else if !ok {
-		rest.Error(w, "Could not authenticate user "+handle, 400)
 	}
 
 	return ok
@@ -90,7 +88,7 @@ func (a Api) circleExists(target string, circleName string) bool {
             RETURN c.name
         `,
 		Parameters: neoism.Props{
-			"handle": target,
+			"target": target,
 			"name":   circleName,
 		},
 		Result: &found,
@@ -443,7 +441,11 @@ func (a Api) NewCircle(w rest.ResponseWriter, r *rest.Request) {
 
 	fmt.Println(is_public)
 
-	if !a.authenticate(w, handle, sessionid) {
+	if !a.authenticate(handle, sessionid) {
+		w.WriteHeader(400)
+		w.WriteJson(map[string]string{
+			"Response": "Failed to authenticate user request",
+		})
 		return
 	}
 
@@ -505,7 +507,7 @@ func (a Api) makeDefaultCircles(handle string) {
 func (a Api) NewMessage(w rest.ResponseWriter, r *rest.Request) {
 	payload := struct {
 		Handle    string
-		Sessionid string
+		SessionId string
 		Content   string
 	}{}
 	err := r.DecodeJsonPayload(&payload)
@@ -514,7 +516,17 @@ func (a Api) NewMessage(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	a.authenticate(w, payload.Handle, payload.Sessionid)
+	handle := payload.Handle
+	sessionid := payload.SessionId
+	content := payload.Content
+
+	if !a.authenticate(handle, sessionid) {
+		w.WriteHeader(400)
+		w.WriteJson(map[string]string{
+			"Response": "Failed to authenticate user request",
+		})
+		return
+	}
 
 	if payload.Content == "" {
 		rest.Error(w, "Please enter some content for your message", 400)
@@ -525,19 +537,19 @@ func (a Api) NewMessage(w rest.ResponseWriter, r *rest.Request) {
 		Content  string      `json:"message.content"`
 		Relation neoism.Node `json:"r"`
 	}{}
-	createdAt := time.Now().Local()
+	now := time.Now().Local()
 	err = a.Svc.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
             MATCH (user:User {handle: {handle}, sessionid: {sessionid}})
-            CREATE (message:Message {content: {content}, created: {date}, lastsaved: {date}})
+            CREATE (message:Message {content: {content}, created: {now}, lastsaved: {now}})
             CREATE (user)-[r:WROTE]->(message)
             RETURN message.content, r
         `,
 		Parameters: neoism.Props{
-			"handle":    payload.Handle,
-			"sessionid": payload.Sessionid,
-			"content":   payload.Content,
-			"date":      createdAt,
+			"handle":    handle,
+			"sessionid": sessionid,
+			"content":   content,
+			"now":       now,
 		},
 		Result: &created,
 	})
@@ -551,7 +563,7 @@ func (a Api) NewMessage(w rest.ResponseWriter, r *rest.Request) {
 	} else {
 		w.WriteHeader(201)
 		w.WriteJson(map[string]interface{}{
-			"Response":  "Successfully created message for " + payload.Handle,
+			"Response":  "Successfully created message for " + handle,
 			"Published": false,
 		})
 	}
@@ -564,19 +576,29 @@ func (a Api) NewMessage(w rest.ResponseWriter, r *rest.Request) {
 func (a Api) PublishMessage(w rest.ResponseWriter, r *rest.Request) {
 	payload := struct {
 		Handle    string
-		Sessionid string
+		SessionId string
 		LastSaved time.Time
 		Circle    string
 	}{}
-	err := r.DecodeJsonPayload(&payload)
-	if err != nil {
+	if err := r.DecodeJsonPayload(&payload); err != nil {
 		rest.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	a.authenticate(w, payload.Handle, payload.Sessionid)
+	handle := payload.Handle
+	sessionid := payload.SessionId
+	lastsaved := payload.LastSaved
+	circle := payload.Circle
 
-	if !a.circleExists(payload.Handle, payload.Circle) {
+	if !a.authenticate(handle, sessionid) {
+		w.WriteHeader(400)
+		w.WriteJson(map[string]string{
+			"Response": "Failed to authenticate user request",
+		})
+		return
+	}
+
+	if !a.circleExists(handle, circle) {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Bad Request, could not find specified circle to publish to",
@@ -584,7 +606,7 @@ func (a Api) PublishMessage(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	if !a.messageExists(payload.Handle, payload.LastSaved) {
+	if !a.messageExists(handle, lastsaved) {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Bad Request, could not find intended message for publishing",
@@ -595,7 +617,7 @@ func (a Api) PublishMessage(w rest.ResponseWriter, r *rest.Request) {
 	created := []struct {
 		Count int `json:"count(r)"`
 	}{}
-	err = a.Svc.Db.Cypher(&neoism.CypherQuery{
+	err := a.Svc.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
             MATCH (u:User)
             WHERE u.handle={handle}
@@ -608,9 +630,9 @@ func (a Api) PublishMessage(w rest.ResponseWriter, r *rest.Request) {
             RETURN count(r)
         `,
 		Parameters: neoism.Props{
-			"handle":    payload.Handle,
-			"name":      payload.Circle,
-			"lastsaved": payload.LastSaved,
+			"handle":    handle,
+			"name":      circle,
+			"lastsaved": lastsaved,
 			"date":      time.Now().Local(),
 		},
 		Result: &created,
@@ -620,7 +642,7 @@ func (a Api) PublishMessage(w rest.ResponseWriter, r *rest.Request) {
 	if created[0].Count > 0 {
 		w.WriteHeader(201)
 		w.WriteJson(map[string]string{
-			"Response": "Success! Published message to " + payload.Circle,
+			"Response": "Success! Published message to " + circle,
 		})
 	} else {
 		w.WriteHeader(400)
@@ -653,16 +675,16 @@ func (a Api) GetAuthoredMessages(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	// Unmarshall
-	payload := struct {
-		Handle    string
-		Sessionid string
-	}{
-		querymap["handle"][0],
-		querymap["sessionid"][0],
-	}
+	handle := querymap["handle"][0]
+	sessionid := querymap["sessionid"][0]
 
-	a.authenticate(w, payload.Handle, payload.Sessionid)
+	if !a.authenticate(handle, sessionid) {
+		w.WriteHeader(400)
+		w.WriteJson(map[string]string{
+			"Response": "Failed to authenticate user request",
+		})
+		return
+	}
 
 	messages := []struct {
 		Content   string    `json:"message.content"`
@@ -674,7 +696,7 @@ func (a Api) GetAuthoredMessages(w rest.ResponseWriter, r *rest.Request) {
             RETURN message.content, message.lastsaved
         `,
 		Parameters: neoism.Props{
-			"handle": payload.Handle,
+			"handle": handle,
 		},
 		Result: &messages,
 	})
@@ -689,7 +711,7 @@ func (a Api) GetAuthoredMessages(w rest.ResponseWriter, r *rest.Request) {
  * user. This means from all shared circles that the queried User has published to.
  */
 func (a Api) GetMessagesByHandle(w rest.ResponseWriter, r *rest.Request) {
-	author := r.PathParam("handle")
+	author := r.PathParam("author")
 	querymap := r.URL.Query()
 
 	// check query parameters
@@ -710,7 +732,13 @@ func (a Api) GetMessagesByHandle(w rest.ResponseWriter, r *rest.Request) {
 	handle := querymap["handle"][0]
 	sessionid := querymap["sessionid"][0]
 
-	a.authenticate(w, handle, sessionid)
+	if !a.authenticate(handle, sessionid) {
+		w.WriteHeader(400)
+		w.WriteJson(map[string]string{
+			"Response": "Failed to authenticate user request",
+		})
+		return
+	}
 
 	if !a.userExists(author) {
 		w.WriteHeader(400)
@@ -733,7 +761,7 @@ func (a Api) GetMessagesByHandle(w rest.ResponseWriter, r *rest.Request) {
         `,
 		Parameters: neoism.Props{
 			"author": author,
-			"handle": querymap["handle"][0],
+			"handle": handle,
 		},
 		Result: &messages,
 	})
@@ -749,8 +777,8 @@ func (a Api) GetMessagesByHandle(w rest.ResponseWriter, r *rest.Request) {
 func (a Api) DeleteMessage(w rest.ResponseWriter, r *rest.Request) {
 	payload := struct {
 		Handle    string
-		Sessionid string
-		Lastsaved time.Time
+		SessionId string
+		LastSaved time.Time
 	}{}
 	err := r.DecodeJsonPayload(&payload)
 	if err != nil {
@@ -758,7 +786,17 @@ func (a Api) DeleteMessage(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	a.authenticate(w, payload.Handle, payload.Sessionid)
+	handle := payload.Handle
+	sessionid := payload.SessionId
+	lastsaved := payload.LastSaved
+
+	if !a.authenticate(handle, sessionid) {
+		w.WriteHeader(400)
+		w.WriteJson(map[string]string{
+			"Response": "Failed to authenticate user request",
+		})
+		return
+	}
 
 	deleted := []struct {
 		Count int `json:"count(m)"`
@@ -771,8 +809,8 @@ func (a Api) DeleteMessage(w rest.ResponseWriter, r *rest.Request) {
         RETURN count(m)
         `,
 		Parameters: neoism.Props{
-			"handle":    payload.Handle,
-			"lastsaved": payload.Lastsaved,
+			"handle":    handle,
+			"lastsaved": lastsaved,
 		},
 		Result: &deleted,
 	})
@@ -792,29 +830,36 @@ func (a Api) DeleteMessage(w rest.ResponseWriter, r *rest.Request) {
 func (a Api) BlockUser(w rest.ResponseWriter, r *rest.Request) {
 	payload := struct {
 		Handle    string
-		Sessionid string
+		SessionId string
 		Target    string
 	}{}
-	err := r.DecodeJsonPayload(&payload)
-	if err != nil {
+	if err := r.DecodeJsonPayload(&payload); err != nil {
 		rest.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	if !a.authenticate(w, payload.Handle, payload.Sessionid) {
+	handle := payload.Handle
+	sessionid := payload.SessionId
+	target := payload.Target
+
+	if !a.authenticate(handle, sessionid) {
+		w.WriteHeader(400)
+		w.WriteJson(map[string]string{
+			"Response": "Failed to authenticate user request",
+		})
 		return
 	}
 
-	if !a.userExists(payload.Target) {
+	if !a.userExists(target) {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
-			"Response": "Bad request, user " + payload.Target + " wasn't found",
+			"Response": "Bad request, user " + target + " wasn't found",
 		})
 		return
 	}
 
 	// Revoke membership to all circles
-	err = a.Svc.Db.Cypher(&neoism.CypherQuery{
+	err := a.Svc.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
             MATCH (u:User)
             WHERE u.handle={handle}
@@ -825,8 +870,8 @@ func (a Api) BlockUser(w rest.ResponseWriter, r *rest.Request) {
             DELETE r
         `,
 		Parameters: neoism.Props{
-			"handle": payload.Handle,
-			"target": payload.Target,
+			"handle": handle,
+			"target": target,
 		},
 	})
 	panicErr(err)
@@ -841,43 +886,50 @@ func (a Api) BlockUser(w rest.ResponseWriter, r *rest.Request) {
             CREATE UNIQUE (t)-[r:BLOCKED]->(u)
         `,
 		Parameters: neoism.Props{
-			"handle": payload.Handle,
-			"target": payload.Target,
+			"handle": handle,
+			"target": target,
 		},
 	})
 	panicErr(err)
 
 	w.WriteHeader(200)
 	w.WriteJson(map[string]string{
-		"Response": "User " + payload.Target + " has been blocked",
+		"Response": "User " + target + " has been blocked",
 	})
 }
 
 func (a Api) JoinDefault(w rest.ResponseWriter, r *rest.Request) {
 	payload := struct {
 		Handle    string
-		Sessionid string
+		SessionId string
 		Target    string
 	}{}
-	err := r.DecodeJsonPayload(&payload)
-	if err != nil {
+	if err := r.DecodeJsonPayload(&payload); err != nil {
 		rest.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	if !a.authenticate(w, payload.Handle, payload.Sessionid) {
-		return
-	}
+	handle := payload.Handle
+	sessionid := payload.SessionId
+	target := payload.Target
 
-	if !a.userExists(payload.Target) {
+	if !a.authenticate(handle, sessionid) {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
-			"Response": "Bad request, user " + payload.Target + " wasn't found",
+			"Response": "Failed to authenticate user request",
 		})
 		return
 	}
 
-	if a.hasBlocked(payload.Handle, payload.Target) {
+	if !a.userExists(target) {
+		w.WriteHeader(400)
+		w.WriteJson(map[string]string{
+			"Response": "Bad request, user " + target + " wasn't found",
+		})
+		return
+	}
+
+	if a.hasBlocked(handle, target) {
 		w.WriteHeader(403)
 		w.WriteJson(map[string]string{
 			"Response": "Server refusal to comply with join request",
@@ -889,8 +941,8 @@ func (a Api) JoinDefault(w rest.ResponseWriter, r *rest.Request) {
 		Target string    `json:"t.handle"`
 		At     time.Time `json:"r.at"`
 	}{}
-	at := time.Now().Local()
-	err = a.Svc.Db.Cypher(&neoism.CypherQuery{
+	now := time.Now().Local()
+	if err := a.Svc.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
             MATCH (u:User)
             WHERE u.handle={handle}
@@ -901,18 +953,20 @@ func (a Api) JoinDefault(w rest.ResponseWriter, r *rest.Request) {
             RETURN r.at
         `,
 		Parameters: neoism.Props{
-			"handle":    payload.Handle,
+			"handle":    handle,
 			"broadcast": BROADCAST,
-			"target":    payload.Target,
-			"now":       at,
+			"target":    target,
+			"now":       now,
 		},
 		Result: &joined,
-	})
+	}); err != nil {
+		panicErr(err)
+	}
 
 	w.WriteHeader(201)
 	w.WriteJson(map[string]string{
 		"Response": "JoinDefault request successful!",
-		"Info":     payload.Handle + " added to " + payload.Target + "'s broadcast at " + at.Format(time.RFC1123),
+		"Info":     handle + " added to " + target + "'s broadcast at " + now.Format(time.RFC1123),
 	})
 }
 
@@ -933,7 +987,8 @@ func (a Api) Join(w rest.ResponseWriter, r *rest.Request) {
 	target := payload.Target
 	circle := payload.Circle
 
-	if !a.authenticate(w, handle, sessionid) {
+	if !a.authenticate(handle, sessionid) {
+		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Failed to authenticate user request",
 		})

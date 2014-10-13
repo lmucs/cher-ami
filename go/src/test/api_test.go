@@ -246,7 +246,7 @@ func postJoinDefault(handle string, sessionId string, target string) (*http.Resp
 }
 
 func postJoin(handle string, sessionId string, target string, circle string) (*http.Response, error) {
-	payload := "{\"Handle\": \"" + handle + "\", \"SessionId\": \"" + sessionId + "\", \"Target\": \"" + target + "\"}"
+	payload := "{\"Handle\": \"" + handle + "\", \"SessionId\": \"" + sessionId + "\", \"Target\": \"" + target + "\", \"Circle\": \"" + circle + "\" }"
 
 	reader = strings.NewReader(payload)
 
@@ -265,6 +265,7 @@ func postJoin(handle string, sessionId string, target string, circle string) (*h
 //
 
 func getJsonResponseMessage(response *http.Response) string {
+	fmt.Println("Trying to get response message")
 	type Json struct {
 		Response string
 	}
@@ -929,26 +930,29 @@ func (s *TestSuite) TestPostJoinDefaultCreated(c *C) {
 //
 
 func (s *TestSuite) TestPostJoinUserNoExist(c *C) {
-	postSignup("testing123", "testing123", "testing123", "testing123")
-	postSignup("testing321", "testing321", "testing321", "testing321")
+	postSignup("handleA", "testA@test.io", "password1", "password1")
+	postSignup("handleB", "testB@test.io", "password2", "password2")
 
-	response, _ := postLogin("testing321", "testing321")
+	response, _ := postLogin("handleB", "password2")
 	_, sessionId := getJsonAuthenticationData(response)
 
-	postCircles("testing321", sessionId, "testing321", true)
+	postCircles("handleB", sessionId, "MyPublicCircle", true)
 
-	response, _ = postLogin("testing123", "testing123")
+	response, _ = postLogin("handleA", "password1")
 	_, sessionId = getJsonAuthenticationData(response)
 
-	deleteUser("testing123", "testing123")
+	deleteUser("handleA", "password1")
 
-	response, err := postJoin("testing123", sessionId, "testing321", "testing321")
+	response, err := postJoin("handleA", sessionId, "handleB", "MyPublicCircle")
 	if err != nil {
 		c.Error(err)
 	}
 
-	c.Check(getJsonErrorMessage(response), Equals, "Could not authenticate user testing123")
+	fmt.Printf("ALMOST the end of TestPostJoinUserNoExist\n")
+	c.Check(getJsonResponseMessage(response), Equals, "Failed to authenticate user request")
+	fmt.Printf("half-way....\n")
 	c.Assert(response.StatusCode, Equals, 400)
+	fmt.Printf("End of TestPostJoinUserNoExist\n")
 }
 
 func (s *TestSuite) TestPostJoinUserNoSession(c *C) {
@@ -1027,7 +1031,7 @@ func (s *TestSuite) TestPostJoinCircleNoExist(c *C) {
 	response, _ := postLogin("handleA", "password1")
 	_, sessionId := getJsonAuthenticationData(response)
 
-	response, err := postJoin("testing123", sessionId, "handleB", "NonExistentCircle")
+	response, err := postJoin("handleA", sessionId, "handleB", "NonExistentCircle")
 	if err != nil {
 		c.Error(err)
 	}

@@ -252,8 +252,7 @@ func (s Svc) JoinCircle(handle string, target string, target_circle string) (at 
             MATCH (u:User)
             WHERE u.handle = {handle}
             MATCH (t:User)-[:CHIEF_OF]->(c:Circle)
-            WHERE t.handle = {target}
-            AND   c.name   = {circle}
+            WHERE t.handle = {target} AND c.name = {circle}
             CREATE (u)-[r:MEMBER_OF {at: {now}}]->(c)
             RETURN r.at
         `,
