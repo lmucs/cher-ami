@@ -174,7 +174,8 @@ h1 {
     padding: 4px 8px;
 }
 
-#message-box {
-    background-color: pink;
-    position: relative;
-}
+#feed-area {
+    background: #fff;
+    border-radius: 7px;
+    padding: 30px;
+};
