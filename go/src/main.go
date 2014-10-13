@@ -12,6 +12,7 @@ import (
 
 func main() {
 	c, err := goconfig.ReadConfigFile("../../config.cfg")
+	port, err := c.GetString("default", "server-port")
 	var uri string
 	if len(os.Args) > 1 {
 		if os.Args[1] == "local" {
@@ -31,7 +32,6 @@ func main() {
 
 	http.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("../../web/src/"))))
 
-	httpPort := "8228"
-	fmt.Printf("Listening on port %s\n", httpPort)
-	log.Fatal(http.ListenAndServe(":"+httpPort, nil))
+	fmt.Printf("Listening on port %s\n", port)
+	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
