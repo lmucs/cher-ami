@@ -267,7 +267,10 @@ func (a Api) Login(w rest.ResponseWriter, r *rest.Request) {
 			return
 		}
 	} else {
-		rest.Error(w, "Invalid username or password, please try again.", 400)
+		w.WriteHeader(400)
+		w.WriteJson(map[string]string{
+			"Response": "Invalid username or password, please try again.",
+		})
 	}
 }
 
@@ -946,7 +949,7 @@ func (a Api) JoinDefault(w rest.ResponseWriter, r *rest.Request) {
 		Statement: `
             MATCH (u:User)
             WHERE u.handle={handle}
-            MATCH (t:User)-[:CHIEF_OF]->(c:Circle {name={broadcast}})
+            MATCH (t:User)-[:CHIEF_OF]->(c:Circle {name: {broadcast}})
             WHERE t.handle={target}
             CREATE UNIQUE (u)-[r:MEMBER_OF]->(c)
             SET r.at={now}

@@ -281,26 +281,6 @@ func getJsonResponseMessage(response *http.Response) string {
 	return message.Response
 }
 
-func getJsonErrorMessage(response *http.Response) string {
-	type Json struct {
-		Error string
-	}
-
-	var message Json
-
-	body, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	err = json.Unmarshal(body, &message)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return message.Error
-}
-
 func getJsonAuthenticationData(response *http.Response) (string, string) {
 	type Json struct {
 		Response  string
@@ -466,7 +446,7 @@ func (s *TestSuite) TestLoginUserNoExist(c *C) {
 		c.Error(err)
 	}
 
-	c.Check(getJsonErrorMessage(response), Equals, "Invalid username or password, please try again.")
+	c.Check(getJsonResponseMessage(response), Equals, "Invalid username or password, please try again.")
 	c.Assert(response.StatusCode, Equals, 400)
 }
 
@@ -478,7 +458,7 @@ func (s *TestSuite) TestLoginInvalidUsername(c *C) {
 		c.Error(err)
 	}
 
-	c.Check(getJsonErrorMessage(response), Equals, "Invalid username or password, please try again.")
+	c.Check(getJsonResponseMessage(response), Equals, "Invalid username or password, please try again.")
 	c.Assert(response.StatusCode, Equals, 400)
 }
 
@@ -490,7 +470,7 @@ func (s *TestSuite) TestLoginInvalidPassword(c *C) {
 		c.Error(err)
 	}
 
-	c.Check(getJsonErrorMessage(response), Equals, "Invalid username or password, please try again.")
+	c.Check(getJsonResponseMessage(response), Equals, "Invalid username or password, please try again.")
 	c.Assert(response.StatusCode, Equals, 400)
 }
 
@@ -674,7 +654,7 @@ func (s *TestSuite) TestDeleteUserOK(c *C) {
 // 		c.Error(err)
 // 	}
 
-// 	c.Check(getJsonErrorMessage(response), Equals, "Could not authenticate user testing123")
+// 	c.Check(getJsonResponseMessage(response), Equals, "Could not authenticate user testing123")
 // 	c.Assert(response.StatusCode, Equals, 400)
 // }
 
@@ -691,7 +671,7 @@ func (s *TestSuite) TestDeleteUserOK(c *C) {
 // 		c.Error(err)
 // 	}
 
-// 	c.Check(getJsonErrorMessage(response), Equals, "Could not authenticate user testing123")
+// 	c.Check(getJsonResponseMessage(response), Equals, "Could not authenticate user testing123")
 // 	c.Assert(response.StatusCode, Equals, 400)
 // }
 
@@ -773,7 +753,7 @@ func (s *TestSuite) TestPostBlockUserNoExist(c *C) {
 		c.Error(err)
 	}
 
-	c.Check(getJsonErrorMessage(response), Equals, "Could not authenticate user testing123")
+	c.Check(getJsonResponseMessage(response), Equals, "Failed to authenticate user request")
 	c.Assert(response.StatusCode, Equals, 400)
 }
 
@@ -809,7 +789,7 @@ func (s *TestSuite) TestPostBlockUserNoSession(c *C) {
 		c.Error(err)
 	}
 
-	c.Check(getJsonErrorMessage(response), Equals, "Could not authenticate user testing123")
+	c.Check(getJsonResponseMessage(response), Equals, "Failed to authenticate user request")
 	c.Assert(response.StatusCode, Equals, 400)
 }
 
@@ -848,7 +828,7 @@ func (s *TestSuite) TestPostJoinDefaultUserNoExist(c *C) {
 		c.Error(err)
 	}
 
-	c.Check(getJsonErrorMessage(response), Equals, "Could not authenticate user testing123")
+	c.Check(getJsonResponseMessage(response), Equals, "Failed to authenticate user request")
 	c.Assert(response.StatusCode, Equals, 400)
 }
 
@@ -866,7 +846,7 @@ func (s *TestSuite) TestPostJoinDefaultUserNoSession(c *C) {
 		c.Error(err)
 	}
 
-	c.Check(getJsonErrorMessage(response), Equals, "Could not authenticate user testing123")
+	c.Check(getJsonResponseMessage(response), Equals, "Failed to authenticate user request")
 	c.Assert(response.StatusCode, Equals, 400)
 }
 
@@ -974,7 +954,7 @@ func (s *TestSuite) TestPostJoinUserNoSession(c *C) {
 		c.Error(err)
 	}
 
-	c.Check(getJsonErrorMessage(response), Equals, "Could not authenticate user testing123")
+	c.Check(getJsonResponseMessage(response), Equals, "Failed to authenticate user request")
 	c.Assert(response.StatusCode, Equals, 400)
 }
 
