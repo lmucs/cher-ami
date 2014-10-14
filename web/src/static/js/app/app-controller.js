@@ -13,7 +13,10 @@ define(function(require, exports, module) {
     var Message = require('app/models/message').Message;
     var Messages = require('app/collections/messages').Messages;
     var ProfileView = require('app/views/profile-view').ProfileView;
-
+    var CommentsView = require('app/views/comments-view').CommentsView;
+    var CommentView = require('app/views/comment-view').CommentView;
+    var Comment = require('app/models/comment').Comment;
+    var Commments = require('app/collections/comments').Comments;
     var AppController = marionette.Controller.extend({
 
         initialize: function(options) {
@@ -23,10 +26,10 @@ define(function(require, exports, module) {
 
             // Initialization of views will go here.
             this.app.headerRegion.show(new HeaderView());
-            this.app.mainRegion.show(new MessagesView({
-                collection: test
-            }));
-            //this.app.mainRegion.show(new ProfileView());
+            // this.app.mainRegion.show(new MessagesView({
+            //     collection: test
+            // }));
+            this.app.mainRegion.show(new CommentsView());
             // this.app.footerRegion.show(new FooterView());
         },
 
