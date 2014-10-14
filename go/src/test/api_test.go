@@ -175,8 +175,10 @@ func getUsers() (*http.Response, error) {
 	return http.DefaultClient.Do(request)
 }
 
-func deleteUser(handle string, password string) (*http.Response, error) {
-	credentials := "{\"Handle\": \"" + handle + "\", \"Password\": \"" + password + "\"}"
+func deleteUser(handle string, password string, sessionid string) (*http.Response, error) {
+	credentials := "{\"Handle\": \"" + handle +
+		"\", \"Password\": \"" + password +
+		"\", \"SessionId\": \"" + sessionid + "\"}"
 
 	reader = strings.NewReader(credentials)
 
@@ -475,7 +477,7 @@ func (s *TestSuite) TestLogoutUserNoExist(c *C) {
 	}
 
 	c.Check(getJsonResponseMessage(response), Equals, "That user doesn't exist")
-	c.Assert(response.StatusCode, Equals, 403)
+	c.Assert(response.StatusCode, Equals, 400)
 }
 
 func (s *TestSuite) TestLogoutOK(c *C) {
@@ -562,44 +564,43 @@ func (s *TestSuite) TestGetUsersOK(c *C) {
 // Delete User Tests:
 //
 
-func (s *TestSuite) TestDeleteUserNoExist(c *C) {
-	response, err := deleteUser("testing123", "testing123")
-	if err != nil {
-		c.Error(err)
-	}
-
-	c.Check(getJsonResponseMessage(response), Equals, "Could not delete user with supplied credentials")
-	c.Assert(response.StatusCode, Equals, 403)
-}
-
 func (s *TestSuite) TestDeleteUserInvalidUsername(c *C) {
-	postSignup("testing123", "testing123", "testing123", "testing123")
+	postSignup("handleA", "handleA@test.io", "password1", "password1")
 
-	response, err := deleteUser("testing321", "testing123")
+	response, _ := postLogin("handleA", "password1")
+	_, sessionid := getJsonAuthenticationData(response)
+
+	response, err := deleteUser("notHandleA", "password1", sessionid)
 	if err != nil {
 		c.Error(err)
 	}
 
-	c.Check(getJsonResponseMessage(response), Equals, "Could not delete user with supplied credentials")
-	c.Assert(response.StatusCode, Equals, 403)
+	c.Check(getJsonResponseMessage(response), Equals, "Failed to authenticate user request")
+	c.Assert(response.StatusCode, Equals, 400)
 }
 
 func (s *TestSuite) TestDeleteUserInvalidPassword(c *C) {
-	postSignup("testing123", "testing123", "testing123", "testing123")
+	postSignup("handleA", "handleA@test.io", "password1", "password1")
 
-	response, err := deleteUser("testing123", "testing321")
+	response, _ := postLogin("handleA", "password1")
+	_, sessionid := getJsonAuthenticationData(response)
+
+	response, err := deleteUser("handleA", "notPassword1", sessionid)
 	if err != nil {
 		c.Error(err)
 	}
 
-	c.Check(getJsonResponseMessage(response), Equals, "Could not delete user with supplied credentials")
-	c.Assert(response.StatusCode, Equals, 403)
+	c.Check(getJsonResponseMessage(response), Equals, "Invalid username or password, please try again.")
+	c.Assert(response.StatusCode, Equals, 400)
 }
 
 func (s *TestSuite) TestDeleteUserOK(c *C) {
 	postSignup("handleA", "handleA@test.io", "password1", "password1")
 
-	deleteUserResponse, err := deleteUser("handleA", "password1")
+	response, _ := postLogin("handleA", "password1")
+	_, sessionid := getJsonAuthenticationData(response)
+
+	deleteUserResponse, err := deleteUser("handleA", "password1", sessionid)
 	if err != nil {
 		c.Error(err)
 	}
@@ -623,11 +624,11 @@ func (s *TestSuite) TestPostCirclesUserNoExist(c *C) {
 	postSignup("testing123", "testing123", "testing123", "testing123")
 
 	response, _ := postLogin("testing123", "testing123")
-	_, sessionId := getJsonAuthenticationData(response)
+	_, sessionid := getJsonAuthenticationData(response)
 
-	deleteUser("testing123", "testing123")
+	deleteUser("testing123", "testing123", sessionid)
 
-	response, err := postCircles("testing123", sessionId, "testing123", true)
+	response, err := postCircles("testing123", sessionid, "testing123", true)
 	if err != nil {
 		c.Error(err)
 	}
@@ -722,11 +723,11 @@ func (s *TestSuite) TestPostBlockUserNoExist(c *C) {
 	postSignup("testing321", "testing321", "testing321", "testing321")
 
 	response, _ := postLogin("testing123", "testing123")
-	_, sessionId := getJsonAuthenticationData(response)
+	_, sessionid := getJsonAuthenticationData(response)
 
-	deleteUser("testing123", "testing123")
+	deleteUser("testing123", "testing123", sessionid)
 
-	response, err := postBlock("testing123", sessionId, "testing321")
+	response, err := postBlock("testing123", sessionid, "testing321")
 	if err != nil {
 		c.Error(err)
 	}
@@ -736,20 +737,17 @@ func (s *TestSuite) TestPostBlockUserNoExist(c *C) {
 }
 
 func (s *TestSuite) TestPostBlockTargetNoExist(c *C) {
-	postSignup("testing123", "testing123", "testing123", "testing123")
-	postSignup("testing321", "testing321", "testing321", "testing321")
+	postSignup("handleA", "test@test.io", "password1", "password1")
 
-	response, _ := postLogin("testing123", "testing123")
-	_, sessionId := getJsonAuthenticationData(response)
+	response, _ := postLogin("handleA", "password1")
+	_, sessionid := getJsonAuthenticationData(response)
 
-	deleteUser("testing321", "testing321")
-
-	response, err := postBlock("testing123", sessionId, "testing321")
+	response, err := postBlock("handleA", sessionid, "handleB")
 	if err != nil {
 		c.Error(err)
 	}
 
-	c.Check(getJsonResponseMessage(response), Equals, "Bad request, user testing321 wasn't found")
+	c.Check(getJsonResponseMessage(response), Equals, "Bad request, user handleB wasn't found")
 	c.Assert(response.StatusCode, Equals, 400)
 }
 
@@ -791,24 +789,6 @@ func (s *TestSuite) TestPostBlockOK(c *C) {
 // Post Join Default Tests:
 //
 
-func (s *TestSuite) TestPostJoinDefaultUserNoExist(c *C) {
-	postSignup("testing123", "testing123", "testing123", "testing123")
-	postSignup("testing321", "testing321", "testing321", "testing321")
-
-	response, _ := postLogin("testing123", "testing123")
-	_, sessionId := getJsonAuthenticationData(response)
-
-	deleteUser("testing123", "testing123")
-
-	response, err := postJoinDefault("testing123", sessionId, "testing321")
-	if err != nil {
-		c.Error(err)
-	}
-
-	c.Check(getJsonResponseMessage(response), Equals, "Failed to authenticate user request")
-	c.Assert(response.StatusCode, Equals, 400)
-}
-
 func (s *TestSuite) TestPostJoinDefaultUserNoSession(c *C) {
 	postSignup("testing123", "testing123", "testing123", "testing123")
 	postSignup("testing321", "testing321", "testing321", "testing321")
@@ -828,20 +808,17 @@ func (s *TestSuite) TestPostJoinDefaultUserNoSession(c *C) {
 }
 
 func (s *TestSuite) TestPostJoinDefaultTargetNoExist(c *C) {
-	postSignup("testing123", "testing123", "testing123", "testing123")
-	postSignup("testing321", "testing321", "testing321", "testing321")
+	postSignup("handleA", "test@test.io", "password1", "password1")
 
-	response, _ := postLogin("testing123", "testing123")
+	response, _ := postLogin("handleA", "password1")
 	_, sessionId := getJsonAuthenticationData(response)
 
-	deleteUser("testing321", "testing321")
-
-	response, err := postJoinDefault("testing123", sessionId, "testing321")
+	response, err := postJoinDefault("handleA", sessionId, "handleB")
 	if err != nil {
 		c.Error(err)
 	}
 
-	c.Check(getJsonResponseMessage(response), Equals, "Bad request, user testing321 wasn't found")
+	c.Check(getJsonResponseMessage(response), Equals, "Bad request, user handleB wasn't found")
 	c.Assert(response.StatusCode, Equals, 400)
 }
 
@@ -886,29 +863,6 @@ func (s *TestSuite) TestPostJoinDefaultCreated(c *C) {
 // Post Join Tests:
 //
 
-func (s *TestSuite) TestPostJoinUserNoExist(c *C) {
-	postSignup("handleA", "testA@test.io", "password1", "password1")
-	postSignup("handleB", "testB@test.io", "password2", "password2")
-
-	response, _ := postLogin("handleB", "password2")
-	_, sessionId := getJsonAuthenticationData(response)
-
-	postCircles("handleB", sessionId, "MyPublicCircle", true)
-
-	response, _ = postLogin("handleA", "password1")
-	_, sessionId = getJsonAuthenticationData(response)
-
-	deleteUser("handleA", "password1")
-
-	response, err := postJoin("handleA", sessionId, "handleB", "MyPublicCircle")
-	if err != nil {
-		c.Error(err)
-	}
-
-	c.Check(getJsonResponseMessage(response), Equals, "Failed to authenticate user request")
-	c.Assert(response.StatusCode, Equals, 400)
-}
-
 func (s *TestSuite) TestPostJoinUserNoSession(c *C) {
 	postSignup("testing123", "testing123", "testing123", "testing123")
 	postSignup("testing321", "testing321", "testing321", "testing321")
@@ -933,25 +887,23 @@ func (s *TestSuite) TestPostJoinUserNoSession(c *C) {
 }
 
 func (s *TestSuite) TestPostJoinTargetNoExist(c *C) {
-	postSignup("testing123", "testing123", "testing123", "testing123")
-	postSignup("testing321", "testing321", "testing321", "testing321")
+	postSignup("handleA", "handleA@test.io", "password1", "password1")
+	postSignup("handleB", "handleB@test.io", "password2", "password2")
 
-	response, _ := postLogin("testing321", "testing321")
+	response, _ := postLogin("handleB", "password2")
 	_, sessionId := getJsonAuthenticationData(response)
 
-	postCircles("testing321", sessionId, "testing321", true)
+	postCircles("handleB", sessionId, "CircleOfB", true)
 
-	response, _ = postLogin("testing123", "testing123")
+	response, _ = postLogin("handleA", "password1")
 	_, sessionId = getJsonAuthenticationData(response)
 
-	deleteUser("testing321", "testing321")
-
-	response, err := postJoin("testing123", sessionId, "testing321", "testing321")
+	response, err := postJoin("handleA", sessionId, "handleC", "CircleOfB")
 	if err != nil {
 		c.Error(err)
 	}
 
-	c.Check(getJsonResponseMessage(response), Equals, "Bad request, user testing321 wasn't found")
+	c.Check(getJsonResponseMessage(response), Equals, "Bad request, user handleC wasn't found")
 	c.Assert(response.StatusCode, Equals, 400)
 }
 

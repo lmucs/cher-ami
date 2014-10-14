@@ -366,6 +366,19 @@ func (s Svc) RevokeMembershipBetween(handle string, target string) {
 	}
 }
 
+func (s Svc) DeleteUser(handle string) error {
+	return s.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+                MATCH (user:User)-[r]->()
+                WHERE user.handle = {handle}
+                DELETE user, r
+            `,
+		Parameters: neoism.Props{
+			"handle": handle,
+		},
+	})
+}
+
 //
 // Get
 //
@@ -394,11 +407,11 @@ func (s Svc) GetHandleAndNameOf(user string) (handle string, name string, found 
 	return res[0].Handle, res[0].Name, len(res) > 0
 }
 
-func (s Svc) GetPasswordHash(user string) (password_hash []byte, err error) {
-	found := []struct {
+func (s Svc) GetPasswordHash(user string) (password_hash []byte, found bool) {
+	res := []struct {
 		PasswordHash string `json:"u.password"`
 	}{}
-	err = s.Db.Cypher(&neoism.CypherQuery{
+	if err := s.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
             MATCH (u:User)
             WHERE u.handle = {handle}
@@ -407,13 +420,14 @@ func (s Svc) GetPasswordHash(user string) (password_hash []byte, err error) {
 		Parameters: neoism.Props{
 			"handle": user,
 		},
-		Result: &found,
-	})
-	if len(found) != 1 {
-		panic(fmt.Sprintf("Incorrect results len in query1()\n\tgot %d, expected 1\n", len(found)))
+		Result: &res,
+	}); err != nil {
+		panicErr(err)
+	} else if len(res) != 1 {
+		return []byte{}, len(res) > 0
 	}
 
-	return []byte(found[0].PasswordHash), err
+	return []byte(res[0].PasswordHash), len(res) > 0
 }
 
 //

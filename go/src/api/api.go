@@ -266,8 +266,12 @@ func (a Api) Login(w rest.ResponseWriter, r *rest.Request) {
 	handle := credentials.Handle
 	password := []byte(credentials.Password)
 
-	if password_hash, err := a.Svc.GetPasswordHash(handle); err != nil {
-		panicErr(err)
+	if password_hash, ok := a.Svc.GetPasswordHash(handle); !ok {
+		w.WriteHeader(400)
+		w.WriteJson(map[string]string{
+			"Response": "Invalid username or password, please try again.",
+		})
+		return
 	} else {
 		// err is nil if successful, error
 		if err := bcrypt.CompareHashAndPassword(password_hash, password); err != nil {
@@ -305,7 +309,7 @@ func (a Api) Logout(w rest.ResponseWriter, r *rest.Request) {
 	}
 
 	if !a.userExists(user.Handle) {
-		w.WriteHeader(403)
+		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "That user doesn't exist",
 		})
@@ -389,55 +393,50 @@ func (a Api) GetUsers(w rest.ResponseWriter, r *rest.Request) {
 
 func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
 	credentials := struct {
-		Handle   string
-		Password string
+		Handle    string
+		Password  string
+		SessionId string
 	}{}
-	err := r.DecodeJsonPayload(&credentials)
-	if err != nil {
+	if err := r.DecodeJsonPayload(&credentials); err != nil {
 		rest.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	res := []struct {
-		User neoism.Node
-	}{}
-	err = a.Svc.Db.Cypher(&neoism.CypherQuery{
-		Statement: `
-            MATCH (user:User)
-            WHERE user.handle = {handle} AND user.password = {password}
-            RETURN user
-        `,
-		Parameters: neoism.Props{
-			"handle":   credentials.Handle,
-			"password": credentials.Password,
-		},
-		Result: &res,
-	})
-	panicErr(err)
+	handle := credentials.Handle
+	password := []byte(credentials.Password)
+	sessionid := credentials.SessionId
 
-	if len(res) > 0 {
-		// Delete user:
-		err = a.Svc.Db.Cypher(&neoism.CypherQuery{
-			Statement: `
-                MATCH (user:User)-[r]->()
-                WHERE user.handle = {handle}
-                DELETE user, r
-            `,
-			Parameters: neoism.Props{
-				"handle": credentials.Handle,
-			},
-		})
-		panicErr(err)
-
-		w.WriteHeader(200)
+	if !a.authenticate(handle, sessionid) {
+		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
-			"Response": "Deleted " + credentials.Handle,
+			"Response": "Failed to authenticate user request",
 		})
+		return
+	}
+
+	if password_hash, ok := a.Svc.GetPasswordHash(handle); !ok {
+		w.WriteHeader(400)
+		w.WriteJson(map[string]string{
+			"Response": "Invalid username or password, please try again.",
+		})
+		return
 	} else {
-		w.WriteHeader(403)
-		w.WriteJson(map[string]string{
-			"Response": "Could not delete user with supplied credentials",
-		})
+		// err is nil if successful, error
+		if err := bcrypt.CompareHashAndPassword(password_hash, password); err != nil {
+			w.WriteHeader(400)
+			w.WriteJson(map[string]string{
+				"Response": "Invalid username or password, please try again.",
+			})
+			return
+		} else {
+			if err := a.Svc.DeleteUser(handle); err != nil {
+				panicErr(err)
+			}
+			w.WriteHeader(200)
+			w.WriteJson(map[string]string{
+				"Response": "Deleted " + handle,
+			})
+		}
 	}
 }
 
