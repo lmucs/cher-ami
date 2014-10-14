@@ -17,7 +17,7 @@ test:
 
 .PHONY: localtest
 localtest:
-	cd $(GO_TEST_SRC); go test api_test.go local
+	cd $(GO_TEST_SRC); go test api_test.go -v -local=true
 
 .PHONY: serve
 serve:

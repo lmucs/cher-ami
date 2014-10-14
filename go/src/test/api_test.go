@@ -4,6 +4,7 @@ import (
 	api "../api"
 	routes "../routes"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"github.com/jadengore/goconfig"
 	. "gopkg.in/check.v1"
@@ -17,6 +18,9 @@ import (
 	"testing"
 	//"time"
 )
+
+// Flag for local testing.
+var local = flag.Bool("local", false, "For local testing")
 
 var (
 	server *httptest.Server
@@ -65,9 +69,13 @@ var _ = Suite(&TestSuite{})
 
 func (s *TestSuite) SetUpSuite(c *C) {
 	config, err := goconfig.ReadConfigFile("../../../config.cfg")
-	// Comment out below and uncomment line below that for local tests
-	uri, err := config.GetString("api-test", "url")
-	// uri, err := config.GetString("local-test", "url")
+	var location string
+	if *local {
+		location = "local-test"
+	} else {
+		location = "api-test"
+	}
+	uri, err := config.GetString(location, "url")
 
 	a = api.NewApi(uri)
 
