@@ -2,6 +2,7 @@ package api
 
 import (
 	service "../service"
+	"code.google.com/p/go.crypto/bcrypt"
 	"fmt"
 	"github.com/ant0ine/go-json-rest/rest"
 	"github.com/jmcvetta/neoism"
@@ -160,20 +161,24 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 		ConfirmPassword string
 	}
 	proposal := Proposal{}
-	err := r.DecodeJsonPayload(&proposal)
-	if err != nil {
+	if err := r.DecodeJsonPayload(&proposal); err != nil {
 		rest.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	handle := proposal.Handle
+	email := proposal.Email
+	password := proposal.Password
+	confirm_password := proposal.ConfirmPassword
+
 	// Handle and Email checks
-	if proposal.Handle == "" {
+	if handle == "" {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Handle is a required field for signup",
 		})
 		return
-	} else if proposal.Email == "" {
+	} else if email == "" {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Email is a required field for signup",
@@ -182,14 +187,14 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 	}
 
 	// Password checks
-	minPasswordLength := 8
-	if proposal.Password != proposal.ConfirmPassword {
+	const min_pass_length = 8
+	if password != confirm_password {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Passwords do not match",
 		})
 		return
-	} else if len(proposal.Password) < minPasswordLength {
+	} else if len(password) < min_pass_length {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Passwords must be at least 8 characters long",
@@ -198,7 +203,7 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 	}
 
 	// Ensure unique handle
-	if unique, err := a.Svc.HandleIsUnique(proposal.Handle); err != nil {
+	if unique, err := a.Svc.HandleIsUnique(handle); err != nil {
 		rest.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	} else if !unique {
@@ -210,7 +215,7 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 	}
 
 	// Ensure unique email
-	if unique, err := a.Svc.EmailIsUnique(proposal.Email); err != nil {
+	if unique, err := a.Svc.EmailIsUnique(email); err != nil {
 		rest.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	} else if !unique {
@@ -221,23 +226,30 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
+	var hashed_pass string
+	if hash, err := bcrypt.GenerateFromPassword([]byte(password), 10); err != nil {
+		rest.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	} else {
+		hashed_pass = string(hash)
+	}
 	if err := a.Svc.CreateNewUser(
-		proposal.Handle,
-		proposal.Email,
-		proposal.Password,
+		handle,
+		email,
+		hashed_pass,
 	); err != nil {
 		panicErr(err)
 	}
 
-	if err := a.Svc.MakeDefaultCirclesFor(proposal.Handle); err != nil {
+	if err := a.Svc.MakeDefaultCirclesFor(handle); err != nil {
 		panicErr(err)
 	}
 
 	w.WriteHeader(201)
 	w.WriteJson(map[string]string{
 		"Response": "Signed up a new user!",
-		"Handle":   proposal.Handle,
-		"Email":    proposal.Email,
+		"Handle":   handle,
+		"Email":    email,
 	})
 }
 
@@ -250,27 +262,36 @@ func (a Api) Login(w rest.ResponseWriter, r *rest.Request) {
 		rest.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	handle := credentials.Handle
-	password := credentials.Password
 
-	// Add session hash to node and return it to client
-	if ok, err := a.Svc.GoodLoginCredentials(handle, password); err != nil {
-		panicErr(err)
-	} else if ok {
-		if sessionid, err := a.Svc.SetAndGetNewSessionId(handle, password); err != nil {
-			panicErr(err)
-		} else {
-			w.WriteJson(map[string]string{
-				"Response":  "Logged in " + credentials.Handle + ". Note your session id.",
-				"SessionId": sessionid,
-			})
-			return
-		}
-	} else {
+	handle := credentials.Handle
+	password := []byte(credentials.Password)
+
+	if password_hash, ok := a.Svc.GetPasswordHash(handle); !ok {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Invalid username or password, please try again.",
 		})
+		return
+	} else {
+		// err is nil if successful, error
+		if err := bcrypt.CompareHashAndPassword(password_hash, password); err != nil {
+			w.WriteHeader(400)
+			w.WriteJson(map[string]string{
+				"Response": "Invalid username or password, please try again.",
+			})
+			return
+		} else {
+			// Add session hash to node and return it to client
+			if sessionid, err := a.Svc.SetGetNewSessionId(handle); err != nil {
+				panicErr(err)
+			} else {
+				w.WriteJson(map[string]string{
+					"Response":  "Logged in " + handle + ". Note your session id.",
+					"SessionId": sessionid,
+				})
+				return
+			}
+		}
 	}
 }
 
@@ -288,7 +309,7 @@ func (a Api) Logout(w rest.ResponseWriter, r *rest.Request) {
 	}
 
 	if !a.userExists(user.Handle) {
-		w.WriteHeader(403)
+		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "That user doesn't exist",
 		})
@@ -372,55 +393,50 @@ func (a Api) GetUsers(w rest.ResponseWriter, r *rest.Request) {
 
 func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
 	credentials := struct {
-		Handle   string
-		Password string
+		Handle    string
+		Password  string
+		SessionId string
 	}{}
-	err := r.DecodeJsonPayload(&credentials)
-	if err != nil {
+	if err := r.DecodeJsonPayload(&credentials); err != nil {
 		rest.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	res := []struct {
-		User neoism.Node
-	}{}
-	err = a.Svc.Db.Cypher(&neoism.CypherQuery{
-		Statement: `
-            MATCH (user:User)
-            WHERE user.handle = {handle} AND user.password = {password}
-            RETURN user
-        `,
-		Parameters: neoism.Props{
-			"handle":   credentials.Handle,
-			"password": credentials.Password,
-		},
-		Result: &res,
-	})
-	panicErr(err)
+	handle := credentials.Handle
+	password := []byte(credentials.Password)
+	sessionid := credentials.SessionId
 
-	if len(res) > 0 {
-		// Delete user:
-		err = a.Svc.Db.Cypher(&neoism.CypherQuery{
-			Statement: `
-                MATCH (user:User)-[r]->()
-                WHERE user.handle = {handle}
-                DELETE user, r
-            `,
-			Parameters: neoism.Props{
-				"handle": credentials.Handle,
-			},
-		})
-		panicErr(err)
-
-		w.WriteHeader(200)
+	if !a.authenticate(handle, sessionid) {
+		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
-			"Response": "Deleted " + credentials.Handle,
+			"Response": "Failed to authenticate user request",
 		})
+		return
+	}
+
+	if password_hash, ok := a.Svc.GetPasswordHash(handle); !ok {
+		w.WriteHeader(400)
+		w.WriteJson(map[string]string{
+			"Response": "Invalid username or password, please try again.",
+		})
+		return
 	} else {
-		w.WriteHeader(403)
-		w.WriteJson(map[string]string{
-			"Response": "Could not delete user with supplied credentials",
-		})
+		// err is nil if successful, error
+		if err := bcrypt.CompareHashAndPassword(password_hash, password); err != nil {
+			w.WriteHeader(400)
+			w.WriteJson(map[string]string{
+				"Response": "Invalid username or password, please try again.",
+			})
+			return
+		} else {
+			if err := a.Svc.DeleteUser(handle); err != nil {
+				panicErr(err)
+			}
+			w.WriteHeader(200)
+			w.WriteJson(map[string]string{
+				"Response": "Deleted " + handle,
+			})
+		}
 	}
 }
 

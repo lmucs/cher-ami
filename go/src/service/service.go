@@ -366,6 +366,19 @@ func (s Svc) RevokeMembershipBetween(handle string, target string) {
 	}
 }
 
+func (s Svc) DeleteUser(handle string) error {
+	return s.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+                MATCH (user:User)-[r]->()
+                WHERE user.handle = {handle}
+                DELETE user, r
+            `,
+		Parameters: neoism.Props{
+			"handle": handle,
+		},
+	})
+}
+
 //
 // Get
 //
@@ -394,11 +407,34 @@ func (s Svc) GetHandleAndNameOf(user string) (handle string, name string, found 
 	return res[0].Handle, res[0].Name, len(res) > 0
 }
 
+func (s Svc) GetPasswordHash(user string) (password_hash []byte, found bool) {
+	res := []struct {
+		PasswordHash string `json:"u.password"`
+	}{}
+	if err := s.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+            MATCH (u:User)
+            WHERE u.handle = {handle}
+            RETURN u.password
+        `,
+		Parameters: neoism.Props{
+			"handle": user,
+		},
+		Result: &res,
+	}); err != nil {
+		panicErr(err)
+	} else if len(res) != 1 {
+		return []byte{}, len(res) > 0
+	}
+
+	return []byte(res[0].PasswordHash), len(res) > 0
+}
+
 //
 // Node Attributes
 //
 
-func (s Svc) SetAndGetNewSessionId(handle string, password string) (sessionid string, err error) {
+func (s Svc) SetGetNewSessionId(handle string) (sessionid string, err error) {
 	sessionHash := uniuri.New()
 
 	created := []struct {
@@ -406,13 +442,13 @@ func (s Svc) SetAndGetNewSessionId(handle string, password string) (sessionid st
 	}{}
 	err = s.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
-                MATCH (u:User {handle:{handle}, password:{password}})
+                MATCH (u:User)
+                WHERE u.handle = {handle}
                 SET u.sessionid = {sessionid}
                 return u.sessionid
             `,
 		Parameters: neoism.Props{
 			"handle":    handle,
-			"password":  password,
 			"sessionid": sessionHash,
 		},
 		Result: &created,
