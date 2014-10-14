@@ -12,6 +12,9 @@ define(function(require, exports, module) {
         ui: {
             submit: '#submitButton',
             postArea: '#postArea',
+            messageArea: '#messages',
+            messageBox: '#message-box',
+
         },
 
         events: {
@@ -20,10 +23,14 @@ define(function(require, exports, module) {
         },
 
         onSubmit: function() {
-            this.collection.add({
-                messageData: this.ui.postArea.val()
-            })
+            if(this.ui.postArea.val() !== '') {
+                this.collection.add({
+                    messageData: this.ui.postArea.val()
+                })
+            }
+
             this.ui.postArea.val('');
+
             console.log("Added");
         },
 
