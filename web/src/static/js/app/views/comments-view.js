@@ -4,7 +4,7 @@ define(function(require, exports, module) {
     var template = require('hbs!../templates/comments-view')
     var CommentView = require('app/views/comment-view').CommentView;
 
-    var MessagesView = marionette.CompositeView.extend({
+    var CommentsView = marionette.CompositeView.extend({
         childView: CommentView,
         childViewContainer: '#messages',
         template: template,
@@ -19,5 +19,5 @@ define(function(require, exports, module) {
 
     });
 
-    exports.MessagesView = MessagesView;
+    exports.CommentsView = CommentsView;
 })

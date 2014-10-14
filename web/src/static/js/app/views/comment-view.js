@@ -4,7 +4,7 @@ define(function(require, exports, module) {
     var template = require('hbs!../templates/comment-view')
     var Comment = require('app/models/comment').Comment
 
-    var MessageView = marionette.ItemView.extend({
+    var CommentView = marionette.ItemView.extend({
         model: Comment,
         template: template,
 
