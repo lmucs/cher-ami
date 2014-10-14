@@ -11,7 +11,7 @@ define(function(require, exports, module) {
 
         ui: {
             submit: '#submitButton',
-            postArea: '#postArea'
+            postArea: '#postArea',
         },
 
         events: {
