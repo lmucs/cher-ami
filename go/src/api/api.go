@@ -262,27 +262,32 @@ func (a Api) Login(w rest.ResponseWriter, r *rest.Request) {
 		rest.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	handle := credentials.Handle
-	password := credentials.Password
 
-	// Add session hash to node and return it to client
-	if ok, err := a.Svc.GoodLoginCredentials(handle, password); err != nil {
+	handle := credentials.Handle
+	password := []byte(credentials.Password)
+
+	if password_hash, err := a.Svc.GetPasswordHash(handle); err != nil {
 		panicErr(err)
-	} else if ok {
-		if sessionid, err := a.Svc.SetAndGetNewSessionId(handle, password); err != nil {
-			panicErr(err)
-		} else {
+	} else {
+		// err is nil if successful, error
+		if err := bcrypt.CompareHashAndPassword(password_hash, password); err != nil {
+			w.WriteHeader(400)
 			w.WriteJson(map[string]string{
-				"Response":  "Logged in " + credentials.Handle + ". Note your session id.",
-				"SessionId": sessionid,
+				"Response": "Invalid username or password, please try again.",
 			})
 			return
+		} else {
+			// Add session hash to node and return it to client
+			if sessionid, err := a.Svc.SetGetNewSessionId(handle); err != nil {
+				panicErr(err)
+			} else {
+				w.WriteJson(map[string]string{
+					"Response":  "Logged in " + handle + ". Note your session id.",
+					"SessionId": sessionid,
+				})
+				return
+			}
 		}
-	} else {
-		w.WriteHeader(400)
-		w.WriteJson(map[string]string{
-			"Response": "Invalid username or password, please try again.",
-		})
 	}
 }
 

@@ -394,11 +394,33 @@ func (s Svc) GetHandleAndNameOf(user string) (handle string, name string, found 
 	return res[0].Handle, res[0].Name, len(res) > 0
 }
 
+func (s Svc) GetPasswordHash(user string) (password_hash []byte, err error) {
+	found := []struct {
+		PasswordHash string `json:"u.password"`
+	}{}
+	err = s.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+            MATCH (u:User)
+            WHERE u.handle = {handle}
+            RETURN u.password
+        `,
+		Parameters: neoism.Props{
+			"handle": user,
+		},
+		Result: &found,
+	})
+	if len(found) != 1 {
+		panic(fmt.Sprintf("Incorrect results len in query1()\n\tgot %d, expected 1\n", len(found)))
+	}
+
+	return []byte(found[0].PasswordHash), err
+}
+
 //
 // Node Attributes
 //
 
-func (s Svc) SetAndGetNewSessionId(handle string, password string) (sessionid string, err error) {
+func (s Svc) SetGetNewSessionId(handle string) (sessionid string, err error) {
 	sessionHash := uniuri.New()
 
 	created := []struct {
@@ -406,13 +428,13 @@ func (s Svc) SetAndGetNewSessionId(handle string, password string) (sessionid st
 	}{}
 	err = s.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
-                MATCH (u:User {handle:{handle}, password:{password}})
+                MATCH (u:User)
+                WHERE u.handle = {handle}
                 SET u.sessionid = {sessionid}
                 return u.sessionid
             `,
 		Parameters: neoism.Props{
 			"handle":    handle,
-			"password":  password,
 			"sessionid": sessionHash,
 		},
 		Result: &created,
