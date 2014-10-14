@@ -7,7 +7,7 @@ import android.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-
+import android.widget.ListView;
 
 
 /**
@@ -24,6 +24,7 @@ public class Feed extends Fragment {
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
+    private ListView feedList;
 
     // TODO: Rename and change types of parameters
     private String mParam1;
@@ -65,7 +66,25 @@ public class Feed extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_feed, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_feed, container, false);
+
+        FeedItem feed_data[] = new FeedItem[]
+                {
+                        new FeedItem("This is an image posted by Willy Hugestud"),
+                        new FeedItem("Here's some text posted by ThatHalfKorean"),
+                        new FeedItem("I just took a 25 minutes bathroom break posted by CrashProphet")
+                };
+
+        FeedAdapter adapter = new FeedAdapter(this.getActivity(),
+                R.layout.feed_item_row, feed_data);
+
+
+        feedList = (ListView)rootView.findViewById(R.id.feedList);
+
+        feedList.setAdapter(adapter);
+
+        // Inflate the layout for this fragment
+        return rootView;
     }
 
     // TODO: Rename method, update argument and hook method into UI event
