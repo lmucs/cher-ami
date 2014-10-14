@@ -13,11 +13,11 @@ local:
 
 .PHONY: test
 test:
-	cd $(GO_TEST_SRC); go test api_test.go -v
+	cd $(GO_TEST_SRC); go test -check.v
 
 .PHONY: localtest
 localtest:
-	cd $(GO_TEST_SRC); go test api_test.go -v -local=true
+	cd $(GO_TEST_SRC); go test -check.v -local=true
 
 .PHONY: serve
 serve:
