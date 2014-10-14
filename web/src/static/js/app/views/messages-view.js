@@ -35,15 +35,15 @@ define(function(require, exports, module) {
         },
 
         onConfirm: function(event) {
-            /*var enterkey = 13;
-            if (event.which == enterkey && event.ctrlKey) {
+            var enterkey = 13;
+            if (event.which == enterkey) {
                 this.collection.add({
-                messageData: this.ui.postArea.val()
+                    messageData: this.ui.postArea.val()
                 })
                 this.ui.postArea.val('');
                 console.log(this.ui.postArea.val().length);
             }
-            console.log("Enter key was pressed");*/
+            console.log("Enter key was pressed");
         },
 
         initialize: function(options) {
