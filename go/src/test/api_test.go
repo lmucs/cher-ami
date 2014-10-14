@@ -5,6 +5,7 @@ import (
 	routes "../routes"
 	"encoding/json"
 	"fmt"
+	"github.com/jadengore/goconfig"
 	. "gopkg.in/check.v1"
 	"io"
 	"io/ioutil"
@@ -63,7 +64,10 @@ var _ = Suite(&TestSuite{})
 //
 
 func (s *TestSuite) SetUpSuite(c *C) {
-	uri := "http://localhost:7474/db/data"
+	config, err := goconfig.ReadConfigFile("../../../config.cfg")
+	// Comment out below and uncomment line below that for local tests
+	uri, err := config.GetString("api-test", "url")
+	// uri, err := config.GetString("local-test", "url")
 
 	a = api.NewApi(uri)
 

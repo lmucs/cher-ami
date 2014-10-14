@@ -13,7 +13,7 @@ local:
 
 .PHONY: test
 test:
-	cd $(GO_TEST_SRC); go test api_test.go
+	cd $(GO_TEST_SRC); go test api_test.go -v
 
 .PHONY: localtest
 localtest:

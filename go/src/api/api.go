@@ -2,8 +2,8 @@ package api
 
 import (
 	service "../service"
-	"code.google.com/p/go.crypto/bcrypt"
 	"fmt"
+	"github.com/ChimeraCoder/go.crypto/bcrypt"
 	"github.com/ant0ine/go-json-rest/rest"
 	"github.com/jmcvetta/neoism"
 	"net/http"
@@ -84,7 +84,7 @@ func (a Api) circleExists(target string, circleName string) bool {
 		Statement: `
             MATCH (t:User)
             WHERE t.handle = {target}
-            MATCH (t)-[:CHIEF_OF]->(c:Circle) 
+            MATCH (t)-[:CHIEF_OF]->(c:Circle)
             WHERE c.name = {name}
             RETURN c.name
         `,
