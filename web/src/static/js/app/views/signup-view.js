@@ -6,6 +6,8 @@ define(function(require, exports, module) {
 
     var passCheck = require('app/utils/pass-check').PassCheck;
 
+    var inputValidator = require('app/utils/input-validator').InputValidator;
+
     var SignupView = marionette.ItemView.extend({
         template: template,
 
@@ -19,12 +21,13 @@ define(function(require, exports, module) {
             confirmPass: '#pass2',
             warning: '#confirmMessage',
             rememberMe: '#remember-me',
-            signup: '#signup'
+            signup: '#signup',
+            inputForm: '#signupform'
         },
 
         events: {
             'click #remember-me': 'onRememberConfirm',
-            'keyup #pass2': 'passwordMatch',
+            'keyup #input-email': 'inputValidate',
             'click #signup': 'onFormConfirm'
         },
 
@@ -50,6 +53,10 @@ define(function(require, exports, module) {
 
         passwordMatch: function(event) {
             passCheck(this.ui.pass, this.ui.confirmPass, this.ui.warning)
+        },
+
+        inputValidate: function(event) {
+             inputValidator(this.ui.inputForm)
         }
 
     });

@@ -29,7 +29,7 @@ define(function(require, exports, module) {
             // this.app.mainRegion.show(new MessagesView({
             //     collection: test
             // }));
-            this.app.mainRegion.show(new ProfileView());
+            this.app.mainRegion.show(new SignupView());
             // this.app.footerRegion.show(new FooterView());
         },
 
