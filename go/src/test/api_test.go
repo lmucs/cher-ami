@@ -13,7 +13,6 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
-	"strconv"
 	"strings"
 	"testing"
 	//"time"
@@ -144,9 +143,9 @@ func messageExchange(m map[string]interface{}, httpMethod string, url string) (*
 
 func postSignup(handle string, email string, password string, confirmPassword string) (*http.Response, error) {
 	proposal := map[string]interface{}{
-		"Handle": handle,
-		"Email": email,
-		"Password": password,
+		"Handle":          handle,
+		"Email":           email,
+		"Password":        password,
 		"ConfirmPassword": confirmPassword,
 	}
 
@@ -155,7 +154,7 @@ func postSignup(handle string, email string, password string, confirmPassword st
 
 func postLogin(handle string, password string) (*http.Response, error) {
 	credentials := map[string]interface{}{
-		"Handle": handle,
+		"Handle":   handle,
 		"Password": password,
 	}
 
@@ -179,16 +178,15 @@ func getUser(handle string) (*http.Response, error) {
 }
 
 func getUsers() (*http.Response, error) {
-	users := map[string]interface{}{
-	}
+	users := map[string]interface{}{}
 
 	return messageExchange(users, "GET", usersURL)
 }
 
 func deleteUser(handle string, password string, sessionId string) (*http.Response, error) {
 	credentials := map[string]interface{}{
-		"Handle": handle,
-		"Password": password,
+		"Handle":    handle,
+		"Password":  password,
 		"SessionId": sessionId,
 	}
 
@@ -197,10 +195,10 @@ func deleteUser(handle string, password string, sessionId string) (*http.Respons
 
 func postCircles(handle string, sessionId string, circleName string, public bool) (*http.Response, error) {
 	payload := map[string]interface{}{
-		"Handle": handle,
-		"SessionId": sessionId,
+		"Handle":     handle,
+		"SessionId":  sessionId,
 		"CircleName": circleName,
-		"Public": public,
+		"Public":     public,
 	}
 
 	return messageExchange(payload, "POST", circlesURL)
@@ -208,9 +206,9 @@ func postCircles(handle string, sessionId string, circleName string, public bool
 
 func postBlock(handle string, sessionId string, target string) (*http.Response, error) {
 	payload := map[string]interface{}{
-		"Handle": handle,
+		"Handle":    handle,
 		"SessionId": sessionId,
-		"Target": target,
+		"Target":    target,
 	}
 
 	return messageExchange(payload, "POST", blockURL)
@@ -218,9 +216,9 @@ func postBlock(handle string, sessionId string, target string) (*http.Response, 
 
 func postJoinDefault(handle string, sessionId string, target string) (*http.Response, error) {
 	payload := map[string]interface{}{
-		"Handle": handle,
+		"Handle":    handle,
 		"SessionId": sessionId,
-		"Target": target,
+		"Target":    target,
 	}
 
 	return messageExchange(payload, "POST", joindefaultURL)
@@ -228,10 +226,10 @@ func postJoinDefault(handle string, sessionId string, target string) (*http.Resp
 
 func postJoin(handle string, sessionId string, target string, circle string) (*http.Response, error) {
 	payload := map[string]interface{}{
-		"Handle": handle,
+		"Handle":    handle,
 		"SessionId": sessionId,
-		"Target": target,
-		"Circle": circle,
+		"Target":    target,
+		"Circle":    circle,
 	}
 
 	return messageExchange(payload, "POST", joinURL)
@@ -695,17 +693,17 @@ func (s *TestSuite) TestPostCirclesPublicCircleCreated(c *C) {
 }
 
 func (s *TestSuite) TestPostCirclesPrivateCircleCreated(c *C) {
-	postSignup("testing123", "testing123", "testing123", "testing123")
+	postSignup("handleA", "test@test.io", "password1", "password1")
 
-	response, _ := postLogin("testing123", "testing123")
+	response, _ := postLogin("handleA", "password1")
 	_, sessionId := getJsonAuthenticationData(response)
 
-	response, err := postCircles("testing123", sessionId, "testing123", false)
+	response, err := postCircles("handleA", sessionId, "PrivateCircleForA", true)
 	if err != nil {
 		c.Error(err)
 	}
 
-	c.Check(getJsonResponseMessage(response), Equals, "Created new circle testing123 for testing123")
+	c.Check(getJsonResponseMessage(response), Equals, "Created new circle PrivateCircleForA for handleA")
 	c.Assert(response.StatusCode, Equals, 201)
 }
 
@@ -903,20 +901,20 @@ func (s *TestSuite) TestPostJoinTargetNoExist(c *C) {
 }
 
 func (s *TestSuite) TestPostJoinUserBlocked(c *C) {
-	postSignup("testing123", "testing123", "testing123", "testing123")
-	postSignup("testing321", "testing321", "testing321", "testing321")
+	postSignup("handleA", "handleA@test.io", "password1", "password1")
+	postSignup("handleB", "handleB@test.io", "password2", "password2")
 
-	response, _ := postLogin("testing321", "testing321")
+	response, _ := postLogin("handleB", "password2")
 	_, sessionId := getJsonAuthenticationData(response)
 
-	postCircles("testing321", sessionId, "testing321", true)
+	postCircles("handleB", sessionId, "CircleOfHandleB", true)
 
-	postBlock("testing321", sessionId, "testing123")
+	postBlock("handleB", sessionId, "handleA")
 
-	response, _ = postLogin("testing123", "testing123")
+	response, _ = postLogin("handleA", "password1")
 	_, sessionId = getJsonAuthenticationData(response)
 
-	response, err := postJoin("testing123", sessionId, "testing321", "testing321")
+	response, err := postJoin("handleA", sessionId, "handleB", "CircleOfHandleB")
 	if err != nil {
 		c.Error(err)
 	}
