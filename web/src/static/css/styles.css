@@ -109,7 +109,7 @@ h1 {
 #footer :first-child {
     color: BLACK;
 }
-
+/*** Below is the profile style section ***/
 #profileContainer {
     border-radius: 14px;
     background: hsla(181, 100%, 87%, 0.4); 
@@ -140,7 +140,9 @@ h1 {
     max-width: 86%;
     margin-bottom: 10px;
 }
-
+#birthday {
+    margin-top: 60px
+}
 /*Message box css*/
 
 .main-message-box {

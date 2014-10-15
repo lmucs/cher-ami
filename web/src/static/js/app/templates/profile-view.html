@@ -30,14 +30,24 @@
 	           placeholder="Los Angeles" data-role="tagsinput"/>
 	    </div>
 	  </div>
-
-	  <label for="genderSelector" class="col-sm-2 control-label">Gender</label>
-	  <div class="col-xs-6 col-md-4">
-		<select id="genderSelector" class="form-control">
-		  <option>Male</option>
-		  <option>Female</option>
-		</select>
+	  <div id="gender">
+		  <label for="genderSelector" class="col-sm-2 control-label">Gender</label>
+		  <div class="col-xs-6 col-md-4">
+			<select id="genderSelector" class="form-control">
+			  <option>Male</option>
+			  <option>Female</option>
+			</select>
+		  </div>
+      </div>
+	  <div id="birthday">
+	  	<label for="genderSelector" class="col-sm-2 control-label">Your Age</label>
+	    <div class="col-xs-6 col-md-4">
+	      <form>
+		    <input type="date" name="bday" min="1900-01-02"><br>
+	      </form>
+	    </div>
 	  </div>
+
 	</div>
 
 </div>
