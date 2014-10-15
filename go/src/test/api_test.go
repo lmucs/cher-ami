@@ -143,131 +143,98 @@ func messageExchange(m map[string]interface{}, httpMethod string, url string) (*
 }
 
 func postSignup(handle string, email string, password string, confirmPassword string) (*http.Response, error) {
-	proposal := "{\"Handle\": \"" + handle + "\", \"Email\": \"" + email + "\", \"Password\": \"" + password + "\", \"ConfirmPassword\": \"" + confirmPassword + "\"}"
-
-	reader = strings.NewReader(proposal)
-
-	request, err := http.NewRequest("POST", signupURL, reader)
-	if err != nil {
-		log.Fatal(err)
+	proposal := map[string]interface{}{
+		"Handle": handle,
+		"Email": email,
+		"Password": password,
+		"ConfirmPassword": confirmPassword,
 	}
 
-	return http.DefaultClient.Do(request)
+	return messageExchange(proposal, "POST", signupURL)
 }
 
 func postLogin(handle string, password string) (*http.Response, error) {
-	credentials := "{\"Handle\": \"" + handle + "\", \"Password\": \"" + password + "\"}"
-
-	reader = strings.NewReader(credentials)
-
-	request, err := http.NewRequest("POST", loginURL, reader)
-	if err != nil {
-		log.Fatal(err)
+	credentials := map[string]interface{}{
+		"Handle": handle,
+		"Password": password,
 	}
 
-	return http.DefaultClient.Do(request)
+	return messageExchange(credentials, "POST", loginURL)
 }
 
 func postLogout(handle string) (*http.Response, error) {
-	user := "{\"Handle\": \"" + handle + "\"}"
-
-	reader = strings.NewReader(user)
-
-	request, err := http.NewRequest("POST", logoutURL, reader)
-	if err != nil {
-		log.Fatal(err)
+	user := map[string]interface{}{
+		"Handle": handle,
 	}
 
-	return http.DefaultClient.Do(request)
+	return messageExchange(user, "POST", logoutURL)
 }
 
 func getUser(handle string) (*http.Response, error) {
-	user := "{\"Handle\": \"" + handle + "\"}"
-
-	reader = strings.NewReader(user)
-
-	request, err := http.NewRequest("GET", userURL, reader)
-	if err != nil {
-		log.Fatal(err)
+	user := map[string]interface{}{
+		"Handle": handle,
 	}
 
-	return http.DefaultClient.Do(request)
+	return messageExchange(user, "GET", userURL)
 }
 
 func getUsers() (*http.Response, error) {
-	request, err := http.NewRequest("GET", usersURL, nil)
-	if err != nil {
-		log.Fatal(err)
+	users := map[string]interface{}{
 	}
 
-	return http.DefaultClient.Do(request)
+	return messageExchange(users, "GET", usersURL)
 }
 
-func deleteUser(handle string, password string, sessionid string) (*http.Response, error) {
-	credentials := "{\"Handle\": \"" + handle +
-		"\", \"Password\": \"" + password +
-		"\", \"SessionId\": \"" + sessionid + "\"}"
-
-	reader = strings.NewReader(credentials)
-
-	request, err := http.NewRequest("DELETE", userURL, reader)
-	if err != nil {
-		log.Fatal(err)
+func deleteUser(handle string, password string, sessionId string) (*http.Response, error) {
+	credentials := map[string]interface{}{
+		"Handle": handle,
+		"Password": password,
+		"SessionId": sessionId,
 	}
 
-	return http.DefaultClient.Do(request)
+	return messageExchange(credentials, "DELETE", userURL)
 }
 
 func postCircles(handle string, sessionId string, circleName string, public bool) (*http.Response, error) {
-	payload := "{\"Handle\": \"" + handle + "\", \"SessionId\": \"" + sessionId + "\", \"CircleName\": \"" + circleName + "\", \"Public\": \"" + strconv.FormatBool(public) + "\"}"
-
-	reader = strings.NewReader(payload)
-
-	request, err := http.NewRequest("POST", circlesURL, reader)
-	if err != nil {
-		log.Fatal(err)
+	payload := map[string]interface{}{
+		"Handle": handle,
+		"SessionId": sessionId,
+		"CircleName": circleName,
+		"Public": public,
 	}
 
-	return http.DefaultClient.Do(request)
+	return messageExchange(payload, "POST", circlesURL)
 }
 
 func postBlock(handle string, sessionId string, target string) (*http.Response, error) {
-	payload := "{\"Handle\": \"" + handle + "\", \"SessionId\": \"" + sessionId + "\", \"Target\": \"" + target + "\"}"
-
-	reader = strings.NewReader(payload)
-
-	request, err := http.NewRequest("POST", blockURL, reader)
-	if err != nil {
-		log.Fatal(err)
+	payload := map[string]interface{}{
+		"Handle": handle,
+		"SessionId": sessionId,
+		"Target": target,
 	}
 
-	return http.DefaultClient.Do(request)
+	return messageExchange(payload, "POST", blockURL)
 }
 
 func postJoinDefault(handle string, sessionId string, target string) (*http.Response, error) {
-	payload := "{\"Handle\": \"" + handle + "\", \"SessionId\": \"" + sessionId + "\", \"Target\": \"" + target + "\"}"
-
-	reader = strings.NewReader(payload)
-
-	request, err := http.NewRequest("POST", joindefaultURL, reader)
-	if err != nil {
-		log.Fatal(err)
+	payload := map[string]interface{}{
+		"Handle": handle,
+		"SessionId": sessionId,
+		"Target": target,
 	}
 
-	return http.DefaultClient.Do(request)
+	return messageExchange(payload, "POST", joindefaultURL)
 }
 
 func postJoin(handle string, sessionId string, target string, circle string) (*http.Response, error) {
-	payload := "{\"Handle\": \"" + handle + "\", \"SessionId\": \"" + sessionId + "\", \"Target\": \"" + target + "\", \"Circle\": \"" + circle + "\" }"
-
-	reader = strings.NewReader(payload)
-
-	request, err := http.NewRequest("POST", joinURL, reader)
-	if err != nil {
-		log.Fatal(err)
+	payload := map[string]interface{}{
+		"Handle": handle,
+		"SessionId": sessionId,
+		"Target": target,
+		"Circle": circle,
 	}
 
-	return http.DefaultClient.Do(request)
+	return messageExchange(payload, "POST", joinURL)
 }
 
 //
