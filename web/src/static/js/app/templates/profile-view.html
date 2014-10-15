@@ -2,77 +2,75 @@
     <h3 id="containerHeader">Profile</h3>
 
 	<div class="row">
-	  <div class="col-xs-6 col-md-4">
+	  <div class="col-xs-6 col-md-3">
 	  	<img src="..." class="img-circle" alt="Responsive image">
-	  	<div class="form-group">
 		    <label for="exampleInputFile">File input</label>
 		    <input type="file" id="exampleInputFile">
 		    <p class="help-block">Example block-level help text here.</p>
-	  	</div>
 	  </div>
 	</div>
-
-	<div id="profileForm" class="row">
-	  <div class="form-group 1">
-	    <label class="col-sm-3 control-label">First Name</label>
-	    <div>
-	        <input id="location" type="text" name="Location" class="form-control"
-	           placeholder="Life is Good" data-role="tagsinput"/>
-	    </div>
-	  </div>
-
-	  <div class="form-group 2">
-	    <label class="col-sm-3 control-label">Last Name</label>
-	    <div>
-	        <input id="location" type="text" name="Location" class="form-control"
-	           placeholder="Life is Good" data-role="tagsinput"/>
-	    </div>
-	  </div>
-
-	  <div  class="form-group 3" id="gender">
-	      <label for="genderSelector" class="col-sm-3 control-label">Gender</label>
-		  <div class="col-xs-6 col-md-4">
-			<select id="genderSelector" class="form-control">
-			  <option>Male</option>
-			  <option>Female</option>
-			</select>
+    <div id="profileFieldsContainer">
+		<div id="profileForm" class="row">
+		  <div class="form-group 1">
+		    <label class="col-sm-3 control-label">First Name</label>
+		    <div class="profileInput">
+		        <input id="first-name" type="text" name="Location" class="form-control"
+		           placeholder="First Name" data-role="tagsinput"/>
+		    </div>
 		  </div>
-      </div>
 
-	  <div class="form-group 4" id="birthday">
-	  	<label for="genderSelector" class="col-sm-3 control-label">Your Age</label>
-	    <div class="col-xs-6 col-md-4">
-	      <form>
-		    <input type="date"  class="form-control" name="bday" min="1900-01-02">
-	      </form>
-	    </div>
-	  </div>
+		  <div class="form-group 2">
+		    <label class="col-sm-3 control-label">Last Name</label>
+		    <div class="profileInput">
+		        <input id="last-name" type="text" name="Location" class="form-control"
+		           placeholder="Last Name" data-role="tagsinput"/>
+		    </div>
+		  </div>
 
-	  <div class="form-group 5" id="location-form">
-	    <label class="col-sm-3 control-label">Location</label>
-	    <div>
-	        <input id="location" type="text" name="Location" class="form-control"
-	           placeholder="Los Angeles" data-role="tagsinput"/>
-	    </div>
-	  </div>
+		  <div  class="form-group 3" id="gender">
+		      <label for="genderSelector" class="col-sm-3 control-label">Gender</label>
+			  <div class="profileInput">
+				<select id="genderSelector" class="form-control">
+				  <option>Male</option>
+				  <option>Female</option>
+				</select>
+			  </div>
+	      </div>
 
-	  <div class="form-group 6">
-	    <label class="col-sm-3 control-label">Bio</label>
-	    <div>
-	        <input id="location" type="text" name="Location" class="form-control"
-	           placeholder="Life is Good" data-role="tagsinput"/>
-	    </div>
-	  </div>
+		  <div class="form-group 4" id="birthday">
+		  	<label class="col-sm-3 control-label">Your Age</label>
+		    <div class="profileInput">
+		      <form>
+			    <input type="date"  class="form-control" name="bday" min="1900-01-02">
+		      </form>
+		    </div>
+		  </div>
 
-	  <div class="form-group 7">
-	    <label class="col-sm-3 control-label">Interests</label>
-	    <div>
-	        <input id="location" type="text" name="Location" class="form-control"
-	           placeholder="Watching TV, Playing Soccer" data-role="tagsinput"/>
-	    </div>
-	  </div>
+		  <div class="form-group 5">
+		    <label class="col-sm-3 control-label">Location</label>
+		    <div class="profileInput">
+		        <input id="location" type="text" name="Location" class="form-control"
+		           placeholder="Los Angeles" data-role="tagsinput"/>
+		    </div>
+		  </div>
 
-	</div>
+		  <div class="form-group 6">
+		    <label class="col-sm-3 control-label">Bio</label>
+		    <div class="profileInput">
+		        <input type="text" name="Location" class="form-control"
+		           placeholder="Life is Good" data-role="tagsinput"/>
+		    </div>
+		  </div>
 
+		  <div class="form-group 7">
+		    <label class="col-sm-3 control-label">Interests</label>
+		    <div class="profileInput">
+		        <input type="text" name="Location" class="form-control"
+		           placeholder="Watching TV, Playing Soccer" data-role="tagsinput"/>
+		    </div>
+		  </div>
+
+		</div>
+    </div>
 </div>
 
