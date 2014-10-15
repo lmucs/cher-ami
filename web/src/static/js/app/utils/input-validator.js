@@ -8,6 +8,7 @@ define(function(require, exports, module) {
 	            invalid: 'glyphicon glyphicon-remove',
 	            validating: 'glyphicon glyphicon-refresh'
 	        },
+
 	        fields: {
 	        	handle: {
 	        		message: 'The username is not valid',
@@ -41,6 +42,35 @@ define(function(require, exports, module) {
 	                    }
 	                }
 	            },
+
+	            password: {
+	            	validators: {
+	            		notEmpty: {
+                            message: 'The password is required and cannot be empty'
+                        },
+                    	different: {
+                            field: 'handle',
+                            message: 'The password cannot be the same as username'
+                        },
+                        stringLength: {
+                            min: 8,
+                             message: 'The password must have at least 8 characters'
+                        },
+                        identical: {
+                            field: 'confirmPassword',
+                            message: 'The password and its confirm are not the same'
+                        }
+	            	}
+	            },
+
+	            confirmPassword: {
+	                validators: {
+	                	identical: {
+                        	field: 'password',
+                            message: 'The password and its confirm are not the same'
+                        }
+	                }
+	            }
 
 	        }
         });
