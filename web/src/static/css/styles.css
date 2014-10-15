@@ -136,6 +136,10 @@ h1 {
 .profileInput {
     min-width: 50%;
 }
+#profileSaveButton{
+    float: right;
+    margin-right: 26%;
+}
 /*Message box css*/
 
 .main-message-box {
