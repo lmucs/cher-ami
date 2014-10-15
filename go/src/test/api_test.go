@@ -3,6 +3,7 @@ package api_test
 import (
 	api "../api"
 	routes "../routes"
+	b "bytes"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -13,9 +14,7 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
-	//"time"
 )
 
 // Flag for local testing.
@@ -125,15 +124,13 @@ func (s *TestSuite) TearDownSuite(c *C) {
 // Send/Receive Calls to API:
 //
 
-func messageExchange(m map[string]interface{}, httpMethod string, url string) (*http.Response, error) {
+func execute(httpMethod string, url string, m map[string]interface{}) (*http.Response, error) {
 	bytes, err := json.Marshal(m)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	reader = strings.NewReader(string(bytes))
-
-	request, err := http.NewRequest(httpMethod, url, reader)
+	request, err := http.NewRequest(httpMethod, url, b.NewReader(bytes))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -149,7 +146,7 @@ func postSignup(handle string, email string, password string, confirmPassword st
 		"ConfirmPassword": confirmPassword,
 	}
 
-	return messageExchange(proposal, "POST", signupURL)
+	return execute("POST", signupURL, proposal)
 }
 
 func postLogin(handle string, password string) (*http.Response, error) {
@@ -158,7 +155,7 @@ func postLogin(handle string, password string) (*http.Response, error) {
 		"Password": password,
 	}
 
-	return messageExchange(credentials, "POST", loginURL)
+	return execute("POST", loginURL, credentials)
 }
 
 func postLogout(handle string) (*http.Response, error) {
@@ -166,7 +163,7 @@ func postLogout(handle string) (*http.Response, error) {
 		"Handle": handle,
 	}
 
-	return messageExchange(user, "POST", logoutURL)
+	return execute("POST", logoutURL, user)
 }
 
 func getUser(handle string) (*http.Response, error) {
@@ -174,13 +171,13 @@ func getUser(handle string) (*http.Response, error) {
 		"Handle": handle,
 	}
 
-	return messageExchange(user, "GET", userURL)
+	return execute("GET", userURL, user)
 }
 
 func getUsers() (*http.Response, error) {
 	users := map[string]interface{}{}
 
-	return messageExchange(users, "GET", usersURL)
+	return execute("GET", usersURL, users)
 }
 
 func deleteUser(handle string, password string, sessionId string) (*http.Response, error) {
@@ -190,7 +187,7 @@ func deleteUser(handle string, password string, sessionId string) (*http.Respons
 		"SessionId": sessionId,
 	}
 
-	return messageExchange(credentials, "DELETE", userURL)
+	return execute("DELETE", userURL, credentials)
 }
 
 func postCircles(handle string, sessionId string, circleName string, public bool) (*http.Response, error) {
@@ -201,7 +198,7 @@ func postCircles(handle string, sessionId string, circleName string, public bool
 		"Public":     public,
 	}
 
-	return messageExchange(payload, "POST", circlesURL)
+	return execute("POST", circlesURL, payload)
 }
 
 func postBlock(handle string, sessionId string, target string) (*http.Response, error) {
@@ -211,7 +208,7 @@ func postBlock(handle string, sessionId string, target string) (*http.Response, 
 		"Target":    target,
 	}
 
-	return messageExchange(payload, "POST", blockURL)
+	return execute("POST", blockURL, payload)
 }
 
 func postJoinDefault(handle string, sessionId string, target string) (*http.Response, error) {
@@ -221,7 +218,7 @@ func postJoinDefault(handle string, sessionId string, target string) (*http.Resp
 		"Target":    target,
 	}
 
-	return messageExchange(payload, "POST", joindefaultURL)
+	return execute("POST", joindefaultURL, payload)
 }
 
 func postJoin(handle string, sessionId string, target string, circle string) (*http.Response, error) {
@@ -232,7 +229,7 @@ func postJoin(handle string, sessionId string, target string, circle string) (*h
 		"Circle":    circle,
 	}
 
-	return messageExchange(payload, "POST", joinURL)
+	return execute("POST", joinURL, payload)
 }
 
 //

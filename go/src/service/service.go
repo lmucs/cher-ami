@@ -1,7 +1,6 @@
 package service
 
 import (
-	// "bytes"
 	"fmt"
 	"github.com/dchest/uniuri"
 	"github.com/jmcvetta/neoism"
