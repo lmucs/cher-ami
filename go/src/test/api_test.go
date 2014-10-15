@@ -126,6 +126,22 @@ func (s *TestSuite) TearDownSuite(c *C) {
 // Send/Receive Calls to API:
 //
 
+func messageExchange(m map[string]interface{}, httpMethod string, url string) (*http.Response, error) {
+	bytes, err := json.Marshal(m)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	reader = strings.NewReader(string(bytes))
+
+	request, err := http.NewRequest(httpMethod, url, reader)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return http.DefaultClient.Do(request)
+}
+
 func postSignup(handle string, email string, password string, confirmPassword string) (*http.Response, error) {
 	proposal := "{\"Handle\": \"" + handle + "\", \"Email\": \"" + email + "\", \"Password\": \"" + password + "\", \"ConfirmPassword\": \"" + confirmPassword + "\"}"
 
