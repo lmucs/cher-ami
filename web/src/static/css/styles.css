@@ -140,6 +140,10 @@ h1 {
     max-width: 86%;
     margin-bottom: 10px;
 }
+#location-form {
+    margin-top: 100px;
+}
+
 #birthday {
     margin-top: 60px
 }
