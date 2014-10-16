@@ -45,9 +45,6 @@ const (
 // API util
 //
 
-/**
- * Requests
- */
 func (a Api) authenticate(handle string, sessionid string) bool {
 	ok, err := a.Svc.GoodSessionCredentials(handle, sessionid)
 	if err != nil {
@@ -55,91 +52,6 @@ func (a Api) authenticate(handle string, sessionid string) bool {
 	}
 
 	return ok
-}
-
-func (a Api) userExists(handle string) bool {
-	found := []struct {
-		Handle string `json:"user.handle"`
-	}{}
-	err := a.Svc.Db.Cypher(&neoism.CypherQuery{
-		Statement: `
-            MATCH (user:User {handle: {handle}})
-            RETURN user.handle
-        `,
-		Parameters: neoism.Props{
-			"handle": handle,
-		},
-		Result: &found,
-	})
-	panicErr(err)
-
-	return len(found) > 0
-}
-
-func (a Api) circleExists(target string, circleName string) bool {
-	found := []struct {
-		Name string `json:"c.name"`
-	}{}
-	err := a.Svc.Db.Cypher(&neoism.CypherQuery{
-		Statement: `
-            MATCH (t:User)
-            WHERE t.handle = {target}
-            MATCH (t)-[:CHIEF_OF]->(c:Circle)
-            WHERE c.name = {name}
-            RETURN c.name
-        `,
-		Parameters: neoism.Props{
-			"target": target,
-			"name":   circleName,
-		},
-		Result: &found,
-	})
-	panicErr(err)
-
-	return len(found) > 0
-}
-
-func (a Api) messageExists(handle string, lastSaved time.Time) bool {
-	count := []struct {
-		Count int `json:"count(m)"`
-	}{}
-	err := a.Svc.Db.Cypher(&neoism.CypherQuery{
-		Statement: `
-            MATCH (u:User {handle: {handle}})
-            OPTIONAL MATCH (u)-[:WROTE]->(m:Message {lastsaved: {lastsaved}})
-            RETURN count(m)
-        `,
-		Parameters: neoism.Props{
-			"handle":    handle,
-			"lastsaved": lastSaved,
-		},
-		Result: &count,
-	})
-	panicErr(err)
-
-	return count[0].Count > 0
-}
-
-func (a Api) hasBlocked(handle string, target string) bool {
-	blocked := []struct {
-		Count int `json:"count(r)"`
-	}{}
-	err := a.Svc.Db.Cypher(&neoism.CypherQuery{
-		Statement: `
-            MATCH (u:User {handle: {handle}})
-            MATCH (t:User {handle: {target}})
-            OPTIONAL MATCH (u)-[r:BLOCKED]->(t)
-            RETURN count(r)
-        `,
-		Parameters: neoism.Props{
-			"handle": handle,
-			"target": target,
-		},
-		Result: &blocked,
-	})
-	panicErr(err)
-
-	return blocked[0].Count > 0
 }
 
 //
@@ -266,7 +178,7 @@ func (a Api) Login(w rest.ResponseWriter, r *rest.Request) {
 	handle := credentials.Handle
 	password := []byte(credentials.Password)
 
-	if password_hash, ok := a.Svc.GetPasswordHash(handle); !ok {
+	if passwordHash, ok := a.Svc.GetPasswordHash(handle); !ok {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Invalid username or password, please try again.",
@@ -274,7 +186,7 @@ func (a Api) Login(w rest.ResponseWriter, r *rest.Request) {
 		return
 	} else {
 		// err is nil if successful, error
-		if err := bcrypt.CompareHashAndPassword(password_hash, password); err != nil {
+		if err := bcrypt.CompareHashAndPassword(passwordHash, password); err != nil {
 			w.WriteHeader(400)
 			w.WriteJson(map[string]string{
 				"Response": "Invalid username or password, please try again.",
@@ -308,7 +220,7 @@ func (a Api) Logout(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	if !a.userExists(user.Handle) {
+	if !a.Svc.UserExists(user.Handle) {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "That user doesn't exist",
@@ -414,7 +326,7 @@ func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	if password_hash, ok := a.Svc.GetPasswordHash(handle); !ok {
+	if passwordHash, ok := a.Svc.GetPasswordHash(handle); !ok {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Invalid username or password, please try again.",
@@ -422,7 +334,7 @@ func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
 		return
 	} else {
 		// err is nil if successful, error
-		if err := bcrypt.CompareHashAndPassword(password_hash, password); err != nil {
+		if err := bcrypt.CompareHashAndPassword(passwordHash, password); err != nil {
 			w.WriteHeader(400)
 			w.WriteJson(map[string]string{
 				"Response": "Invalid username or password, please try again.",
@@ -455,8 +367,8 @@ func (a Api) NewCircle(w rest.ResponseWriter, r *rest.Request) {
 
 	handle := payload.Handle
 	sessionid := payload.SessionId
-	circle_name := payload.CircleName
-	is_public := payload.Public
+	circleName := payload.CircleName
+	isPublic := payload.Public
 
 	if !a.authenticate(handle, sessionid) {
 		w.WriteHeader(400)
@@ -466,20 +378,20 @@ func (a Api) NewCircle(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	if circle_name == GOLD || circle_name == BROADCAST {
+	if circleName == GOLD || circleName == BROADCAST {
 		w.WriteHeader(403)
 		w.WriteJson(map[string]string{
-			"Response": circle_name + " is a reserved circle name",
+			"Response": circleName + " is a reserved circle name",
 		})
 		return
 	}
 
-	err := a.Svc.NewCircle(handle, circle_name, is_public)
+	err := a.Svc.NewCircle(handle, circleName, isPublic)
 	panicErr(err)
 
 	w.WriteHeader(201)
 	w.WriteJson(map[string]string{
-		"Response": "Created new circle " + circle_name + " for " + handle,
+		"Response": "Created new circle " + circleName + " for " + handle,
 	})
 }
 
@@ -615,7 +527,7 @@ func (a Api) PublishMessage(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	if !a.circleExists(handle, circle) {
+	if !a.Svc.CircleExists(handle, circle) {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Bad Request, could not find specified circle to publish to",
@@ -623,7 +535,7 @@ func (a Api) PublishMessage(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	if !a.messageExists(handle, lastsaved) {
+	if !a.Svc.MessageExists(handle, lastsaved) {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Bad Request, could not find intended message for publishing",
@@ -757,7 +669,7 @@ func (a Api) GetMessagesByHandle(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	if !a.userExists(author) {
+	if !a.Svc.UserExists(author) {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Bad request, user doesn't exist",
@@ -867,7 +779,7 @@ func (a Api) BlockUser(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	if !a.userExists(target) {
+	if !a.Svc.UserExists(target) {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Bad request, user " + target + " wasn't found",
@@ -878,9 +790,9 @@ func (a Api) BlockUser(w rest.ResponseWriter, r *rest.Request) {
 	a.Svc.RevokeMembershipBetween(handle, target)
 
 	// Block user
-	if block_occured, err := a.Svc.AddBlockedRelation(handle, target); err != nil {
+	if success, err := a.Svc.AddBlockedRelation(handle, target); err != nil {
 		panicErr(err)
-	} else if block_occured {
+	} else if success {
 		w.WriteHeader(200)
 		w.WriteJson(map[string]string{
 			"Response": "User " + target + " has been blocked",
@@ -891,7 +803,6 @@ func (a Api) BlockUser(w rest.ResponseWriter, r *rest.Request) {
 			"Response": "Unexpected failure to block user",
 		})
 	}
-
 }
 
 func (a Api) JoinDefault(w rest.ResponseWriter, r *rest.Request) {
@@ -917,7 +828,7 @@ func (a Api) JoinDefault(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	if !a.userExists(target) {
+	if !a.Svc.UserExists(target) {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Bad request, user " + target + " wasn't found",
@@ -925,7 +836,7 @@ func (a Api) JoinDefault(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	if a.hasBlocked(handle, target) {
+	if a.Svc.BlockExistsFromTo(handle, target) {
 		w.WriteHeader(403)
 		w.WriteJson(map[string]string{
 			"Response": "Server refusal to comply with join request",
@@ -972,7 +883,7 @@ func (a Api) Join(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	if !a.userExists(target) {
+	if !a.Svc.UserExists(target) {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Bad request, user " + payload.Target + " wasn't found",
@@ -980,7 +891,7 @@ func (a Api) Join(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	if a.hasBlocked(handle, target) {
+	if a.Svc.BlockExistsFromTo(handle, target) {
 		w.WriteHeader(403)
 		w.WriteJson(map[string]string{
 			"Response": "Server refusal to comply with join request",
@@ -988,7 +899,7 @@ func (a Api) Join(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	if !a.circleExists(target, circle) {
+	if !a.Svc.CircleExists(target, circle) {
 		w.WriteHeader(404)
 		w.WriteJson(map[string]string{
 			"Response": "Could not find target circle, join failed",
