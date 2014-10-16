@@ -16,18 +16,22 @@ define(function(require, exports, module) {
     var CommentsView = require('app/views/comments-view').CommentsView;
     var CommentView = require('app/views/comment-view').CommentView;
     var Comment = require('app/models/comment').Comment;
-    var Commments = require('app/collections/comments').Comments;
+    var Comments = require('app/collections/comments').Comments;
     var AppController = marionette.Controller.extend({
 
         initialize: function(options) {
             this.app = app;
 
             var test = new Messages();
+            var testComment = new Comments();
 
             // Initialization of views will go here.
             this.app.headerRegion.show(new HeaderView());
-            this.app.mainRegion.show(new MessagesView({
-                collection: test
+            // this.app.mainRegion.show(new MessagesView({
+            //     collection: test
+            // }));
+            this.app.mainRegion.show(new CommentsView({
+                collection: testComment
             }));
             // this.app.mainRegion.show(new ProfileView());
             // this.app.footerRegion.show(new FooterView());

@@ -184,3 +184,18 @@ h1 {
     overflow: auto;
     resize: none;
 }
+
+/*Comments box css*/
+
+.main-comment-area {
+    background-color: pink;
+    overflow-wrap: break-word ;
+}
+
+textarea#commentInput {
+    resize: none;
+    width: 100%;
+    position: relative;
+    padding: 8px 16px;
+    border: 2px solid darkgray;
+}
