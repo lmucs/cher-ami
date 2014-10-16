@@ -22,6 +22,7 @@ public class SignUpActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sign_up);
+        getActionBar().hide();
 
         //Get handle, email, password, and confirm fields
         mUsername = (EditText)findViewById(R.id.username);
