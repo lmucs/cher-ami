@@ -178,7 +178,7 @@ func (a Api) Login(w rest.ResponseWriter, r *rest.Request) {
 	handle := credentials.Handle
 	password := []byte(credentials.Password)
 
-	if password_hash, ok := a.Svc.GetPasswordHash(handle); !ok {
+	if passwordHash, ok := a.Svc.GetPasswordHash(handle); !ok {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Invalid username or password, please try again.",
@@ -186,7 +186,7 @@ func (a Api) Login(w rest.ResponseWriter, r *rest.Request) {
 		return
 	} else {
 		// err is nil if successful, error
-		if err := bcrypt.CompareHashAndPassword(password_hash, password); err != nil {
+		if err := bcrypt.CompareHashAndPassword(passwordHash, password); err != nil {
 			w.WriteHeader(400)
 			w.WriteJson(map[string]string{
 				"Response": "Invalid username or password, please try again.",
@@ -326,7 +326,7 @@ func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	if password_hash, ok := a.Svc.GetPasswordHash(handle); !ok {
+	if passwordHash, ok := a.Svc.GetPasswordHash(handle); !ok {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Invalid username or password, please try again.",
@@ -334,7 +334,7 @@ func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
 		return
 	} else {
 		// err is nil if successful, error
-		if err := bcrypt.CompareHashAndPassword(password_hash, password); err != nil {
+		if err := bcrypt.CompareHashAndPassword(passwordHash, password); err != nil {
 			w.WriteHeader(400)
 			w.WriteJson(map[string]string{
 				"Response": "Invalid username or password, please try again.",
@@ -367,8 +367,8 @@ func (a Api) NewCircle(w rest.ResponseWriter, r *rest.Request) {
 
 	handle := payload.Handle
 	sessionid := payload.SessionId
-	circle_name := payload.CircleName
-	is_public := payload.Public
+	circleName := payload.CircleName
+	isPublic := payload.Public
 
 	if !a.authenticate(handle, sessionid) {
 		w.WriteHeader(400)
@@ -378,20 +378,20 @@ func (a Api) NewCircle(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	if circle_name == GOLD || circle_name == BROADCAST {
+	if circleName == GOLD || circleName == BROADCAST {
 		w.WriteHeader(403)
 		w.WriteJson(map[string]string{
-			"Response": circle_name + " is a reserved circle name",
+			"Response": circleName + " is a reserved circle name",
 		})
 		return
 	}
 
-	err := a.Svc.NewCircle(handle, circle_name, is_public)
+	err := a.Svc.NewCircle(handle, circleName, isPublic)
 	panicErr(err)
 
 	w.WriteHeader(201)
 	w.WriteJson(map[string]string{
-		"Response": "Created new circle " + circle_name + " for " + handle,
+		"Response": "Created new circle " + circleName + " for " + handle,
 	})
 }
 
@@ -790,9 +790,9 @@ func (a Api) BlockUser(w rest.ResponseWriter, r *rest.Request) {
 	a.Svc.RevokeMembershipBetween(handle, target)
 
 	// Block user
-	if block_occured, err := a.Svc.AddBlockedRelation(handle, target); err != nil {
+	if success, err := a.Svc.AddBlockedRelation(handle, target); err != nil {
 		panicErr(err)
-	} else if block_occured {
+	} else if success {
 		w.WriteHeader(200)
 		w.WriteJson(map[string]string{
 			"Response": "User " + target + " has been blocked",
@@ -803,7 +803,6 @@ func (a Api) BlockUser(w rest.ResponseWriter, r *rest.Request) {
 			"Response": "Unexpected failure to block user",
 		})
 	}
-
 }
 
 func (a Api) JoinDefault(w rest.ResponseWriter, r *rest.Request) {
