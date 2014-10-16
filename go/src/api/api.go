@@ -458,8 +458,6 @@ func (a Api) NewCircle(w rest.ResponseWriter, r *rest.Request) {
 	circle_name := payload.CircleName
 	is_public := payload.Public
 
-	fmt.Println(is_public)
-
 	if !a.authenticate(handle, sessionid) {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{

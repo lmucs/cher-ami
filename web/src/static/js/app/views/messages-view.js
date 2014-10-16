@@ -14,9 +14,12 @@ define(function(require, exports, module) {
         ui: {
             submit: '#submitButton',
             postArea: '#postArea',
+<<<<<<< HEAD
             messageArea: '#messages',
             messageBox: '#message-box',
             postContainer: '#postContainer'
+=======
+>>>>>>> FETCH_HEAD
         },
 
         events: {

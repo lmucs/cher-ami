@@ -1,7 +1,6 @@
 package service
 
 import (
-	// "bytes"
 	"fmt"
 	"github.com/dchest/uniuri"
 	"github.com/jmcvetta/neoism"
@@ -210,12 +209,15 @@ func (s Svc) NewCircle(handle string, circle_name string, is_public bool) error 
 	query := `
         MATCH (u:User)
         WHERE u.handle = {handle}
-        CREATE UNIQUE (u)-[:CHIEF_OF]->(c:Circle {name: {name}})
+        CREATE (u)-[:CHIEF_OF]->(c:Circle)
+        SET c.name = {name}
     `
 	if is_public {
 		query = query + `
-            MATCH (p:PublicDomain {u:true})
-            CREATE UNIQUE (c)-[:PART_OF]->(p)
+            WITH u, c
+            MATCH (p:PublicDomain)
+            WHERE p.iam = "PublicDomain"
+            CREATE (c)-[:PART_OF]->(p)
         `
 	}
 	query = query + `
@@ -233,6 +235,9 @@ func (s Svc) NewCircle(handle string, circle_name string, is_public bool) error 
 		},
 		Result: &made,
 	})
+	if err != nil {
+		panicErr(err)
+	}
 	if len(made) != 1 {
 		panic(fmt.Sprintf("Incorrect results len in query1()\n\tgot %d, expected 1\n", len(made)))
 	}

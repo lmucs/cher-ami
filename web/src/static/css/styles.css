@@ -149,6 +149,7 @@ h1 {
     padding: 8px 16px;
     border: 2px solid darkgray; 
     position: relative;
+    overflow-wrap: break-word;
 }
 
 .message-box-icon {
@@ -178,3 +179,8 @@ h1 {
     border-radius: 7px;
     padding: 30px;
 };
+
+#postArea {
+    overflow: auto;
+    resize: none;
+}
