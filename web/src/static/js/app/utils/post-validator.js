@@ -26,6 +26,6 @@ define(function(require, exports, module) {
             }
         });
     }
+    
    exports.PostValidator = PostValidator;
-
 });

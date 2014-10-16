@@ -3,7 +3,6 @@ define(function(require, exports, module) {
     var marionette = require('marionette');
     var template = require('hbs!../templates/messages-view')
     var MessageView = require('app/views/message-view').MessageView;
-    
     var postValidator = require('app/utils/post-validator').PostValidator;
 
     var MessagesView = marionette.CompositeView.extend({
@@ -20,9 +19,9 @@ define(function(require, exports, module) {
         },
 
         events: {
-            'keyup #postContainer': 'PostValidat',
             'click #submitButton': 'onSubmit',
-            'keydown #postArea': 'onConfirm'
+            'keydown #postArea': 'onConfirm',
+            'keyup #postContainer': 'PostValidat'
         },
 
         onSubmit: function() {
@@ -37,10 +36,6 @@ define(function(require, exports, module) {
             console.log("Added");
         },
 
-        PostValidat: function(event) {
-            postValidator(this.ui.postArea)
-        },
-
         onConfirm: function(event) {
             var enterkey = 13;
             if (event.which == enterkey) {
@@ -51,6 +46,10 @@ define(function(require, exports, module) {
                 console.log(this.ui.postArea.val().length);
             }
             console.log("Enter key was pressed");
+        },
+
+        PostValidat: function(event) {
+            postValidator(this.ui.postArea)
         },
 
         initialize: function(options) {
