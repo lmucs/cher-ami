@@ -210,6 +210,30 @@ func (s Svc) GoodLoginCredentials(handle string, password string) (bool, error) 
 	return len(found) == 1, err
 }
 
+func (s Svc) BlockExistsFromTo(handle string, target string) bool {
+	found := []struct {
+		Relation int `json:"r"`
+	}{}
+	if err := s.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+            MATCH (u:User), (t:User)
+            WHERE u.handle = {handle}
+            AND   t.handle = {target}
+            MATCH (u)-[r:BLOCKED]->(t)
+            RETURN r
+        `,
+		Parameters: neoism.Props{
+			"handle": handle,
+			"target": target,
+		},
+		Result: &found,
+	}); err != nil {
+		panicErr(err)
+	}
+
+	return len(found) > 0
+}
+
 //
 // Creation
 //

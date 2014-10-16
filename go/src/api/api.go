@@ -54,28 +54,6 @@ func (a Api) authenticate(handle string, sessionid string) bool {
 	return ok
 }
 
-func (a Api) hasBlocked(handle string, target string) bool {
-	blocked := []struct {
-		Count int `json:"count(r)"`
-	}{}
-	err := a.Svc.Db.Cypher(&neoism.CypherQuery{
-		Statement: `
-            MATCH (u:User {handle: {handle}})
-            MATCH (t:User {handle: {target}})
-            OPTIONAL MATCH (u)-[r:BLOCKED]->(t)
-            RETURN count(r)
-        `,
-		Parameters: neoism.Props{
-			"handle": handle,
-			"target": target,
-		},
-		Result: &blocked,
-	})
-	panicErr(err)
-
-	return blocked[0].Count > 0
-}
-
 //
 // API
 //
@@ -859,7 +837,7 @@ func (a Api) JoinDefault(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	if a.hasBlocked(handle, target) {
+	if a.Svc.BlockExistsFromTo(handle, target) {
 		w.WriteHeader(403)
 		w.WriteJson(map[string]string{
 			"Response": "Server refusal to comply with join request",
@@ -914,7 +892,7 @@ func (a Api) Join(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	if a.hasBlocked(handle, target) {
+	if a.Svc.BlockExistsFromTo(handle, target) {
 		w.WriteHeader(403)
 		w.WriteJson(map[string]string{
 			"Response": "Server refusal to comply with join request",
