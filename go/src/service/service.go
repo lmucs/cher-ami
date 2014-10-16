@@ -88,6 +88,54 @@ func (s Svc) UserExists(handle string) bool {
 	return len(found) > 0
 }
 
+func (s Svc) CircleExists(target string, circleName string) bool {
+	found := []struct {
+		Name string `json:"c.name"`
+	}{}
+	if err := s.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+            MATCH (t:User)
+            WHERE t.handle = {target}
+            MATCH (t)-[:CHIEF_OF]->(c:Circle)
+            WHERE c.name = {name}
+            RETURN c.name
+        `,
+		Parameters: neoism.Props{
+			"target": target,
+			"name":   circleName,
+		},
+		Result: &found,
+	}); err != nil {
+		panicErr(err)
+	}
+
+	return len(found) > 0
+}
+
+func (s Svc) MessageExists(handle string, lastSaved time.Time) bool {
+	found := []struct {
+		Id int `json:"id(m)"`
+	}{}
+	if err := s.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+            MATCH (u:User)
+            WHERE u.handle = {handle}
+            MATCH (u)-[:WROTE]->(m:Message)
+            WHERE m.lastsaved = {lastsaved}
+            RETURN id(m)
+        `,
+		Parameters: neoism.Props{
+			"handle":    handle,
+			"lastsaved": lastSaved,
+		},
+		Result: &found,
+	}); err != nil {
+		panicErr(err)
+	}
+
+	return len(found) > 0
+}
+
 func (s Svc) HandleIsUnique(handle string) (bool, error) {
 	found := []struct {
 		Handle string `json:"u.handle"`

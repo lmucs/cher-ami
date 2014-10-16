@@ -45,9 +45,6 @@ const (
 // API util
 //
 
-/**
- * Requests
- */
 func (a Api) authenticate(handle string, sessionid string) bool {
 	ok, err := a.Svc.GoodSessionCredentials(handle, sessionid)
 	if err != nil {
@@ -55,50 +52,6 @@ func (a Api) authenticate(handle string, sessionid string) bool {
 	}
 
 	return ok
-}
-
-func (a Api) circleExists(target string, circleName string) bool {
-	found := []struct {
-		Name string `json:"c.name"`
-	}{}
-	err := a.Svc.Db.Cypher(&neoism.CypherQuery{
-		Statement: `
-            MATCH (t:User)
-            WHERE t.handle = {target}
-            MATCH (t)-[:CHIEF_OF]->(c:Circle)
-            WHERE c.name = {name}
-            RETURN c.name
-        `,
-		Parameters: neoism.Props{
-			"target": target,
-			"name":   circleName,
-		},
-		Result: &found,
-	})
-	panicErr(err)
-
-	return len(found) > 0
-}
-
-func (a Api) messageExists(handle string, lastSaved time.Time) bool {
-	count := []struct {
-		Count int `json:"count(m)"`
-	}{}
-	err := a.Svc.Db.Cypher(&neoism.CypherQuery{
-		Statement: `
-            MATCH (u:User {handle: {handle}})
-            OPTIONAL MATCH (u)-[:WROTE]->(m:Message {lastsaved: {lastsaved}})
-            RETURN count(m)
-        `,
-		Parameters: neoism.Props{
-			"handle":    handle,
-			"lastsaved": lastSaved,
-		},
-		Result: &count,
-	})
-	panicErr(err)
-
-	return count[0].Count > 0
 }
 
 func (a Api) hasBlocked(handle string, target string) bool {
@@ -596,7 +549,7 @@ func (a Api) PublishMessage(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	if !a.circleExists(handle, circle) {
+	if !a.Svc.CircleExists(handle, circle) {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Bad Request, could not find specified circle to publish to",
@@ -604,7 +557,7 @@ func (a Api) PublishMessage(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	if !a.messageExists(handle, lastsaved) {
+	if !a.Svc.MessageExists(handle, lastsaved) {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Bad Request, could not find intended message for publishing",
@@ -969,7 +922,7 @@ func (a Api) Join(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	if !a.circleExists(target, circle) {
+	if !a.Svc.CircleExists(target, circle) {
 		w.WriteHeader(404)
 		w.WriteJson(map[string]string{
 			"Response": "Could not find target circle, join failed",
