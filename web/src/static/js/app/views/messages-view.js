@@ -3,6 +3,8 @@ define(function(require, exports, module) {
     var marionette = require('marionette');
     var template = require('hbs!../templates/messages-view')
     var MessageView = require('app/views/message-view').MessageView;
+    
+    var postValidator = require('app/utils/post-validator').PostValidator;
 
     var MessagesView = marionette.CompositeView.extend({
         childView: MessageView,
@@ -14,10 +16,11 @@ define(function(require, exports, module) {
             postArea: '#postArea',
             messageArea: '#messages',
             messageBox: '#message-box',
-
+            postContainer: '#postContainer'
         },
 
         events: {
+            'keyup #postContainer': 'PostValidat',
             'click #submitButton': 'onSubmit',
             'keydown #postArea': 'onConfirm'
         },
@@ -32,6 +35,10 @@ define(function(require, exports, module) {
             this.ui.postArea.val('');
 
             console.log("Added");
+        },
+
+        PostValidat: function(event) {
+            postValidator(this.ui.postArea)
         },
 
         onConfirm: function(event) {
