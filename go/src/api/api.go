@@ -57,25 +57,6 @@ func (a Api) authenticate(handle string, sessionid string) bool {
 	return ok
 }
 
-func (a Api) userExists(handle string) bool {
-	found := []struct {
-		Handle string `json:"user.handle"`
-	}{}
-	err := a.Svc.Db.Cypher(&neoism.CypherQuery{
-		Statement: `
-            MATCH (user:User {handle: {handle}})
-            RETURN user.handle
-        `,
-		Parameters: neoism.Props{
-			"handle": handle,
-		},
-		Result: &found,
-	})
-	panicErr(err)
-
-	return len(found) > 0
-}
-
 func (a Api) circleExists(target string, circleName string) bool {
 	found := []struct {
 		Name string `json:"c.name"`
@@ -308,7 +289,7 @@ func (a Api) Logout(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	if !a.userExists(user.Handle) {
+	if !a.Svc.UserExists(user.Handle) {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "That user doesn't exist",
@@ -757,7 +738,7 @@ func (a Api) GetMessagesByHandle(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	if !a.userExists(author) {
+	if !a.Svc.UserExists(author) {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Bad request, user doesn't exist",
@@ -867,7 +848,7 @@ func (a Api) BlockUser(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	if !a.userExists(target) {
+	if !a.Svc.UserExists(target) {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Bad request, user " + target + " wasn't found",
@@ -917,7 +898,7 @@ func (a Api) JoinDefault(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	if !a.userExists(target) {
+	if !a.Svc.UserExists(target) {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Bad request, user " + target + " wasn't found",
@@ -972,7 +953,7 @@ func (a Api) Join(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	if !a.userExists(target) {
+	if !a.Svc.UserExists(target) {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Bad request, user " + payload.Target + " wasn't found",
