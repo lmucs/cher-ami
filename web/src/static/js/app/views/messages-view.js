@@ -20,12 +20,11 @@ define(function(require, exports, module) {
 
         events: {
             'click #submitButton': 'onSubmit',
-            'keydown #postArea': 'onConfirm',
             'keyup #postContainer': 'PostValidat'
         },
 
         onSubmit: function() {
-            if(this.ui.postArea.val() !== '') {
+            if(this.ui.postArea.val()) {
                 this.collection.add({
                     messageData: this.ui.postArea.val()
                 })
@@ -34,18 +33,6 @@ define(function(require, exports, module) {
             this.ui.postArea.val('');
 
             console.log("Added");
-        },
-
-        onConfirm: function(event) {
-            var enterkey = 13;
-            if (event.which == enterkey) {
-                this.collection.add({
-                    messageData: this.ui.postArea.val()
-                })
-                this.ui.postArea.val('');
-                console.log(this.ui.postArea.val().length);
-            }
-            console.log("Enter key was pressed");
         },
 
         PostValidat: function(event) {
