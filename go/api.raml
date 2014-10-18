@@ -1,0 +1,105 @@
+#%RAML 0.8
+---
+title: CherAmi API
+baseUri: http://localhost:8228/api/
+
+/users:
+  get:
+    description: Search for Users
+    queryParameters:
+      search_term:
+        displayName: Search Term
+        type:        string
+        description: A search term that will match the start of user handles
+        example:     foo (to match users like fooman, footballguy, foo_star)
+        required:    true
+      limit:
+        displayName: Limit
+        type:        int
+        description: The number of results to return
+        example:     100
+        minimum:     1
+        required:    false
+    responses:
+      200:
+        body:
+          application/json:
+            example: |
+              {
+                "Response": "success!",
+                "Count": "7",
+                "Data": [
+                  {"handle": "fooman", "name": "Foo Jan"} ,
+                  {"handle": "footballguy", "name": "Grant Scorbrek"}
+                ]
+              }
+      400:
+        body:
+          application/json:
+            example: |
+              {
+                "Response": "No search done",
+                "Error": "Search term required",
+                "Data": []
+              }
+  post:
+    queryParameters:
+      handle:
+        displayName: Handle
+        type:        string
+        description: The main identity of a user, sometimes referred to with a preceeding `@` sign. Example: `@the_tech_bloggers`
+        example:     the_tech_bloggers
+        required:    true
+      email:
+        displayName: Email
+        type:        string
+        description: The user's email address
+        examples:    jappleseed@mail.io
+        required:    true
+      password:
+        displayName: Password
+        type:        string
+        description: A user's password proposal. Expected to match confirmPassword
+        example:     $24hawaii1000
+        required:    true
+      confirmPassword:
+        displayName: ConfirmPassword
+        type:        string
+        description: A confirmation field. Expected to match password
+        example:     $24hawaii1000 (same as password)
+        required:    true
+  /{id}:
+    get:
+    post:
+    delete:
+    /reputation:
+      get:
+      post:
+/sessions:
+  post:
+  delete:
+/circles:
+  get:
+  post:
+/circle:
+  /{id}:
+    get:
+    post:
+    /members:
+      post:
+    /blocked:
+      get:
+      post:
+/messages:
+  get:
+  post:
+  /{id}:
+    get:
+    delete:
+    /comments:
+      get:
+      post:
+      /{id}:
+        get:
+        delete:
+
