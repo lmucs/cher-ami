@@ -16,9 +16,10 @@ If the authorization header is missing, or the token is invalid or expired, an H
 + Request
 
         {
-            "handle": "my handle",
-            "email": "my email",
-            "password": "my password"
+            "handle": "pelé",
+            "name": "Edson Arantes do Nascimento",
+            "email": "number10@brasil.example.com",
+            "password": "Brasil Uber Alles"
         }
 + Response 201
 
@@ -26,6 +27,9 @@ If the authorization header is missing, or the token is invalid or expired, an H
             "url": "http://cher-ami.example.com/users/206",
             "handle": "pelé",
             "name": "Edson Arantes do Nascimento",
+            "email": "number10@brasil.example.com",
+            "status": "new",
+            "reputation": 1,
             "circles": [
                 {"name": "public", "url": "http://cher-ami.example.com/circles/207"},
                 {"name": "gold", "url": "http://cher-ami.example.com/circles/208"}
@@ -34,7 +38,17 @@ If the authorization header is missing, or the token is invalid or expired, an H
 + Response 400
 
         {
-            "reason": "malformed json|handle already used|email already used|password too weak"
+            "reason": "malformed json"
+        }
++ Response 403
+
+        {
+            "reason": "password too weak"
+        }
++ Response 409
+
+        {
+            "reason": "handle already used|email already used"
         }
 
 ## Login and Logout [/sessions]
@@ -57,7 +71,7 @@ If the username/password combination is valid, generate and return a token.
         {
             "reason": "malformed json"
         }
-+ Response 404
++ Response 403
 
         {
             "reason": "invalid email/password combination"
@@ -69,40 +83,116 @@ If the username/password combination is valid, generate and return a token.
 
             Authorization: Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 + Response 204
++ Response 400
+
+        {
+            "reason": "cannot invalidate token because it is missing or already invalid or expired"
+        }
 
 
 ## Get Users [/users{?circle,before,limit}]
 
 ### Get users [GET]
-Users are returned by join datetime, descending
+Search for, or simply fetch, some desired set of users. Users are returned by join datetime, descending.
 
 + Parameters
     + circle (optional, string) ... if present, only return users from this circle
     + before (optional, string, `2014-01-01`) ... return only users joined before this datetime
-    + limit (optional, number, `20`) ... max number of results to return, for pagination
+    + limit (optional, number, `20`) ... max number of results to return, for pagination, default 20, max 100
 
 + Request
     + Headers
 
             Authorization: Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-
-
 + Response 200
+
+        [
+            {
+                "url": "http://cher-ami.example.com/users/206",
+                "handle": "pelé",
+                "name": "Edson Arantes do Nascimento",
+            },
+            . . .
+        ]
 + Response 400
+
+        {
+            "reason": "malformed json|illegal date|illegal limit|limit out of range"
+        }
 + Response 401
+
+        {
+            "reason": "missing, illegal, or expired token"
+        }
 + Response 403
+
+        {
+            "reason": "you do not own or belong to this circle"
+        }
 
 ## Single User [/users/{handle}]
 
 ### Get user by handle [GET]
 Get user's profile and other information
++ Request
+    + Headers
+
+            Authorization: Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 + Response 200
+
+        {
+            "url": "http://cher-ami.example.com/users/206",
+            "avatar_url": "https://images.cher-ami.example.com/users/206",
+            "handle": "pelé",
+            "name": "Edson Arantes do Nascimento",
+            "email": "number10@brasil.example.com",
+            "status": "retired, but coaching",
+            "reputation": 1435346,
+            "joined": "2011-06-30",
+            "circles": [
+                {"name": "public", "url": "http://cher-ami.example.com/circles/207"},
+                {"name": "gold", "url": "http://cher-ami.example.com/circles/208"}
+            ]
+        }
++ Response 401
+
+        {
+            "reason": "missing, illegal, or expired token"
+        }
 
 ### Edit user [PATCH]
-+ Response 200
++ Request
+    + Headers
+
+            Authorization: Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
++ Response 204
++ Response 401
+
+        {
+            "reason": "missing, illegal, or expired token"
+        }
++ Response 403
+
+        {
+            "reason": "you can only edit yourself unless you are an admin"
+        }
 
 ### Delete user [DELETE]
++ Request
+    + Headers
+
+            Authorization: Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 + Response 204
++ Response 401
+
+        {
+            "reason": "missing, illegal, or expired token"
+        }
++ Response 403
+
+        {
+            "reason": "you can only delete yourself unless you are an admin"
+        }
 
 ## Blocking [/users/:id/blocked]
 
