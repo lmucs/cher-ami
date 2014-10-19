@@ -35,6 +35,7 @@ public class SignUpActivity extends Activity {
     public void showLogin(View view) {
         Intent intent = new Intent(this, LoginActivity.class);
         startActivity(intent);
+        finish();
     }
 
     public void attemptCreateAccount(View view) {

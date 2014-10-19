@@ -91,6 +91,7 @@ public class LoginActivity extends Activity {
             // Sign them up; for now, redirect to Main
             Intent intent = new Intent(this, MainActivity.class);
             startActivity(intent);
+            finish();
         }
 
     }
