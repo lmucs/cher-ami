@@ -185,7 +185,7 @@ func (a Api) Login(w rest.ResponseWriter, r *rest.Request) {
 		})
 		return
 	} else {
-		// err is nil if successful, error
+		// err is nil if successful, error if comparison failed
 		if err := bcrypt.CompareHashAndPassword(passwordHash, password); err != nil {
 			w.WriteHeader(400)
 			w.WriteJson(map[string]string{

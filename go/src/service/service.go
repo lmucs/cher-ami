@@ -532,30 +532,35 @@ func (s Svc) GetPasswordHash(user string) (password_hash []byte, found bool) {
 // Node Attributes
 //
 
-func (s Svc) SetGetNewSessionId(handle string) (sessionid string, err error) {
-	sessionHash := uniuri.New()
-
+func (s Svc) SetGetNewSessionId(handle string) string {
 	created := []struct {
 		SessionId string `json:"u.sessionid"`
 	}{}
-	err = s.Db.Cypher(&neoism.CypherQuery{
+
+	sessionDuration := time.Hour
+
+	if err = s.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
-                MATCH (u:User)
-                WHERE u.handle = {handle}
-                SET u.sessionid = {sessionid}
-                return u.sessionid
+                MATCH  (u:User)
+                WHERE  u.handle    = {handle}
+                SET    u.sessionid = {sessionid}
+                SET    u.session_expires_at = {time}
+                RETURN u.sessionid
             `,
 		Parameters: neoism.Props{
 			"handle":    handle,
-			"sessionid": sessionHash,
+			"sessionid": uniuri.New(uniuri.UUIDLen),
+			"time":      time.Now().Local().Add(sessionDuration),
 		},
 		Result: &created,
-	})
+	}); err != nil {
+		panicErr(err)
+	}
 	if len(created) != 1 {
 		panic(fmt.Sprintf("Incorrect results len in query1()\n\tgot %d, expected 1\n", len(created)))
 	}
 
-	return created[0].SessionId, err
+	return created[0].SessionId
 }
 
 func (s Svc) UnsetSessionId(handle string) error {
