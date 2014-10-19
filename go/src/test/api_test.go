@@ -172,8 +172,12 @@ func getUser(handle string) (*http.Response, error) {
 	return helper.Execute("GET", userURL, payload)
 }
 
-func getUsers() (*http.Response, error) {
-	payload := map[string]interface{}{}
+func getUsersByTerm(searchTerm string, limit int) (*http.Response, error) {
+	payload := map[string]interface{}{
+		"search_term": searchTerm,
+		"limit":       limit,
+		"circle":      circle,
+	}
 
 	return helper.Execute("GET", usersURL, payload)
 }
@@ -271,33 +275,16 @@ func getJsonUserData(response *http.Response) string {
 	return user.Handle
 }
 
-func getJsonUsersData(response *http.Response) []string {
-	type Json struct {
-		Handle string
-		Joined string
-	}
+func getSearchResultData(response *http.Response) []map[string]interface{} {
+	data := []map[string]interface{}{}
 
-	var users []Json
-	data := []map[string]string{}
-	var handles []string
-
-	body, err := ioutil.ReadAll(response.Body)
-	if err != nil {
+	if body, err := ioutil.ReadAll(response.Body); err != nil {
+		log.Fatal(err)
+	} else if err := json.Unmarshal(body, &data); err != nil {
 		log.Fatal(err)
 	}
 
-	err = json.Unmarshal(body, &data)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	for i := range data {
-		user := Json{data[i]["Handle"], data[i]["Joined"]}
-		users = append(users, user)
-		handles = append(handles, data[i]["Handle"])
-	}
-
-	return handles
+	return data
 }
 
 //
@@ -566,13 +553,13 @@ func (s *TestSuite) TestGetUsersNotFound(c *C) {
 	c.Assert(response.StatusCode, Equals, 404)
 }
 
-func (s *TestSuite) TestGetUsersOK(c *C) {
-	postSignup("testing123", "testing123", "testing123", "testing123")
-	postSignup("testing132", "testing132", "testing132", "testing132")
-	postSignup("testing213", "testing213", "testing213", "testing213")
-	postSignup("testing231", "testing231", "testing231", "testing231")
-	postSignup("testing312", "testing312", "testing312", "testing312")
-	postSignup("testing321", "testing321", "testing321", "testing321")
+func (s *TestSuite) TestForUsersOK(c *C) {
+	postSignup("cat", "test1@test.io", "testing123", "testing123")
+	postSignup("bat", "test2@test.io", "testing132", "testing132")
+	postSignup("cat_woman", "test3@test.io", "testing213", "testing213")
+	postSignup("catsawesome", "test4@test.io", "testing231", "testing231")
+	postSignup("smart", "test5@test.io", "testing312", "testing312")
+	postSignup("battle", "test6@test.io", "testing321", "testing321")
 
 	response, err := getUsers()
 	if err != nil {

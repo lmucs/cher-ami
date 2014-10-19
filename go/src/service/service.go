@@ -504,28 +504,37 @@ func (s Svc) DeleteUser(handle string) bool {
 // Get
 //
 
-func (s Svc) GetHandleAndNameOf(user string) (handle string, name string, found bool) {
+func (s Svc) SearchForUsers(circle string, before time.Time, limit int) (results string, count int, found bool) {
 	res := []struct {
 		Handle string `json:"u.handle"`
 		Name   string `json:"u.name"`
+		Id     int    `json:"id(u)"`
 	}{}
 	if err := s.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
             MATCH (u:User)
-            WHERE u.handle = {handle}
-            RETURN u.handle, u.name
+            WHERE u.joined < {before}
+            RETURN u.handle, u.name, id(u)
+            LIMIT {limit}
         `,
 		Parameters: neoism.Props{
-			"handle": user,
+			"regex":  regex,
+			"before": before,
+			"limit":  limit,
 		},
 		Result: &res,
 	}); err != nil {
 		panicErr(err)
-	} else if len(res) != 1 {
-		return "", "", len(res) > 0
+	} else if len(res) == 0 {
+		return "", 0, false
 	}
 
-	return res[0].Handle, res[0].Name, len(res) > 0
+	bytes, err := json.Marshall(res)
+	if err != nil {
+		panicErr(err)
+	}
+
+	return string(bytes), len(res), true
 }
 
 func (s Svc) GetPasswordHash(user string) (password_hash []byte, found bool) {

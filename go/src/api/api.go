@@ -326,27 +326,63 @@ func (a Api) ChangePassword(w rest.ResponseWriter, r *rest.Request) {
 // User
 //
 
-func (a Api) GetUser(w rest.ResponseWriter, r *rest.Request) {
-	user := struct {
-		Handle string
-	}{}
-	if err := r.DecodeJsonPayload(&user); err != nil {
-		rest.Error(w, err.Error(), http.StatusBadRequest)
-		return
+func (a Api) SearchForUsers(w rest.ResponseWriter, r *rest.Request) {
+	querymap := r.URL.Query()
+
+	var circle string
+	var nameprefix string
+	var skip int
+	var limit int
+	var sort string
+
+	if lim, ok := querymap["circle"]; !ok {
+		limit = 10
+	} else if lim > 100 {
+		w.WriteHeader(400)
+		w.WriteJson(map[string]interface{}{
+			"Results":  nil,
+			"Response": "Search failed",
+			"Reason":   "Limit " + lim + " exceeds max limit of 100",
+			"Count":    0,
+		})
 	}
 
-	if handle, name, found := a.Svc.GetHandleAndNameOf(user.Handle); found {
-		w.WriteHeader(200)
-		w.WriteJson(map[string]string{
-			"handle": handle,
-			"name":   name,
-		})
+	if prefix, ok := querymap["nameprefix"]; !ok {
+		nameprefix = ""
 	} else {
-		w.WriteHeader(404)
-		w.WriteJson(map[string]string{
-			"Response": "No results found",
-		})
+		nameprefix = prefix
 	}
+
+	if cir, ok := querymap["circle"]; !ok {
+		circle = ""
+	} else {
+		circle = cir
+	}
+
+	if sk, ok := querymap["skip"]; !ok {
+		skip = 0
+	} else {
+		skip = sk
+	}
+
+	if sr, ok := querymap["sort"]; !ok {
+		if sr != "name" && sr != "joined" {
+			w.WriteHeader(200)
+			w.WriteJson(map[string]interface{}{
+				"Results":  nil,
+				"Response": "Search failed",
+				"Reason":   "No such sort " + sr,
+				"Count":    0,
+			})
+		}
+	}
+
+	w.WriteHeader(200)
+	w.WriteJson(map[string]string{
+		"Results":  results,
+		"Response": "Search complete",
+		"Count":    count,
+	})
 }
 
 func (a Api) GetUsers(w rest.ResponseWriter, r *rest.Request) {
