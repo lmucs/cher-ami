@@ -37,8 +37,9 @@ func NewApi(uri string) *Api {
 
 // Circle constants
 const (
-	GOLD      = "Gold"
-	BROADCAST = "Broadcast"
+	GOLD            = "Gold"
+	BROADCAST       = "Broadcast"
+	MIN_PASS_LENGTH = 8
 )
 
 //
@@ -46,12 +47,7 @@ const (
 //
 
 func (a Api) authenticate(handle string, sessionid string) bool {
-	ok, err := a.Svc.GoodSessionCredentials(handle, sessionid)
-	if err != nil {
-		panicErr(err)
-	}
-
-	return ok
+	return a.Svc.GoodSessionCredentials(handle, sessionid)
 }
 
 //
@@ -99,14 +95,13 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 	}
 
 	// Password checks
-	const min_pass_length = 8
 	if password != confirm_password {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Passwords do not match",
 		})
 		return
-	} else if len(password) < min_pass_length {
+	} else if len(password) < MIN_PASS_LENGTH {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Passwords must be at least 8 characters long",
