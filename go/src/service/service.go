@@ -563,20 +563,29 @@ func (s Svc) SetGetNewSessionId(handle string) string {
 	return created[0].SessionId
 }
 
-func (s Svc) UnsetSessionId(handle string) error {
-	err := s.Db.Cypher(&neoism.CypherQuery{
+func (s Svc) UnsetSessionId(handle string) (targetLoggedOut bool) {
+	unset := []struct {
+		Handle string `json:"u.handle"`
+	}{}
+	if err := s.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
             MATCH (u:User)
             WHERE u.handle = {handle}
             REMOVE u.sessionid
+            AND    u.session_expires_at
+            RETURN u.handle
         `,
 		Parameters: neoism.Props{
 			"handle": handle,
 		},
-		Result: nil,
-	})
+		Result: &unset,
+	}); err != nil {
+		panicErr(err)
+	}
 
-	return err
+	targetLoggedOut = len(unset) > 0
+
+	return targetLoggedOut
 }
 
 func (s Svc) SetGetName(handle string, name string) string {
