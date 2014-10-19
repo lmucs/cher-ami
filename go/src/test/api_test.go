@@ -27,6 +27,7 @@ var (
 	signupURL      string
 	loginURL       string
 	logoutURL      string
+	changePassURL  string
 	userURL        string
 	usersURL       string
 	messagesURL    string
@@ -87,6 +88,7 @@ func (s *TestSuite) SetUpSuite(c *C) {
 	signupURL = fmt.Sprintf("%s/signup", server.URL)
 	loginURL = fmt.Sprintf("%s/login", server.URL)
 	logoutURL = fmt.Sprintf("%s/logout", server.URL)
+	changePassURL = fmt.Sprintf("%s/changepassword", server.URL)
 	userURL = fmt.Sprintf("%s/users/user", server.URL)
 	usersURL = fmt.Sprintf("%s/users", server.URL)
 	messagesURL = fmt.Sprintf("%s/messages", server.URL)
@@ -150,6 +152,18 @@ func postLogout(handle string) (*http.Response, error) {
 	}
 
 	return helper.Execute("POST", logoutURL, payload)
+}
+
+func postChangePassword(handle string, sessionid string, password string, newPassword string, confirmNewPassword string) (*http.Response, error) {
+	payload := map[string]interface{}{
+		"Handle":             handle,
+		"SessionId":          sessionid,
+		"Password":           password,
+		"NewPassword":        newPassword,
+		"ConfirmNewPassword": confirmNewPassword,
+	}
+
+	return helper.Execute("POST", changePassURL, payload)
 }
 
 func getUser(handle string) (*http.Response, error) {
@@ -468,6 +482,49 @@ func (s *TestSuite) TestLogoutOK(c *C) {
 
 	c.Check(getJsonResponseMessage(response), Equals, "Goodbye testing123, have a nice day")
 	c.Assert(response.StatusCode, Equals, 200)
+}
+
+//
+// ChangePassword Tests:
+//
+
+func (s *TestSuite) TestChangePasswordUserNoExist(c *C) {
+	response, err := postChangePassword("handleA", "1g2fg3j4", "password1", "password123", "password123")
+	if err != nil {
+		c.Error(err)
+	}
+	//fmt.Println(getJsonResponseMessage(response))
+	c.Check(getJsonResponseMessage(response), Equals, "Failed to authenticate user request")
+	c.Assert(response.StatusCode, Equals, 400)
+}
+
+func (s *TestSuite) TestChangePasswordSamePassword(c *C) {
+	postSignup("handleA", "handleA@test.io", "password123", "password123")
+
+	response, _ := postLogin("handleA", "password123")
+	_, sessionid := getJsonAuthenticationData(response)
+	response, err := postChangePassword("handleA", sessionid, "password123", "password123", "password123")
+	if err != nil {
+		c.Error(err)
+	}
+	c.Check(getJsonResponseMessage(response), Equals, "Current/new password are same, please provide a new password.")
+	c.Assert(response.StatusCode, Equals, 400)
+}
+
+func (s *TestSuite) TestChangePasswordOK(c *C) {
+	postSignup("handleA", "handleA@test.io", "password1", "password1")
+
+	var (
+		_         string
+		sessionid string
+	)
+	response, _ := postLogin("handleA", "password1")
+	_, sessionid = getJsonAuthenticationData(response)
+	response, err := postChangePassword("handleA", sessionid, "password1", "password12", "password12")
+	if err != nil {
+		c.Error(err)
+	}
+	c.Assert(response.StatusCode, Equals, 204)
 }
 
 //

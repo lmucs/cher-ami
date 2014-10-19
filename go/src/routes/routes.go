@@ -14,6 +14,7 @@ func MakeHandler(a cheramiapi.Api) (rest.ResourceHandler, error) {
 		&rest.Route{"POST", "/signup", a.Signup},
 		&rest.Route{"POST", "/login", a.Login},
 		&rest.Route{"POST", "/logout", a.Logout},
+		&rest.Route{"POST", "/changepassword", a.ChangePassword},
 		&rest.Route{"GET", "/users/user", a.GetUser},
 		&rest.Route{"GET", "/users", a.GetUsers},
 		&rest.Route{"DELETE", "/users/user", a.DeleteUser},

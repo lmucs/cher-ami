@@ -233,6 +233,92 @@ func (a Api) Logout(w rest.ResponseWriter, r *rest.Request) {
 	})
 }
 
+func (a Api) ChangePassword(w rest.ResponseWriter, r *rest.Request) {
+	user := struct {
+		Handle             string
+		SessionId          string
+		Password           string
+		NewPassword        string
+		ConfirmNewPassword string
+	}{}
+
+	err := r.DecodeJsonPayload(&user)
+	if err != nil {
+		rest.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	handle := user.Handle
+	sessionid := user.SessionId
+	password := []byte(user.Password)
+	newPassword := user.NewPassword
+	confirmNewPassword := user.ConfirmNewPassword
+
+	if !a.authenticate(handle, sessionid) {
+		w.WriteHeader(400)
+		w.WriteJson(map[string]string{
+			"Response": "Failed to authenticate user request",
+		})
+		return
+	}
+
+	// Password checks
+	if newPassword != confirmNewPassword {
+		w.WriteHeader(400)
+		w.WriteJson(map[string]string{
+			"Response": "Passwords do not match",
+		})
+		return
+	} else if len(newPassword) < MIN_PASS_LENGTH {
+		fmt.Println("")
+		w.WriteHeader(400)
+		w.WriteJson(map[string]string{
+			"Response": "Passwords must be at least 8 characters long",
+		})
+		return
+	}
+
+	if passwordHash, ok := a.Svc.GetPasswordHash(handle); !ok {
+		w.WriteHeader(400)
+		w.WriteJson(map[string]string{
+			"Response": "Invalid username or password, please try again.",
+		})
+		return
+	} else {
+		// err is nil if successful, error
+		if err := bcrypt.CompareHashAndPassword(passwordHash, password); err != nil {
+			w.WriteHeader(400)
+			w.WriteJson(map[string]string{
+				"Response": "Invalid username or password, please try again.",
+			})
+			return
+		} else if err := bcrypt.CompareHashAndPassword(passwordHash, []byte(newPassword)); err == nil {
+			w.WriteHeader(400)
+			w.WriteJson(map[string]string{
+				"Response": "Current/new password are same, please provide a new password.",
+			})
+			return
+		} else {
+			if hash, err := bcrypt.GenerateFromPassword([]byte(newPassword), 10); err != nil {
+				rest.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			} else {
+				hashed_new_pass := string(hash)
+				// Now set the new password
+				if !a.Svc.SetNewPassword(handle, hashed_new_pass) {
+					w.WriteHeader(400)
+					w.WriteJson(map[string]string{
+						"Response": "Password change unsuccessful",
+					})
+				} else {
+					// No response
+					w.WriteHeader(204)
+				}
+			}
+		}
+	}
+}
+
 //
 // User
 //

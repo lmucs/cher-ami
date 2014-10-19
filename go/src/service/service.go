@@ -192,7 +192,6 @@ func (s Svc) GoodSessionCredentials(handle string, sessionid string) bool {
 		panicErr(err)
 	}
 
-	return len(found) == 1, err
 	return len(found) > 0
 }
 
@@ -561,6 +560,31 @@ func (s Svc) SetGetNewSessionId(handle string) (sessionid string, err error) {
 	}
 
 	return created[0].SessionId, err
+}
+
+func (s Svc) SetNewPassword(handle string, password string) bool {
+	user := []struct {
+		Password string
+	}{}
+	if err := s.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+            MATCH (u:User)
+            WHERE u.handle = {handle}
+            SET u.password = {password}
+            RETURN u.password
+        `,
+		Parameters: neoism.Props{
+			"handle":   handle,
+			"password": password,
+		},
+		Result: &user,
+	}); err != nil {
+		panicErr(err)
+	} else if len(user) != 1 {
+		panic(fmt.Sprintf("Incorrect results len in query1()\n\tgot %d, expected 1\n", len(user)))
+	}
+
+	return len(user) > 0
 }
 
 func (s Svc) UnsetSessionId(handle string) error {
