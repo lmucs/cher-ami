@@ -85,8 +85,8 @@ func (s *TestSuite) SetUpSuite(c *C) {
 	server = httptest.NewServer(&handler)
 
 	signupURL = fmt.Sprintf("%s/signup", server.URL)
-	loginURL = fmt.Sprintf("%s/login", server.URL)
-	logoutURL = fmt.Sprintf("%s/logout", server.URL)
+	loginURL = fmt.Sprintf("%s/sessions", server.URL)
+	logoutURL = fmt.Sprintf("%s/sessions", server.URL)
 	userURL = fmt.Sprintf("%s/users/user", server.URL)
 	usersURL = fmt.Sprintf("%s/users", server.URL)
 	messagesURL = fmt.Sprintf("%s/messages", server.URL)
@@ -135,7 +135,7 @@ func postSignup(handle string, email string, password string, confirmPassword st
 	return helper.Execute("POST", signupURL, proposal)
 }
 
-func postLogin(handle string, password string) (*http.Response, error) {
+func postSessions(handle string, password string) (*http.Response, error) {
 	payload := map[string]interface{}{
 		"Handle":   handle,
 		"Password": password,
@@ -144,7 +144,7 @@ func postLogin(handle string, password string) (*http.Response, error) {
 	return helper.Execute("POST", loginURL, payload)
 }
 
-func postLogout(handle string) (*http.Response, error) {
+func deleteSessions(handle string) (*http.Response, error) {
 	payload := map[string]interface{}{
 		"Handle": handle,
 	}
@@ -397,7 +397,7 @@ func (s *TestSuite) TestSignupCreated(c *C) {
 //
 
 func (s *TestSuite) TestLoginUserNoExist(c *C) {
-	response, err := postLogin("handleA", "password1")
+	response, err := postSessions("handleA", "password1")
 	if err != nil {
 		c.Error(err)
 	}
@@ -409,7 +409,7 @@ func (s *TestSuite) TestLoginUserNoExist(c *C) {
 func (s *TestSuite) TestLoginInvalidUsername(c *C) {
 	postSignup("handleA", "test@test.io", "password1", "password1")
 
-	response, err := postLogin("wrong_username", "password1")
+	response, err := postSessions("wrong_username", "password1")
 	if err != nil {
 		c.Error(err)
 	}
@@ -421,7 +421,7 @@ func (s *TestSuite) TestLoginInvalidUsername(c *C) {
 func (s *TestSuite) TestLoginInvalidPassword(c *C) {
 	postSignup("handleA", "test@test.io", "password1", "password1")
 
-	response, err := postLogin("handleA", "wrong_password")
+	response, err := postSessions("handleA", "wrong_password")
 	if err != nil {
 		c.Error(err)
 	}
@@ -433,7 +433,7 @@ func (s *TestSuite) TestLoginInvalidPassword(c *C) {
 func (s *TestSuite) TestLoginOK(c *C) {
 	postSignup("handleA", "test@test.io", "password1", "password1")
 
-	response, err := postLogin("handleA", "password1")
+	response, err := postSessions("handleA", "password1")
 	if err != nil {
 		c.Error(err)
 	}
@@ -447,7 +447,7 @@ func (s *TestSuite) TestLoginOK(c *C) {
 //
 
 func (s *TestSuite) TestLogoutUserNoExist(c *C) {
-	response, err := postLogout("testing123")
+	response, err := deleteSessions("testing123")
 	if err != nil {
 		c.Error(err)
 	}
@@ -459,9 +459,9 @@ func (s *TestSuite) TestLogoutUserNoExist(c *C) {
 func (s *TestSuite) TestLogoutOK(c *C) {
 	postSignup("testing123", "testing123", "testing123", "testing123")
 
-	postLogin("testing123", "testing123")
+	postSessions("testing123", "testing123")
 
-	response, err := postLogout("testing123")
+	response, err := deleteSessions("testing123")
 	if err != nil {
 		c.Error(err)
 	}
@@ -543,7 +543,7 @@ func (s *TestSuite) TestGetUsersOK(c *C) {
 func (s *TestSuite) TestDeleteUserInvalidUsername(c *C) {
 	postSignup("handleA", "handleA@test.io", "password1", "password1")
 
-	response, _ := postLogin("handleA", "password1")
+	response, _ := postSessions("handleA", "password1")
 	_, sessionid := getJsonAuthenticationData(response)
 
 	response, err := deleteUser("notHandleA", "password1", sessionid)
@@ -558,7 +558,7 @@ func (s *TestSuite) TestDeleteUserInvalidUsername(c *C) {
 func (s *TestSuite) TestDeleteUserInvalidPassword(c *C) {
 	postSignup("handleA", "handleA@test.io", "password1", "password1")
 
-	response, _ := postLogin("handleA", "password1")
+	response, _ := postSessions("handleA", "password1")
 	_, sessionid := getJsonAuthenticationData(response)
 
 	response, err := deleteUser("handleA", "notPassword1", sessionid)
@@ -573,7 +573,7 @@ func (s *TestSuite) TestDeleteUserInvalidPassword(c *C) {
 func (s *TestSuite) TestDeleteUserOK(c *C) {
 	postSignup("handleA", "handleA@test.io", "password1", "password1")
 
-	response, _ := postLogin("handleA", "password1")
+	response, _ := postSessions("handleA", "password1")
 	_, sessionid := getJsonAuthenticationData(response)
 
 	deleteUserResponse, err := deleteUser("handleA", "password1", sessionid)
@@ -599,7 +599,7 @@ func (s *TestSuite) TestDeleteUserOK(c *C) {
 func (s *TestSuite) TestPostCirclesUserNoExist(c *C) {
 	postSignup("testing123", "testing123", "testing123", "testing123")
 
-	response, _ := postLogin("testing123", "testing123")
+	response, _ := postSessions("testing123", "testing123")
 	_, sessionid := getJsonAuthenticationData(response)
 
 	deleteUser("testing123", "testing123", sessionid)
@@ -616,10 +616,10 @@ func (s *TestSuite) TestPostCirclesUserNoExist(c *C) {
 func (s *TestSuite) TestPostCirclesUserNoSession(c *C) {
 	postSignup("testing123", "testing123", "testing123", "testing123")
 
-	response, _ := postLogin("testing123", "testing123")
+	response, _ := postSessions("testing123", "testing123")
 	_, sessionId := getJsonAuthenticationData(response)
 
-	postLogout("testing123")
+	deleteSessions("testing123")
 
 	response, err := postCircles("testing123", sessionId, "testing123", true)
 	if err != nil {
@@ -633,7 +633,7 @@ func (s *TestSuite) TestPostCirclesUserNoSession(c *C) {
 func (s *TestSuite) TestPostCirclesNameReservedGold(c *C) {
 	postSignup("testing123", "testing123", "testing123", "testing123")
 
-	response, _ := postLogin("testing123", "testing123")
+	response, _ := postSessions("testing123", "testing123")
 	_, sessionId := getJsonAuthenticationData(response)
 
 	response, err := postCircles("testing123", sessionId, "Gold", false)
@@ -648,7 +648,7 @@ func (s *TestSuite) TestPostCirclesNameReservedGold(c *C) {
 func (s *TestSuite) TestPostCirclesNameReservedBroadcast(c *C) {
 	postSignup("testing123", "testing123", "testing123", "testing123")
 
-	response, _ := postLogin("testing123", "testing123")
+	response, _ := postSessions("testing123", "testing123")
 	_, sessionId := getJsonAuthenticationData(response)
 
 	response, err := postCircles("testing123", sessionId, "Broadcast", true)
@@ -663,7 +663,7 @@ func (s *TestSuite) TestPostCirclesNameReservedBroadcast(c *C) {
 func (s *TestSuite) TestPostCirclesPublicCircleCreated(c *C) {
 	postSignup("testing123", "testing123", "testing123", "testing123")
 
-	response, _ := postLogin("testing123", "testing123")
+	response, _ := postSessions("testing123", "testing123")
 	_, sessionId := getJsonAuthenticationData(response)
 
 	response, err := postCircles("testing123", sessionId, "testing123", true)
@@ -678,7 +678,7 @@ func (s *TestSuite) TestPostCirclesPublicCircleCreated(c *C) {
 func (s *TestSuite) TestPostCirclesPrivateCircleCreated(c *C) {
 	postSignup("handleA", "test@test.io", "password1", "password1")
 
-	response, _ := postLogin("handleA", "password1")
+	response, _ := postSessions("handleA", "password1")
 	_, sessionId := getJsonAuthenticationData(response)
 
 	response, err := postCircles("handleA", sessionId, "PrivateCircleForA", true)
@@ -698,7 +698,7 @@ func (s *TestSuite) TestPostBlockUserNoExist(c *C) {
 	postSignup("testing123", "testing123", "testing123", "testing123")
 	postSignup("testing321", "testing321", "testing321", "testing321")
 
-	response, _ := postLogin("testing123", "testing123")
+	response, _ := postSessions("testing123", "testing123")
 	_, sessionid := getJsonAuthenticationData(response)
 
 	deleteUser("testing123", "testing123", sessionid)
@@ -715,7 +715,7 @@ func (s *TestSuite) TestPostBlockUserNoExist(c *C) {
 func (s *TestSuite) TestPostBlockTargetNoExist(c *C) {
 	postSignup("handleA", "test@test.io", "password1", "password1")
 
-	response, _ := postLogin("handleA", "password1")
+	response, _ := postSessions("handleA", "password1")
 	_, sessionid := getJsonAuthenticationData(response)
 
 	response, err := postBlock("handleA", sessionid, "handleB")
@@ -731,10 +731,10 @@ func (s *TestSuite) TestPostBlockUserNoSession(c *C) {
 	postSignup("testing123", "testing123", "testing123", "testing123")
 	postSignup("testing321", "testing321", "testing321", "testing321")
 
-	response, _ := postLogin("testing123", "testing123")
+	response, _ := postSessions("testing123", "testing123")
 	_, sessionId := getJsonAuthenticationData(response)
 
-	postLogout("testing123")
+	deleteSessions("testing123")
 
 	response, err := postBlock("testing123", sessionId, "testing321")
 	if err != nil {
@@ -749,7 +749,7 @@ func (s *TestSuite) TestPostBlockOK(c *C) {
 	postSignup("testing123", "testing123", "testing123", "testing123")
 	postSignup("testing321", "testing321", "testing321", "testing321")
 
-	response, _ := postLogin("testing123", "testing123")
+	response, _ := postSessions("testing123", "testing123")
 	_, sessionid := getJsonAuthenticationData(response)
 
 	response, err := postBlock("testing123", sessionid, "testing321")
@@ -769,10 +769,10 @@ func (s *TestSuite) TestPostJoinDefaultUserNoSession(c *C) {
 	postSignup("testing123", "testing123", "testing123", "testing123")
 	postSignup("testing321", "testing321", "testing321", "testing321")
 
-	response, _ := postLogin("testing123", "testing123")
+	response, _ := postSessions("testing123", "testing123")
 	_, sessionId := getJsonAuthenticationData(response)
 
-	postLogout("testing123")
+	deleteSessions("testing123")
 
 	response, err := postJoinDefault("testing123", sessionId, "testing321")
 	if err != nil {
@@ -786,7 +786,7 @@ func (s *TestSuite) TestPostJoinDefaultUserNoSession(c *C) {
 func (s *TestSuite) TestPostJoinDefaultTargetNoExist(c *C) {
 	postSignup("handleA", "test@test.io", "password1", "password1")
 
-	response, _ := postLogin("handleA", "password1")
+	response, _ := postSessions("handleA", "password1")
 	_, sessionId := getJsonAuthenticationData(response)
 
 	response, err := postJoinDefault("handleA", sessionId, "handleB")
@@ -802,12 +802,12 @@ func (s *TestSuite) TestPostJoinDefaultUserBlocked(c *C) {
 	postSignup("testing123", "testing123", "testing123", "testing123")
 	postSignup("testing321", "testing321", "testing321", "testing321")
 
-	response, _ := postLogin("testing321", "testing321")
+	response, _ := postSessions("testing321", "testing321")
 	_, sessionId := getJsonAuthenticationData(response)
 
 	postBlock("testing321", sessionId, "testing123")
 
-	response, _ = postLogin("testing123", "testing123")
+	response, _ = postSessions("testing123", "testing123")
 	_, sessionId = getJsonAuthenticationData(response)
 
 	response, err := postJoinDefault("testing123", sessionId, "testing321")
@@ -823,7 +823,7 @@ func (s *TestSuite) TestPostJoinDefaultCreated(c *C) {
 	postSignup("testing123", "testing123", "testing123", "testing123")
 	postSignup("testing321", "testing321", "testing321", "testing321")
 
-	response, _ := postLogin("testing123", "testing123")
+	response, _ := postSessions("testing123", "testing123")
 	_, sessionId := getJsonAuthenticationData(response)
 
 	response, err := postJoinDefault("testing123", sessionId, "testing123")
@@ -843,15 +843,15 @@ func (s *TestSuite) TestPostJoinUserNoSession(c *C) {
 	postSignup("testing123", "testing123", "testing123", "testing123")
 	postSignup("testing321", "testing321", "testing321", "testing321")
 
-	response, _ := postLogin("testing321", "testing321")
+	response, _ := postSessions("testing321", "testing321")
 	_, sessionId := getJsonAuthenticationData(response)
 
 	postCircles("testing321", sessionId, "testing321", true)
 
-	response, _ = postLogin("testing123", "testing123")
+	response, _ = postSessions("testing123", "testing123")
 	_, sessionId = getJsonAuthenticationData(response)
 
-	postLogout("testing123")
+	deleteSessions("testing123")
 
 	response, err := postJoin("testing123", sessionId, "testing321", "testing321")
 	if err != nil {
@@ -866,12 +866,12 @@ func (s *TestSuite) TestPostJoinTargetNoExist(c *C) {
 	postSignup("handleA", "handleA@test.io", "password1", "password1")
 	postSignup("handleB", "handleB@test.io", "password2", "password2")
 
-	response, _ := postLogin("handleB", "password2")
+	response, _ := postSessions("handleB", "password2")
 	_, sessionId := getJsonAuthenticationData(response)
 
 	postCircles("handleB", sessionId, "CircleOfB", true)
 
-	response, _ = postLogin("handleA", "password1")
+	response, _ = postSessions("handleA", "password1")
 	_, sessionId = getJsonAuthenticationData(response)
 
 	response, err := postJoin("handleA", sessionId, "handleC", "CircleOfB")
@@ -887,14 +887,14 @@ func (s *TestSuite) TestPostJoinUserBlocked(c *C) {
 	postSignup("handleA", "handleA@test.io", "password1", "password1")
 	postSignup("handleB", "handleB@test.io", "password2", "password2")
 
-	response, _ := postLogin("handleB", "password2")
+	response, _ := postSessions("handleB", "password2")
 	_, sessionId := getJsonAuthenticationData(response)
 
 	postCircles("handleB", sessionId, "CircleOfHandleB", true)
 
 	postBlock("handleB", sessionId, "handleA")
 
-	response, _ = postLogin("handleA", "password1")
+	response, _ = postSessions("handleA", "password1")
 	_, sessionId = getJsonAuthenticationData(response)
 
 	response, err := postJoin("handleA", sessionId, "handleB", "CircleOfHandleB")
@@ -910,7 +910,7 @@ func (s *TestSuite) TestPostJoinCircleNoExist(c *C) {
 	postSignup("handleA", "testA@test.io", "password1", "password1")
 	postSignup("handleB", "testB@test.io", "password2", "password2")
 
-	response, _ := postLogin("handleA", "password1")
+	response, _ := postSessions("handleA", "password1")
 	_, sessionId := getJsonAuthenticationData(response)
 
 	response, err := postJoin("handleA", sessionId, "handleB", "NonExistentCircle")
@@ -926,12 +926,12 @@ func (s *TestSuite) TestPostJoinCreated(c *C) {
 	postSignup("handleA", "testA@test.io", "password1", "password1")
 	postSignup("handleB", "testB@test.io", "password2", "password2")
 
-	response_B, _ := postLogin("handleB", "password2")
+	response_B, _ := postSessions("handleB", "password2")
 	_, sessionid_B := getJsonAuthenticationData(response_B)
 
 	postCircles("handleB", sessionid_B, "MyCircle", true)
 
-	response_A, _ := postLogin("handleA", "password1")
+	response_A, _ := postSessions("handleA", "password1")
 	_, sessionid_A := getJsonAuthenticationData(response_A)
 
 	response, err := postJoin("handleA", sessionid_A, "handleB", "MyCircle")

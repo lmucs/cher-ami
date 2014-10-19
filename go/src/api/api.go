@@ -214,28 +214,23 @@ func (a Api) Logout(w rest.ResponseWriter, r *rest.Request) {
 	user := struct {
 		Handle string
 	}{}
-	err := r.DecodeJsonPayload(&user)
-	if err != nil {
+	if err := r.DecodeJsonPayload(&user); err != nil {
 		rest.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	if !a.Svc.UserExists(user.Handle) {
+	if a.Svc.UnsetSessionId(user.Handle) {
+		w.WriteHeader(200)
+		w.WriteJson(map[string]string{
+			"Response": "Goodbye " + user.Handle + ", have a nice day",
+		})
+	} else {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "That user doesn't exist",
 		})
 		return
 	}
-
-	if err := a.Svc.UnsetSessionId(user.Handle); err != nil {
-		panicErr(err)
-	}
-
-	w.WriteHeader(200)
-	w.WriteJson(map[string]string{
-		"Response": "Goodbye " + user.Handle + ", have a nice day",
-	})
 }
 
 //
