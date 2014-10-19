@@ -31,7 +31,7 @@ Create a user given only a handle, name, email, and password.  The service will 
             "email": "number10@brasil.example.com",
             "status": "new",
             "reputation": 1,
-            "joined": "2011-10-20",
+            "joined": "2011-10-20T08:15Z",
             "circles": [
                 {"name": "public", "url": "http://cher-ami.example.com/circles/207"},
                 {"name": "gold", "url": "http://cher-ami.example.com/circles/208"}
@@ -40,12 +40,12 @@ Create a user given only a handle, name, email, and password.  The service will 
 + Response 400
 
         {
-            "reason": "malformed json"
+            "reason": ("malformed json"|"missing handle"|"missing name"|"missing email"|"missing password")
         }
 + Response 403
 
         {
-            "reason": "password too weak"
+            "reason": ("invalid handle"|"invalid name"|"invalid email"|"password too weak")
         }
 + Response 409
 
@@ -123,7 +123,7 @@ Fetch a desired set of users. You may filter by circle or leading characters of 
                 "handle": "pelé",
                 "name": "Edson Arantes do Nascimento",
                 "reputation": 303,
-                "joined": "2011-10-20"
+                "joined": "2011-10-20T08:15Z"
             },
             . . .
         ]
@@ -161,7 +161,7 @@ Get _complete_ user data, including all profile information as well as blocked u
             "email": "number10@brasil.example.com",
             "status": "retired, but coaching",
             "reputation": 1435346,
-            "joined": "2011-06-30",
+            "joined": "2011-10-20T08:15Z",
             "circles": [
                 {"name": "public", "url": "http://cher-ami.example.com/circles/207"},
                 {"name": "gold", "url": "http://cher-ami.example.com/circles/208"}
@@ -260,38 +260,278 @@ Change only basic user information here such as display name, email, and status.
 ### Get blocked users [GET]
 + Response 200
 
-## Reputation [/users/{id}/reputation]
+## Reputation [/users/{handle}/reputation]
 
-### Adjust user reputation +/- [PATCH]
-+ Response 200
+### Adjust reputation +/- [PATCH]
++ Request
+    + Headers
 
-### Set user reputation directly [PUT]
+            Authorization: Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+    + Body
+
+            {
+                "delta": 5,
+                "action": ("inc"|"dec")
+            }
 + Response 204
++ Response 400
+
+        {
+            "reason": ("malformed json"|"missing delta"|"missing action"|"unknown action"|"delta not an integer")
+        }
++ Response 401
+
+        {
+            "reason": "missing, illegal, or expired token"
+        }
++ Response 403
+
+        {
+            "reason": "you can not adjust others' reputations unless you are an admin"
+        }
++ Response 404
+
+        {
+            "reason": "no such user"
+        }
+
+### Set reputation directly [PUT]
++ Request
+    + Headers
+
+            Authorization: Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+    + Body
+
+            {
+                "reputatiom": 1005,
+            }
++ Response 204
++ Response 400
+
+        {
+            "reason": ("malformed json"|"missing reputation"|"reputation not an integer")
+        }
++ Response 401
+
+        {
+            "reason": "missing, illegal, or expired token"
+        }
++ Response 403
+
+        {
+            "reason": "you can not set others' reputations unless you are an admin"
+        }
++ Response 404
+
+        {
+            "reason": "no such user"
+        }
+
+## Avatar [/users/{handle}/avatar]
+### Upload avatar [PUT]
++ Request
+    + Headers
+
+            Authorization: Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+            Content-type: image/png
+    + Body
+
+            ... image content ...
++ Response 204
++ Response 400
+
+        {
+            "reason": "bad media"
+        }
++ Response 401
+
+        {
+            "reason": "missing, illegal, or expired token"
+        }
++ Response 403
+
+        {
+            "reason": "you can not set others' avatars unless you are an admin"
+        }
++ Response 404
+
+        {
+            "reason": "no such user"
+        }
+
 
 # Group Circles
 
 ## Circle Creation [/circles]
 ### Create circle [POST]
+Create a circle given only a name and description, setting the owner to the currently logged-in user. Members will be added to the circle using a different endpoint.
++ Request
+    + Headers
+
+            Authorization: Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+    + Body
+
+            {
+                "name": "coaches",
+                "description": "All my coaching friends"
+            }
 + Response 201
+
+        {
+            "name": "coaches",
+            "url": "http://cher-ami.example.com/circles/2997",
+            "description": "All my coaching friends",
+            "owner": "pelé",
+            "members": "http://cher-ami.example.com/circles/2997/members",
+            "creation": "2011-10-20T14:22:09Z"
+        }
++ Response 400
+
+        {
+            "reason": ("malformed json"|"missing name"|"missing description")
+        }
++ Response 403
+
+        {
+            "reason": ("invalid name"|"invalid description")
+        }
++ Response 409
+
+        {
+            "reason": "name already used"
+        }
+
 
 ## Circle Search [/circles{?user,before,limit}]
 ### Search for circles [GET]
+Fetch circles, optionally restricted to those with a given owner. The results will be paginated. Only basic circle data is returned; however, the url to get the complete data is also returned. Circles are returned in order of descending creation date.  We may add custom sorting capability in the future.
+
++ Parameters
+    + user (optional, string, `alice`) ... only return circles owned by this user
+    + before (optional, string, `2015-02-28`) ... only return circles created before this date (YYYY-MM-DD)
+    + limit (optional, number, `20`) ... max number of results to return, for pagination, default 20, min 1, max 100
+
++ Request
+    + Headers
+
+            Authorization: Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 + Response 200
+
+        [
+            {
+                "name": "coaches",
+                "url": "http://cher-ami.example.com/circles/2997",
+                "description": "All my coaching friends",
+                "owner": "pelé",
+                "members": "http://cher-ami.example.com/circles/2997/members",
+                "creation": "2011-10-20T14:22:09Z"
+            },
+            . . .
+        ]
++ Response 400
+
+        {
+            "reason": ("malformed json"|"malformed before"|"malformed limit")
+        }
++ Response 401
+
+        {
+            "reason": "missing, illegal, or expired token"
+        }
++ Response 403
+
+        {
+            "reason": ("limit out of range")
+        }
 
 ## Circle [/circles/{id}]
 ### Get circle by id [GET]
+Get complete circle data for the circle with the given id.
++ Request
+    + Headers
+
+            Authorization: Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 + Response 200
+
+        {
+            "name": "coaches",
+            "url": "http://cher-ami.example.com/circles/2997",
+            "description": "All my coaching friends",
+            "owner": "pelé",
+            "members": "http://cher-ami.example.com/circles/2997/members",
+            "creation": "2011-10-20T14:22:09Z"
+        },
++ Response 401
+
+        {
+            "reason": "missing, illegal, or expired token"
+        }
++ Response 404
+
+        {
+            "reason": "no such circle"
+        }
+
 
 ### Edit circle info [PATCH]
-+ Response 200
+Edits only the name and description of the circle. Members are managed elsewhere. You cannot ever change the owner or creation time.
++ Request
+    + Headers
 
-## Circle Members [/circles/{id}/members]
+            Authorization: Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+    + Body
+
+            {
+                "name": "New name (optional)",
+                "description": "New description (optional)",
+            }
++ Response 204
++ Response 401
+
+        {
+            "reason": "missing, illegal, or expired token"
+        }
++ Response 403
+
+        {
+            "reason": "you can only edit circles you own unless you are an admin"
+        }
+
+
+## Get Circle Members [/circles/{id}/members{?skip,limit}]
 
 ### Get circle members [GET]
 + Response 200
 
+## Manage Circle Members [/circles/{id}/members]
+
 ### Add/remove circle members [PATCH]
-+ Response 200
++ Request
+    + Headers
+
+            Authorization: Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+    + Body
+
+            {
+                "handle": "pelé",
+                "action": ("add"|"remove")
+            }
++ Response 204
++ Response 400
+
+        {
+            "reason": ("malformed json"|"missing handle"|"missing action"|"unknown action")
+        }
++ Response 401
+
+        {
+            "reason": "missing, illegal, or expired token"
+        }
++ Response 404
+
+        {
+            "reason": "no such user"
+        }
 
 
 # Group Messages
@@ -299,7 +539,40 @@ Change only basic user information here such as display name, email, and status.
 ## Message Creation [/messages]
 
 ### Create message [POST]
+Creates a message given content only. Server sets the id, creation timestamp, and author.
++ Request
+    + Headers
+
+            Authorization: Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+    + Body
+
+            {
+                "circle": 488,
+                "content": "Awesome trip. Check out my pics at http://bit.ly/0000000000"
+            }
 + Response 201
+
+        {
+            "content": "Awesome trip. Check out my pics at http://bit.ly/0000000000",
+            "url": "http://cher-ami.example.com/messages/98",
+            "author": "pelé",
+            "creation": "2011-10-20T14:22:09Z"
+        }
++ Response 400
+
+        {
+            "reason": ("malformed json"|"missing circle"|"missing content")
+        }
++ Response 403
+
+        {
+            "reason": "no such circle or you are not allowed to post to it"
+        }
++ Response 413
+
+        {
+            "reason": "content too large"
+        }
 
 ## Message Search [/messages{?circle,before,limit}]
 
@@ -309,33 +582,142 @@ Change only basic user information here such as display name, email, and status.
 ## Message [/messages/{id}]
 
 ### Get message by id [GET]
+Get the message with the given id.
++ Request
+    + Headers
+
+            Authorization: Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 + Response 200
 
+            {
+                "url": "http://cher-ami.example.com/messages/4",
+                "author": "alice",
+                "content": "I had a nice ski trip",
+                "date": "2012-10-18T14:22:09Z"
+            }
++ Response 401
+
+            {
+                "reason": "missing, illegal, or expired token"
+            }
++ Response 404
+
+            {
+                "reason": "no such message in any circle you can see"
+            }
+
+
 ### Delete message [DELETE]
++ Request
+    + Headers
+
+            Authorization: Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 + Response 204
++ Response 401
+
+        {
+            "reason": "missing, illegal, or expired token"
+        }
++ Response 404
+
+        {
+            "reason": "you are not the author of any such message"
+        }
 
 ## Comment Creation [/messages/{id}/comments]
 
 ### Post comment [POST]
+Post a comment to the given message. Comments are text-only. The server sets the timestamp and sets the author to the currently logged in user.
 + Response 201
+
 
 ## Comment Search [/messages/{id}/comments{?before,limit}]
 
 ### Get comments for message [GET]
+Fetch the comments for the given message, paginated. The comments will always be returned in order of descending creation date. The message must be of a public circle or a private circle to which the current user belongs.
+
++ Parameters
+    + before (optional, string, `2015-02-28`) ... only return comments created before this date (YYYY-MM-DD)
+    + limit (optional, number, `20`) ... max number of results to return, for pagination, default 20, min 1, max 100
+
++ Request
+    + Headers
+
+            Authorization: Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 + Response 200
+
+        [
+            {
+                "url": "http://cher-ami.example.com/messages/4/comments/7",
+                "author": "alice",
+                "content": "You stupid bastard",
+                "date": "2012-10-20T14:22:09Z"
+            },
+            . . .
+        ]
 + Response 400
+
+        {
+            "reason": ("malformed json"|"malformed before"|"malformed limit")
+        }
 + Response 401
+
+        {
+            "reason": "missing, illegal, or expired token"
+        }
++ Response 403
+
+        {
+            "reason": "limit out of range"
+        }
 + Response 404
+
+        {
+            "reason": "no such message in any circle you can see"
+        }
 
 ## Comment [/messages/{id}/comments/{id}]
 
 ### Get comment by id [GET]
+Get the comment with the given id. Comment must be for a message of a public circle or a private circle to which the current user belongs.
++ Request
+    + Headers
+
+            Authorization: Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 + Response 200
+
+        {
+            "url": "http://cher-ami.example.com/messages/4/comments/7",
+            "author": "alice",
+            "content": "You stupid bastard",
+            "date": "2012-10-20T14:22:09Z"
+        }
 + Response 401
-+ Response 403
+
+        {
+            "reason": "missing, illegal, or expired auth token"
+        }
 + Response 404
 
+        {
+            "reason": "no such comment in any circles you can see"
+        }
+
+
 ### Delete comment [DELETE]
+Permanently deletes a comment. Only succeeds if current user is the comment author, or is an admin user.
++ Request
+    + Headers
+
+            Authorization: Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 + Response 204
 + Response 401
-+ Response 403
+
+        {
+            "reason": "missing, illegal, or expired auth token"
+        }
++ Response 404
+
+        {
+            "reason": "you are not the author of any such comment"
+        }
