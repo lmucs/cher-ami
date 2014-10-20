@@ -13,7 +13,7 @@ If the authorization header is missing, or the token is invalid or expired, an H
 
 ## Signup [/users]
 ### Signup/create a new user [POST]
-Create a user given only a handle, name, email, and password.  The service will create an initial status, reputation, and default circles, as well as record the creation datetime.  All other profile information is set in a different operation.
+Create a user given only a handle, name, email, and password.  The service will create an initial status, reputation, and default circles, as well as record the creation timestamp.  All other profile information is set in a different operation.
 + Request
 
         {
@@ -225,6 +225,7 @@ Change only basic user information here such as display name, email, and status.
 ## Blocking [/users/{handle}/blocked]
 
 ### Block or unblock user [PATCH]
+If user A blocks user B, then B is removed from all of A's circles, public and private.  As long as B is blocked by A, B will not be allowed to join any of A's circles.
 + Request
     + Headers
 
@@ -257,8 +258,51 @@ Change only basic user information here such as display name, email, and status.
             "reason": "no such user"
         }
 
+## Viewing Blocked Users [/users/{handle}/blocked{?skip,limit}]
 ### Get blocked users [GET]
+Fetch the list of blocked users for the given user, paginated. The blocked users will always be returned in alphabetical order by handle.
+
++ Parameters
+    + skip (optional, number, `10`) ... number of results to skip, default is 0, min 0
+    + limit (optional, number, `20`) ... max number of results to return, for pagination, default 20, min 1, max 100
+
++ Request
+    + Headers
+
+            Authorization: Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 + Response 200
+
+        [
+            {
+                "url": "http://cher-ami.example.com/users/pelé",
+                "handle": "pelé",
+                "name": "Edson Arantes do Nascimento",
+                "reputation": 303,
+                "joined": "2011-10-20T08:15Z"
+            },
+            . . .
+        ]
++ Response 400
+
+        {
+            "reason": ("malformed json"|"malformed skip"|"malformed limit")
+        }
++ Response 401
+
+        {
+            "reason": "missing, illegal, or expired token"
+        }
++ Response 403
+
+        {
+            "reason": ("limit out of range"|"you not allowed to see this user's blocked list")
+        }
++ Response 404
+
+        {
+            "reason": "no such user"
+        }
+
 
 ## Reputation [/users/{handle}/reputation]
 
@@ -441,7 +485,7 @@ Fetch circles, optionally restricted to those with a given owner. The results wi
 + Response 403
 
         {
-            "reason": ("limit out of range")
+            "reason": "limit out of range"
         }
 
 ## Circle [/circles/{id}]
@@ -501,11 +545,54 @@ Edits only the name and description of the circle. Members are managed elsewhere
 ## Get Circle Members [/circles/{id}/members{?skip,limit}]
 
 ### Get circle members [GET]
+Fetch the list of members of this circle, paginated. The members will always be returned in alphabetical order by handle.
+
++ Parameters
+    + skip (optional, number, `10`) ... number of results to skip, default is 0, min 0
+    + limit (optional, number, `20`) ... max number of results to return, for pagination, default 20, min 1, max 100
+
++ Request
+    + Headers
+
+            Authorization: Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 + Response 200
+
+        [
+            {
+                "url": "http://cher-ami.example.com/users/pelé",
+                "handle": "pelé",
+                "name": "Edson Arantes do Nascimento",
+                "reputation": 303,
+                "joined": "2011-10-20T08:15Z"
+            },
+            . . .
+        ]
++ Response 400
+
+        {
+            "reason": ("malformed json"|"malformed skip"|"malformed limit")
+        }
++ Response 401
+
+        {
+            "reason": "missing, illegal, or expired token"
+        }
++ Response 403
+
+        {
+            "reason": ("limit out of range"|"you not allowed to see this circle's members")
+        }
++ Response 404
+
+        {
+            "reason": "no such circle"
+        }
+
 
 ## Manage Circle Members [/circles/{id}/members]
 
 ### Add/remove circle members [PATCH]
+If a circle is public, all user can let themselves in, unless blocked by the circle owner. If private, only the owner can add. To remove a user, the requestor must be that very user, the circle owner, or an admin.
 + Request
     + Headers
 
@@ -527,10 +614,15 @@ Edits only the name and description of the circle. Members are managed elsewhere
         {
             "reason": "missing, illegal, or expired token"
         }
++ Response 403
+
+        {
+            "reason": ("only owner can add others to private circles"|"blocked by circle owner"|"not allowed to remove")
+        }
 + Response 404
 
         {
-            "reason": "no such user"
+            "reason": "no such circle"
         }
 
 
