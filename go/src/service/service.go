@@ -539,7 +539,7 @@ func (s Svc) GetPasswordHash(user string) (password_hash []byte, found bool) {
 // Sets a session id on an AuthToken node that points to a particular user
 func (s Svc) SetGetNewSessionId(handle string) string {
 	created := []struct {
-		SessionId string `json:"u.sessionid"`
+		SessionId string `json:"a.sessionid"`
 	}{}
 
 	sessionDuration := time.Hour
@@ -550,14 +550,14 @@ func (s Svc) SetGetNewSessionId(handle string) string {
                 MATCH  (u:User)
                 WHERE  u.handle = {handle}
                 WITH   u
-                OPTIONAL MATCH (u)<-[:SESSION_OF]-(a:AuthToken)
-                DELETE a
+                OPTIONAL MATCH (u)<-[s:SESSION_OF]-(a:AuthToken)
+                DELETE s, a
                 WITH   u
                 CREATE (u)<-[r:SESSION_OF]-(a:AuthToken)
                 SET    r.created_at = {now}
                 SET    a.sessionid = {sessionid}
                 SET    a.session_expires_at = {time}
-                RETURN u.sessionid
+                RETURN a.sessionid
             `,
 		Parameters: neoism.Props{
 			"handle":    handle,
