@@ -172,23 +172,27 @@ func (s Svc) EmailIsUnique(email string) (bool, error) {
 	return len(found) == 0, err
 }
 
-func (s Svc) GoodSessionCredentials(handle string, sessionid string) (bool, error) {
+func (s Svc) GoodSessionCredentials(sessionid string) bool {
 	found := []struct {
-		Handle string `json:"user.handle"`
+		Handle string `json:"u.handle"`
 	}{}
-	err := s.Db.Cypher(&neoism.CypherQuery{
+	if err := s.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
-            MATCH (user:User {handle:{handle}, sessionid:{sessionid}})
-            RETURN user.handle
+            MATCH  (u:User)<-[:SESSION_OF]-(a:AuthToken)
+            WHERE  a.sessionid = {sessionid}
+            AND    a.session_expires_at > {now}
+            RETURN u.handle
         `,
 		Parameters: neoism.Props{
-			"handle":    handle,
 			"sessionid": sessionid,
+			"now":       time.Now().Local(),
 		},
 		Result: &found,
-	})
+	}); err != nil {
+		panicErr(err)
+	}
 
-	return len(found) == 1, err
+	return len(found) > 0
 }
 
 func (s Svc) GoodLoginCredentials(handle string, password string) (bool, error) {
@@ -532,25 +536,34 @@ func (s Svc) GetPasswordHash(user string) (password_hash []byte, found bool) {
 // Node Attributes
 //
 
+// Sets a session id on an AuthToken node that points to a particular user
 func (s Svc) SetGetNewSessionId(handle string) string {
 	created := []struct {
 		SessionId string `json:"u.sessionid"`
 	}{}
 
 	sessionDuration := time.Hour
+	now := time.Now().Local()
 
-	if err = s.Db.Cypher(&neoism.CypherQuery{
+	if err := s.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
                 MATCH  (u:User)
-                WHERE  u.handle    = {handle}
-                SET    u.sessionid = {sessionid}
-                SET    u.session_expires_at = {time}
+                WHERE  u.handle = {handle}
+                WITH   u
+                OPTIONAL MATCH (u)<-[:SESSION_OF]-(a:AuthToken)
+                DELETE a
+                WITH   u
+                CREATE (u)<-[r:SESSION_OF]-(a:AuthToken)
+                SET    r.created_at = {now}
+                SET    a.sessionid = {sessionid}
+                SET    a.session_expires_at = {time}
                 RETURN u.sessionid
             `,
 		Parameters: neoism.Props{
 			"handle":    handle,
-			"sessionid": uniuri.New(uniuri.UUIDLen),
-			"time":      time.Now().Local().Add(sessionDuration),
+			"sessionid": uniuri.NewLen(uniuri.UUIDLen),
+			"time":      now.Add(sessionDuration),
+			"now":       now,
 		},
 		Result: &created,
 	}); err != nil {
@@ -563,17 +576,18 @@ func (s Svc) SetGetNewSessionId(handle string) string {
 	return created[0].SessionId
 }
 
+// Returns true iff the user exists and
 func (s Svc) UnsetSessionId(handle string) (targetLoggedOut bool) {
 	unset := []struct {
-		Handle string `json:"u.handle"`
+		Handle   string      `json:"u.handle"`
+		AuthNode neoism.Node `json:"a"`
 	}{}
 	if err := s.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
-            MATCH (u:User)
+            MATCH (u:User)<-[:SESSION_OF]-(a:AuthToken)
             WHERE u.handle = {handle}
-            REMOVE u.sessionid
-            AND    u.session_expires_at
-            RETURN u.handle
+            DELETE a
+            RETURN u.handle, a
         `,
 		Parameters: neoism.Props{
 			"handle": handle,
