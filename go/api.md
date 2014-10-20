@@ -274,9 +274,9 @@ Fetch the list of blocked users for the given user, paginated. The blocked users
 
         [
             {
-                "url": "http://cher-ami.example.com/users/pelé",
+                "url": "http://cher-ami.example.com/users/liane",
                 "handle": "pelé",
-                "name": "Edson Arantes do Nascimento",
+                "name": "Liane Cartman",
                 "reputation": 303,
                 "joined": "2011-10-20T08:15Z"
             },
@@ -416,16 +416,16 @@ Create a circle given only a name and description, setting the owner to the curr
     + Body
 
             {
-                "name": "coaches",
-                "description": "All my coaching friends"
+                "name": "bffs",
+                "description": "All my closest friends",
             }
 + Response 201
 
         {
-            "name": "coaches",
+            "name": "bffs",
             "url": "http://cher-ami.example.com/circles/2997",
-            "description": "All my coaching friends",
-            "owner": "pelé",
+            "description": "All my closest friends",
+            "owner": "wendy",
             "members": "http://cher-ami.example.com/circles/2997/members",
             "creation": "2011-10-20T14:22:09Z"
         }
@@ -463,10 +463,10 @@ Fetch circles, optionally restricted to those with a given owner. The results wi
 
         [
             {
-                "name": "coaches",
+                "name": "bffs",
                 "url": "http://cher-ami.example.com/circles/2997",
-                "description": "All my coaching friends",
-                "owner": "pelé",
+                "description": "All my closest friends",
+                "owner": "wendy",
                 "members": "http://cher-ami.example.com/circles/2997/members",
                 "creation": "2011-10-20T14:22:09Z"
             },
@@ -498,10 +498,10 @@ Get complete circle data for the circle with the given id.
 + Response 200
 
         {
-            "name": "coaches",
+            "name": "bffs",
             "url": "http://cher-ami.example.com/circles/2997",
-            "description": "All my coaching friends",
-            "owner": "pelé",
+            "description": "All my closest friends",
+            "owner": "wendy",
             "members": "http://cher-ami.example.com/circles/2997/members",
             "creation": "2011-10-20T14:22:09Z"
         },
@@ -544,6 +544,8 @@ Edits only the name and description of the circle. Members are managed elsewhere
 
 ## Get Circle Members [/circles/{id}/members{?skip,limit}]
 
+
+
 ### Get circle members [GET]
 Fetch the list of members of this circle, paginated. The members will always be returned in alphabetical order by handle.
 
@@ -559,11 +561,11 @@ Fetch the list of members of this circle, paginated. The members will always be 
 
         [
             {
-                "url": "http://cher-ami.example.com/users/pelé",
-                "handle": "pelé",
-                "name": "Edson Arantes do Nascimento",
-                "reputation": 303,
-                "joined": "2011-10-20T08:15Z"
+                "url": "http://cher-ami.example.com/users/towelie",
+                "handle": "towelie",
+                "name": "Smart Towel RG-400",
+                "reputation": 420,
+                "joined": "2011-04-20T16:20Z"
             },
             . . .
         ]
@@ -575,21 +577,24 @@ Fetch the list of members of this circle, paginated. The members will always be 
 + Response 401
 
         {
-            "reason": "missing, illegal, or expired token"
+            "reason": "missing, illegal, or expired auth token"
         }
 + Response 403
 
         {
-            "reason": ("limit out of range"|"you not allowed to see this circle's members")
+            "reason": "limit out of range"
         }
 + Response 404
 
         {
-            "reason": "no such circle"
+            "reason": "no such circle that you can see"
         }
 
 
+
 ## Manage Circle Members [/circles/{id}/members]
+
+
 
 ### Add/remove circle members [PATCH]
 If a circle is public, all user can let themselves in, unless blocked by the circle owner. If private, only the owner can add. To remove a user, the requestor must be that very user, the circle owner, or an admin.
@@ -600,7 +605,7 @@ If a circle is public, all user can let themselves in, unless blocked by the cir
     + Body
 
             {
-                "handle": "pelé",
+                "handle": "sharon",
                 "action": ("add"|"remove")
             }
 + Response 204
@@ -612,23 +617,23 @@ If a circle is public, all user can let themselves in, unless blocked by the cir
 + Response 401
 
         {
-            "reason": "missing, illegal, or expired token"
+            "reason": "missing, illegal, or expired auth token"
         }
 + Response 403
 
         {
-            "reason": ("only owner can add others to private circles"|"blocked by circle owner"|"not allowed to remove")
+            "reason": ("no such circle visible to you"|"only owner can add others to private circles"|"blocked by circle owner"|"not allowed to remove")
         }
-+ Response 404
 
-        {
-            "reason": "no such circle"
-        }
 
 
 # Group Messages
 
+
+
 ## Message Creation [/messages]
+
+
 
 ### Create message [POST]
 Creates a message given content only. Server sets the id, creation timestamp, and author.
@@ -640,14 +645,14 @@ Creates a message given content only. Server sets the id, creation timestamp, an
 
             {
                 "circle": 488,
-                "content": "Awesome trip. Check out my pics at http://bit.ly/0000000000"
+                "content": "There are no such things as stupid questions, only stupid people"
             }
 + Response 201
 
         {
-            "content": "Awesome trip. Check out my pics at http://bit.ly/0000000000",
+            "content": "There are no such things as stupid questions, only stupid people",
             "url": "http://cher-ami.example.com/messages/98",
-            "author": "pelé",
+            "author": "garrison",
             "creation": "2011-10-20T14:22:09Z"
         }
 + Response 400
@@ -663,15 +668,66 @@ Creates a message given content only. Server sets the id, creation timestamp, an
 + Response 413
 
         {
-            "reason": "content too large"
+            "reason": "content too large",
+            "max_comment_size_in_bytes": 2048
         }
 
-## Message Search [/messages{?circle,before,limit}]
+
+
+## Message Search [/messages{?circle,name,before,limit}]
 
 ### Get messages [GET]
+Fetch the messages for the given circle or user, paginated. The messages will always be returned in order of descending creation date. Only messages corresponding to circles that the current user is allowed to see will be returned.
+
++ Parameters
+    + circle (optional, string, `284`) ... only return messages from this circle, required if name not supplied
+    + name (optional, string, `liane`) ... only return messages authored by this user, required if circle not supplied
+    + before (optional, string, `2015-02-28T22:11:07Z`) ... only return messages created before this datetime
+    + limit (optional, number, `20`) ... max number of results to return, for pagination, default 20, min 1, max 100
+
++ Request
+    + Headers
+
+            Authorization: Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 + Response 200
 
+        [
+            {
+                "url": "http://cher-ami.example.com/messages/802",
+                "author": "stan",
+                "content": "I'm not getting on this bus",
+                "date": "2012-10-20T14:22:09Z"
+            },
+            . . .
+        ]
++ Response 400
+
+        {
+            "reason": ("malformed json"|"malformed before"|"malformed limit"|"circle or user required"),
+            "details": ("before must be a datetime in ISO 8601 format"|"limit must be a positive integer")
+        }
++ Response 401
+
+        {
+            "reason": "missing, illegal, or expired auth token"
+        }
++ Response 403
+
+        {
+            "reason": "limit out of range",
+            "details": "limit must be between 1 and 100, inclusive"
+        }
++ Response 404
+
+        {
+            "reason": ("no such circle that you can see"|"no such user")
+        }
+
+
+
 ## Message [/messages/{id}]
+
+
 
 ### Get message by id [GET]
 Get the message with the given id.
@@ -682,21 +738,22 @@ Get the message with the given id.
 + Response 200
 
             {
-                "url": "http://cher-ami.example.com/messages/4",
-                "author": "alice",
-                "content": "I had a nice ski trip",
-                "date": "2012-10-18T14:22:09Z"
+                "url": "http://cher-ami.example.com/messages/802",
+                "author": "stan",
+                "content": "I'm not getting on this bus",
+                "date": "2012-10-20T14:22:09Z"
             }
 + Response 401
 
             {
-                "reason": "missing, illegal, or expired token"
+                "reason": "missing, illegal, or expired auth token"
             }
 + Response 404
 
             {
                 "reason": "no such message in any circle you can see"
             }
+
 
 
 ### Delete message [DELETE]
@@ -708,7 +765,7 @@ Get the message with the given id.
 + Response 401
 
         {
-            "reason": "missing, illegal, or expired token"
+            "reason": "missing, illegal, or expired auth token"
         }
 + Response 404
 
@@ -716,20 +773,59 @@ Get the message with the given id.
             "reason": "you are not the author of any such message"
         }
 
+
+
 ## Comment Creation [/messages/{id}/comments]
+
+
 
 ### Post comment [POST]
 Post a comment to the given message. Comments are text-only. The server sets the timestamp and sets the author to the currently logged in user.
++ Request
+    + Headers
+
+            Authorization: Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+    + Body
+
+            {
+                "content": "You killed Kenny! You BASTARD!"
+            }
 + Response 201
+
+        {
+            "content": "You killed Kenny! You BASTARD!",
+            "url": "http://cher-ami.example.com/messages/983/comments/22",
+            "author": "kyle",
+            "creation": "2015-10-20T14:22:09Z"
+        }
++ Response 400
+
+        {
+            "reason": ("malformed json"|"missing content")
+        }
++ Response 403
+
+        {
+            "reason": "no such message or you are not allowed to comment on it"
+        }
++ Response 413
+
+        {
+            "reason": "content too large",
+            "max_comment_size_in_bytes": 512
+        }
+
 
 
 ## Comment Search [/messages/{id}/comments{?before,limit}]
 
+
+
 ### Get comments for message [GET]
-Fetch the comments for the given message, paginated. The comments will always be returned in order of descending creation date. The message must be of a public circle or a private circle to which the current user belongs.
+Fetch the comments for the given message, paginated. The comments will always be returned in order of descending creation date. The message must be of a public circle or a private circle to which the current user belongs, and the current user must not be blocked from the circle.
 
 + Parameters
-    + before (optional, string, `2015-02-28`) ... only return comments created before this date (YYYY-MM-DD)
+    + before (optional, string, `2015-02-28T22:11:07Z`) ... only return comments created before this datetime
     + limit (optional, number, `20`) ... max number of results to return, for pagination, default 20, min 1, max 100
 
 + Request
@@ -740,27 +836,29 @@ Fetch the comments for the given message, paginated. The comments will always be
 
         [
             {
-                "url": "http://cher-ami.example.com/messages/4/comments/7",
-                "author": "alice",
-                "content": "You stupid bastard",
-                "date": "2012-10-20T14:22:09Z"
+                "content": "You killed Kenny! You BASTARD!",
+                "url": "http://cher-ami.example.com/messages/983/comments/22",
+                "author": "kyle",
+                "creation": "2015-10-20T14:22:09Z"
             },
             . . .
         ]
 + Response 400
 
         {
-            "reason": ("malformed json"|"malformed before"|"malformed limit")
+            "reason": ("malformed json"|"malformed before"|"malformed limit"),
+            "details": ("before must be a datetime in ISO 8601 format"|"limit must be a positive integer")
         }
 + Response 401
 
         {
-            "reason": "missing, illegal, or expired token"
+            "reason": "missing, illegal, or expired auth token"
         }
 + Response 403
 
         {
-            "reason": "limit out of range"
+            "reason": "limit out of range",
+            "details": "limit must be between 1 and 100, inclusive"
         }
 + Response 404
 
@@ -768,10 +866,14 @@ Fetch the comments for the given message, paginated. The comments will always be
             "reason": "no such message in any circle you can see"
         }
 
+
+
 ## Comment [/messages/{id}/comments/{id}]
 
+
+
 ### Get comment by id [GET]
-Get the comment with the given id. Comment must be for a message of a public circle or a private circle to which the current user belongs.
+Get the comment with the given id. Comment must be for a message of a public circle or a private circle to which the current user belongs, and the current user must not be blocked from the circle.
 + Request
     + Headers
 
@@ -779,10 +881,10 @@ Get the comment with the given id. Comment must be for a message of a public cir
 + Response 200
 
         {
-            "url": "http://cher-ami.example.com/messages/4/comments/7",
-            "author": "alice",
-            "content": "You stupid bastard",
-            "date": "2012-10-20T14:22:09Z"
+            "content": "You killed Kenny! You BASTARD!",
+            "url": "http://cher-ami.example.com/messages/983/comments/22",
+            "author": "kyle",
+            "creation": "2015-10-20T14:22:09Z"
         }
 + Response 401
 
@@ -792,8 +894,9 @@ Get the comment with the given id. Comment must be for a message of a public cir
 + Response 404
 
         {
-            "reason": "no such comment in any circles you can see"
+            "reason": "no such comment in any circle you can see"
         }
+
 
 
 ### Delete comment [DELETE]
