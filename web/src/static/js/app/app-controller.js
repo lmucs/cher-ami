@@ -12,7 +12,7 @@ define(function(require, exports, module) {
     var MessageView = require('app/views/message-view').MessageView;
     var Message = require('app/models/message').Message;
     var Messages = require('app/collections/messages').Messages;
-    var ProfileView = require('app/views/profile-view').ProfileView;
+    var EditProfileView = require('app/views/edit-profile-view').EditProfileView;
     var CommentsView = require('app/views/comments-view').CommentsView;
     var CommentView = require('app/views/comment-view').CommentView;
     var Comment = require('app/models/comment').Comment;
@@ -27,13 +27,13 @@ define(function(require, exports, module) {
 
             // Initialization of views will go here.
             this.app.headerRegion.show(new HeaderView());
-            this.app.mainRegion.show(new MessagesView({
-                collection: test
-            }));
+            // this.app.mainRegion.show(new MessagesView({
+            //     collection: test
+            // }));
             // this.app.mainRegion.show(new CommentsView({
             //     collection: testComment
             // }));
-            // this.app.mainRegion.show(new ProfileView());
+            this.app.mainRegion.show(new EditProfileView());
             // this.app.footerRegion.show(new FooterView());
         },
 

@@ -1,9 +1,9 @@
 define(function(require, exports, module) {
 
     var marionette = require('marionette');
-    var template = require('hbs!../templates/profile-view')
+    var template = require('hbs!../templates/edit-profile-view')
 
-    var ProfileView = marionette.ItemView.extend({
+    var EditProfileView = marionette.ItemView.extend({
 
         template: template,
 
@@ -22,5 +22,5 @@ define(function(require, exports, module) {
 
     });
 
-    exports.ProfileView = ProfileView;
+    exports.EditProfileView = EditProfileView;
 })
