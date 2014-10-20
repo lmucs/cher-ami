@@ -45,13 +45,17 @@ const (
 // API util
 //
 
-func (a Api) authenticate(handle string, sessionid string) bool {
-	ok, err := a.Svc.GoodSessionCredentials(handle, sessionid)
-	if err != nil {
-		panicErr(err)
+func (a Api) authenticate(w rest.ResponseWriter, r *rest.Request) (success bool) {
+	if sessionid := r.Header.Get("Authorization"); sessionid != "" {
+		return a.Svc.GoodSessionCredentials(sessionid)
+	} else {
+		w.WriteHeader(400)
+		w.WriteJson(map[string]string{
+			"Response": "Failed to authenticate user request",
+			"Reason":   "Missing session token in Authorization header",
+		})
+		return
 	}
-
-	return ok
 }
 
 //
@@ -193,16 +197,15 @@ func (a Api) Login(w rest.ResponseWriter, r *rest.Request) {
 			})
 			return
 		} else {
-			// Add session hash to node and return it to client
-			if sessionid, err := a.Svc.SetGetNewSessionId(handle); err != nil {
-				panicErr(err)
-			} else {
-				w.WriteJson(map[string]string{
-					"Response":  "Logged in " + handle + ". Note your session id.",
-					"SessionId": sessionid,
-				})
-				return
-			}
+			// Create an authentication node and return it to client
+			sessionid := a.Svc.SetGetNewSessionId(handle)
+
+			w.WriteHeader(200)
+			w.WriteJson(map[string]string{
+				"Response":  "Logged in " + handle + ". Note your session id.",
+				"SessionId": sessionid,
+			})
+			return
 		}
 	}
 }
