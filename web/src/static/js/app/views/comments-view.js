@@ -3,7 +3,7 @@ define(function(require, exports, module) {
     var marionette = require('marionette');
     var template = require('hbs!../templates/comments-view')
     var CommentView = require('app/views/comment-view').CommentView;
-    var postValidator = require('app/utils/post-validator').PostValidator;
+    // var postValidator = require('app/utils/post-validator').PostValidator;
 
 
     var CommentsView = marionette.CompositeView.extend({
@@ -25,7 +25,7 @@ define(function(require, exports, module) {
 
         onSubmit: function() {
             console.log(this.ui.commentInput.val());
-            if(this.ui.commentInput.val() != '') {
+            if(this.ui.commentInput.val()) {
                 this.collection.add({
                     commentData: this.ui.commentInput.val()
                 })

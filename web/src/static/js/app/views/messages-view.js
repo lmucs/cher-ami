@@ -3,7 +3,7 @@ define(function(require, exports, module) {
     var marionette = require('marionette');
     var template = require('hbs!../templates/messages-view')
     var MessageView = require('app/views/message-view').MessageView;
-    var postValidator = require('app/utils/post-validator').PostValidator;
+    // var postValidator = require('app/utils/post-validator').PostValidator;
 
     var MessagesView = marionette.CompositeView.extend({
         childView: MessageView,
@@ -15,15 +15,16 @@ define(function(require, exports, module) {
             postArea: '#postArea',
             messageArea: '#messages',
             messageBox: '#message-box',
-            postContainer: '#postContainer'
+            // postContainer: '#postContainer'
         },
 
         events: {
             'click #submitButton': 'onSubmit',
-            'keyup #postContainer': 'PostValidat'
+            // 'keyup #postContainer': 'PostValidat'
         },
 
         onSubmit: function() {
+            alert(this.ui.postArea.val());
             if(this.ui.postArea.val()) {
                 this.collection.add({
                     messageData: this.ui.postArea.val()
@@ -35,9 +36,9 @@ define(function(require, exports, module) {
             console.log("Added");
         },
 
-        PostValidat: function(event) {
-            postValidator(this.ui.postArea)
-        },
+        // PostValidat: function(event) {
+        //     postValidator(this.ui.postArea)
+        // },
 
         initialize: function(options) {
             this.collection = options.collection;

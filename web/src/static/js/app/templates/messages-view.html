@@ -2,15 +2,27 @@
     <div class="col-md-4"></div>
     <div id="feed-area" class="col-md-4">
         <div class="row">
-<!--           <form id="postContainer" role="form" class="form-inline">
-              <div class="form-group"> -->
-              <div class="textarea-container">
-                <textarea id="postArea" style="overflow:auto;resize:none" name="postArea" class="form-control"></textarea>
-                <div class="textarea-size"></div>
-                <button id="submitButton" type="submit">Submit</button>
+
+<!--           <form id="postContainer" role="form" class="form-horizontal">
+ -->            <div class="textarea-container">
+              <div id="postAreaContainer" class="form-group">
+                  <textarea id="postArea"  class="form-control"  rows="4" style="overflow:auto;resize:none"></textarea>
               </div>
+              <!-- #messages is where the messages are placed inside -->
+              <div class="form-group">
+                  <div class="col-sm-9 col-sm-offset-3">
+                      <div id="warningMessages"></div>
+                  </div>
+              </div>
+              <div id="submition" class="form-group">
+                  <button id="submitButton" type="submit">Submit</button>
+              </div>
+            </div>
+            <div class="textarea-size">            
+              <div id="messages"></div>
+            </div>
 <!--           </form>
- -->          <div id="messages"></div>
+ -->
         </div>
         <div class="col-md-4"></div>
     </div>

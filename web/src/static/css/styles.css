@@ -179,7 +179,17 @@ h1 {
     border-radius: 7px;
     padding: 30px;
 };
-
+.form-horizontal .form-group {
+    margin-right: 0px;
+    margin-left: 0px;
+}
+#postAreaContainer {
+    margin-right: 0px;
+    margin-left: 0px;
+}
+#submition {
+    float: right;
+}
 #postArea {
     overflow: auto;
     resize: none;

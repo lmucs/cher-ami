@@ -2,7 +2,7 @@ define(function(require, exports, module) {
     var PostValidator = function(form) {
 
         $('#postContainer').bootstrapValidator({
-            message: 'This value is not valid',
+            container: '#warningMessages',
             feedbackIcons: {
                 valid: 'glyphicon glyphicon-ok',
                 invalid: 'glyphicon glyphicon-remove',
@@ -10,19 +10,18 @@ define(function(require, exports, module) {
             },
 
             fields: {
-                postArea: {
-                    message: 'The message has to have content',
+                postAreaa: {
                     validators: {
                         notEmpty: {
-                            message: 'The message is required and cannot be empty'
+                            message: 'The content is required and cannot be empty'
                         },
                         stringLength: {
                             min: 1,
                             max: 126,
-                            message: 'The message must be more than 1 and less than 126 characters long'
+                            message: 'The content must be less than 500 characters long'
                         },
                     }
-                },
+                }
             }
         });
     }
