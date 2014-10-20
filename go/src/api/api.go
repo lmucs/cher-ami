@@ -310,9 +310,11 @@ func (a Api) ChangePassword(w rest.ResponseWriter, r *rest.Request) {
 					w.WriteJson(map[string]string{
 						"Response": "Password change unsuccessful",
 					})
+					return
 				} else {
-					// No response
+					// No JSON is written.
 					w.WriteHeader(204)
+					return
 				}
 			}
 		}
