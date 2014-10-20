@@ -46,7 +46,7 @@ const (
 //
 
 func (a Api) authenticate(r *rest.Request) (success bool) {
-	if sessionid := r.Header.Get("Authorization"); sessionid != "" {
+	if sessionid := r.Header.Get("Authentication"); sessionid != "" {
 		return a.Svc.GoodSessionCredentials(sessionid)
 	} else {
 		return false
@@ -198,8 +198,9 @@ func (a Api) Login(w rest.ResponseWriter, r *rest.Request) {
 			w.WriteHeader(200)
 			w.WriteJson(map[string]string{
 				"Response":  "Logged in " + handle + ". Note your session id.",
-				"SessionId": sessionid,
+				"sessionid": sessionid,
 			})
+			w.Header().Add("Authentication", sessionid)
 			return
 		}
 	}
@@ -212,16 +213,20 @@ func (a Api) Logout(w rest.ResponseWriter, r *rest.Request) {
 	user := struct {
 		Handle string
 	}{}
+
 	if err := r.DecodeJsonPayload(&user); err != nil {
 		rest.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	if a.Svc.UnsetSessionId(user.Handle) {
+	handle := user.Handle
+
+	if a.Svc.UnsetSessionId(handle) {
 		w.WriteHeader(200)
 		w.WriteJson(map[string]string{
-			"Response": "Goodbye " + user.Handle + ", have a nice day",
+			"Response": "Goodbye " + handle + ", have a nice day",
 		})
+		return
 	} else {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
@@ -332,8 +337,12 @@ func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
 			})
 			return
 		} else {
-			if err := a.Svc.DeleteUser(handle); err != nil {
-				panicErr(err)
+			if deleted := a.Svc.DeleteUser(handle); !deleted {
+				w.WriteHeader(400)
+				w.WriteJson(map[string]string{
+					"Response": "Unexpected failure to delete user",
+				})
+				return
 			}
 			w.WriteHeader(200)
 			w.WriteJson(map[string]string{

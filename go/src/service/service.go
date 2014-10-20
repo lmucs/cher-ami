@@ -468,17 +468,36 @@ func (s Svc) RevokeMembershipBetween(handle string, target string) {
 	}
 }
 
-func (s Svc) DeleteUser(handle string) error {
-	return s.Db.Cypher(&neoism.CypherQuery{
+func (s Svc) DeleteUser(handle string) bool {
+	if err := s.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
-                MATCH (user:User)-[r]->()
-                WHERE user.handle = {handle}
-                DELETE user, r
+                MATCH (u:User)
+                WHERE u.handle = {handle}
+                WITH  u
+                OPTIONAL MATCH (a:AuthToken)-[r:SESSION_OF]->(u)
+                DELETE a, r
+                WITH u
+                MATCH (u)-[wr:WROTE]->(m:Message)-[pt:PUB_TO]->(:Circle)
+                DELETE pt, m, wr
+                WITH u
+                MATCH (u)-[mo:MEMBER_OF]->(:Circle)
+                DELETE mo
+                WITH u
+                MATCH (u)-[b:BLOCKED]->(:User)
+                DELETE b
+                WITH u
+                MATCH (u)-[co:CHIEF_OF]->(c:Circle)-[po:PART_OF]->(:PublicDomain)
+                MATCH (c)<-[mo:MEMBER_OF]-(:User)
+                MATCH (c)<-[pt:PUB_TO]-(:Message)
+                DELETE pt, mo, co, po, c, u
             `,
 		Parameters: neoism.Props{
 			"handle": handle,
 		},
-	})
+	}); err != nil {
+		panicErr(err)
+	}
+	return true
 }
 
 //
@@ -576,18 +595,18 @@ func (s Svc) SetGetNewSessionId(handle string) string {
 	return created[0].SessionId
 }
 
-// Returns true iff the user exists and
-func (s Svc) UnsetSessionId(handle string) (targetLoggedOut bool) {
+func (s Svc) UnsetSessionId(handle string) bool {
 	unset := []struct {
-		Handle   string      `json:"u.handle"`
-		AuthNode neoism.Node `json:"a"`
+		Handle string `json:"u.handle"`
 	}{}
 	if err := s.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
-            MATCH (u:User)<-[:SESSION_OF]-(a:AuthToken)
-            WHERE u.handle = {handle}
-            DELETE a
-            RETURN u.handle, a
+            MATCH          (u:User)
+            WHERE          u.handle = {handle}
+            WITH           u
+            OPTIONAL MATCH (u)<-[so:SESSION_OF]-(a:AuthToken)
+            DELETE         so, a
+            RETURN         u.handle
         `,
 		Parameters: neoism.Props{
 			"handle": handle,
@@ -596,10 +615,7 @@ func (s Svc) UnsetSessionId(handle string) (targetLoggedOut bool) {
 	}); err != nil {
 		panicErr(err)
 	}
-
-	targetLoggedOut = len(unset) > 0
-
-	return targetLoggedOut
+	return len(unset) > 0
 }
 
 func (s Svc) SetGetName(handle string, name string) string {
