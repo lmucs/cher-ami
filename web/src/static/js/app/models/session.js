@@ -3,7 +3,7 @@ define(function(require, exports, module) {
     var backbone = require('backbone');
 
     var Session = Backbone.Model.extend({
-        url: '',
+        url: 'api/sessions',
         initialize: function() {
 
         },

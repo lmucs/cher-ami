@@ -3,6 +3,7 @@ define(function(require, exports, module) {
     var backbone = require('backbone');
     var marionette = require('marionette');
     var app = require('app/app');
+    var Sessions = require('backbone/sessions')
 
     var HeaderView = require('app/views/header-view').HeaderView;
     var SignupView = require('app/views/signup-view').SignupView;
@@ -21,6 +22,11 @@ define(function(require, exports, module) {
 
         initialize: function(options) {
             this.app = app;
+            /*var sessions = new Sessions()
+            this.app.session = sessions.APP.Session({
+                handle: "test",
+                password: "12345678"
+            }, {});*/
 
             var test = new Messages();
             var testComment = new Comments();

@@ -3,7 +3,7 @@ define(function(require, exports, module) {
     var backbone = require('backbone');
 
     var Login = Backbone.Model.extend({
-        url: '/api/login',
+        url: '/api/sessions',
         defaults: {
             handle: null,
             password: null
