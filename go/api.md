@@ -9,11 +9,17 @@ All endpoints except signup (`POST /users`) and login (`POST /sessions`) require
 If the authorization header is missing, or the token is invalid or expired, an HTTP 401 response is returned. After receiving a 401, a client should try to login (`POST /sessions`) again to obtain a new token.
 
 
+
 # Group Users
 
+
+
 ## Signup [/users]
+
+
+
 ### Signup/create a new user [POST]
-Create a user given only a handle, name, email, and password.  The service will create an initial status, reputation, and default circles, as well as record the creation timestamp.  All other profile information is set in a different operation.
+Create a user given only a handle, name, email, and password. The service will create an initial status, reputation, and default circles, as well as record the creation timestamp. All other profile information is set in a different operations.
 + Request
 
         {
@@ -25,7 +31,7 @@ Create a user given only a handle, name, email, and password.  The service will 
 + Response 201
 
         {
-            "url": "http://cher-ami.example.com/users/pelé",
+            "url": "https://cher-ami.example.com/users/pelé",
             "handle": "pelé",
             "name": "Edson Arantes do Nascimento",
             "email": "number10@brasil.example.com",
@@ -33,8 +39,8 @@ Create a user given only a handle, name, email, and password.  The service will 
             "reputation": 1,
             "joined": "2011-10-20T08:15Z",
             "circles": [
-                {"name": "public", "url": "http://cher-ami.example.com/circles/207"},
-                {"name": "gold", "url": "http://cher-ami.example.com/circles/208"}
+                {"name": "public", "url": "https://cher-ami.example.com/circles/207"},
+                {"name": "gold", "url": "https://cher-ami.example.com/circles/208"}
             ]
         }
 + Response 400
@@ -53,7 +59,11 @@ Create a user given only a handle, name, email, and password.  The service will 
             "reason": ("handle already used"|"email already used")
         }
 
+
+
 ## Login and Logout [/sessions]
+
+
 
 ### Login [POST]
 If the given username-password combination is valid, generate and return a token.
@@ -79,6 +89,8 @@ If the given username-password combination is valid, generate and return a token
             "reason": "invalid handle-password combination"
         }
 
+
+
 ### Logout [DELETE]
 The token is passed in a header (not as a parameter in the URL) and, if it is valid, the server will invalidate it.
 + Request
@@ -93,7 +105,10 @@ The token is passed in a header (not as a parameter in the URL) and, if it is va
         }
 
 
+
 ## User Search [/users{?circle,nameprefix,skip,limit,sort}]
+
+
 
 ### Get users [GET]
 Fetch a desired set of users. You may filter by circle or leading characters of a name. You _must_ specify a sort order. The results _will_ be paginated since there is a potential for returning millions of users. Only a subset of user data is returned; however, the url to get the complete data _is_ returned, in good HATEOAS-style.
@@ -119,7 +134,7 @@ Fetch a desired set of users. You may filter by circle or leading characters of 
 
         [
             {
-                "url": "http://cher-ami.example.com/users/pelé",
+                "url": "https://cher-ami.example.com/users/pelé",
                 "handle": "pelé",
                 "name": "Edson Arantes do Nascimento",
                 "reputation": 303,
@@ -143,7 +158,11 @@ Fetch a desired set of users. You may filter by circle or leading characters of 
             "reason": ("you do not own or belong to this circle"|"skip out of range"|"limit out of range")
         }
 
+
+
 ## User [/users/{handle}]
+
+
 
 ### Get user by handle [GET]
 Get _complete_ user data, including all profile information as well as blocked users and circle membership.
@@ -154,7 +173,7 @@ Get _complete_ user data, including all profile information as well as blocked u
 + Response 200
 
         {
-            "url": "http://cher-ami.example.com/users/pelé",
+            "url": "https://cher-ami.example.com/users/pelé",
             "avatar_url": "https://images.cher-ami.example.com/users/pelé",
             "handle": "pelé",
             "name": "Edson Arantes do Nascimento",
@@ -163,9 +182,9 @@ Get _complete_ user data, including all profile information as well as blocked u
             "reputation": 1435346,
             "joined": "2011-10-20T08:15Z",
             "circles": [
-                {"name": "public", "url": "http://cher-ami.example.com/circles/207"},
-                {"name": "gold", "url": "http://cher-ami.example.com/circles/208"}
-                {"name": "coaches", "url": "http://cher-ami.example.com/circles/5922"}
+                {"name": "public", "url": "https://cher-ami.example.com/circles/207"},
+                {"name": "gold", "url": "https://cher-ami.example.com/circles/208"}
+                {"name": "coaches", "url": "https://cher-ami.example.com/circles/5922"}
             ]
         }
 + Response 401
@@ -178,6 +197,7 @@ Get _complete_ user data, including all profile information as well as blocked u
         {
             "reason": "no such user"
         }
+
 
 
 ### Edit user [PATCH]
@@ -222,7 +242,11 @@ Change only basic user information here such as display name, email, and status.
             "reason": "you can only delete yourself unless you are an admin"
         }
 
+
+
 ## Blocking [/users/{handle}/blocked]
+
+
 
 ### Block or unblock user [PATCH]
 If user A blocks user B, then B is removed from all of A's circles, public and private.  As long as B is blocked by A, B will not be allowed to join any of A's circles.
@@ -258,7 +282,12 @@ If user A blocks user B, then B is removed from all of A's circles, public and p
             "reason": "no such user"
         }
 
+
+
 ## Viewing Blocked Users [/users/{handle}/blocked{?skip,limit}]
+
+
+
 ### Get blocked users [GET]
 Fetch the list of blocked users for the given user, paginated. The blocked users will always be returned in alphabetical order by handle.
 
@@ -274,7 +303,7 @@ Fetch the list of blocked users for the given user, paginated. The blocked users
 
         [
             {
-                "url": "http://cher-ami.example.com/users/liane",
+                "url": "https://cher-ami.example.com/users/liane",
                 "handle": "pelé",
                 "name": "Liane Cartman",
                 "reputation": 303,
@@ -304,7 +333,10 @@ Fetch the list of blocked users for the given user, paginated. The blocked users
         }
 
 
+
 ## Reputation [/users/{handle}/reputation]
+
+
 
 ### Adjust reputation +/- [PATCH]
 + Request
@@ -339,6 +371,8 @@ Fetch the list of blocked users for the given user, paginated. The blocked users
             "reason": "no such user"
         }
 
+
+
 ### Set reputation directly [PUT]
 + Request
     + Headers
@@ -371,7 +405,12 @@ Fetch the list of blocked users for the given user, paginated. The blocked users
             "reason": "no such user"
         }
 
+
+
 ## Avatar [/users/{handle}/avatar]
+
+
+
 ### Upload avatar [PUT]
 + Request
     + Headers
@@ -404,11 +443,17 @@ Fetch the list of blocked users for the given user, paginated. The blocked users
         }
 
 
+
 # Group Circles
 
+
+
 ## Circle Creation [/circles]
+
+
+
 ### Create circle [POST]
-Create a circle given only a name and description, setting the owner to the currently logged-in user. Members will be added to the circle using a different endpoint.
+Create a circle given only a name, description, and visibility setting, setting the owner to the currently logged-in user. Members will be added to the circle using a different endpoint (whose url is part of the returned resource). Circles are private by default.
 + Request
     + Headers
 
@@ -418,15 +463,17 @@ Create a circle given only a name and description, setting the owner to the curr
             {
                 "name": "bffs",
                 "description": "All my closest friends",
+                "visibility": ("public"|["private"])
             }
 + Response 201
 
         {
             "name": "bffs",
-            "url": "http://cher-ami.example.com/circles/2997",
+            "url": "https://cher-ami.example.com/circles/2997",
             "description": "All my closest friends",
             "owner": "wendy",
-            "members": "http://cher-ami.example.com/circles/2997/members",
+            "visibility": "private",
+            "members": "https://cher-ami.example.com/circles/2997/members",
             "creation": "2011-10-20T14:22:09Z"
         }
 + Response 400
@@ -446,7 +493,11 @@ Create a circle given only a name and description, setting the owner to the curr
         }
 
 
+
 ## Circle Search [/circles{?user,before,limit}]
+
+
+
 ### Search for circles [GET]
 Fetch circles, optionally restricted to those with a given owner. The results will be paginated. Only basic circle data is returned; however, the url to get the complete data is also returned. Circles are returned in order of descending creation date.  We may add custom sorting capability in the future.
 
@@ -464,10 +515,11 @@ Fetch circles, optionally restricted to those with a given owner. The results wi
         [
             {
                 "name": "bffs",
-                "url": "http://cher-ami.example.com/circles/2997",
+                "url": "https://cher-ami.example.com/circles/2997",
                 "description": "All my closest friends",
                 "owner": "wendy",
-                "members": "http://cher-ami.example.com/circles/2997/members",
+                "visibility": "private",
+                "members": "https://cher-ami.example.com/circles/2997/members",
                 "creation": "2011-10-20T14:22:09Z"
             },
             . . .
@@ -488,7 +540,12 @@ Fetch circles, optionally restricted to those with a given owner. The results wi
             "reason": "limit out of range"
         }
 
+
+
 ## Circle [/circles/{id}]
+
+
+
 ### Get circle by id [GET]
 Get complete circle data for the circle with the given id.
 + Request
@@ -499,10 +556,11 @@ Get complete circle data for the circle with the given id.
 
         {
             "name": "bffs",
-            "url": "http://cher-ami.example.com/circles/2997",
+            "url": "https://cher-ami.example.com/circles/2997",
             "description": "All my closest friends",
             "owner": "wendy",
-            "members": "http://cher-ami.example.com/circles/2997/members",
+            "visibility": "private",
+            "members": "https://cher-ami.example.com/circles/2997/members",
             "creation": "2011-10-20T14:22:09Z"
         },
 + Response 401
@@ -515,6 +573,7 @@ Get complete circle data for the circle with the given id.
         {
             "reason": "no such circle"
         }
+
 
 
 ### Edit circle info [PATCH]
@@ -542,6 +601,7 @@ Edits only the name and description of the circle. Members are managed elsewhere
         }
 
 
+
 ## Get Circle Members [/circles/{id}/members{?skip,limit}]
 
 
@@ -561,7 +621,7 @@ Fetch the list of members of this circle, paginated. The members will always be 
 
         [
             {
-                "url": "http://cher-ami.example.com/users/towelie",
+                "url": "https://cher-ami.example.com/users/towelie",
                 "handle": "towelie",
                 "name": "Smart Towel RG-400",
                 "reputation": 420,
@@ -636,7 +696,7 @@ If a circle is public, all user can let themselves in, unless blocked by the cir
 
 
 ### Create message [POST]
-Creates a message given content only. Server sets the id, creation timestamp, and author.
+Creates a message for a given circle, with the given content. Optionally, the creator can set a minimum reputation threshold for viewing (defaults to 0, in a way). Server sets the id, creation timestamp, and author.
 + Request
     + Headers
 
@@ -645,14 +705,16 @@ Creates a message given content only. Server sets the id, creation timestamp, an
 
             {
                 "circle": 488,
+                "min_rep": 500,
                 "content": "There are no such things as stupid questions, only stupid people"
             }
 + Response 201
 
         {
             "content": "There are no such things as stupid questions, only stupid people",
-            "url": "http://cher-ami.example.com/messages/98",
+            "url": "https://cher-ami.example.com/messages/98",
             "author": "garrison",
+            "min_rep": 500,
             "creation": "2011-10-20T14:22:09Z"
         }
 + Response 400
@@ -677,7 +739,7 @@ Creates a message given content only. Server sets the id, creation timestamp, an
 ## Message Search [/messages{?circle,name,before,limit}]
 
 ### Get messages [GET]
-Fetch the messages for the given circle or user, paginated. The messages will always be returned in order of descending creation date. Only messages corresponding to circles that the current user is allowed to see will be returned.
+Fetch the messages for the given circle or user, paginated. The messages will always be returned in order of descending creation date. Only messages corresponding to circles that the current user is allowed to see , and that the user has enough reputation to see, will be returned.
 
 + Parameters
     + circle (optional, string, `284`) ... only return messages from this circle, required if name not supplied
@@ -693,7 +755,7 @@ Fetch the messages for the given circle or user, paginated. The messages will al
 
         [
             {
-                "url": "http://cher-ami.example.com/messages/802",
+                "url": "https://cher-ami.example.com/messages/802",
                 "author": "stan",
                 "content": "I'm not getting on this bus",
                 "date": "2012-10-20T14:22:09Z"
@@ -737,22 +799,28 @@ Get the message with the given id.
             Authorization: Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 + Response 200
 
-            {
-                "url": "http://cher-ami.example.com/messages/802",
-                "author": "stan",
-                "content": "I'm not getting on this bus",
-                "date": "2012-10-20T14:22:09Z"
-            }
+        {
+            "url": "https://cher-ami.example.com/messages/802",
+            "author": "stan",
+            "content": "I'm not getting on this bus",
+            "date": "2012-10-20T14:22:09Z"
+        }
 + Response 401
 
-            {
-                "reason": "missing, illegal, or expired auth token"
-            }
+        {
+            "reason": "missing, illegal, or expired auth token"
+        }
++ Response 403
+
+        {
+            "reason": "you don't have enough reputation to see this message",
+            "rep_required": 250
+        }
 + Response 404
 
-            {
-                "reason": "no such message in any circle you can see"
-            }
+        {
+            "reason": "no such message in any circle you can see"
+        }
 
 
 
@@ -794,7 +862,7 @@ Post a comment to the given message. Comments are text-only. The server sets the
 
         {
             "content": "You killed Kenny! You BASTARD!",
-            "url": "http://cher-ami.example.com/messages/983/comments/22",
+            "url": "https://cher-ami.example.com/messages/983/comments/22",
             "author": "kyle",
             "creation": "2015-10-20T14:22:09Z"
         }
@@ -837,7 +905,7 @@ Fetch the comments for the given message, paginated. The comments will always be
         [
             {
                 "content": "You killed Kenny! You BASTARD!",
-                "url": "http://cher-ami.example.com/messages/983/comments/22",
+                "url": "https://cher-ami.example.com/messages/983/comments/22",
                 "author": "kyle",
                 "creation": "2015-10-20T14:22:09Z"
             },
@@ -882,7 +950,7 @@ Get the comment with the given id. Comment must be for a message of a public cir
 
         {
             "content": "You killed Kenny! You BASTARD!",
-            "url": "http://cher-ami.example.com/messages/983/comments/22",
+            "url": "https://cher-ami.example.com/messages/983/comments/22",
             "author": "kyle",
             "creation": "2015-10-20T14:22:09Z"
         }
