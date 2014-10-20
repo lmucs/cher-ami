@@ -172,20 +172,20 @@ func (s Svc) EmailIsUnique(email string) (bool, error) {
 	return len(found) == 0, err
 }
 
-func (s Svc) GoodSessionCredentials(handle string, sessionid string) bool {
+func (s Svc) GoodSessionCredentials(sessionid string) bool {
 	found := []struct {
 		Handle string `json:"u.handle"`
 	}{}
 	if err := s.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
-            MATCH (u:User)
-            WHERE u.handle = {handle}
-            AND   u.sessionid = {sessionid}
+            MATCH  (u:User)<-[:SESSION_OF]-(a:AuthToken)
+            WHERE  a.sessionid = {sessionid}
+            AND    a.session_expires_at > {now}
             RETURN u.handle
         `,
 		Parameters: neoism.Props{
-			"handle":    handle,
 			"sessionid": sessionid,
+			"now":       time.Now().Local(),
 		},
 		Result: &found,
 	}); err != nil {
@@ -468,17 +468,36 @@ func (s Svc) RevokeMembershipBetween(handle string, target string) {
 	}
 }
 
-func (s Svc) DeleteUser(handle string) error {
-	return s.Db.Cypher(&neoism.CypherQuery{
+func (s Svc) DeleteUser(handle string) bool {
+	if err := s.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
-                MATCH (user:User)-[r]->()
-                WHERE user.handle = {handle}
-                DELETE user, r
+                MATCH (u:User)
+                WHERE u.handle = {handle}
+                WITH  u
+                OPTIONAL MATCH (a:AuthToken)-[r:SESSION_OF]->(u)
+                DELETE a, r
+                WITH u
+                MATCH (u)-[wr:WROTE]->(m:Message)-[pt:PUB_TO]->(:Circle)
+                DELETE pt, m, wr
+                WITH u
+                MATCH (u)-[mo:MEMBER_OF]->(:Circle)
+                DELETE mo
+                WITH u
+                MATCH (u)-[b:BLOCKED]->(:User)
+                DELETE b
+                WITH u
+                MATCH (u)-[co:CHIEF_OF]->(c:Circle)-[po:PART_OF]->(:PublicDomain)
+                MATCH (c)<-[mo:MEMBER_OF]-(:User)
+                MATCH (c)<-[pt:PUB_TO]-(:Message)
+                DELETE pt, mo, co, po, c, u
             `,
 		Parameters: neoism.Props{
 			"handle": handle,
 		},
-	})
+	}); err != nil {
+		panicErr(err)
+	}
+	return true
 }
 
 //
@@ -536,30 +555,44 @@ func (s Svc) GetPasswordHash(user string) (password_hash []byte, found bool) {
 // Node Attributes
 //
 
-func (s Svc) SetGetNewSessionId(handle string) (sessionid string, err error) {
-	sessionHash := uniuri.New()
-
+// Sets a session id on an AuthToken node that points to a particular user
+func (s Svc) SetGetNewSessionId(handle string) string {
 	created := []struct {
-		SessionId string `json:"u.sessionid"`
+		SessionId string `json:"a.sessionid"`
 	}{}
-	err = s.Db.Cypher(&neoism.CypherQuery{
+
+	sessionDuration := time.Hour
+	now := time.Now().Local()
+
+	if err := s.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
-                MATCH (u:User)
-                WHERE u.handle = {handle}
-                SET u.sessionid = {sessionid}
-                return u.sessionid
+                MATCH  (u:User)
+                WHERE  u.handle = {handle}
+                WITH   u
+                OPTIONAL MATCH (u)<-[s:SESSION_OF]-(a:AuthToken)
+                DELETE s, a
+                WITH   u
+                CREATE (u)<-[r:SESSION_OF]-(a:AuthToken)
+                SET    r.created_at = {now}
+                SET    a.sessionid = {sessionid}
+                SET    a.session_expires_at = {time}
+                RETURN a.sessionid
             `,
 		Parameters: neoism.Props{
 			"handle":    handle,
-			"sessionid": sessionHash,
+			"sessionid": uniuri.NewLen(uniuri.UUIDLen),
+			"time":      now.Add(sessionDuration),
+			"now":       now,
 		},
 		Result: &created,
-	})
+	}); err != nil {
+		panicErr(err)
+	}
 	if len(created) != 1 {
 		panic(fmt.Sprintf("Incorrect results len in query1()\n\tgot %d, expected 1\n", len(created)))
 	}
 
-	return created[0].SessionId, err
+	return created[0].SessionId
 }
 
 func (s Svc) SetNewPassword(handle string, password string) bool {
@@ -587,20 +620,27 @@ func (s Svc) SetNewPassword(handle string, password string) bool {
 	return len(user) > 0
 }
 
-func (s Svc) UnsetSessionId(handle string) error {
-	err := s.Db.Cypher(&neoism.CypherQuery{
+func (s Svc) UnsetSessionId(handle string) bool {
+	unset := []struct {
+		Handle string `json:"u.handle"`
+	}{}
+	if err := s.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
-            MATCH (u:User)
-            WHERE u.handle = {handle}
-            REMOVE u.sessionid
+            MATCH          (u:User)
+            WHERE          u.handle = {handle}
+            WITH           u
+            OPTIONAL MATCH (u)<-[so:SESSION_OF]-(a:AuthToken)
+            DELETE         so, a
+            RETURN         u.handle
         `,
 		Parameters: neoism.Props{
 			"handle": handle,
 		},
-		Result: nil,
-	})
-
-	return err
+		Result: &unset,
+	}); err != nil {
+		panicErr(err)
+	}
+	return len(unset) > 0
 }
 
 func (s Svc) SetGetName(handle string, name string) string {

@@ -46,8 +46,12 @@ const (
 // API util
 //
 
-func (a Api) authenticate(handle string, sessionid string) bool {
-	return a.Svc.GoodSessionCredentials(handle, sessionid)
+func (a Api) authenticate(r *rest.Request) (success bool) {
+	if sessionid := r.Header.Get("Authentication"); sessionid != "" {
+		return a.Svc.GoodSessionCredentials(sessionid)
+	} else {
+		return false
+	}
 }
 
 //
@@ -180,7 +184,7 @@ func (a Api) Login(w rest.ResponseWriter, r *rest.Request) {
 		})
 		return
 	} else {
-		// err is nil if successful, error
+		// err is nil if successful, error if comparison failed
 		if err := bcrypt.CompareHashAndPassword(passwordHash, password); err != nil {
 			w.WriteHeader(400)
 			w.WriteJson(map[string]string{
@@ -188,16 +192,16 @@ func (a Api) Login(w rest.ResponseWriter, r *rest.Request) {
 			})
 			return
 		} else {
-			// Add session hash to node and return it to client
-			if sessionid, err := a.Svc.SetGetNewSessionId(handle); err != nil {
-				panicErr(err)
-			} else {
-				w.WriteJson(map[string]string{
-					"Response":  "Logged in " + handle + ". Note your session id.",
-					"SessionId": sessionid,
-				})
-				return
-			}
+			// Create an authentication node and return it to client
+			sessionid := a.Svc.SetGetNewSessionId(handle)
+
+			w.WriteHeader(200)
+			w.WriteJson(map[string]string{
+				"Response":  "Logged in " + handle + ". Note your session id.",
+				"sessionid": sessionid,
+			})
+			w.Header().Add("Authentication", sessionid)
+			return
 		}
 	}
 }
@@ -209,34 +213,32 @@ func (a Api) Logout(w rest.ResponseWriter, r *rest.Request) {
 	user := struct {
 		Handle string
 	}{}
-	err := r.DecodeJsonPayload(&user)
-	if err != nil {
+
+	if err := r.DecodeJsonPayload(&user); err != nil {
 		rest.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	if !a.Svc.UserExists(user.Handle) {
+	handle := user.Handle
+
+	if a.Svc.UnsetSessionId(handle) {
+		w.WriteHeader(200)
+		w.WriteJson(map[string]string{
+			"Response": "Goodbye " + handle + ", have a nice day",
+		})
+		return
+	} else {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "That user doesn't exist",
 		})
 		return
 	}
-
-	if err := a.Svc.UnsetSessionId(user.Handle); err != nil {
-		panicErr(err)
-	}
-
-	w.WriteHeader(200)
-	w.WriteJson(map[string]string{
-		"Response": "Goodbye " + user.Handle + ", have a nice day",
-	})
 }
 
 func (a Api) ChangePassword(w rest.ResponseWriter, r *rest.Request) {
 	user := struct {
 		Handle             string
-		SessionId          string
 		Password           string
 		NewPassword        string
 		ConfirmNewPassword string
@@ -249,12 +251,11 @@ func (a Api) ChangePassword(w rest.ResponseWriter, r *rest.Request) {
 	}
 
 	handle := user.Handle
-	sessionid := user.SessionId
 	password := []byte(user.Password)
 	newPassword := user.NewPassword
 	confirmNewPassword := user.ConfirmNewPassword
 
-	if !a.authenticate(handle, sessionid) {
+	if !a.authenticate(r) {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Failed to authenticate user request",
@@ -388,9 +389,8 @@ func (a Api) GetUsers(w rest.ResponseWriter, r *rest.Request) {
 
 func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
 	credentials := struct {
-		Handle    string
-		Password  string
-		SessionId string
+		Handle   string
+		Password string
 	}{}
 	if err := r.DecodeJsonPayload(&credentials); err != nil {
 		rest.Error(w, err.Error(), http.StatusInternalServerError)
@@ -399,9 +399,8 @@ func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
 
 	handle := credentials.Handle
 	password := []byte(credentials.Password)
-	sessionid := credentials.SessionId
 
-	if !a.authenticate(handle, sessionid) {
+	if !a.authenticate(r) {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Failed to authenticate user request",
@@ -424,8 +423,12 @@ func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
 			})
 			return
 		} else {
-			if err := a.Svc.DeleteUser(handle); err != nil {
-				panicErr(err)
+			if deleted := a.Svc.DeleteUser(handle); !deleted {
+				w.WriteHeader(400)
+				w.WriteJson(map[string]string{
+					"Response": "Unexpected failure to delete user",
+				})
+				return
 			}
 			w.WriteHeader(200)
 			w.WriteJson(map[string]string{
@@ -442,18 +445,16 @@ func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
 func (a Api) NewCircle(w rest.ResponseWriter, r *rest.Request) {
 	payload := struct {
 		Handle     string
-		SessionId  string
 		CircleName string
 		Public     bool
 	}{}
 	r.DecodeJsonPayload(&payload)
 
 	handle := payload.Handle
-	sessionid := payload.SessionId
 	circleName := payload.CircleName
 	isPublic := payload.Public
 
-	if !a.authenticate(handle, sessionid) {
+	if !a.authenticate(r) {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Failed to authenticate user request",
@@ -532,7 +533,7 @@ func (a Api) NewMessage(w rest.ResponseWriter, r *rest.Request) {
 	sessionid := payload.SessionId
 	content := payload.Content
 
-	if !a.authenticate(handle, sessionid) {
+	if !a.authenticate(r) {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Failed to authenticate user request",
@@ -588,7 +589,6 @@ func (a Api) NewMessage(w rest.ResponseWriter, r *rest.Request) {
 func (a Api) PublishMessage(w rest.ResponseWriter, r *rest.Request) {
 	payload := struct {
 		Handle    string
-		SessionId string
 		LastSaved time.Time
 		Circle    string
 	}{}
@@ -598,11 +598,10 @@ func (a Api) PublishMessage(w rest.ResponseWriter, r *rest.Request) {
 	}
 
 	handle := payload.Handle
-	sessionid := payload.SessionId
 	lastsaved := payload.LastSaved
 	circle := payload.Circle
 
-	if !a.authenticate(handle, sessionid) {
+	if !a.authenticate(r) {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Failed to authenticate user request",
@@ -679,18 +678,10 @@ func (a Api) GetAuthoredMessages(w rest.ResponseWriter, r *rest.Request) {
 		})
 		return
 	}
-	if _, ok := querymap["sessionid"]; !ok {
-		w.WriteHeader(400)
-		w.WriteJson(map[string]string{
-			"Response": "Bad Request, not enough parameters to authenticate user",
-		})
-		return
-	}
 
 	handle := querymap["handle"][0]
-	sessionid := querymap["sessionid"][0]
 
-	if !a.authenticate(handle, sessionid) {
+	if !a.authenticate(r) {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Failed to authenticate user request",
@@ -734,17 +725,10 @@ func (a Api) GetMessagesByHandle(w rest.ResponseWriter, r *rest.Request) {
 		})
 		return
 	}
-	if _, ok := querymap["sessionid"]; !ok {
-		w.WriteHeader(400)
-		w.WriteJson(map[string]string{
-			"Response": "Bad Request, not enough parameters to authenticate user",
-		})
-		return
-	}
-	handle := querymap["handle"][0]
-	sessionid := querymap["sessionid"][0]
 
-	if !a.authenticate(handle, sessionid) {
+	handle := querymap["handle"][0]
+
+	if !a.authenticate(r) {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Failed to authenticate user request",
@@ -789,20 +773,17 @@ func (a Api) GetMessagesByHandle(w rest.ResponseWriter, r *rest.Request) {
 func (a Api) DeleteMessage(w rest.ResponseWriter, r *rest.Request) {
 	payload := struct {
 		Handle    string
-		SessionId string
 		LastSaved time.Time
 	}{}
-	err := r.DecodeJsonPayload(&payload)
-	if err != nil {
+	if err := r.DecodeJsonPayload(&payload); err != nil {
 		rest.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	handle := payload.Handle
-	sessionid := payload.SessionId
 	lastsaved := payload.LastSaved
 
-	if !a.authenticate(handle, sessionid) {
+	if !a.authenticate(r) {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Failed to authenticate user request",
@@ -813,7 +794,7 @@ func (a Api) DeleteMessage(w rest.ResponseWriter, r *rest.Request) {
 	deleted := []struct {
 		Count int `json:"count(m)"`
 	}{}
-	a.Svc.Db.Cypher(&neoism.CypherQuery{
+	if err := a.Svc.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
         MATCH (user:User {handle: {handle}})
         OPTIONAL MATCH (user)-[r:WROTE]->(m:Message {lastsaved: {lastsaved}})
@@ -825,8 +806,9 @@ func (a Api) DeleteMessage(w rest.ResponseWriter, r *rest.Request) {
 			"lastsaved": lastsaved,
 		},
 		Result: &deleted,
-	})
-	panicErr(err)
+	}); err != nil {
+		panicErr(err)
+	}
 
 	w.WriteHeader(200)
 	w.WriteJson(map[string]interface{}{
@@ -841,9 +823,8 @@ func (a Api) DeleteMessage(w rest.ResponseWriter, r *rest.Request) {
 
 func (a Api) BlockUser(w rest.ResponseWriter, r *rest.Request) {
 	payload := struct {
-		Handle    string
-		SessionId string
-		Target    string
+		Handle string
+		Target string
 	}{}
 	if err := r.DecodeJsonPayload(&payload); err != nil {
 		rest.Error(w, err.Error(), http.StatusInternalServerError)
@@ -851,10 +832,9 @@ func (a Api) BlockUser(w rest.ResponseWriter, r *rest.Request) {
 	}
 
 	handle := payload.Handle
-	sessionid := payload.SessionId
 	target := payload.Target
 
-	if !a.authenticate(handle, sessionid) {
+	if !a.authenticate(r) {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Failed to authenticate user request",
@@ -890,9 +870,8 @@ func (a Api) BlockUser(w rest.ResponseWriter, r *rest.Request) {
 
 func (a Api) JoinDefault(w rest.ResponseWriter, r *rest.Request) {
 	payload := struct {
-		Handle    string
-		SessionId string
-		Target    string
+		Handle string
+		Target string
 	}{}
 	if err := r.DecodeJsonPayload(&payload); err != nil {
 		rest.Error(w, err.Error(), http.StatusInternalServerError)
@@ -900,10 +879,9 @@ func (a Api) JoinDefault(w rest.ResponseWriter, r *rest.Request) {
 	}
 
 	handle := payload.Handle
-	sessionid := payload.SessionId
 	target := payload.Target
 
-	if !a.authenticate(handle, sessionid) {
+	if !a.authenticate(r) {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Failed to authenticate user request",
@@ -943,10 +921,9 @@ func (a Api) JoinDefault(w rest.ResponseWriter, r *rest.Request) {
 
 func (a Api) Join(w rest.ResponseWriter, r *rest.Request) {
 	payload := struct {
-		Handle    string
-		SessionId string
-		Target    string
-		Circle    string
+		Handle string
+		Target string
+		Circle string
 	}{}
 	if err := r.DecodeJsonPayload(&payload); err != nil {
 		rest.Error(w, err.Error(), http.StatusInternalServerError)
@@ -954,11 +931,10 @@ func (a Api) Join(w rest.ResponseWriter, r *rest.Request) {
 	}
 
 	handle := payload.Handle
-	sessionid := payload.SessionId
 	target := payload.Target
 	circle := payload.Circle
 
-	if !a.authenticate(handle, sessionid) {
+	if !a.authenticate(r) {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Failed to authenticate user request",
