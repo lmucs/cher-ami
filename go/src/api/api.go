@@ -74,7 +74,7 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 	}
 	proposal := Proposal{}
 	if err := r.DecodeJsonPayload(&proposal); err != nil {
-		rest.Error(w, err.Error(), http.StatusInternalServerError)
+		rest.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -170,7 +170,7 @@ func (a Api) Login(w rest.ResponseWriter, r *rest.Request) {
 		Password string
 	}{}
 	if err := r.DecodeJsonPayload(&credentials); err != nil {
-		rest.Error(w, err.Error(), http.StatusInternalServerError)
+		rest.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -215,7 +215,7 @@ func (a Api) Logout(w rest.ResponseWriter, r *rest.Request) {
 	}{}
 
 	if err := r.DecodeJsonPayload(&user); err != nil {
-		rest.Error(w, err.Error(), http.StatusInternalServerError)
+		rest.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -246,7 +246,7 @@ func (a Api) ChangePassword(w rest.ResponseWriter, r *rest.Request) {
 
 	err := r.DecodeJsonPayload(&user)
 	if err != nil {
-		rest.Error(w, err.Error(), http.StatusInternalServerError)
+		rest.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -331,7 +331,7 @@ func (a Api) GetUser(w rest.ResponseWriter, r *rest.Request) {
 		Handle string
 	}{}
 	if err := r.DecodeJsonPayload(&user); err != nil {
-		rest.Error(w, err.Error(), http.StatusInternalServerError)
+		rest.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -393,7 +393,7 @@ func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
 		Password string
 	}{}
 	if err := r.DecodeJsonPayload(&credentials); err != nil {
-		rest.Error(w, err.Error(), http.StatusInternalServerError)
+		rest.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -448,7 +448,10 @@ func (a Api) NewCircle(w rest.ResponseWriter, r *rest.Request) {
 		CircleName string
 		Public     bool
 	}{}
-	r.DecodeJsonPayload(&payload)
+	if err := r.DecodeJsonPayload(&payload); err != nil {
+		rest.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
 	handle := payload.Handle
 	circleName := payload.CircleName
@@ -523,9 +526,8 @@ func (a Api) NewMessage(w rest.ResponseWriter, r *rest.Request) {
 		SessionId string
 		Content   string
 	}{}
-	err := r.DecodeJsonPayload(&payload)
-	if err != nil {
-		rest.Error(w, err.Error(), http.StatusInternalServerError)
+	if err := r.DecodeJsonPayload(&payload); err != nil {
+		rest.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -551,7 +553,7 @@ func (a Api) NewMessage(w rest.ResponseWriter, r *rest.Request) {
 		Relation neoism.Node `json:"r"`
 	}{}
 	now := time.Now().Local()
-	err = a.Svc.Db.Cypher(&neoism.CypherQuery{
+	err := a.Svc.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
             MATCH (user:User {handle: {handle}, sessionid: {sessionid}})
             CREATE (message:Message {content: {content}, created: {now}, lastsaved: {now}})
@@ -593,7 +595,7 @@ func (a Api) PublishMessage(w rest.ResponseWriter, r *rest.Request) {
 		Circle    string
 	}{}
 	if err := r.DecodeJsonPayload(&payload); err != nil {
-		rest.Error(w, err.Error(), http.StatusInternalServerError)
+		rest.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -776,7 +778,7 @@ func (a Api) DeleteMessage(w rest.ResponseWriter, r *rest.Request) {
 		LastSaved time.Time
 	}{}
 	if err := r.DecodeJsonPayload(&payload); err != nil {
-		rest.Error(w, err.Error(), http.StatusInternalServerError)
+		rest.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -827,7 +829,7 @@ func (a Api) BlockUser(w rest.ResponseWriter, r *rest.Request) {
 		Target string
 	}{}
 	if err := r.DecodeJsonPayload(&payload); err != nil {
-		rest.Error(w, err.Error(), http.StatusInternalServerError)
+		rest.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -874,7 +876,7 @@ func (a Api) JoinDefault(w rest.ResponseWriter, r *rest.Request) {
 		Target string
 	}{}
 	if err := r.DecodeJsonPayload(&payload); err != nil {
-		rest.Error(w, err.Error(), http.StatusInternalServerError)
+		rest.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -926,7 +928,7 @@ func (a Api) Join(w rest.ResponseWriter, r *rest.Request) {
 		Circle string
 	}{}
 	if err := r.DecodeJsonPayload(&payload); err != nil {
-		rest.Error(w, err.Error(), http.StatusInternalServerError)
+		rest.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
