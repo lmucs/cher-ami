@@ -25,4 +25,11 @@ dependencies {
     compile 'com.google.android.gms:play-services:5.0.89'
     compile 'com.android.support:appcompat-v7:20.0.0'
     compile 'com.android.support:support-v4:20.0.0'
+    compile 'org.springframework.android:spring-android-rest-template:2.0.0.M1'
+}
+
+repositories {
+    maven {
+        url 'http://repo.spring.io/milestone'
+    }
 }
