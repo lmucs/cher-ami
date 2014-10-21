@@ -198,7 +198,9 @@ h1 {
 /*Comments box css*/
 
 .main-comment-area {
-    background-color: pink;
+    background-color: lightgray;
+    padding: 10px;
+    border-radius: 4px;
     overflow-wrap: break-word ;
 }
 
@@ -208,4 +210,24 @@ textarea#commentInput {
     position: relative;
     padding: 8px 16px;
     border: 2px solid darkgray;
+}
+
+.main-comment-box {
+    background-color: #fff;
+    height: 50px;
+    margin-top: 8px;
+    padding: 8px 16px;
+    position: relative;
+    overflow-wrap: break-word;
+}
+
+.comment-box-icon {
+    background: url('../img/sample-icon-2.png');
+    background-size: 50px;
+    height: 50px;
+    width: 50px;
+    position: relative;
+    border-radius: 4px;
+    margin-top: 8px;
+    margin-bottom: 16px;
 }
