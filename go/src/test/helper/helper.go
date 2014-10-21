@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"url"
 )
 
 func Execute(httpMethod string, url string, m map[string]interface{}) (*http.Response, error) {
@@ -19,6 +20,37 @@ func Execute(httpMethod string, url string, m map[string]interface{}) (*http.Res
 		return nil, err
 	} else {
 		request, err := http.NewRequest(httpMethod, url, b.NewReader(bytes))
+		if err != nil {
+			log.Fatal(err)
+		}
+		if ok && str != "" {
+			request.Header.Add("Authentication", sessionid)
+		}
+		return http.DefaultClient.Do(request)
+	}
+}
+
+func GetWithQueryParams(httpMethod string, url string, m map[string]interface{}) (*http.Response, error) {
+	var sessionid string
+	str, ok := m["sessionid"].(string)
+	if ok && str != "" {
+		sessionid = str
+		delete(m, "sessionid")
+	}
+
+	if baseUrl, err := url.Parse(); err != nil {
+		log.Fatal(err)
+		return nil, err
+	} else {
+		params := url.Values{}
+		for key, val := range m {
+			params.Add(key, val)
+		}
+		baseUrl.RawQuery = params.Encode()
+
+		queryUrl := baseUrl.String()
+
+		request, err := http.NewRequest(httpMethod, queryUrl, nil)
 		if err != nil {
 			log.Fatal(err)
 		}
