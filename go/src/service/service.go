@@ -6,6 +6,7 @@ import (
 	"github.com/jmcvetta/neoism"
 	"log"
 	"time"
+	"encoding/json"
 )
 
 //
@@ -504,24 +505,57 @@ func (s Svc) DeleteUser(handle string) bool {
 // Get
 //
 
-func (s Svc) SearchForUsers(circle string, before time.Time, limit int) (results string, count int, found bool) {
+func (s Svc) SearchForUsers(
+	circle string,
+	nameprefix string,
+	skip int,
+	limit int,
+	sort string,
+) (results string, count int, found bool) {
 	res := []struct {
 		Handle string `json:"u.handle"`
 		Name   string `json:"u.name"`
 		Id     int    `json:"id(u)"`
 	}{}
-	if err := s.Db.Cypher(&neoism.CypherQuery{
-		Statement: `
-            MATCH (u:User)
-            WHERE u.joined < {before}
-            RETURN u.handle, u.name, id(u)
-            LIMIT {limit}
-        `,
-		Parameters: neoism.Props{
-			"regex":  regex,
-			"before": before,
+
+	var statement string
+	props := neoism.Props{}
+
+	if circle != "" {
+		statement = `
+			MATCH (u:User)-[]->(c:Circle)
+			WHERE c.name = {circle}
+			AND   u.handle =~ '{nameprefix}.*'
+		`
+		props = neoism.Props{
+			"circle": circle,
+			"nameprefix": nameprefix,
+			"skip": skip,
 			"limit":  limit,
-		},
+			"sort": sort,
+		}
+	} else {
+		statement = `
+			MATCH  (u:User)
+			WHERE  u.handle =~ '{nameprefix}.*'
+		`
+		props = neoism.Props{
+			"nameprefix": nameprefix,
+			"skip": skip,
+			"limit":  limit,
+			"sort": sort,
+		}
+	}
+
+	statement = statement + `
+        RETURN u.handle, u.name, id(u)
+        SKIP   {skip}
+        LIMIT  {limit}
+	`
+
+	if err := s.Db.Cypher(&neoism.CypherQuery{
+		Statement: statement,
+		Parameters: props,
 		Result: &res,
 	}); err != nil {
 		panicErr(err)
@@ -529,7 +563,7 @@ func (s Svc) SearchForUsers(circle string, before time.Time, limit int) (results
 		return "", 0, false
 	}
 
-	bytes, err := json.Marshall(res)
+	bytes, err := json.Marshal(res)
 	if err != nil {
 		panicErr(err)
 	}

@@ -172,7 +172,7 @@ func getUser(handle string) (*http.Response, error) {
 	return helper.Execute("GET", userURL, payload)
 }
 
-func getUsersByTerm(circle, nameprefix string, skip, limit int, sort string) (*http.Response, error) {
+func searchForUsers(circle, nameprefix string, skip, limit int, sort string) (*http.Response, error) {
 	payload := map[string]interface{}{
 		"circle":     circle,
 		"nameprefix": nameprefix,
@@ -181,7 +181,7 @@ func getUsersByTerm(circle, nameprefix string, skip, limit int, sort string) (*h
 		"sort":       sort,
 	}
 
-	return helper.Execute("GET", usersURL, payload)
+	return helper.GetWithQueryParams("GET", usersURL, payload)
 }
 
 func deleteUser(handle string, password string, sessionid string) (*http.Response, error) {
@@ -563,7 +563,7 @@ func (s *TestSuite) TestForUsersOK(c *C) {
 	postSignup("smart", "test5@test.io", "testing312", "testing312")
 	postSignup("battle", "test6@test.io", "testing321", "testing321")
 
-	response, err := getUsers()
+	response, err := searchForUsers()
 	if err != nil {
 		c.Error(err)
 	}

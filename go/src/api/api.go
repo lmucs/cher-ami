@@ -335,57 +335,65 @@ func (a Api) SearchForUsers(w rest.ResponseWriter, r *rest.Request) {
 	var limit int
 	var sort string
 
-	if l, ok := querymap["limit"]; !ok {
+	if val, ok := querymap["limit"]; !ok {
 		limit = 10
-	} else if l > 100 {
+	} else if val[0] > 100 {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]interface{}{
 			"Results":  nil,
 			"Response": "Search failed",
-			"Reason":   "Limit " + l + " exceeds max limit of 100",
+			"Reason":   "Limit " + val[0] + " exceeds max limit of 100",
 			"Count":    0,
 		})
-	} else if l < 1 {
+	} else if val[0] < 1 {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]interface{}{
 			"Results":  nil,
 			"Response": "Search failed",
-			"Reason":   "Limit " + l + " must be greater than 1",
+			"Reason":   "Limit " + val[0] + " must be greater than 1",
 			"Count":    0,
 		})
 	} else {
-		limit = l
+		limit = val[0]
 	}
 
-	if p, ok := querymap["nameprefix"]; !ok {
+	if val, ok := querymap["nameprefix"]; !ok {
 		nameprefix = ""
 	} else {
-		nameprefix = p
+		nameprefix = val[0]
 	}
 
-	if c, ok := querymap["circle"]; !ok {
+	if val, ok := querymap["circle"]; !ok {
 		circle = ""
 	} else {
-		circle = c
+		circle = val[0]
 	}
 
-	if sk, ok := querymap["skip"]; !ok {
+	if val, ok := querymap["skip"]; !ok {
 		skip = 0
 	} else {
-		skip = sk
+		skip = val[0]
 	}
 
-	if sr, ok := querymap["sort"]; !ok {
-		if sr != "name" && sr != "joined" {
-			w.WriteHeader(200)
-			w.WriteJson(map[string]interface{}{
-				"Results":  nil,
-				"Response": "Search failed",
-				"Reason":   "No such sort " + sr,
-				"Count":    0,
-			})
-		}
+	if sortType, ok := querymap["sort"]; !ok {
+		w.WriteHeader(400)
+		w.WriteJson(map[string]interface{}{
+			"Results":  nil,
+			"Response": "Search failed",
+			"Reason":   "Missing required sort parameter",
+			"Count":    0,
+		})
+	} else if sortType[0] != "name" && sortType[0] != "joined" {
+		w.WriteHeader(200)
+		w.WriteJson(map[string]interface{}{
+			"Results":  nil,
+			"Response": "Search failed",
+			"Reason":   "No such sort " + sortType[0],
+			"Count":    0,
+		})
 	}
+
+	results, count, found := a.Svc.SearchForUsers(circle, nameprefix, skip, limit, sort)
 
 	w.WriteHeader(200)
 	w.WriteJson(map[string]interface{}{
