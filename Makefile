@@ -32,6 +32,10 @@ install-test-reqs:
 	npm install karma --save-dev
 	npm install -g karma-cli
 
+.PHONY: deps
+deps:
+	go get github.com/jmcvetta/neoism github.com/ChimeraCoder/go.crypto/bcrypt github.com/ant0ine/go-json-rest/rest github.com/dchest/uniuri github.com/jadengore/goconfig gopkg.in/check.v1
+
 # http://stackoverflow.com/questions/8889035/how-to-document-a-makefile
 .PHONY: help
 help:
@@ -51,4 +55,5 @@ help:
 	@echo  '  localtest       - Start Go server testing using local database'
 	@echo  '  serve           - Serve front-end web application locally to port 8000'
 	@echo  '  watch           - Start Compass watcher to keep CSS files up-to-date'
+	@echo  '  deps            - Install Go package dependencies'
 	@echo  ''
