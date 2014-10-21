@@ -335,28 +335,38 @@ func (a Api) SearchForUsers(w rest.ResponseWriter, r *rest.Request) {
 	var limit int
 	var sort string
 
-	if lim, ok := querymap["circle"]; !ok {
+	if l, ok := querymap["limit"]; !ok {
 		limit = 10
-	} else if lim > 100 {
+	} else if l > 100 {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]interface{}{
 			"Results":  nil,
 			"Response": "Search failed",
-			"Reason":   "Limit " + lim + " exceeds max limit of 100",
+			"Reason":   "Limit " + l + " exceeds max limit of 100",
 			"Count":    0,
 		})
+	} else if l < 1 {
+		w.WriteHeader(400)
+		w.WriteJson(map[string]interface{}{
+			"Results":  nil,
+			"Response": "Search failed",
+			"Reason":   "Limit " + l + " must be greater than 1",
+			"Count":    0,
+		})
+	} else {
+		limit = l
 	}
 
-	if prefix, ok := querymap["nameprefix"]; !ok {
+	if p, ok := querymap["nameprefix"]; !ok {
 		nameprefix = ""
 	} else {
-		nameprefix = prefix
+		nameprefix = p
 	}
 
-	if cir, ok := querymap["circle"]; !ok {
+	if c, ok := querymap["circle"]; !ok {
 		circle = ""
 	} else {
-		circle = cir
+		circle = c
 	}
 
 	if sk, ok := querymap["skip"]; !ok {
@@ -378,7 +388,7 @@ func (a Api) SearchForUsers(w rest.ResponseWriter, r *rest.Request) {
 	}
 
 	w.WriteHeader(200)
-	w.WriteJson(map[string]string{
+	w.WriteJson(map[string]interface{}{
 		"Results":  results,
 		"Response": "Search complete",
 		"Count":    count,

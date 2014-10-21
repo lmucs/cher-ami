@@ -172,11 +172,13 @@ func getUser(handle string) (*http.Response, error) {
 	return helper.Execute("GET", userURL, payload)
 }
 
-func getUsersByTerm(searchTerm string, limit int) (*http.Response, error) {
+func getUsersByTerm(circle, nameprefix string, skip, limit int, sort string) (*http.Response, error) {
 	payload := map[string]interface{}{
-		"search_term": searchTerm,
-		"limit":       limit,
-		"circle":      circle,
+		"circle":     circle,
+		"nameprefix": nameprefix,
+		"skip":       skip,
+		"limit":      limit,
+		"sort":       sort,
 	}
 
 	return helper.Execute("GET", usersURL, payload)
