@@ -1,12 +1,12 @@
 package service
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/dchest/uniuri"
 	"github.com/jmcvetta/neoism"
 	"log"
 	"time"
-	"encoding/json"
 )
 
 //
@@ -511,7 +511,7 @@ func (s Svc) SearchForUsers(
 	skip int,
 	limit int,
 	sort string,
-) (results string, count int, found bool) {
+) (results string, count int) {
 	res := []struct {
 		Handle string `json:"u.handle"`
 		Name   string `json:"u.name"`
@@ -528,11 +528,11 @@ func (s Svc) SearchForUsers(
 			AND   u.handle =~ '{nameprefix}.*'
 		`
 		props = neoism.Props{
-			"circle": circle,
+			"circle":     circle,
 			"nameprefix": nameprefix,
-			"skip": skip,
-			"limit":  limit,
-			"sort": sort,
+			"skip":       skip,
+			"limit":      limit,
+			"sort":       sort,
 		}
 	} else {
 		statement = `
@@ -541,9 +541,9 @@ func (s Svc) SearchForUsers(
 		`
 		props = neoism.Props{
 			"nameprefix": nameprefix,
-			"skip": skip,
-			"limit":  limit,
-			"sort": sort,
+			"skip":       skip,
+			"limit":      limit,
+			"sort":       sort,
 		}
 	}
 
@@ -554,13 +554,13 @@ func (s Svc) SearchForUsers(
 	`
 
 	if err := s.Db.Cypher(&neoism.CypherQuery{
-		Statement: statement,
+		Statement:  statement,
 		Parameters: props,
-		Result: &res,
+		Result:     &res,
 	}); err != nil {
 		panicErr(err)
 	} else if len(res) == 0 {
-		return "", 0, false
+		return "", 0
 	}
 
 	bytes, err := json.Marshal(res)
@@ -568,7 +568,7 @@ func (s Svc) SearchForUsers(
 		panicErr(err)
 	}
 
-	return string(bytes), len(res), true
+	return string(bytes), len(res)
 }
 
 func (s Svc) GetPasswordHash(user string) (password_hash []byte, found bool) {

@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"url"
+	u "net/url"
 )
 
 func Execute(httpMethod string, url string, m map[string]interface{}) (*http.Response, error) {
@@ -38,13 +38,13 @@ func GetWithQueryParams(httpMethod string, url string, m map[string]interface{})
 		delete(m, "sessionid")
 	}
 
-	if baseUrl, err := url.Parse(); err != nil {
+	if baseUrl, err := u.Parse(url); err != nil {
 		log.Fatal(err)
 		return nil, err
 	} else {
-		params := url.Values{}
+		params := u.Values{}
 		for key, val := range m {
-			params.Add(key, val)
+			params.Add(key, val.(string))
 		}
 		baseUrl.RawQuery = params.Encode()
 
