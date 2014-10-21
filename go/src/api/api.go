@@ -7,6 +7,7 @@ import (
 	"github.com/ant0ine/go-json-rest/rest"
 	"github.com/jmcvetta/neoism"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -337,24 +338,29 @@ func (a Api) SearchForUsers(w rest.ResponseWriter, r *rest.Request) {
 
 	if val, ok := querymap["limit"]; !ok {
 		limit = 10
-	} else if val[0] > 100 {
-		w.WriteHeader(400)
-		w.WriteJson(map[string]interface{}{
-			"Results":  nil,
-			"Response": "Search failed",
-			"Reason":   "Limit " + val[0] + " exceeds max limit of 100",
-			"Count":    0,
-		})
-	} else if val[0] < 1 {
-		w.WriteHeader(400)
-		w.WriteJson(map[string]interface{}{
-			"Results":  nil,
-			"Response": "Search failed",
-			"Reason":   "Limit " + val[0] + " must be greater than 1",
-			"Count":    0,
-		})
 	} else {
-		limit = val[0]
+		if intval, err := strconv.Atoi(val[0]); err != nil {
+			if intval > 100 || intval < 1 {
+				w.WriteHeader(400)
+				w.WriteJson(map[string]interface{}{
+					"Results":  nil,
+					"Response": "Search failed",
+					"Reason":   "Limit out of range",
+					"Count":    0,
+				})
+			} else {
+				limit = intval
+			}
+		} else {
+			w.WriteHeader(400)
+			w.WriteJson(map[string]interface{}{
+				"Results":  nil,
+				"Response": "Search failed",
+				"Reason":   "Malformed limit",
+				"Count":    0,
+			})
+			return
+		}
 	}
 
 	if val, ok := querymap["nameprefix"]; !ok {
@@ -372,7 +378,18 @@ func (a Api) SearchForUsers(w rest.ResponseWriter, r *rest.Request) {
 	if val, ok := querymap["skip"]; !ok {
 		skip = 0
 	} else {
-		skip = val[0]
+		if intval, err := strconv.Atoi(val[0]); err != nil {
+			skip = intval
+		} else {
+			w.WriteHeader(400)
+			w.WriteJson(map[string]interface{}{
+				"Results":  nil,
+				"Response": "Search failed",
+				"Reason":   "Malformed skip",
+				"Count":    0,
+			})
+			return
+		}
 	}
 
 	if sortType, ok := querymap["sort"]; !ok {
@@ -383,6 +400,7 @@ func (a Api) SearchForUsers(w rest.ResponseWriter, r *rest.Request) {
 			"Reason":   "Missing required sort parameter",
 			"Count":    0,
 		})
+		return
 	} else if sortType[0] != "name" && sortType[0] != "joined" {
 		w.WriteHeader(200)
 		w.WriteJson(map[string]interface{}{
@@ -391,14 +409,15 @@ func (a Api) SearchForUsers(w rest.ResponseWriter, r *rest.Request) {
 			"Reason":   "No such sort " + sortType[0],
 			"Count":    0,
 		})
+		return
 	}
 
-	results, count, found := a.Svc.SearchForUsers(circle, nameprefix, skip, limit, sort)
+	results, count := a.Svc.SearchForUsers(circle, nameprefix, skip, limit, sort)
 
 	w.WriteHeader(200)
 	w.WriteJson(map[string]interface{}{
 		"Results":  results,
-		"Response": "Search complete",
+		"Response": "Search complete.",
 		"Count":    count,
 	})
 }
