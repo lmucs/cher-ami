@@ -2,13 +2,37 @@ package com.cherami.cherami;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.web.client.RestTemplate;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class SignUpActivity extends Activity {
@@ -92,10 +116,65 @@ public class SignUpActivity extends Activity {
             focusView.requestFocus();
         } else {
             // Sign them up
+//            new HttpRequestTask().execute(MediaType.APPLICATION_JSON);
 
         }
 
     }
+
+
+//    private class HttpRequestTask extends AsyncTask<MediaType, Void, String> {
+//        private NewUser u;
+//
+//        @Override
+//        protected void onPreExecute() {
+//            u = new NewUser(mUsername.getText().toString(),mEmail.getText().toString(), mPassword.getText().toString(), mConfirmPassword.getText().toString());
+//            ObjectMapper mapper = new ObjectMapper();
+//            try {
+//                String x = mapper.writeValueAsString(u);
+//                Log.d("JSON", x);
+//            } catch (JsonProcessingException e1) {
+//                e1.printStackTrace();
+//            }
+//        }
+//
+//
+//        @Override
+//        protected String doInBackground(MediaType... params) {
+//            try {
+//               final String url = "http://IP Address:port/api/signup";
+//
+//
+//                // Set the Content-Type header
+//                HttpHeaders requestHeaders = new HttpHeaders();
+//                requestHeaders.setContentType(MediaType.APPLICATION_JSON);
+//                HttpEntity<NewUser> requestEntity = new HttpEntity<NewUser>(u, requestHeaders);
+//
+//// Create a new RestTemplate instance
+//                RestTemplate restTemplate = new RestTemplate();
+//
+//// Add the Jackson and String message converters
+//                restTemplate.getMessageConverters().add(new StringHttpMessageConverter());
+//                restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+//
+//
+//// Make the HTTP POST request, marshaling the request to JSON, and the response to a String
+//                ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
+//                return response.getBody();
+//
+//            } catch (Exception e) {
+//                Log.e("MainActivity", e.getMessage(), e);
+//            }
+//
+//            return null;
+//        }
+//
+//        @Override
+//        protected void onPostExecute(String result) {
+//            Toast toast = Toast.makeText(getApplicationContext(), result, Toast.LENGTH_LONG);
+//            toast.show();
+//        }
+//    }
 
     private boolean isEmailValid(String email) {
         //TODO: Replace this with your own logic
