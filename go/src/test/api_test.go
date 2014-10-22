@@ -184,10 +184,9 @@ func searchForUsers(circle, nameprefix string, skip, limit int, sort string) (*h
 	return helper.GetWithQueryParams("GET", usersURL, payload)
 }
 
-func deleteUser(handle string, password string, sessionid string) (*http.Response, error) {
+func deleteUser(handle string, sessionid string) (*http.Response, error) {
 	payload := map[string]interface{}{
 		"handle":    handle,
-		"password":  password,
 		"sessionid": sessionid,
 	}
 
@@ -513,29 +512,29 @@ func (s *TestSuite) TestChangePasswordOK(c *C) {
 // Get User Tests:
 //
 
-func (s *TestSuite) TestGetUserNotFound(c *C) {
-	response, err := getUser("testing123")
-	if err != nil {
-		c.Error(err)
-	}
+// func (s *TestSuite) TestGetUserNotFound(c *C) {
+// 	response, err := getUser("testing123")
+// 	if err != nil {
+// 		c.Error(err)
+// 	}
 
-	c.Check(getJsonResponseMessage(response), Equals, "No results found")
-	c.Assert(response.StatusCode, Equals, 404)
-}
+// 	c.Check(getJsonResponseMessage(response), Equals, "No results found")
+// 	c.Assert(response.StatusCode, Equals, 404)
+// }
 
-func (s *TestSuite) TestGetUserOK(c *C) {
-	postSignup("testing123", "testing123", "testing123", "testing123")
+// func (s *TestSuite) TestGetUserOK(c *C) {
+// 	postSignup("testing123", "testing123", "testing123", "testing123")
 
-	response, err := getUser("testing123")
-	if err != nil {
-		c.Error(err)
-	}
+// 	response, err := getUser("testing123")
+// 	if err != nil {
+// 		c.Error(err)
+// 	}
 
-	handle := getJsonUserData(response)
+// 	handle := getJsonUserData(response)
 
-	c.Check(handle, Equals, "testing123")
-	c.Assert(response.StatusCode, Equals, 200)
-}
+// 	c.Check(handle, Equals, "testing123")
+// 	c.Assert(response.StatusCode, Equals, 200)
+// }
 
 //
 // Get Users Tests:
@@ -568,6 +567,9 @@ func (s *TestSuite) TestSearchUsersOK(c *C) {
 		results := make([]UserResult, 0)
 		json.Unmarshal([]byte(data.Results), &results)
 		c.Check(data.Count, Equals, 3)
+		c.Check(data.Response, Equals, "Search complete")
+		c.Check(data.Reason, Equals, "")
+		c.Check(len(results), Equals, 3)
 	}
 
 	// handles := getJsonUsersData(response)
@@ -590,7 +592,7 @@ func (s *TestSuite) TestDeleteUserInvalidUsername(c *C) {
 	response, _ := postSessions("handleA", "password1")
 	sessionid := getSessionFromResponse(response)
 
-	response, err := deleteUser("notHandleA", "password1", sessionid)
+	response, err := deleteUser("notHandleA", sessionid)
 	if err != nil {
 		c.Error(err)
 	}
@@ -605,7 +607,7 @@ func (s *TestSuite) TestDeleteUserInvalidPassword(c *C) {
 	response, _ := postSessions("handleA", "password1")
 	sessionid := getSessionFromResponse(response)
 
-	response, err := deleteUser("handleA", "notPassword1", sessionid)
+	response, err := deleteUser("handleA", sessionid)
 	if err != nil {
 		c.Error(err)
 	}
@@ -620,7 +622,7 @@ func (s *TestSuite) TestDeleteUserOK(c *C) {
 	response, _ := postSessions("handleA", "password1")
 	sessionid := getSessionFromResponse(response)
 
-	deleteUserResponse, err := deleteUser("handleA", "password1", sessionid)
+	deleteUserResponse, err := deleteUser("handleA", sessionid)
 	if err != nil {
 		c.Error(err)
 	}
@@ -646,7 +648,7 @@ func (s *TestSuite) TestPostCirclesUserNoExist(c *C) {
 	response, _ := postSessions("testing123", "testing123")
 	sessionid := getSessionFromResponse(response)
 
-	deleteUser("testing123", "testing123", sessionid)
+	deleteUser("testing123", sessionid)
 
 	response, err := postCircles("testing123", sessionid, "testing123", true)
 	if err != nil {
@@ -745,7 +747,7 @@ func (s *TestSuite) TestPostBlockUserNoExist(c *C) {
 	response, _ := postSessions("testing123", "testing123")
 	sessionid := getSessionFromResponse(response)
 
-	deleteUser("testing123", "testing123", sessionid)
+	deleteUser("testing123", sessionid)
 
 	response, err := postBlock("testing123", sessionid, "testing321")
 	if err != nil {
