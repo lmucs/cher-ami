@@ -49,7 +49,7 @@ const (
 
 func (a Api) authenticate(r *rest.Request) (success bool) {
 	if sessionid := r.Header.Get("Authentication"); sessionid != "" {
-		return a.Svc.GoodSessionCredentials(sessionid)
+		return a.Svc.VerifySession(sessionid)
 	} else {
 		return false
 	}

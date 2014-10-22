@@ -173,7 +173,7 @@ func (s Svc) EmailIsUnique(email string) (bool, error) {
 	return len(found) == 0, err
 }
 
-func (s Svc) GoodSessionCredentials(sessionid string) bool {
+func (s Svc) VerifySession(sessionid string) bool {
 	found := []struct {
 		Handle string `json:"u.handle"`
 	}{}
