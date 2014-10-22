@@ -34,7 +34,13 @@ install-test-reqs:
 
 .PHONY: deps
 deps:
-	go get github.com/jmcvetta/neoism github.com/ChimeraCoder/go.crypto/bcrypt github.com/ant0ine/go-json-rest/rest github.com/dchest/uniuri github.com/jadengore/goconfig gopkg.in/check.v1
+	@echo '--------------------------'
+	@echo 'Getting Go dependencies...'
+	@echo '--------------------------'
+	cd $(GO_SRC); go get all; cd ../..
+	@echo '-----------------'
+	@echo 'Packages updated.'
+	@echo '-----------------'
 
 # http://stackoverflow.com/questions/8889035/how-to-document-a-makefile
 .PHONY: help
