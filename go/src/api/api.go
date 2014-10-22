@@ -336,12 +336,10 @@ func (a Api) SearchForUsers(w rest.ResponseWriter, r *rest.Request) {
 	var limit int
 	var sort string
 
-
 	if val, ok := querymap["limit"]; !ok {
 		limit = 10
 	} else {
 		if intval, err := strconv.Atoi(val[0]); err != nil {
-			fmt.Println("1")
 			w.WriteHeader(400)
 			w.WriteJson(map[string]interface{}{
 				"Results":  nil,
@@ -350,10 +348,9 @@ func (a Api) SearchForUsers(w rest.ResponseWriter, r *rest.Request) {
 				"Count":    0,
 			})
 			return
-			
+
 		} else {
 			if intval > 100 || intval < 1 {
-				fmt.Println("1")
 				w.WriteHeader(400)
 				w.WriteJson(map[string]interface{}{
 					"Results":  nil,
@@ -383,7 +380,6 @@ func (a Api) SearchForUsers(w rest.ResponseWriter, r *rest.Request) {
 		skip = 0
 	} else {
 		if intval, err := strconv.Atoi(val[0]); err != nil {
-		    fmt.Println("3")
 			w.WriteHeader(400)
 			w.WriteJson(map[string]interface{}{
 				"Results":  nil,
@@ -398,7 +394,6 @@ func (a Api) SearchForUsers(w rest.ResponseWriter, r *rest.Request) {
 	}
 
 	if sortType, ok := querymap["sort"]; !ok {
-		fmt.Println("4")
 		w.WriteHeader(400)
 		w.WriteJson(map[string]interface{}{
 			"Results":  nil,
@@ -408,7 +403,6 @@ func (a Api) SearchForUsers(w rest.ResponseWriter, r *rest.Request) {
 		})
 		return
 	} else if sortType[0] != "handle" && sortType[0] != "joined" {
-		fmt.Println("5")
 		w.WriteHeader(200)
 		w.WriteJson(map[string]interface{}{
 			"Results":  nil,

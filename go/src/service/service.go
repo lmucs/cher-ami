@@ -521,7 +521,7 @@ func (s Svc) SearchForUsers(
 	var statement string
 	props := neoism.Props{}
 
-	regex := nameprefix + ".*"
+	regex := "(?i)" + nameprefix + ".*"
 
 	if circle != "" {
 		statement = `

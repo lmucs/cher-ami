@@ -552,14 +552,22 @@ func (s *TestSuite) TestSearchUsersOK(c *C) {
 	if response, err := searchForUsers("", "cat", 0, 10, "handle"); err != nil {
 		c.Error(err)
 	} else {
-		data := struct{
-			Results []interface{}
+		data := struct {
+			Results  string
 			Response string
-			Reason string
-			Count int
+			Reason   string
+			Count    int
 		}{}
 		unmarshal(response, &data)
-    	c.Check(data.Count, Equals, 3)
+		type UserResult struct {
+			Handle string `json:"u.handle"`
+			Name   string `json:"u.name"`
+			Id     int    `json:"id(u)"`
+		}
+
+		results := make([]UserResult, 0)
+		json.Unmarshal([]byte(data.Results), &results)
+		c.Check(data.Count, Equals, 3)
 	}
 
 	// handles := getJsonUsersData(response)
