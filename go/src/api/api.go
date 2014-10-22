@@ -418,85 +418,38 @@ func (a Api) SearchForUsers(w rest.ResponseWriter, r *rest.Request) {
 	w.WriteHeader(200)
 	w.WriteJson(map[string]interface{}{
 		"Results":  results,
-		"Response": "Search complete.",
+		"Response": "Search complete",
 		"Count":    count,
 	})
 }
 
-func (a Api) GetUsers(w rest.ResponseWriter, r *rest.Request) {
-	res := []struct {
-		Handle string    `json:"user.handle"`
-		Joined time.Time `json:"user.joined"`
-	}{}
-
-	err := a.Svc.Db.Cypher(&neoism.CypherQuery{
-		Statement: `
-            MATCH (user:User)
-            RETURN user.handle, user.joined
-            ORDER BY user.handle
-        `,
-		Parameters: neoism.Props{},
-		Result:     &res,
-	})
-	panicErr(err)
-
-	if len(res) > 0 {
-		users := []map[string]string{}
-
-		for i := range res {
-			user := map[string]string{
-				"Handle": res[i].Handle,
-				"Joined": res[i].Joined.Format("Jan 2, 2006 at 3:04 PM (MST)"),
-			}
-			users = append(users, user)
-		}
-
-		w.WriteHeader(200)
-		w.WriteJson(users)
-	} else {
-		w.WriteHeader(404)
-		w.WriteJson(map[string]string{
-			"Response": "No results found",
-		})
-	}
-}
-
 func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
-	credentials := struct {
-		Handle   string
-		Password string
-	}{}
-	if err := r.DecodeJsonPayload(&credentials); err != nil {
-		rest.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	handle := credentials.Handle
-	password := []byte(credentials.Password)
+	handle := r.PathParam("handle")
 
 	if !a.authenticate(r) {
-		w.WriteHeader(400)
+		w.WriteHeader(401)
 		w.WriteJson(map[string]string{
-			"Response": "Failed to authenticate user request",
+			"response": "Failed to authenticate user request",
+			"reason": "Missing, illegal or expired token",
 		})
 		return
 	}
 
-	if passwordHash, ok := a.Svc.GetPasswordHash(handle); !ok {
-		w.WriteHeader(400)
-		w.WriteJson(map[string]string{
-			"Response": "Invalid username or password, please try again.",
-		})
-		return
-	} else {
-		// err is nil if successful, error
-		if err := bcrypt.CompareHashAndPassword(passwordHash, password); err != nil {
-			w.WriteHeader(400)
-			w.WriteJson(map[string]string{
-				"Response": "Invalid username or password, please try again.",
-			})
-			return
-		} else {
+	// if passwordHash, ok := a.Svc.GetPasswordHash(handle); !ok {
+	// 	w.WriteHeader(400)
+	// 	w.WriteJson(map[string]string{
+	// 		"Response": "Invalid username or password, please try again.",
+	// 	})
+	// 	return
+	// } else {
+	// 	// err is nil if successful, error
+	// 	if err := bcrypt.CompareHashAndPassword(passwordHash, password); err != nil {
+	// 		w.WriteHeader(400)
+	// 		w.WriteJson(map[string]string{
+	// 			"Response": "Invalid username or password, please try again.",
+	// 		})
+	// 		return
+	// 	} else {
 			if deleted := a.Svc.DeleteUser(handle); !deleted {
 				w.WriteHeader(400)
 				w.WriteJson(map[string]string{
@@ -508,8 +461,8 @@ func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
 			w.WriteJson(map[string]string{
 				"Response": "Deleted " + handle,
 			})
-		}
-	}
+	// 	}
+	// }
 }
 
 //
