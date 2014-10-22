@@ -277,16 +277,12 @@ func getJsonUserData(response *http.Response) string {
 	return user.Handle
 }
 
-func getSearchResultData(response *http.Response) []map[string]interface{} {
-	data := []map[string]interface{}{}
-
+func unmarshal(response *http.Response, v interface{}) {
 	if body, err := ioutil.ReadAll(response.Body); err != nil {
 		log.Fatal(err)
-	} else if err := json.Unmarshal(body, &data); err != nil {
+	} else if err := json.Unmarshal(body, &v); err != nil {
 		log.Fatal(err)
 	}
-
-	return data
 }
 
 //
@@ -545,7 +541,7 @@ func (s *TestSuite) TestGetUserOK(c *C) {
 // Get Users Tests:
 //
 
-func (s *TestSuite) TestForUsersOK(c *C) {
+func (s *TestSuite) TestSearchUsersOK(c *C) {
 	postSignup("cat", "test1@test.io", "testing123", "testing123")
 	postSignup("bat", "test2@test.io", "testing132", "testing132")
 	postSignup("cat_woman", "test3@test.io", "testing213", "testing213")
@@ -553,14 +549,21 @@ func (s *TestSuite) TestForUsersOK(c *C) {
 	postSignup("smart", "test5@test.io", "testing312", "testing312")
 	postSignup("battle", "test6@test.io", "testing321", "testing321")
 
-	// response, err := searchForUsers()
-	// if err != nil {
-	// 	c.Error(err)
-	// }
+	if response, err := searchForUsers("", "cat", 0, 10, "handle"); err != nil {
+		c.Error(err)
+	} else {
+		data := struct{
+			Results []interface{}
+			Response string
+			Reason string
+			Count int
+		}{}
+		unmarshal(response, &data)
+    	c.Check(data.Count, Equals, 3)
+	}
 
 	// handles := getJsonUsersData(response)
 
-	// c.Check(handles[0], Equals, "testing123")
 	// c.Check(handles[1], Equals, "testing132")
 	// c.Check(handles[2], Equals, "testing213")
 	// c.Check(handles[3], Equals, "testing231")

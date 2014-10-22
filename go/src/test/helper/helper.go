@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	u "net/url"
+	"strconv"
 )
 
 func Execute(httpMethod string, url string, m map[string]interface{}) (*http.Response, error) {
@@ -43,8 +44,13 @@ func GetWithQueryParams(httpMethod string, url string, m map[string]interface{})
 		return nil, err
 	} else {
 		params := u.Values{}
+		// Respect type, then add as string
 		for key, val := range m {
-			params.Add(key, val.(string))
+			if _, ok := val.(int); ok {
+				params.Add(key, strconv.Itoa(val.(int)))
+			} else {
+				params.Add(key, val.(string))
+			}
 		}
 		baseUrl.RawQuery = params.Encode()
 
