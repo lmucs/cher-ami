@@ -521,29 +521,31 @@ func (s Svc) SearchForUsers(
 	var statement string
 	props := neoism.Props{}
 
+	regex := nameprefix + ".*"
+
 	if circle != "" {
 		statement = `
 			MATCH (u:User)-[]->(c:Circle)
 			WHERE c.name = {circle}
-			AND   u.handle =~ '{nameprefix}.*'
+			AND   u.handle =~ {regex}
 		`
 		props = neoism.Props{
-			"circle":     circle,
-			"nameprefix": nameprefix,
-			"skip":       skip,
-			"limit":      limit,
-			"sort":       sort,
+			"circle": circle,
+			"regex":  regex,
+			"skip":   skip,
+			"limit":  limit,
+			"sort":   sort,
 		}
 	} else {
 		statement = `
 			MATCH  (u:User)
-			WHERE  u.handle =~ '{nameprefix}.*'
+			WHERE  u.handle =~ {regex}
 		`
 		props = neoism.Props{
-			"nameprefix": nameprefix,
-			"skip":       skip,
-			"limit":      limit,
-			"sort":       sort,
+			"regex": regex,
+			"skip":  skip,
+			"limit": limit,
+			"sort":  sort,
 		}
 	}
 
