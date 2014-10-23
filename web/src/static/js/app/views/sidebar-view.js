@@ -5,4 +5,6 @@ define(function(require, exports, module) {
 	var SidebarView = marionette.ItemView.extend({
 
 	}
+
+	exports.SidebarView = SidebarView;
 }
