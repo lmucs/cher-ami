@@ -89,21 +89,18 @@ func (s Svc) UserExists(handle string) bool {
 	return len(found) > 0
 }
 
-func (s Svc) CircleExists(target string, circleName string) bool {
+func (s Svc) CircleExists(circleid string) bool {
 	found := []struct {
-		Name string `json:"c.name"`
+		Id string `json:"c.id"`
 	}{}
 	if err := s.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
-            MATCH (t:User)
-            WHERE t.handle = {target}
-            MATCH (t)-[:CHIEF_OF]->(c:Circle)
-            WHERE c.name = {name}
-            RETURN c.name
+            MATCH (c:Circle)
+            WHERE c.id = {id}
+            RETURN c.id
         `,
 		Parameters: neoism.Props{
-			"target": target,
-			"name":   circleName,
+			"id": circleid,
 		},
 		Result: &found,
 	}); err != nil {
@@ -113,21 +110,18 @@ func (s Svc) CircleExists(target string, circleName string) bool {
 	return len(found) > 0
 }
 
-func (s Svc) MessageExists(handle string, lastSaved time.Time) bool {
+func (s Svc) MessageExists(messageid string) bool {
 	found := []struct {
-		Id int `json:"id(m)"`
+		Id int `json:"m.id"`
 	}{}
 	if err := s.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
-            MATCH (u:User)
-            WHERE u.handle = {handle}
-            MATCH (u)-[:WROTE]->(m:Message)
-            WHERE m.lastsaved = {lastsaved}
-            RETURN id(m)
+            MATCH (m:Message)
+            WHERE m.id = {id}
+            RETURN m.id
         `,
 		Parameters: neoism.Props{
-			"handle":    handle,
-			"lastsaved": lastSaved,
+			"id": messageid,
 		},
 		Result: &found,
 	}); err != nil {
