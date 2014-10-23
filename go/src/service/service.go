@@ -1,6 +1,7 @@
 package service
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/dchest/uniuri"
 	"github.com/jmcvetta/neoism"
@@ -172,7 +173,7 @@ func (s Svc) EmailIsUnique(email string) (bool, error) {
 	return len(found) == 0, err
 }
 
-func (s Svc) GoodSessionCredentials(sessionid string) bool {
+func (s Svc) VerifySession(sessionid string) bool {
 	found := []struct {
 		Handle string `json:"u.handle"`
 	}{}
@@ -504,28 +505,72 @@ func (s Svc) DeleteUser(handle string) bool {
 // Get
 //
 
-func (s Svc) GetHandleAndNameOf(user string) (handle string, name string, found bool) {
+func (s Svc) SearchForUsers(
+	circle string,
+	nameprefix string,
+	skip int,
+	limit int,
+	sort string,
+) (results string, count int) {
 	res := []struct {
 		Handle string `json:"u.handle"`
 		Name   string `json:"u.name"`
+		Id     int    `json:"id(u)"`
 	}{}
-	if err := s.Db.Cypher(&neoism.CypherQuery{
-		Statement: `
-            MATCH (u:User)
-            WHERE u.handle = {handle}
-            RETURN u.handle, u.name
-        `,
-		Parameters: neoism.Props{
-			"handle": user,
-		},
-		Result: &res,
-	}); err != nil {
-		panicErr(err)
-	} else if len(res) != 1 {
-		return "", "", len(res) > 0
+
+	var statement string
+	props := neoism.Props{}
+
+	regex := "(?i)" + nameprefix + ".*"
+
+	if circle != "" {
+		statement = `
+			MATCH (u:User)-[]->(c:Circle)
+			WHERE c.name = {circle}
+			AND   u.handle =~ {regex}
+		`
+		props = neoism.Props{
+			"circle": circle,
+			"regex":  regex,
+			"skip":   skip,
+			"limit":  limit,
+			"sort":   sort,
+		}
+	} else {
+		statement = `
+			MATCH  (u:User)
+			WHERE  u.handle =~ {regex}
+		`
+		props = neoism.Props{
+			"regex": regex,
+			"skip":  skip,
+			"limit": limit,
+			"sort":  sort,
+		}
 	}
 
-	return res[0].Handle, res[0].Name, len(res) > 0
+	statement = statement + `
+        RETURN u.handle, u.name, id(u)
+        SKIP   {skip}
+        LIMIT  {limit}
+	`
+
+	if err := s.Db.Cypher(&neoism.CypherQuery{
+		Statement:  statement,
+		Parameters: props,
+		Result:     &res,
+	}); err != nil {
+		panicErr(err)
+	} else if len(res) == 0 {
+		return "", 0
+	}
+
+	bytes, err := json.Marshal(res)
+	if err != nil {
+		panicErr(err)
+	}
+
+	return string(bytes), len(res)
 }
 
 func (s Svc) GetPasswordHash(user string) (password_hash []byte, found bool) {

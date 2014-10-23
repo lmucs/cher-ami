@@ -168,14 +168,21 @@ func getUser(handle string) (*http.Response, error) {
 	payload := map[string]interface{}{
 		"handle": handle,
 	}
+	getUserURL := usersURL + "/" + payload["handle"].(string)
 
-	return helper.Execute("GET", userURL, payload)
+	return helper.Execute("GET", getUserURL, payload)
 }
 
-func getUsers() (*http.Response, error) {
-	payload := map[string]interface{}{}
+func searchForUsers(circle, nameprefix string, skip, limit int, sort string) (*http.Response, error) {
+	payload := map[string]interface{}{
+		"circle":     circle,
+		"nameprefix": nameprefix,
+		"skip":       skip,
+		"limit":      limit,
+		"sort":       sort,
+	}
 
-	return helper.Execute("GET", usersURL, payload)
+	return helper.GetWithQueryParams("GET", usersURL, payload)
 }
 
 func deleteUser(handle string, password string, sessionid string) (*http.Response, error) {
@@ -184,8 +191,8 @@ func deleteUser(handle string, password string, sessionid string) (*http.Respons
 		"password":  password,
 		"sessionid": sessionid,
 	}
-
-	return helper.Execute("DELETE", userURL, payload)
+	deleteURL := usersURL + "/" + payload["handle"].(string)
+	return helper.Execute("DELETE", deleteURL, payload)
 }
 
 func postCircles(handle string, sessionid string, circleName string, public bool) (*http.Response, error) {
@@ -271,33 +278,12 @@ func getJsonUserData(response *http.Response) string {
 	return user.Handle
 }
 
-func getJsonUsersData(response *http.Response) []string {
-	type Json struct {
-		Handle string
-		Joined string
-	}
-
-	var users []Json
-	data := []map[string]string{}
-	var handles []string
-
-	body, err := ioutil.ReadAll(response.Body)
-	if err != nil {
+func unmarshal(response *http.Response, v interface{}) {
+	if body, err := ioutil.ReadAll(response.Body); err != nil {
+		log.Fatal(err)
+	} else if err := json.Unmarshal(body, &v); err != nil {
 		log.Fatal(err)
 	}
-
-	err = json.Unmarshal(body, &data)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	for i := range data {
-		user := Json{data[i]["Handle"], data[i]["Joined"]}
-		users = append(users, user)
-		handles = append(handles, data[i]["Handle"])
-	}
-
-	return handles
 }
 
 //
@@ -528,66 +514,74 @@ func (s *TestSuite) TestChangePasswordOK(c *C) {
 // Get User Tests:
 //
 
-func (s *TestSuite) TestGetUserNotFound(c *C) {
-	response, err := getUser("testing123")
-	if err != nil {
-		c.Error(err)
-	}
+// func (s *TestSuite) TestGetUserNotFound(c *C) {
+// 	response, err := getUser("testing123")
+// 	if err != nil {
+// 		c.Error(err)
+// 	}
 
-	c.Check(getJsonResponseMessage(response), Equals, "No results found")
-	c.Assert(response.StatusCode, Equals, 404)
-}
+// 	c.Check(getJsonResponseMessage(response), Equals, "No results found")
+// 	c.Assert(response.StatusCode, Equals, 404)
+// }
 
-func (s *TestSuite) TestGetUserOK(c *C) {
-	postSignup("testing123", "testing123", "testing123", "testing123")
+// func (s *TestSuite) TestGetUserOK(c *C) {
+// 	postSignup("testing123", "testing123", "testing123", "testing123")
 
-	response, err := getUser("testing123")
-	if err != nil {
-		c.Error(err)
-	}
+// 	response, err := getUser("testing123")
+// 	if err != nil {
+// 		c.Error(err)
+// 	}
 
-	handle := getJsonUserData(response)
+// 	handle := getJsonUserData(response)
 
-	c.Check(handle, Equals, "testing123")
-	c.Assert(response.StatusCode, Equals, 200)
-}
+// 	c.Check(handle, Equals, "testing123")
+// 	c.Assert(response.StatusCode, Equals, 200)
+// }
 
 //
 // Get Users Tests:
 //
 
-func (s *TestSuite) TestGetUsersNotFound(c *C) {
-	response, err := getUsers()
-	if err != nil {
+func (s *TestSuite) TestSearchUsersOK(c *C) {
+	postSignup("cat", "test1@test.io", "testing123", "testing123")
+	postSignup("bat", "test2@test.io", "testing132", "testing132")
+	postSignup("cat_woman", "test3@test.io", "testing213", "testing213")
+	postSignup("catsawesome", "test4@test.io", "testing231", "testing231")
+	postSignup("smart", "test5@test.io", "testing312", "testing312")
+	postSignup("battle", "test6@test.io", "testing321", "testing321")
+
+	if response, err := searchForUsers("", "cat", 0, 10, "handle"); err != nil {
 		c.Error(err)
+	} else {
+		data := struct {
+			Results  string
+			Response string
+			Reason   string
+			Count    int
+		}{}
+		unmarshal(response, &data)
+		type UserResult struct {
+			Handle string `json:"u.handle"`
+			Name   string `json:"u.name"`
+			Id     int    `json:"id(u)"`
+		}
+
+		results := make([]UserResult, 0)
+		json.Unmarshal([]byte(data.Results), &results)
+		c.Check(data.Count, Equals, 3)
+		c.Check(data.Response, Equals, "Search complete")
+		c.Check(data.Reason, Equals, "")
+		c.Check(len(results), Equals, 3)
 	}
 
-	c.Check(getJsonResponseMessage(response), Equals, "No results found")
-	c.Assert(response.StatusCode, Equals, 404)
-}
+	// handles := getJsonUsersData(response)
 
-func (s *TestSuite) TestGetUsersOK(c *C) {
-	postSignup("testing123", "testing123", "testing123", "testing123")
-	postSignup("testing132", "testing132", "testing132", "testing132")
-	postSignup("testing213", "testing213", "testing213", "testing213")
-	postSignup("testing231", "testing231", "testing231", "testing231")
-	postSignup("testing312", "testing312", "testing312", "testing312")
-	postSignup("testing321", "testing321", "testing321", "testing321")
-
-	response, err := getUsers()
-	if err != nil {
-		c.Error(err)
-	}
-
-	handles := getJsonUsersData(response)
-
-	c.Check(handles[0], Equals, "testing123")
-	c.Check(handles[1], Equals, "testing132")
-	c.Check(handles[2], Equals, "testing213")
-	c.Check(handles[3], Equals, "testing231")
-	c.Check(handles[4], Equals, "testing312")
-	c.Check(handles[5], Equals, "testing321")
-	c.Assert(response.StatusCode, Equals, 200)
+	// c.Check(handles[1], Equals, "testing132")
+	// c.Check(handles[2], Equals, "testing213")
+	// c.Check(handles[3], Equals, "testing231")
+	// c.Check(handles[4], Equals, "testing312")
+	// c.Check(handles[5], Equals, "testing321")
+	// c.Assert(response.StatusCode, Equals, 200)
 }
 
 //
@@ -615,7 +609,7 @@ func (s *TestSuite) TestDeleteUserInvalidPassword(c *C) {
 	response, _ := postSessions("handleA", "password1")
 	sessionid := getSessionFromResponse(response)
 
-	response, err := deleteUser("handleA", "notPassword1", sessionid)
+	response, err := deleteUser("handleA", "notpassword1", sessionid)
 	if err != nil {
 		c.Error(err)
 	}
@@ -640,8 +634,7 @@ func (s *TestSuite) TestDeleteUserOK(c *C) {
 	// 	c.Error(err)
 	// }
 
-	c.Check(getJsonResponseMessage(deleteUserResponse), Equals, "Deleted handleA")
-	c.Check(deleteUserResponse.StatusCode, Equals, 200)
+	c.Check(deleteUserResponse.StatusCode, Equals, 204)
 	// c.Check(getJsonResponseMessage(getUserResponse), Equals, "No results found")
 	// c.Assert(getUserResponse.StatusCode, Equals, 404)
 }

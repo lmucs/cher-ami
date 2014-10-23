@@ -7,6 +7,7 @@ import (
 	"github.com/ant0ine/go-json-rest/rest"
 	"github.com/jmcvetta/neoism"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -48,7 +49,7 @@ const (
 
 func (a Api) authenticate(r *rest.Request) (success bool) {
 	if sessionid := r.Header.Get("Authentication"); sessionid != "" {
-		return a.Svc.GoodSessionCredentials(sessionid)
+		return a.Svc.VerifySession(sessionid)
 	} else {
 		return false
 	}
@@ -326,65 +327,100 @@ func (a Api) ChangePassword(w rest.ResponseWriter, r *rest.Request) {
 // User
 //
 
-func (a Api) GetUser(w rest.ResponseWriter, r *rest.Request) {
-	user := struct {
-		Handle string
-	}{}
-	if err := r.DecodeJsonPayload(&user); err != nil {
-		rest.Error(w, err.Error(), http.StatusBadRequest)
+func (a Api) SearchForUsers(w rest.ResponseWriter, r *rest.Request) {
+	querymap := r.URL.Query()
+
+	var circle string
+	var nameprefix string
+	var skip int
+	var limit int
+	var sort string
+
+	if val, ok := querymap["limit"]; !ok {
+		limit = 10
+	} else {
+		if intval, err := strconv.Atoi(val[0]); err != nil {
+			w.WriteHeader(400)
+			w.WriteJson(map[string]interface{}{
+				"Results":  nil,
+				"Response": "Search failed",
+				"Reason":   "Malformed limit",
+				"Count":    0,
+			})
+			return
+
+		} else {
+			if intval > 100 || intval < 1 {
+				w.WriteHeader(400)
+				w.WriteJson(map[string]interface{}{
+					"Results":  nil,
+					"Response": "Search failed",
+					"Reason":   "Limit out of range",
+					"Count":    0,
+				})
+			} else {
+				limit = intval
+			}
+		}
+	}
+
+	if val, ok := querymap["nameprefix"]; !ok {
+		nameprefix = ""
+	} else {
+		nameprefix = val[0]
+	}
+
+	if val, ok := querymap["circle"]; !ok {
+		circle = ""
+	} else {
+		circle = val[0]
+	}
+
+	if val, ok := querymap["skip"]; !ok {
+		skip = 0
+	} else {
+		if intval, err := strconv.Atoi(val[0]); err != nil {
+			w.WriteHeader(400)
+			w.WriteJson(map[string]interface{}{
+				"Results":  nil,
+				"Response": "Search failed",
+				"Reason":   "Malformed skip",
+				"Count":    0,
+			})
+			return
+		} else {
+			skip = intval
+		}
+	}
+
+	if sortType, ok := querymap["sort"]; !ok {
+		w.WriteHeader(400)
+		w.WriteJson(map[string]interface{}{
+			"Results":  nil,
+			"Response": "Search failed",
+			"Reason":   "Missing required sort parameter",
+			"Count":    0,
+		})
+		return
+	} else if sortType[0] != "handle" && sortType[0] != "joined" {
+		w.WriteHeader(200)
+		w.WriteJson(map[string]interface{}{
+			"Results":  nil,
+			"Response": "Search failed",
+			"Reason":   "No such sort " + sortType[0],
+			"Count":    0,
+		})
 		return
 	}
 
-	if handle, name, found := a.Svc.GetHandleAndNameOf(user.Handle); found {
-		w.WriteHeader(200)
-		w.WriteJson(map[string]string{
-			"handle": handle,
-			"name":   name,
-		})
-	} else {
-		w.WriteHeader(404)
-		w.WriteJson(map[string]string{
-			"Response": "No results found",
-		})
-	}
-}
+	results, count := a.Svc.SearchForUsers(circle, nameprefix, skip, limit, sort)
 
-func (a Api) GetUsers(w rest.ResponseWriter, r *rest.Request) {
-	res := []struct {
-		Handle string    `json:"user.handle"`
-		Joined time.Time `json:"user.joined"`
-	}{}
-
-	err := a.Svc.Db.Cypher(&neoism.CypherQuery{
-		Statement: `
-            MATCH (user:User)
-            RETURN user.handle, user.joined
-            ORDER BY user.handle
-        `,
-		Parameters: neoism.Props{},
-		Result:     &res,
+	w.WriteHeader(200)
+	w.WriteJson(map[string]interface{}{
+		"Results":  results,
+		"Response": "Search complete",
+		"Count":    count,
 	})
-	panicErr(err)
-
-	if len(res) > 0 {
-		users := []map[string]string{}
-
-		for i := range res {
-			user := map[string]string{
-				"Handle": res[i].Handle,
-				"Joined": res[i].Joined.Format("Jan 2, 2006 at 3:04 PM (MST)"),
-			}
-			users = append(users, user)
-		}
-
-		w.WriteHeader(200)
-		w.WriteJson(users)
-	} else {
-		w.WriteHeader(404)
-		w.WriteJson(map[string]string{
-			"Response": "No results found",
-		})
-	}
 }
 
 func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
@@ -401,9 +437,10 @@ func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
 	password := []byte(credentials.Password)
 
 	if !a.authenticate(r) {
-		w.WriteHeader(400)
+		w.WriteHeader(401)
 		w.WriteJson(map[string]string{
-			"Response": "Failed to authenticate user request",
+			"response": "Failed to authenticate user request",
+			"reason":   "Missing, illegal or expired token",
 		})
 		return
 	}
@@ -430,10 +467,7 @@ func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
 				})
 				return
 			}
-			w.WriteHeader(200)
-			w.WriteJson(map[string]string{
-				"Response": "Deleted " + handle,
-			})
+			w.WriteHeader(204)
 		}
 	}
 }
