@@ -303,14 +303,15 @@ func (s Svc) MakeDefaultCirclesFor(handle string) error {
 	return err
 }
 
-func (s Svc) NewCircle(handle string, circle_name string, is_public bool) error {
+func (s Svc) NewCircle(handle string, circle_name string, isPublic bool) error {
 	query := `
         MATCH (u:User)
         WHERE u.handle = {handle}
         CREATE (u)-[:CHIEF_OF]->(c:Circle)
         SET c.name = {name}
+        SET c.id = {id}
     `
-	if is_public {
+	if isPublic {
 		query = query + `
             WITH u, c
             MATCH (p:PublicDomain)
@@ -330,6 +331,7 @@ func (s Svc) NewCircle(handle string, circle_name string, is_public bool) error 
 		Parameters: neoism.Props{
 			"handle": handle,
 			"name":   circle_name,
+			"id":     uniuri.NewLen(uniuri.UUIDLen),
 		},
 		Result: &made,
 	})
@@ -357,6 +359,7 @@ func (s Svc) NewMessage(handle string, content string) bool {
                 content:   {content}
               , created:   {now}
               , lastsaved: {now}
+              , id:        {id}
             })
             CREATE (u)-[r:WROTE]->(m)
             RETURN m.content, r
@@ -365,6 +368,7 @@ func (s Svc) NewMessage(handle string, content string) bool {
 			"handle":  handle,
 			"content": content,
 			"now":     now,
+			"id":      uniuri.NewLen(uniuri.UUIDLen),
 		},
 		Result: &created,
 	}); err != nil {
@@ -372,6 +376,10 @@ func (s Svc) NewMessage(handle string, content string) bool {
 	}
 	return len(created) > 0
 }
+
+// func (s Svc) PublishMessage(handle string, circle string) {
+
+// }
 
 func (s Svc) JoinCircle(handle string, target string, target_circle string) (at time.Time, did_join bool) {
 	joined := []struct {
