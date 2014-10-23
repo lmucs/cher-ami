@@ -904,7 +904,8 @@ section * {
 .header-10 .navbar .nav > li > a:focus,
 .header-10 .navbar .nav > li > a.active {
   /*color tabs change when mouse over*/
-  color: #bdc3c7;
+  /*color: #bdc3c7;*/
+  color: #e74c3c;
   color: #;
 }
 .header-10 .navbar .nav > li.active > a {
@@ -916,7 +917,8 @@ section * {
 .header-10 .navbar .nav > li.active > a:focus,
 .header-10 .navbar .nav > li.active > a.active {
   /*color of active tabe when mouse over*/
-  color: #bdc3c7;
+  /*color: #bdc3c7;*/
+  color: #e74c3c;
 }
 .header-10 .navbar .navbar-form {
   padding: 19px 0 19px 60px;
