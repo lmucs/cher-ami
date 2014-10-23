@@ -233,6 +233,29 @@ func (s Svc) BlockExistsFromTo(handle string, target string) bool {
 	return len(found) > 0
 }
 
+func (s Svc) UserIsMemberOf(handle string, circleid string) bool {
+	found := []struct{
+		Handle string `json:"u.handle"`
+	}{}
+	if err := s.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+			MATCH (u:User)-[:MEMBER_OF:CHIEF_OF]->(c:Circle)
+			WHERE u.handle = {handle}
+			AND   c.id     = {circleid}
+			RETURN u.handle
+		`,
+		Parameters: neoism.Props{
+			"handle": handle,
+			"circleid": circleid,
+		},
+		Result: &found,
+	}); err != nil {
+		panicErr(err)
+	}
+
+	return len(found) > 0
+}
+
 //
 // Creation
 //

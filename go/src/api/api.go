@@ -609,7 +609,7 @@ func (a Api) PublishMessage(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	//handle := payload.Handle
+	handle := payload.Handle
 	circleid := payload.CircleId
 	messageid := payload.MessageId
 
@@ -621,15 +621,22 @@ func (a Api) PublishMessage(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
+	if !a.Svc.UserIsMemberOf(handle, circleid) {
+		w.WriteHeader(401)
+		w.WriteJson(map[string]string{
+			"Response": "Refusal to comply with request",
+			"Reason": "You are not a member or owner of the specified circle",
+		})
+		return
+	}
+
 	if !a.Svc.CircleExists(circleid) {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Could not find specified circle to publish to",
 		})
 		return
-	}
-
-	if !a.Svc.MessageExists(messageid) {
+	} else if !a.Svc.MessageExists(messageid) {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Could not find intended message for publishing",
