@@ -371,9 +371,31 @@ func (s Svc) NewMessage(handle string, content string) bool {
 	return len(created) > 0
 }
 
-// func (s Svc) PublishMessage(handle string, circle string) {
-
-// }
+func (s Svc) PublishMessage(messageid, circleid string) bool {
+	created := []struct {
+		R *neoism.Relationship `json:"r"`
+	}{}
+	if err := s.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+            MATCH (m:Message)
+            WHERE m.id={messageid}
+            MATCH (c:Circle)
+            WHERE c.id={circleid}
+            CREATE (m)-[r:PUB_TO]->(c)
+            SET r.published_at={now}
+            RETURN r
+        `,
+		Parameters: neoism.Props{
+			"messageid": messageid,
+			"circleid":  circleid,
+			"now":       time.Now().Local(),
+		},
+		Result: &created,
+	}); err != nil {
+		panicErr(err)
+	}
+	return len(created) > 0
+}
 
 func (s Svc) JoinCircle(handle string, target string, target_circle string) (at time.Time, did_join bool) {
 	joined := []struct {

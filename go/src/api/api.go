@@ -601,17 +601,17 @@ func (a Api) NewMessage(w rest.ResponseWriter, r *rest.Request) {
 func (a Api) PublishMessage(w rest.ResponseWriter, r *rest.Request) {
 	payload := struct {
 		Handle    string
-		LastSaved time.Time
-		Circle    string
+		CircleId  string
+		MessageId string
 	}{}
 	if err := r.DecodeJsonPayload(&payload); err != nil {
 		rest.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	handle := payload.Handle
-	lastsaved := payload.LastSaved
-	circle := payload.Circle
+	//handle := payload.Handle
+	circleid := payload.CircleId
+	messageid := payload.MessageId
 
 	if !a.authenticate(r) {
 		w.WriteHeader(400)
@@ -621,56 +621,31 @@ func (a Api) PublishMessage(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	if !a.Svc.CircleExists(handle, circle) {
+	if !a.Svc.CircleExists(circleid) {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
-			"Response": "Bad Request, could not find specified circle to publish to",
+			"Response": "Could not find specified circle to publish to",
 		})
 		return
 	}
 
-	if !a.Svc.MessageExists(handle, lastsaved) {
+	if !a.Svc.MessageExists(messageid) {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
-			"Response": "Bad Request, could not find intended message for publishing",
+			"Response": "Could not find intended message for publishing",
 		})
 		return
 	}
 
-	created := []struct {
-		Count int `json:"count(r)"`
-	}{}
-	err := a.Svc.Db.Cypher(&neoism.CypherQuery{
-		Statement: `
-            MATCH (u:User)
-            WHERE u.handle={handle}
-            MATCH (u)-[:CHIEF_OF]->(c:Circle)
-            WHERE c.name={name}
-            MATCH (u)-[:WROTE]->(m:Message)
-            WHERE m.lastsaved={lastsaved}
-            CREATE (m)-[r:PUB_TO]->(c)
-            SET r.publishedat={date}
-            RETURN count(r)
-        `,
-		Parameters: neoism.Props{
-			"handle":    handle,
-			"name":      circle,
-			"lastsaved": lastsaved,
-			"date":      time.Now().Local(),
-		},
-		Result: &created,
-	})
-	panicErr(err)
-
-	if created[0].Count > 0 {
-		w.WriteHeader(201)
-		w.WriteJson(map[string]string{
-			"Response": "Success! Published message to " + circle,
-		})
-	} else {
+	if !a.Svc.PublishMessage(messageid, circleid) {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Bad request, no message published",
+		})
+	} else {
+		w.WriteHeader(201)
+		w.WriteJson(map[string]string{
+			"Response": "Success! Published message to " + circleid,
 		})
 	}
 }
@@ -970,13 +945,13 @@ func (a Api) Join(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	if !a.Svc.CircleExists(target, circle) {
-		w.WriteHeader(404)
-		w.WriteJson(map[string]string{
-			"Response": "Could not find target circle, join failed",
-		})
-		return
-	}
+	// if !a.Svc.CircleExists(target, circle) {
+	// 	w.WriteHeader(404)
+	// 	w.WriteJson(map[string]string{
+	// 		"Response": "Could not find target circle, join failed",
+	// 	})
+	// 	return
+	// }
 
 	if at, did_join := a.Svc.JoinCircle(handle, target, circle); did_join {
 		w.WriteHeader(201)
