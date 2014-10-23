@@ -168,8 +168,9 @@ func getUser(handle string) (*http.Response, error) {
 	payload := map[string]interface{}{
 		"handle": handle,
 	}
+	getUserURL := usersURL + "/" + payload["handle"].(string)
 
-	return helper.Execute("GET", userURL, payload)
+	return helper.Execute("GET", getUserURL, payload)
 }
 
 func searchForUsers(circle, nameprefix string, skip, limit int, sort string) (*http.Response, error) {
@@ -184,9 +185,10 @@ func searchForUsers(circle, nameprefix string, skip, limit int, sort string) (*h
 	return helper.GetWithQueryParams("GET", usersURL, payload)
 }
 
-func deleteUser(handle string, sessionid string) (*http.Response, error) {
+func deleteUser(handle string, password string, sessionid string) (*http.Response, error) {
 	payload := map[string]interface{}{
 		"handle":    handle,
+		"password":  password,
 		"sessionid": sessionid,
 	}
 	deleteURL := usersURL + "/" + payload["handle"].(string)
@@ -592,7 +594,7 @@ func (s *TestSuite) TestDeleteUserInvalidUsername(c *C) {
 	response, _ := postSessions("handleA", "password1")
 	sessionid := getSessionFromResponse(response)
 
-	response, err := deleteUser("notHandleA", sessionid)
+	response, err := deleteUser("notHandleA", "password1", sessionid)
 	if err != nil {
 		c.Error(err)
 	}
@@ -607,7 +609,7 @@ func (s *TestSuite) TestDeleteUserInvalidPassword(c *C) {
 	response, _ := postSessions("handleA", "password1")
 	sessionid := getSessionFromResponse(response)
 
-	response, err := deleteUser("handleA", sessionid)
+	response, err := deleteUser("handleA", "notpassword1", sessionid)
 	if err != nil {
 		c.Error(err)
 	}
@@ -622,7 +624,7 @@ func (s *TestSuite) TestDeleteUserOK(c *C) {
 	response, _ := postSessions("handleA", "password1")
 	sessionid := getSessionFromResponse(response)
 
-	deleteUserResponse, err := deleteUser("handleA", sessionid)
+	deleteUserResponse, err := deleteUser("handleA", "password1", sessionid)
 	if err != nil {
 		c.Error(err)
 	}
@@ -647,7 +649,7 @@ func (s *TestSuite) TestPostCirclesUserNoExist(c *C) {
 	response, _ := postSessions("testing123", "testing123")
 	sessionid := getSessionFromResponse(response)
 
-	deleteUser("testing123", sessionid)
+	deleteUser("testing123", "testing123", sessionid)
 
 	response, err := postCircles("testing123", sessionid, "testing123", true)
 	if err != nil {
@@ -746,7 +748,7 @@ func (s *TestSuite) TestPostBlockUserNoExist(c *C) {
 	response, _ := postSessions("testing123", "testing123")
 	sessionid := getSessionFromResponse(response)
 
-	deleteUser("testing123", sessionid)
+	deleteUser("testing123", "testing123", sessionid)
 
 	response, err := postBlock("testing123", sessionid, "testing321")
 	if err != nil {
