@@ -556,9 +556,8 @@ func (a Api) makeDefaultCircles(handle string) {
  */
 func (a Api) NewMessage(w rest.ResponseWriter, r *rest.Request) {
 	payload := struct {
-		Handle    string
-		SessionId string
-		Content   string
+		Handle  string
+		Content string
 	}{}
 	if err := r.DecodeJsonPayload(&payload); err != nil {
 		rest.Error(w, err.Error(), http.StatusBadRequest)
