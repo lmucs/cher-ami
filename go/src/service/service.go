@@ -343,6 +343,36 @@ func (s Svc) NewCircle(handle string, circle_name string, is_public bool) error 
 	return err
 }
 
+func (s Svc) NewMessage(handle string, content string) bool {
+	created := []struct {
+		Content  string      `json:"m.content"`
+		Relation neoism.Node `json:"r"`
+	}{}
+	now := time.Now().Local()
+	if err := s.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+            MATCH  (u:User)
+            WHERE  u.handle = {handle}
+            CREATE (m:Message {
+                content:   {content}
+              , created:   {now}
+              , lastsaved: {now}
+            })
+            CREATE (u)-[r:WROTE]->(m)
+            RETURN m.content, r
+        `,
+		Parameters: neoism.Props{
+			"handle":  handle,
+			"content": content,
+			"now":     now,
+		},
+		Result: &created,
+	}); err != nil {
+		panicErr(err)
+	}
+	return len(created) > 0
+}
+
 func (s Svc) JoinCircle(handle string, target string, target_circle string) (at time.Time, did_join bool) {
 	joined := []struct {
 		At time.Time `json:"r.at"`
