@@ -16,6 +16,9 @@ define(function(require, exports, module) {
     var EditProfileView = require('app/views/edit-profile-view').EditProfileView;
     var CommentsView = require('app/views/comments-view').CommentsView;
     var CommentView = require('app/views/comment-view').CommentView;
+
+    var SidebarView = require('app/views/sidebar-view').SidebarView;
+
     var Comment = require('app/models/comment').Comment;
     var Comments = require('app/collections/comments').Comments;
     var AppController = marionette.Controller.extend({
