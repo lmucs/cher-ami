@@ -1,0 +1,67 @@
+// There is a path to Startup framework
+@startup-basePath: "../../../";
+
+@import '@{startup-basePath}flat-ui/less/variables.less';
+@import '@{startup-basePath}flat-ui/less/mixins.less';
+
+@import '@{startup-basePath}common-files/less/mixins.less';
+@import '@{startup-basePath}common-files/less/common.less';
+@import '@{startup-basePath}common-files/less/navbar.less';
+@import '@{startup-basePath}common-files/less/helper.less';
+
+/* header */
+@import '@{startup-basePath}ui-kit/ui-kit-header/less/header-10.less';
+
+/* content */
+@import '@{startup-basePath}ui-kit/ui-kit-content/less/content-7.less';
+@import '@{startup-basePath}ui-kit/ui-kit-content/less/content-8.less';
+@import '@{startup-basePath}ui-kit/ui-kit-content/less/content-11.less';
+@import '@{startup-basePath}ui-kit/ui-kit-content/less/content-23.less';
+
+/* footer */
+@import '@{startup-basePath}ui-kit/ui-kit-footer/less/footer-3.less';
+
+.header-10-sub .background {
+    background-image:url("../img/img-1.jpg");
+    .opacity(85);
+}
+.header-10 {
+    background-color:#1b1f23;
+    .btn {
+        &:hover, &.active, &:focus {
+            background-color:#2ecc71;
+        }
+    }
+}
+.content-7, .content-8 {
+    padding-top: 200px;
+    padding-bottom: 200px;
+    @media (max-width: 767px) {
+        padding-top: 100px;
+        padding-bottom: 100px;
+    }
+}
+.content-23 {
+    #bgVideo {
+        overflow: hidden;
+        > video {
+            position: absolute !important;
+            top:0 !important;
+        }
+    }
+    overflow: hidden;
+    .control-btn {
+        .opacity(10);
+    }
+    background-color: #1B1F23;
+    &.custom-bg {
+        background-image:url('../img/Italy_001.png');
+        background-position: 50% 50%;
+        background-repeat:no-repeat;
+        background-attachment: fixed;
+    }
+}
+.footer-3 {
+    background-color: #1B1F23;
+    color: #7F8C8D;
+}
