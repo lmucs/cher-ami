@@ -673,6 +673,33 @@ func (s Svc) GetPasswordHash(user string) (password_hash []byte, found bool) {
 	return []byte(res[0].PasswordHash), len(res) > 0
 }
 
+func (s Svc) GetCircleId(handle string, circle string) string {
+	found := []struct{
+		Id string `json:"c.id"`
+	}{}
+	if err := s.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+			MATCH  (u:User)-[:CHIEF_OF]->(c:Circle)
+			WHERE  u.handle = {handle}
+			AND    c.name   = {circle}
+			RETURN c.id
+		`,
+		Parameters: neoism.Props{
+			"handle": handle,
+			"circle": circle,
+		},
+		Result: &circle,
+	}); err != nil {
+		panicErr(err)
+	}
+
+	if len(found) > 0 {
+	    return found[0].Id
+	} else {
+		return ""
+	}
+}
+
 //
 // Node Attributes
 //
