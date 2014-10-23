@@ -566,7 +566,6 @@ func (a Api) NewMessage(w rest.ResponseWriter, r *rest.Request) {
 	}
 
 	handle := payload.Handle
-	sessionid := payload.SessionId
 	content := payload.Content
 
 	if !a.authenticate(r) {
@@ -582,30 +581,8 @@ func (a Api) NewMessage(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	created := []struct {
-		Content  string      `json:"message.content"`
-		Relation neoism.Node `json:"r"`
-	}{}
-	now := time.Now().Local()
-	err := a.Svc.Db.Cypher(&neoism.CypherQuery{
-		Statement: `
-            MATCH (user:User {handle: {handle}, sessionid: {sessionid}})
-            CREATE (message:Message {content: {content}, created: {now}, lastsaved: {now}})
-            CREATE (user)-[r:WROTE]->(message)
-            RETURN message.content, r
-        `,
-		Parameters: neoism.Props{
-			"handle":    handle,
-			"sessionid": sessionid,
-			"content":   content,
-			"now":       now,
-		},
-		Result: &created,
-	})
-	panicErr(err)
-
-	if len(created) != 1 {
-		w.WriteHeader(500)
+	if !a.Svc.NewMessage(handle, content) {
+		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "No message created",
 		})
