@@ -424,32 +424,42 @@ func (a Api) SearchForUsers(w rest.ResponseWriter, r *rest.Request) {
 }
 
 func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
-	handle := r.PathParam("handle")
+	credentials := struct {
+		Handle   string
+		Password string
+	}{}
+	if err := r.DecodeJsonPayload(&credentials); err != nil {
+		rest.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	handle := credentials.Handle
+	password := []byte(credentials.Password)
 
 	if !a.authenticate(r) {
 		w.WriteHeader(401)
 		w.WriteJson(map[string]string{
 			"response": "Failed to authenticate user request",
-			"reason": "Missing, illegal or expired token",
+			"reason":   "Missing, illegal or expired token",
 		})
 		return
 	}
 
-	// if passwordHash, ok := a.Svc.GetPasswordHash(handle); !ok {
-	// 	w.WriteHeader(400)
-	// 	w.WriteJson(map[string]string{
-	// 		"Response": "Invalid username or password, please try again.",
-	// 	})
-	// 	return
-	// } else {
-	// 	// err is nil if successful, error
-	// 	if err := bcrypt.CompareHashAndPassword(passwordHash, password); err != nil {
-	// 		w.WriteHeader(400)
-	// 		w.WriteJson(map[string]string{
-	// 			"Response": "Invalid username or password, please try again.",
-	// 		})
-	// 		return
-	// 	} else {
+	if passwordHash, ok := a.Svc.GetPasswordHash(handle); !ok {
+		w.WriteHeader(400)
+		w.WriteJson(map[string]string{
+			"Response": "Invalid username or password, please try again.",
+		})
+		return
+	} else {
+		// err is nil if successful, error
+		if err := bcrypt.CompareHashAndPassword(passwordHash, password); err != nil {
+			w.WriteHeader(400)
+			w.WriteJson(map[string]string{
+				"Response": "Invalid username or password, please try again.",
+			})
+			return
+		} else {
 			if deleted := a.Svc.DeleteUser(handle); !deleted {
 				w.WriteHeader(400)
 				w.WriteJson(map[string]string{
@@ -457,12 +467,9 @@ func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
 				})
 				return
 			}
-			w.WriteHeader(200)
-			w.WriteJson(map[string]string{
-				"Response": "Deleted " + handle,
-			})
-	// 	}
-	// }
+			w.WriteHeader(204)
+		}
+	}
 }
 
 //

@@ -230,6 +230,12 @@ Change only basic user information here such as display name, email, and status.
     + Headers
 
             Authorization: Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+    + Body
+
+            {
+                "handle": "pelé",
+                "password": "Brasil Uber Alles"
+            }
 + Response 204
 + Response 401
 

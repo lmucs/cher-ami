@@ -189,8 +189,8 @@ func deleteUser(handle string, sessionid string) (*http.Response, error) {
 		"handle":    handle,
 		"sessionid": sessionid,
 	}
-
-	return helper.Execute("DELETE", userURL, payload)
+	deleteURL := usersURL + "/" + payload["handle"].(string)
+	return helper.Execute("DELETE", deleteURL, payload)
 }
 
 func postCircles(handle string, sessionid string, circleName string, public bool) (*http.Response, error) {
@@ -632,8 +632,7 @@ func (s *TestSuite) TestDeleteUserOK(c *C) {
 	// 	c.Error(err)
 	// }
 
-	c.Check(getJsonResponseMessage(deleteUserResponse), Equals, "Deleted handleA")
-	c.Check(deleteUserResponse.StatusCode, Equals, 200)
+	c.Check(deleteUserResponse.StatusCode, Equals, 204)
 	// c.Check(getJsonResponseMessage(getUserResponse), Equals, "No results found")
 	// c.Assert(getUserResponse.StatusCode, Equals, 404)
 }
