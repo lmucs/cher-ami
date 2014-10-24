@@ -873,7 +873,7 @@ section * {
 /*title(cherami)*/
 .header-10 .navbar .brand {
   padding-top: 25px;
-  font-size: 30px;
+  font-size: 40px;
   font-weight: normal;
   /*color for title(cherami)*/
   color: #ffffff;
@@ -886,7 +886,8 @@ section * {
   margin: -10px 15px 0 0;
 }
 .header-10 .navbar .nav > li {
-  margin-left: 30px;
+  /*spacing inbewtween navbar buttons*/
+  margin-left: 50px;
 }
 .header-10 .navbar .nav > li:first-child {
   margin-left: 0;
@@ -1288,7 +1289,7 @@ section * {
   display: table;
   width: 100%;
   /*color of background*/
-  background: #F3A69E;
+  /*background: #F3A69E;*/
 }
 .content-8.v-center > div,
 .content-8 .v-center > div {
@@ -1352,6 +1353,8 @@ section * {
 }
 .content-10 > .container {
   position: relative;
+  width: 250px;
+
 }
 .content-10 .btn {
   margin-left: 33px;
@@ -1733,6 +1736,7 @@ section * {
   /*background-image: url('../img/Italy_001.png');*/
   /*background-image: url('../img/batman2.jpg');*/
   background-image: url('../img/img-2.jpg');
+  background-image: url('../img/nicki.jpg');
   background-position: 50% 50%;
   background-repeat: no-repeat;
   background-attachment: fixed;
