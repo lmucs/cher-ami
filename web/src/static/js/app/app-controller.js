@@ -14,6 +14,7 @@ define(function(require, exports, module) {
     var Message = require('app/models/message').Message;
     var Messages = require('app/collections/messages').Messages;
     var EditProfileView = require('app/views/edit-profile-view').EditProfileView;
+    var ProfileView = require('app/views/profile-view').ProfileView;
     var CommentsView = require('app/views/comments-view').CommentsView;
     var CommentView = require('app/views/comment-view').CommentView;
     //var SidebarView = require('app/views/sidebar-view').SidebarView;
@@ -38,10 +39,10 @@ define(function(require, exports, module) {
             // this.app.mainRegion.show(new MessagesView({
             //     collection: test
             // }));
-            this.app.mainRegion.show(new CommentsView({
-                collection: testComment
-            }));
-            //this.app.mainRegion.show(new EditProfileView());
+            // this.app.mainRegion.show(new CommentsView({
+            //     collection: testComment
+            // }));
+            this.app.mainRegion.show(new ProfileView());
             // this.app.footerRegion.show(new FooterView());
         },
 
