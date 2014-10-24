@@ -1287,6 +1287,8 @@ section * {
 .content-8 .v-center {
   display: table;
   width: 100%;
+  /*color of background*/
+  background: #F3A69E;
 }
 .content-8.v-center > div,
 .content-8 .v-center > div {
@@ -1336,7 +1338,7 @@ section * {
  * */
 .content-10 {
   position: relative;
-  text-align: center;
+  text-align: left;
   padding-top: 5px;
   padding-bottom: 5px;
   /*color of the box/container*/
