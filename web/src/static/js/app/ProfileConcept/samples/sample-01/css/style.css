@@ -1330,6 +1330,52 @@ section * {
     vertical-align: baseline;
   }
 }
+
+/**
+ * Content 10 stylesheet  
+ * */
+.content-10 {
+  position: relative;
+  text-align: center;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  /*color of the box/container*/
+  background: transparent;
+  font-size: 24px;
+  font-weight: normal;
+  /*color of the text*/
+  color: #34495e;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-weight: 300;
+}
+.content-10 > .container {
+  position: relative;
+}
+.content-10 .btn {
+  margin-left: 33px;
+  font-size: 14px;
+  font-weight: normal;
+  color: #ffffff;
+  font-weight: 500;
+  font-family: 'Montserrat', sans-serif;
+}
+@media (max-width: 480px) {
+  .content-10 > .container > span {
+    display: block;
+  }
+  .content-10 .btn {
+    margin: 30px 0 0;
+  }
+}
+@media (max-width: 614px) {
+  .content-10 > .container > span {
+    display: block;
+  }
+  .content-10 .btn {
+    margin: 30px 0 0;
+  }
+}
+
 /**
  * Content 11 stylesheet  
  * */
@@ -1683,7 +1729,7 @@ section * {
 }
 .content-23.custom-bg {
   /*background-image: url('../img/Italy_001.png');*/
-  background-image: url('../img/batman2.jpg');
+  /*background-image: url('../img/batman2.jpg');*/
   background-image: url('../img/img-2.jpg');
   background-position: 50% 50%;
   background-repeat: no-repeat;
