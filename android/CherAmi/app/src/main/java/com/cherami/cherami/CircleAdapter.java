@@ -8,13 +8,13 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
-public class CircleAdapter extends ArrayAdapter<CircleItem> {
+public class CircleAdapter extends ArrayAdapter<Circle> {
 
     Context context;
     int layoutResourceId;
-    CircleItem data[] = null;
+    Circle data[] = null;
 
-    public CircleAdapter(Context context, int layoutResourceId, CircleItem[] data) {
+    public CircleAdapter(Context context, int layoutResourceId, Circle[] data) {
         super(context, layoutResourceId, data);
         this.layoutResourceId = layoutResourceId;
         this.context = context;
@@ -39,8 +39,8 @@ public class CircleAdapter extends ArrayAdapter<CircleItem> {
             holder = (CircleHolder) row.getTag();
         }
 
-        CircleItem circleItem = data[position];
-        holder.txtTitle.setText(circleItem.title);
+        Circle circle = data[position];
+        holder.txtTitle.setText(circle.title);
 
         return row;
     }

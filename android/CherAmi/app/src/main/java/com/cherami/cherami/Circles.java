@@ -68,10 +68,10 @@ public class Circles extends Fragment {
 
         View rootView = inflater.inflate(R.layout.fragment_circles, container, false);
 
-        CircleItem circle_data[] = new CircleItem[]
+        Circle circle_data[] = new Circle[]
                 {
-                        new CircleItem("Circle1"),
-                        new CircleItem("Circle2")
+                        new Circle("Circle1"),
+                        new Circle("Circle2")
                 };
 
         CircleAdapter adapter = new CircleAdapter(this.getActivity(),
