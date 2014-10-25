@@ -89,18 +89,45 @@ func (s Svc) UserExists(handle string) bool {
 	return len(found) > 0
 }
 
-func (s Svc) CircleExists(circleid string) bool {
+func (s Svc) CircleExistsInPublicDomain(circleid string) bool {
 	found := []struct {
 		Id string `json:"c.id"`
 	}{}
 	if err := s.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
-            MATCH (c:Circle)
+            MATCH (c:Circle)-[:PART_OF]->(p:PublicDomain)
             WHERE c.id = {id}
             RETURN c.id
         `,
 		Parameters: neoism.Props{
 			"id": circleid,
+		},
+		Result: &found,
+	}); err != nil {
+		panicErr(err)
+	}
+
+	return len(found) > 0
+}
+
+func (s Svc) CanSeeCircle(fromPerspectiveOf string, circleid string) bool {
+	if s.CircleExistsInPublicDomain(circleid) {
+		return true
+	}
+
+	found := []struct {
+		Id string `json:"c.id"`
+	}{}
+	if err := s.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+			MATCH   (u:User)-[:MEMBER_OF|CHIEF_OF]->(c:Circle)
+			WHERE   u.handle = {handle}
+			AND     c.id     = {id}
+			RETURN  c.id
+		`,
+		Parameters: neoism.Props{
+			"handle": fromPerspectiveOf,
+			"id":     circleid,
 		},
 		Result: &found,
 	}); err != nil {
@@ -234,7 +261,7 @@ func (s Svc) BlockExistsFromTo(handle string, target string) bool {
 }
 
 func (s Svc) UserIsMemberOf(handle string, circleid string) bool {
-	found := []struct{
+	found := []struct {
 		Handle string `json:"u.handle"`
 	}{}
 	if err := s.Db.Cypher(&neoism.CypherQuery{
@@ -245,7 +272,7 @@ func (s Svc) UserIsMemberOf(handle string, circleid string) bool {
 			RETURN u.handle
 		`,
 		Parameters: neoism.Props{
-			"handle": handle,
+			"handle":   handle,
 			"circleid": circleid,
 		},
 		Result: &found,
@@ -674,7 +701,7 @@ func (s Svc) GetPasswordHash(user string) (password_hash []byte, found bool) {
 }
 
 func (s Svc) GetCircleId(handle string, circle string) string {
-	found := []struct{
+	found := []struct {
 		Id string `json:"c.id"`
 	}{}
 	if err := s.Db.Cypher(&neoism.CypherQuery{
@@ -694,7 +721,7 @@ func (s Svc) GetCircleId(handle string, circle string) string {
 	}
 
 	if len(found) > 0 {
-	    return found[0].Id
+		return found[0].Id
 	} else {
 		return ""
 	}

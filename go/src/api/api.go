@@ -625,12 +625,12 @@ func (a Api) PublishMessage(w rest.ResponseWriter, r *rest.Request) {
 		w.WriteHeader(401)
 		w.WriteJson(map[string]string{
 			"Response": "Refusal to comply with request",
-			"Reason": "You are not a member or owner of the specified circle",
+			"Reason":   "You are not a member or owner of the specified circle",
 		})
 		return
 	}
 
-	if !a.Svc.CircleExists(circleid) {
+	if !a.Svc.CanSeeCircle(handle, circleid) {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Could not find specified circle to publish to",
@@ -964,7 +964,7 @@ func (a Api) Join(w rest.ResponseWriter, r *rest.Request) {
 		} else {
 			circleid = id
 		}
-	} else if !a.Svc.CircleExists(circleid) {
+	} else if !a.Svc.CanSeeCircle(handle, circleid) {
 		w.WriteHeader(404)
 		w.WriteJson(map[string]string{
 			"Response": "Could not find target circle, join failed",
