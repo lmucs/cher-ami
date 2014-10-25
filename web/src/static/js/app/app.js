@@ -1,5 +1,6 @@
 define(function(require, exports, module) {
     var marionette = require('marionette');
+    var Session = require('app/models/session');
     var app = new marionette.Application();
 
     // Regions defined in index.html

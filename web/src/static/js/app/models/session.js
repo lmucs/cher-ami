@@ -4,22 +4,49 @@ define(function(require, exports, module) {
 
     var Session = Backbone.Model.extend({
         url: 'api/sessions',
+        defaults: {
+            handle: null,
+            sessionid: null
+        },
         initialize: function() {
-
+            //this.load();
+            $.ajaxPrefilter(function(options, originalOptions, jqXHR) {
+                options.xhrFields = {
+                    withCredentials: true
+                };
+            });
         },
 
-        login: function(credentials) {
+        /*load: function() {
+            this.model.set({
+                user_id: $.cookie('handle'),
+                sessionid: $.cookie('sessionid')
+            })
+        },*/
 
+        // Takes in a login model
+        login: function(login_model) {
+            var that = this;
+            var credentials = login_model.getJSON();
+            this.save(credentials, {
+                success: function(model, resp) {
+                    that.unset('password');
+                    that.set(resp.data);
+                    that.unset('response')
+                }
+            })
         },
 
         logout: function() {
-
+            this.destroy({
+                success: function(model, resp) {
+                    model.clear({silent: true})
+                }
+            })
         },
 
-        getAuthentication: function(callback) {
-            this.fetch({
-                success: callback
-            });
+        authenticated: function() {
+            return true;
         }
     });
 

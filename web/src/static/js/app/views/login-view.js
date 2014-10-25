@@ -38,10 +38,10 @@ define(function(require, exports, module) {
             }
             var callbacks = {
                 success: function() {
-                    alert("It worked!");
+                    console.log("It worked!");
                 },
                 error: function() {
-                    alert(":(");
+                    console.log(":(");
                 }
             }
             this.model.save(data, callbacks);
