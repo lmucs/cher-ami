@@ -506,19 +506,18 @@ func (s Svc) JoinBroadcast(handle string, target string) (at time.Time, did_join
 	return now, true
 }
 
-func (s Svc) AddBlockedRelation(handle string, target string) (block_occured bool, err error) {
+func (s Svc) CreateBlockFromTo(handle string, target string) bool {
 	res := []struct {
 		Handle string      `json:"u.handle"`
 		Target string      `json:"t.handle"`
 		R      neoism.Node `json:"r"`
 	}{}
-	err = s.Db.Cypher(&neoism.CypherQuery{
+	if err := s.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
-            MATCH (u:User)
+            MATCH (u:User), (t:User)
             WHERE u.handle = {handle}
-            MATCH (t:User)
-            WHERE t.handle = {target}
-            CREATE UNIQUE (t)-[r:BLOCKED]->(u)
+            AND   t.handle = {target}
+            CREATE UNIQUE (u)-[r:BLOCKED]->(t)
             RETURN u.handle, t.handle, r
         `,
 		Parameters: neoism.Props{
@@ -526,9 +525,11 @@ func (s Svc) AddBlockedRelation(handle string, target string) (block_occured boo
 			"target": target,
 		},
 		Result: &res,
-	})
+	}); err != nil {
+		panicErr(err)
+	}
 
-	return len(res) > 0, err
+	return len(res) > 0
 }
 
 //

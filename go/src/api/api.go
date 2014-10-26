@@ -846,17 +846,15 @@ func (a Api) BlockUser(w rest.ResponseWriter, r *rest.Request) {
 	a.Svc.RevokeMembershipBetween(handle, target)
 
 	// Block user
-	if success, err := a.Svc.AddBlockedRelation(handle, target); err != nil {
-		panicErr(err)
-	} else if success {
-		w.WriteHeader(200)
-		w.WriteJson(map[string]string{
-			"Response": "User " + target + " has been blocked",
-		})
-	} else {
+	if !a.Svc.CreateBlockFromTo(handle, target) {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Unexpected failure to block user",
+		})
+	} else {
+		w.WriteHeader(200)
+		w.WriteJson(map[string]string{
+			"Response": "User " + target + " has been blocked",
 		})
 	}
 }
