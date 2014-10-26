@@ -474,21 +474,21 @@ func (s Svc) JoinCircle(handle string, circleid string) bool {
 	return len(joined) > 0
 }
 
-func (s Svc) JoinBroadcast(handle string, target string) (at time.Time, did_join bool) {
-	joined := []struct {
-		Target string    `json:"t.handle"`
-		At     time.Time `json:"r.at"`
+func (s Svc) JoinBroadcast(handle string, target string) bool {
+	created := []struct {
+		At time.Time `json:"r.at"`
 	}{}
 	now := time.Now().Local()
 	if err := s.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
-            MATCH (u:User)
-            WHERE u.handle = {handle}
-            MATCH (t:User)-[:CHIEF_OF]->(c:Circle)
-            WHERE t.handle = {target} AND c.name = {broadcast}
-            CREATE UNIQUE (u)-[r:MEMBER_OF]->(c)
-            SET r.at = {now}
-            RETURN r.at
+            MATCH          (u:User)
+            WHERE          u.handle = {handle}
+            MATCH          (t:User)-[:CHIEF_OF]->(c:Circle)
+            WHERE          t.handle = {target}
+            AND            c.name = {broadcast}
+            CREATE UNIQUE  (u)-[r:MEMBER_OF]->(c)
+            SET            r.at = {now}
+            RETURN         r.at
         `,
 		Parameters: neoism.Props{
 			"handle":    handle,
@@ -496,14 +496,12 @@ func (s Svc) JoinBroadcast(handle string, target string) (at time.Time, did_join
 			"target":    target,
 			"now":       now,
 		},
-		Result: &joined,
+		Result: &created,
 	}); err != nil {
 		panicErr(err)
-	} else if len(joined) != 1 {
-		return time.Time{}, false
 	}
 
-	return now, true
+	return len(created) > 0
 }
 
 func (s Svc) CreateBlockFromTo(handle string, target string) bool {

@@ -888,7 +888,7 @@ func (a Api) JoinDefault(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	if a.Svc.BlockExistsFromTo(handle, target) {
+	if a.Svc.BlockExistsFromTo(target, handle) {
 		w.WriteHeader(403)
 		w.WriteJson(map[string]string{
 			"Response": "Server refusal to comply with join request",
@@ -896,16 +896,15 @@ func (a Api) JoinDefault(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	if at, did_join := a.Svc.JoinBroadcast(handle, target); did_join {
-		w.WriteHeader(201)
-		w.WriteJson(map[string]string{
-			"Response": "JoinDefault request successful!",
-			"Info":     handle + " added to " + target + "'s broadcast at " + at.Format(time.RFC1123),
-		})
-	} else {
+	if !a.Svc.JoinBroadcast(handle, target) {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Unexpected failure to join Broadcast",
+		})
+	} else {
+		w.WriteHeader(201)
+		w.WriteJson(map[string]string{
+			"Response": "JoinDefault request successful!",
 		})
 	}
 }
