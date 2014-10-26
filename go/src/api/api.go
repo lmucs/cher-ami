@@ -272,7 +272,6 @@ func (a Api) ChangePassword(w rest.ResponseWriter, r *rest.Request) {
 		})
 		return
 	} else if len(newPassword) < MIN_PASS_LENGTH {
-		fmt.Println("")
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Passwords must be at least 8 characters long",
@@ -913,6 +912,9 @@ func (a Api) JoinDefault(w rest.ResponseWriter, r *rest.Request) {
 	}
 }
 
+/**
+ * Allows joining by (target, circlename) or (circleid) candidate keys
+ */
 func (a Api) Join(w rest.ResponseWriter, r *rest.Request) {
 	payload := struct {
 		Handle   string
@@ -928,7 +930,7 @@ func (a Api) Join(w rest.ResponseWriter, r *rest.Request) {
 	handle := payload.Handle
 	target := payload.Target
 	circle := payload.Circle
-	circleid := payload.Circle
+	circleid := payload.CircleId
 
 	if !a.authenticate(r) {
 		w.WriteHeader(400)
@@ -964,7 +966,9 @@ func (a Api) Join(w rest.ResponseWriter, r *rest.Request) {
 		} else {
 			circleid = id
 		}
-	} else if !a.Svc.CanSeeCircle(handle, circleid) {
+	}
+
+	if !a.Svc.CanSeeCircle(handle, circleid) {
 		w.WriteHeader(404)
 		w.WriteJson(map[string]string{
 			"Response": "Could not find target circle, join failed",
@@ -972,11 +976,10 @@ func (a Api) Join(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	if at, did_join := a.Svc.JoinCircle(handle, target, circle); did_join {
+	if a.Svc.JoinCircle(handle, circleid) {
 		w.WriteHeader(201)
 		w.WriteJson(map[string]string{
 			"Response": "Join request successful!",
-			"Info":     handle + " joined " + circle + " of " + target + " at " + at.Format(time.RFC1123),
 		})
 	} else {
 		w.WriteHeader(400)

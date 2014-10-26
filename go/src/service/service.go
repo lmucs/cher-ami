@@ -447,34 +447,31 @@ func (s Svc) PublishMessage(messageid, circleid string) bool {
 	return len(created) > 0
 }
 
-func (s Svc) JoinCircle(handle string, target string, target_circle string) (at time.Time, did_join bool) {
+func (s Svc) JoinCircle(handle string, circleid string) bool {
 	joined := []struct {
 		At time.Time `json:"r.at"`
 	}{}
 	now := time.Now().Local()
 	if err := s.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
-            MATCH (u:User)
-            WHERE u.handle = {handle}
-            MATCH (t:User)-[:CHIEF_OF]->(c:Circle)
-            WHERE t.handle = {target} AND c.name = {circle}
-            CREATE (u)-[r:MEMBER_OF {at: {now}}]->(c)
-            RETURN r.at
+            MATCH   (u:User), (c:Circle)
+            WHERE   u.handle = {handle}
+            AND     c.id     = {id}
+            CREATE  (u)-[r:MEMBER_OF]->(c)
+            SET     r.at     = {now}
+            RETURN  r.at
         `,
 		Parameters: neoism.Props{
 			"handle": handle,
-			"target": target,
-			"circle": target_circle,
+			"id":     circleid,
 			"now":    now,
 		},
 		Result: &joined,
 	}); err != nil {
 		panicErr(err)
-	} else if len(joined) != 1 {
-		return time.Time{}, false
 	}
 
-	return joined[0].At, len(joined) > 0
+	return len(joined) > 0
 }
 
 func (s Svc) JoinBroadcast(handle string, target string) (at time.Time, did_join bool) {
@@ -715,7 +712,7 @@ func (s Svc) GetCircleId(handle string, circle string) string {
 			"handle": handle,
 			"circle": circle,
 		},
-		Result: &circle,
+		Result: &found,
 	}); err != nil {
 		panicErr(err)
 	}
