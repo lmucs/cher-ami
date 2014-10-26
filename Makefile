@@ -33,11 +33,21 @@ install-test-reqs:
 	npm install -g karma-cli
 
 .PHONY: deps
-deps:
+install-deps:
 	@echo '--------------------------'
 	@echo 'Getting Go dependencies...'
 	@echo '--------------------------'
 	cd $(GO_SRC); go get all; cd ../..
+	@echo '-----------------'
+	@echo 'Packages installed.'
+	@echo '-----------------'
+
+.PHONY: update-deps
+update-deps:
+	@echo '---------------------------'
+	@echo 'Updating Go dependencies...'
+	@echo '---------------------------'
+	cd $(GO_SRC); go get -u all; cd ../..
 	@echo '-----------------'
 	@echo 'Packages updated.'
 	@echo '-----------------'
@@ -61,5 +71,6 @@ help:
 	@echo  '  localtest       - Start Go server testing using local database'
 	@echo  '  serve           - Serve front-end web application locally to port 8000'
 	@echo  '  watch           - Start Compass watcher to keep CSS files up-to-date'
-	@echo  '  deps            - Install Go package dependencies'
+	@echo  '  install-deps    - Install Go package dependencies'
+	@echo  '  update-deps     - Update Go package dependencies'
 	@echo  ''
