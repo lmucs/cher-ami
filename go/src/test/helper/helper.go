@@ -25,7 +25,7 @@ func Execute(httpMethod string, url string, m map[string]interface{}) (*http.Res
 			log.Fatal(err)
 		}
 		if ok && str != "" {
-			request.Header.Add("Authentication", sessionid)
+			request.Header.Add("Authorization", sessionid)
 		}
 		return http.DefaultClient.Do(request)
 	}
@@ -61,7 +61,7 @@ func GetWithQueryParams(httpMethod string, url string, m map[string]interface{})
 			log.Fatal(err)
 		}
 		if ok && str != "" {
-			request.Header.Add("Authentication", sessionid)
+			request.Header.Add("Authorization", sessionid)
 		}
 		return http.DefaultClient.Do(request)
 	}
