@@ -24,6 +24,7 @@ define(function(require, exports, module) {
 
         initialize: function(options) {
             this.model = new Login();
+            this.session = options.session;
         },
 
         onRememberConfirm: function() {
@@ -32,19 +33,9 @@ define(function(require, exports, module) {
 
         onLogin: function(event) {
             event.preventDefault();
-            var data = {
-                handle: this.ui.handle.val(),
-                password: this.ui.pass.val()
-            }
-            var callbacks = {
-                success: function() {
-                    console.log("It worked!");
-                },
-                error: function() {
-                    console.log(":(");
-                }
-            }
-            this.model.save(data, callbacks);
+            this.model.set("handle", this.ui.handle.val());
+            this.model.set("password", this.ui.pass.val());
+            this.session.login(this.model)
         }
 
     });

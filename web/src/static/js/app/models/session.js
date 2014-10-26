@@ -26,13 +26,15 @@ define(function(require, exports, module) {
 
         // Takes in a login model
         login: function(login_model) {
+            console.log(login_model);
             var that = this;
-            var credentials = login_model.getJSON();
+            var credentials = login_model.toJSON();
             this.save(credentials, {
-                success: function(model, resp) {
+                success: function(model, response) {
                     that.unset('password');
-                    that.set(resp.data);
-                    that.unset('response')
+                    that.set(response);
+                    // Removes response property from response object
+                    that.unset('response');
                 }
             })
         },
@@ -46,7 +48,8 @@ define(function(require, exports, module) {
         },
 
         authenticated: function() {
-            return true;
+            // Add logic here which fetches auth.
+            return false;
         }
     });
 

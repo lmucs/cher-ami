@@ -29,13 +29,10 @@ define(function(require, exports, module) {
                 // user is authed, redirect home
                 this.app.mainRegion.show(new ProfileView());
             } else {
-                this.app.mainRegion.show(new LoginView());
+                this.app.mainRegion.show(new LoginView({
+                    session: this.app.session
+                }));
             }
-            /*var sessions = new Sessions()
-            this.app.session = sessions.APP.Session({
-                handle: "test",
-                password: "12345678"
-            }, {});*/
 
             //var test = new Messages();
             //var testComment = new Comments();
@@ -49,7 +46,6 @@ define(function(require, exports, module) {
             // this.app.mainRegion.show(new CommentsView({
             //     collection: testComment
             // }));
-            this.app.mainRegion.show(new ProfileView());
             // this.app.footerRegion.show(new FooterView());
         },
 
