@@ -3,7 +3,7 @@ define(function(require, exports, module) {
     var backbone = require('backbone');
     var marionette = require('marionette');
     var app = require('app/app');
-    var Sessions = require('backbone/sessions')
+    var Session = require('app/models/session').Session;
 
     var HeaderView = require('app/views/header-view').HeaderView;
     var SignupView = require('app/views/signup-view').SignupView;
@@ -24,14 +24,18 @@ define(function(require, exports, module) {
 
         initialize: function(options) {
             this.app = app;
-            /*var sessions = new Sessions()
-            this.app.session = sessions.APP.Session({
-                handle: "test",
-                password: "12345678"
-            }, {});*/
+            this.app.session = new Session();
+            if (this.app.session.authenticated()) {
+                // user is authed, redirect home
+                this.app.mainRegion.show(new ProfileView());
+            } else {
+                this.app.mainRegion.show(new LoginView({
+                    session: this.app.session
+                }));
+            }
 
-            var test = new Messages();
-            var testComment = new Comments();
+            //var test = new Messages();
+            //var testComment = new Comments();
 
             // Initialization of views will go here.
             this.app.headerRegion.show(new HeaderView());
