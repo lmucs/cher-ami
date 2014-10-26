@@ -23,7 +23,7 @@ func main() {
 		uri, err = c.GetString("gen-test", "url")
 	}
 	api := a.NewApi(uri)
-	handler, err := routes.MakeHandler(*api)
+	handler, err := routes.MakeHandler(*api, false)
 	if err != nil {
 		log.Fatal(err)
 	}

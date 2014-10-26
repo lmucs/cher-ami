@@ -5,9 +5,10 @@ import (
 	"github.com/ant0ine/go-json-rest/rest"
 )
 
-func MakeHandler(a cheramiapi.Api) (rest.ResourceHandler, error) {
+func MakeHandler(a cheramiapi.Api, disableLogs bool) (rest.ResourceHandler, error) {
 	handler := rest.ResourceHandler{
 		EnableRelaxedContentType: true,
+		DisableLogger:            disableLogs,
 	}
 
 	err := handler.SetRoutes(

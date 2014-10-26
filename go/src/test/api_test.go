@@ -77,7 +77,7 @@ func (s *TestSuite) SetUpSuite(c *C) {
 
 	a = api.NewApi(uri)
 
-	handler, err := routes.MakeHandler(*a)
+	handler, err := routes.MakeHandler(*a, true)
 	if err != nil {
 		log.Fatal(err)
 	}
