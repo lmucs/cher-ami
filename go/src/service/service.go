@@ -89,21 +89,18 @@ func (s Svc) UserExists(handle string) bool {
 	return len(found) > 0
 }
 
-func (s Svc) CircleExists(target string, circleName string) bool {
+func (s Svc) CircleExistsInPublicDomain(circleid string) bool {
 	found := []struct {
-		Name string `json:"c.name"`
+		Id string `json:"c.id"`
 	}{}
 	if err := s.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
-            MATCH (t:User)
-            WHERE t.handle = {target}
-            MATCH (t)-[:CHIEF_OF]->(c:Circle)
-            WHERE c.name = {name}
-            RETURN c.name
+            MATCH (c:Circle)-[:PART_OF]->(p:PublicDomain)
+            WHERE c.id = {id}
+            RETURN c.id
         `,
 		Parameters: neoism.Props{
-			"target": target,
-			"name":   circleName,
+			"id": circleid,
 		},
 		Result: &found,
 	}); err != nil {
@@ -113,21 +110,45 @@ func (s Svc) CircleExists(target string, circleName string) bool {
 	return len(found) > 0
 }
 
-func (s Svc) MessageExists(handle string, lastSaved time.Time) bool {
+func (s Svc) CanSeeCircle(fromPerspectiveOf string, circleid string) bool {
+	if s.CircleExistsInPublicDomain(circleid) {
+		return true
+	}
+
 	found := []struct {
-		Id int `json:"id(m)"`
+		Id string `json:"c.id"`
 	}{}
 	if err := s.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
-            MATCH (u:User)
-            WHERE u.handle = {handle}
-            MATCH (u)-[:WROTE]->(m:Message)
-            WHERE m.lastsaved = {lastsaved}
-            RETURN id(m)
+			MATCH   (u:User)-[:MEMBER_OF|CHIEF_OF]->(c:Circle)
+			WHERE   u.handle = {handle}
+			AND     c.id     = {id}
+			RETURN  c.id
+		`,
+		Parameters: neoism.Props{
+			"handle": fromPerspectiveOf,
+			"id":     circleid,
+		},
+		Result: &found,
+	}); err != nil {
+		panicErr(err)
+	}
+
+	return len(found) > 0
+}
+
+func (s Svc) MessageExists(messageid string) bool {
+	found := []struct {
+		Id int `json:"m.id"`
+	}{}
+	if err := s.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+            MATCH (m:Message)
+            WHERE m.id = {id}
+            RETURN m.id
         `,
 		Parameters: neoism.Props{
-			"handle":    handle,
-			"lastsaved": lastSaved,
+			"id": messageid,
 		},
 		Result: &found,
 	}); err != nil {
@@ -239,6 +260,29 @@ func (s Svc) BlockExistsFromTo(handle string, target string) bool {
 	return len(found) > 0
 }
 
+func (s Svc) UserIsMemberOf(handle string, circleid string) bool {
+	found := []struct {
+		Handle string `json:"u.handle"`
+	}{}
+	if err := s.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+			MATCH (u:User)-[:MEMBER_OF:CHIEF_OF]->(c:Circle)
+			WHERE u.handle = {handle}
+			AND   c.id     = {circleid}
+			RETURN u.handle
+		`,
+		Parameters: neoism.Props{
+			"handle":   handle,
+			"circleid": circleid,
+		},
+		Result: &found,
+	}); err != nil {
+		panicErr(err)
+	}
+
+	return len(found) > 0
+}
+
 //
 // Creation
 //
@@ -303,14 +347,15 @@ func (s Svc) MakeDefaultCirclesFor(handle string) error {
 	return err
 }
 
-func (s Svc) NewCircle(handle string, circle_name string, is_public bool) error {
+func (s Svc) NewCircle(handle string, circle_name string, isPublic bool) error {
 	query := `
         MATCH (u:User)
         WHERE u.handle = {handle}
         CREATE (u)-[:CHIEF_OF]->(c:Circle)
         SET c.name = {name}
+        SET c.id = {id}
     `
-	if is_public {
+	if isPublic {
 		query = query + `
             WITH u, c
             MATCH (p:PublicDomain)
@@ -330,6 +375,7 @@ func (s Svc) NewCircle(handle string, circle_name string, is_public bool) error 
 		Parameters: neoism.Props{
 			"handle": handle,
 			"name":   circle_name,
+			"id":     uniuri.NewLen(uniuri.UUIDLen),
 		},
 		Result: &made,
 	})
@@ -357,6 +403,7 @@ func (s Svc) NewMessage(handle string, content string) bool {
                 content:   {content}
               , created:   {now}
               , lastsaved: {now}
+              , id:        {id}
             })
             CREATE (u)-[r:WROTE]->(m)
             RETURN m.content, r
@@ -365,6 +412,7 @@ func (s Svc) NewMessage(handle string, content string) bool {
 			"handle":  handle,
 			"content": content,
 			"now":     now,
+			"id":      uniuri.NewLen(uniuri.UUIDLen),
 		},
 		Result: &created,
 	}); err != nil {
@@ -373,51 +421,74 @@ func (s Svc) NewMessage(handle string, content string) bool {
 	return len(created) > 0
 }
 
-func (s Svc) JoinCircle(handle string, target string, target_circle string) (at time.Time, did_join bool) {
+func (s Svc) PublishMessage(messageid, circleid string) bool {
+	created := []struct {
+		R *neoism.Relationship `json:"r"`
+	}{}
+	if err := s.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+            MATCH (m:Message)
+            WHERE m.id={messageid}
+            MATCH (c:Circle)
+            WHERE c.id={circleid}
+            CREATE (m)-[r:PUB_TO]->(c)
+            SET r.published_at={now}
+            RETURN r
+        `,
+		Parameters: neoism.Props{
+			"messageid": messageid,
+			"circleid":  circleid,
+			"now":       time.Now().Local(),
+		},
+		Result: &created,
+	}); err != nil {
+		panicErr(err)
+	}
+	return len(created) > 0
+}
+
+func (s Svc) JoinCircle(handle string, circleid string) bool {
 	joined := []struct {
 		At time.Time `json:"r.at"`
 	}{}
 	now := time.Now().Local()
 	if err := s.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
-            MATCH (u:User)
-            WHERE u.handle = {handle}
-            MATCH (t:User)-[:CHIEF_OF]->(c:Circle)
-            WHERE t.handle = {target} AND c.name = {circle}
-            CREATE (u)-[r:MEMBER_OF {at: {now}}]->(c)
-            RETURN r.at
+            MATCH   (u:User), (c:Circle)
+            WHERE   u.handle = {handle}
+            AND     c.id     = {id}
+            CREATE  (u)-[r:MEMBER_OF]->(c)
+            SET     r.at     = {now}
+            RETURN  r.at
         `,
 		Parameters: neoism.Props{
 			"handle": handle,
-			"target": target,
-			"circle": target_circle,
+			"id":     circleid,
 			"now":    now,
 		},
 		Result: &joined,
 	}); err != nil {
 		panicErr(err)
-	} else if len(joined) != 1 {
-		return time.Time{}, false
 	}
 
-	return joined[0].At, len(joined) > 0
+	return len(joined) > 0
 }
 
-func (s Svc) JoinBroadcast(handle string, target string) (at time.Time, did_join bool) {
-	joined := []struct {
-		Target string    `json:"t.handle"`
-		At     time.Time `json:"r.at"`
+func (s Svc) JoinBroadcast(handle string, target string) bool {
+	created := []struct {
+		At time.Time `json:"r.at"`
 	}{}
 	now := time.Now().Local()
 	if err := s.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
-            MATCH (u:User)
-            WHERE u.handle = {handle}
-            MATCH (t:User)-[:CHIEF_OF]->(c:Circle)
-            WHERE t.handle = {target} AND c.name = {broadcast}
-            CREATE UNIQUE (u)-[r:MEMBER_OF]->(c)
-            SET r.at = {now}
-            RETURN r.at
+            MATCH          (u:User)
+            WHERE          u.handle = {handle}
+            MATCH          (t:User)-[:CHIEF_OF]->(c:Circle)
+            WHERE          t.handle = {target}
+            AND            c.name = {broadcast}
+            CREATE UNIQUE  (u)-[r:MEMBER_OF]->(c)
+            SET            r.at = {now}
+            RETURN         r.at
         `,
 		Parameters: neoism.Props{
 			"handle":    handle,
@@ -425,29 +496,26 @@ func (s Svc) JoinBroadcast(handle string, target string) (at time.Time, did_join
 			"target":    target,
 			"now":       now,
 		},
-		Result: &joined,
+		Result: &created,
 	}); err != nil {
 		panicErr(err)
-	} else if len(joined) != 1 {
-		return time.Time{}, false
 	}
 
-	return now, true
+	return len(created) > 0
 }
 
-func (s Svc) AddBlockedRelation(handle string, target string) (block_occured bool, err error) {
+func (s Svc) CreateBlockFromTo(handle string, target string) bool {
 	res := []struct {
 		Handle string      `json:"u.handle"`
 		Target string      `json:"t.handle"`
 		R      neoism.Node `json:"r"`
 	}{}
-	err = s.Db.Cypher(&neoism.CypherQuery{
+	if err := s.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
-            MATCH (u:User)
+            MATCH (u:User), (t:User)
             WHERE u.handle = {handle}
-            MATCH (t:User)
-            WHERE t.handle = {target}
-            CREATE UNIQUE (t)-[r:BLOCKED]->(u)
+            AND   t.handle = {target}
+            CREATE UNIQUE (u)-[r:BLOCKED]->(t)
             RETURN u.handle, t.handle, r
         `,
 		Parameters: neoism.Props{
@@ -455,9 +523,11 @@ func (s Svc) AddBlockedRelation(handle string, target string) (block_occured boo
 			"target": target,
 		},
 		Result: &res,
-	})
+	}); err != nil {
+		panicErr(err)
+	}
 
-	return len(res) > 0, err
+	return len(res) > 0
 }
 
 //
@@ -624,6 +694,33 @@ func (s Svc) GetPasswordHash(user string) (password_hash []byte, found bool) {
 	}
 
 	return []byte(res[0].PasswordHash), len(res) > 0
+}
+
+func (s Svc) GetCircleId(handle string, circle string) string {
+	found := []struct {
+		Id string `json:"c.id"`
+	}{}
+	if err := s.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+			MATCH  (u:User)-[:CHIEF_OF]->(c:Circle)
+			WHERE  u.handle = {handle}
+			AND    c.name   = {circle}
+			RETURN c.id
+		`,
+		Parameters: neoism.Props{
+			"handle": handle,
+			"circle": circle,
+		},
+		Result: &found,
+	}); err != nil {
+		panicErr(err)
+	}
+
+	if len(found) > 0 {
+		return found[0].Id
+	} else {
+		return ""
+	}
 }
 
 //

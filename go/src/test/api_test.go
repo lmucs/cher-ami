@@ -77,7 +77,7 @@ func (s *TestSuite) SetUpSuite(c *C) {
 
 	a = api.NewApi(uri)
 
-	handler, err := routes.MakeHandler(*a)
+	handler, err := routes.MakeHandler(*a, true)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -846,18 +846,18 @@ func (s *TestSuite) TestPostJoinDefaultTargetNoExist(c *C) {
 }
 
 func (s *TestSuite) TestPostJoinDefaultUserBlocked(c *C) {
-	postSignup("testing123", "testing123", "testing123", "testing123")
-	postSignup("testing321", "testing321", "testing321", "testing321")
+	postSignup("handleA", "testA@test.io", "password1", "password1")
+	postSignup("handleB", "testB@test.io", "password2", "password2")
 
-	response, _ := postSessions("testing321", "testing321")
+	response, _ := postSessions("handleB", "password2")
 	sessionid := getSessionFromResponse(response)
 
-	postBlock("testing321", sessionid, "testing123")
+	postBlock("handleB", sessionid, "handleA")
 
-	response, _ = postSessions("testing123", "testing123")
+	response, _ = postSessions("handleA", "password1")
 	sessionid = getSessionFromResponse(response)
 
-	response, err := postJoinDefault("testing123", sessionid, "testing321")
+	response, err := postJoinDefault("handleA", sessionid, "handleB")
 	if err != nil {
 		c.Error(err)
 	}

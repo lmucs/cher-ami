@@ -48,7 +48,7 @@ const (
 //
 
 func (a Api) authenticate(r *rest.Request) (success bool) {
-	if sessionid := r.Header.Get("Authentication"); sessionid != "" {
+	if sessionid := r.Header.Get("Authorization"); sessionid != "" {
 		return a.Svc.VerifySession(sessionid)
 	} else {
 		return false
@@ -272,7 +272,6 @@ func (a Api) ChangePassword(w rest.ResponseWriter, r *rest.Request) {
 		})
 		return
 	} else if len(newPassword) < MIN_PASS_LENGTH {
-		fmt.Println("")
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Passwords must be at least 8 characters long",
@@ -556,9 +555,8 @@ func (a Api) makeDefaultCircles(handle string) {
  */
 func (a Api) NewMessage(w rest.ResponseWriter, r *rest.Request) {
 	payload := struct {
-		Handle    string
-		SessionId string
-		Content   string
+		Handle  string
+		Content string
 	}{}
 	if err := r.DecodeJsonPayload(&payload); err != nil {
 		rest.Error(w, err.Error(), http.StatusBadRequest)
@@ -602,8 +600,8 @@ func (a Api) NewMessage(w rest.ResponseWriter, r *rest.Request) {
 func (a Api) PublishMessage(w rest.ResponseWriter, r *rest.Request) {
 	payload := struct {
 		Handle    string
-		LastSaved time.Time
-		Circle    string
+		CircleId  string
+		MessageId string
 	}{}
 	if err := r.DecodeJsonPayload(&payload); err != nil {
 		rest.Error(w, err.Error(), http.StatusBadRequest)
@@ -611,8 +609,8 @@ func (a Api) PublishMessage(w rest.ResponseWriter, r *rest.Request) {
 	}
 
 	handle := payload.Handle
-	lastsaved := payload.LastSaved
-	circle := payload.Circle
+	circleid := payload.CircleId
+	messageid := payload.MessageId
 
 	if !a.authenticate(r) {
 		w.WriteHeader(400)
@@ -622,56 +620,38 @@ func (a Api) PublishMessage(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	if !a.Svc.CircleExists(handle, circle) {
-		w.WriteHeader(400)
+	if !a.Svc.UserIsMemberOf(handle, circleid) {
+		w.WriteHeader(401)
 		w.WriteJson(map[string]string{
-			"Response": "Bad Request, could not find specified circle to publish to",
+			"Response": "Refusal to comply with request",
+			"Reason":   "You are not a member or owner of the specified circle",
 		})
 		return
 	}
 
-	if !a.Svc.MessageExists(handle, lastsaved) {
+	if !a.Svc.CanSeeCircle(handle, circleid) {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
-			"Response": "Bad Request, could not find intended message for publishing",
+			"Response": "Could not find specified circle to publish to",
+		})
+		return
+	} else if !a.Svc.MessageExists(messageid) {
+		w.WriteHeader(400)
+		w.WriteJson(map[string]string{
+			"Response": "Could not find intended message for publishing",
 		})
 		return
 	}
 
-	created := []struct {
-		Count int `json:"count(r)"`
-	}{}
-	err := a.Svc.Db.Cypher(&neoism.CypherQuery{
-		Statement: `
-            MATCH (u:User)
-            WHERE u.handle={handle}
-            MATCH (u)-[:CHIEF_OF]->(c:Circle)
-            WHERE c.name={name}
-            MATCH (u)-[:WROTE]->(m:Message)
-            WHERE m.lastsaved={lastsaved}
-            CREATE (m)-[r:PUB_TO]->(c)
-            SET r.publishedat={date}
-            RETURN count(r)
-        `,
-		Parameters: neoism.Props{
-			"handle":    handle,
-			"name":      circle,
-			"lastsaved": lastsaved,
-			"date":      time.Now().Local(),
-		},
-		Result: &created,
-	})
-	panicErr(err)
-
-	if created[0].Count > 0 {
-		w.WriteHeader(201)
-		w.WriteJson(map[string]string{
-			"Response": "Success! Published message to " + circle,
-		})
-	} else {
+	if !a.Svc.PublishMessage(messageid, circleid) {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Bad request, no message published",
+		})
+	} else {
+		w.WriteHeader(201)
+		w.WriteJson(map[string]string{
+			"Response": "Success! Published message to " + circleid,
 		})
 	}
 }
@@ -866,17 +846,15 @@ func (a Api) BlockUser(w rest.ResponseWriter, r *rest.Request) {
 	a.Svc.RevokeMembershipBetween(handle, target)
 
 	// Block user
-	if success, err := a.Svc.AddBlockedRelation(handle, target); err != nil {
-		panicErr(err)
-	} else if success {
-		w.WriteHeader(200)
-		w.WriteJson(map[string]string{
-			"Response": "User " + target + " has been blocked",
-		})
-	} else {
+	if !a.Svc.CreateBlockFromTo(handle, target) {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Unexpected failure to block user",
+		})
+	} else {
+		w.WriteHeader(200)
+		w.WriteJson(map[string]string{
+			"Response": "User " + target + " has been blocked",
 		})
 	}
 }
@@ -910,7 +888,7 @@ func (a Api) JoinDefault(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	if a.Svc.BlockExistsFromTo(handle, target) {
+	if a.Svc.BlockExistsFromTo(target, handle) {
 		w.WriteHeader(403)
 		w.WriteJson(map[string]string{
 			"Response": "Server refusal to comply with join request",
@@ -918,25 +896,28 @@ func (a Api) JoinDefault(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	if at, did_join := a.Svc.JoinBroadcast(handle, target); did_join {
-		w.WriteHeader(201)
-		w.WriteJson(map[string]string{
-			"Response": "JoinDefault request successful!",
-			"Info":     handle + " added to " + target + "'s broadcast at " + at.Format(time.RFC1123),
-		})
-	} else {
+	if !a.Svc.JoinBroadcast(handle, target) {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Unexpected failure to join Broadcast",
 		})
+	} else {
+		w.WriteHeader(201)
+		w.WriteJson(map[string]string{
+			"Response": "JoinDefault request successful!",
+		})
 	}
 }
 
+/**
+ * Allows joining by (target, circlename) or (circleid) candidate keys
+ */
 func (a Api) Join(w rest.ResponseWriter, r *rest.Request) {
 	payload := struct {
-		Handle string
-		Target string
-		Circle string
+		Handle   string
+		Target   string
+		Circle   string
+		CircleId string
 	}{}
 	if err := r.DecodeJsonPayload(&payload); err != nil {
 		rest.Error(w, err.Error(), http.StatusBadRequest)
@@ -946,6 +927,7 @@ func (a Api) Join(w rest.ResponseWriter, r *rest.Request) {
 	handle := payload.Handle
 	target := payload.Target
 	circle := payload.Circle
+	circleid := payload.CircleId
 
 	if !a.authenticate(r) {
 		w.WriteHeader(400)
@@ -958,12 +940,12 @@ func (a Api) Join(w rest.ResponseWriter, r *rest.Request) {
 	if !a.Svc.UserExists(target) {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
-			"Response": "Bad request, user " + payload.Target + " wasn't found",
+			"Response": "Bad request, user " + target + " wasn't found",
 		})
 		return
 	}
 
-	if a.Svc.BlockExistsFromTo(handle, target) {
+	if a.Svc.BlockExistsFromTo(target, handle) {
 		w.WriteHeader(403)
 		w.WriteJson(map[string]string{
 			"Response": "Server refusal to comply with join request",
@@ -971,7 +953,19 @@ func (a Api) Join(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	if !a.Svc.CircleExists(target, circle) {
+	if circleid == "" {
+		if id := a.Svc.GetCircleId(target, circle); id == "" {
+			w.WriteHeader(404)
+			w.WriteJson(map[string]string{
+				"Response": "Could not find target circle, join failed",
+			})
+			return
+		} else {
+			circleid = id
+		}
+	}
+
+	if !a.Svc.CanSeeCircle(handle, circleid) {
 		w.WriteHeader(404)
 		w.WriteJson(map[string]string{
 			"Response": "Could not find target circle, join failed",
@@ -979,11 +973,10 @@ func (a Api) Join(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	if at, did_join := a.Svc.JoinCircle(handle, target, circle); did_join {
+	if a.Svc.JoinCircle(handle, circleid) {
 		w.WriteHeader(201)
 		w.WriteJson(map[string]string{
 			"Response": "Join request successful!",
-			"Info":     handle + " joined " + circle + " of " + target + " at " + at.Format(time.RFC1123),
 		})
 	} else {
 		w.WriteHeader(400)
