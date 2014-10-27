@@ -6,27 +6,33 @@ To learn about the API, look at the source code, and our always-in-progress [API
 
 ##Setting Up the Server
 
-Parts 1 and 2 are done only once, so skip to Part 3 if you have completed those before.
+Parts 1 through 3 are done only once, so skip to Part 4 if you have completed those before.
+
+###Part 1: Put a secret config file in your project root
+
+1. Ask @jadengore for the config file will all the secret urls and passwords
+2. `cd` to the project root
+3. Store the config file with name `config.cfg`.
+
 
 ###Part 1: Initialize $GOPATH
 
 1. `cd` to your home folder
 2. `mkdir go`
-3. `open .bash_profile`
-4. Add the following to your `.bash_profile`:
+3. Add the following to your `.bash_profile`:
 
-        # Setting PATH for Go  
+        # Setting PATH for Go
         export GOPATH=~/go
         export PATH=$PATH:$GOPATH/bin
 
-###Part 2: Install Dependencies
+###Part 2: Install or Update Dependencies
 
-1. `cd` to the `cher-ami/go/src` directory
-2. Install the dependencies. Since the packages we are using are changing frequently, please refer to the source for packages necessary. To install, run `go get <PACKAGE_URL>`.
-   
+1. `cd` to the project root directory
+2. `make install-deps` if you are building for the first time, or `make update-deps` if you need to refresh them.
+
 ###Part 3: Initialize test DB & Server
 
-1. In the `cher-ami` directory:
-    `make start`
+1. `cd` to the project root directory
+2. `make start`
 
 The API is now accessible on port 8228 locally.
