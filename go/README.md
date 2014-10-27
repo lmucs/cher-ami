@@ -15,7 +15,7 @@ Parts 1 through 3 are done only once, so skip to Part 4 if you have completed th
 3. Store the config file with name `config.cfg`.
 
 
-###Part 1: Initialize $GOPATH
+###Part 2: Initialize $GOPATH
 
 1. `cd` to your home folder
 2. `mkdir go`
@@ -25,12 +25,12 @@ Parts 1 through 3 are done only once, so skip to Part 4 if you have completed th
         export GOPATH=~/go
         export PATH=$PATH:$GOPATH/bin
 
-###Part 2: Install or Update Dependencies
+###Part 3: Install or Update Dependencies
 
 1. `cd` to the project root directory
 2. `make install-deps` if you are building for the first time, or `make update-deps` if you need to refresh them.
 
-###Part 3: Initialize test DB & Server
+###Part 4: Initialize test DB & Server
 
 1. `cd` to the project root directory
 2. `make start`
