@@ -1,7 +1,7 @@
 package api
 
 import (
-	service "../service"
+	"../service"
 	"fmt"
 	"github.com/ChimeraCoder/go.crypto/bcrypt"
 	"github.com/ant0ine/go-json-rest/rest"
@@ -679,10 +679,26 @@ func (a Api) GetAuthoredMessages(w rest.ResponseWriter, r *rest.Request) {
 			})
 			return
 		} else {
+			type MessageData struct {
+				Url     string
+				Author  string
+				Content string
+				Date    time.Time
+			}
 			messages := a.Svc.GetMessagesByHandle(author)
+			messageData := make([]MessageData, 0, len(messages))
+
+			for i := 0; i < len(messages); i++ {
+				messageData[i] = MessageData{
+					"<url>:<port>/api/messages/" + messages[i].Id, // hard-coded url/port...
+					messages[i].Author,
+					messages[i].Content,
+					messages[i].Created,
+				}
+			}
 
 			w.WriteHeader(200)
-			w.WriteJson(messages)
+			w.WriteJson(messageData)
 		}
 	}
 
