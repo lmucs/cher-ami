@@ -28,6 +28,16 @@ type Svc struct {
 }
 
 //
+// Return types
+//
+type Message struct {
+	Id      string    `json:"m.id"`
+	Author  string    `json:"m.author"`
+	Content string    `json:"m.content"`
+	Created time.Time `json:"m.created"`
+}
+
+//
 // Utility Functions
 //
 
@@ -723,6 +733,56 @@ func (s Svc) GetCircleId(handle string, circle string) string {
 	}
 }
 
+func (s Svc) GetMessagesByHandle(handle string) []Message {
+	messages := make([]Message, 0)
+	if err := s.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+            MATCH (u:User)-[:WROTE]->(m:Message)
+            WHERE u.handle = {handle}
+            RETURN m.id
+                 , u.handle
+                 , m.content
+                 , m.created
+            ORDER BY m.created
+        `,
+		Parameters: neoism.Props{
+			"handle": handle,
+		},
+		Result: &messages,
+	}); err != nil {
+		panicErr(err)
+	}
+
+	return messages
+}
+
+func (s Svc) GetHandleFromAuthorization(token string) (string, bool) {
+	found := []struct {
+		Handle string `json:"u.handle"`
+	}{}
+	if err := s.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+			MATCH  (u:User)<-[:SESSION_OF]-(a:AuthToken)
+			WHERE  a.sessionid = {sessionid}
+			AND    a.expires   < {now}
+			RETURN u.handle
+		`,
+		Parameters: neoism.Props{
+			"sessionid": token,
+			"now":       time.Now().Local(),
+		},
+		Result: &found,
+	}); err != nil {
+		panicErr(err)
+	}
+
+	if len(found) > 0 {
+		return found[0].Handle, len(found) > 0
+	} else {
+		return "", len(found) > 0
+	}
+}
+
 //
 // Node Attributes
 //
@@ -746,8 +806,8 @@ func (s Svc) SetGetNewSessionId(handle string) string {
                 WITH   u
                 CREATE (u)<-[r:SESSION_OF]-(a:AuthToken)
                 SET    r.created_at = {now}
-                SET    a.sessionid = {sessionid}
-                SET    a.session_expires_at = {time}
+                SET    a.sessionid  = {sessionid}
+                SET    a.expires    = {time}
                 RETURN a.sessionid
             `,
 		Parameters: neoism.Props{

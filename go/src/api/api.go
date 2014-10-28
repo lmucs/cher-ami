@@ -55,6 +55,10 @@ func (a Api) authenticate(r *rest.Request) (success bool) {
 	}
 }
 
+func (a Api) getSessionId(r *rest.Request) string {
+	return r.Header.Get("Authorization")
+}
+
 //
 // API
 //
@@ -661,45 +665,27 @@ func (a Api) PublishMessage(w rest.ResponseWriter, r *rest.Request) {
  * Expects query parameters "handle" and "sessionid"
  */
 func (a Api) GetAuthoredMessages(w rest.ResponseWriter, r *rest.Request) {
-	querymap := r.URL.Query()
-
-	// Check query parameters
-	if _, ok := querymap["handle"]; !ok {
-		w.WriteHeader(400)
-		w.WriteJson(map[string]string{
-			"Response": "Bad Request, not enough parameters to authenticate user",
-		})
-		return
-	}
-
-	handle := querymap["handle"][0]
-
 	if !a.authenticate(r) {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Failed to authenticate user request",
 		})
 		return
+	} else {
+		if author, success := a.Svc.GetHandleFromAuthorization(a.getSessionId(r)); !success {
+			w.WriteHeader(400)
+			w.WriteJson(map[string]string{
+				"Response": "Unexpected failure to retrieve owner of session",
+			})
+			return
+		} else {
+			messages := a.Svc.GetMessagesByHandle(author)
+
+			w.WriteHeader(200)
+			w.WriteJson(messages)
+		}
 	}
 
-	messages := []struct {
-		Content   string    `json:"message.content"`
-		LastSaved time.Time `json:"message.lastsaved"`
-	}{}
-	err := a.Svc.Db.Cypher(&neoism.CypherQuery{
-		Statement: `
-            MATCH (user:User {handle: {handle}})-[:WROTE]->(message:Message)
-            RETURN message.content, message.lastsaved
-        `,
-		Parameters: neoism.Props{
-			"handle": handle,
-		},
-		Result: &messages,
-	})
-	panicErr(err)
-
-	w.WriteHeader(200)
-	w.WriteJson(messages)
 }
 
 /**
