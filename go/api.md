@@ -1,12 +1,16 @@
 # The CherAmi API
 
-This is an all-JSON API. All requests and responses should have a content-type header set to `application/json`.
+This is the API for the CherAmi social network.
+
+This is an all-JSON API. All requests and responses, except those transferring audio, image, or video content, must have a content-type header set to `application/json`.
 
 All endpoints except signup (`POST /users`) and login (`POST /sessions`) require an `Authorization` header in which you pass in the token that you previously received from a successful login request. For example:
 
     Authorization: Token 8dsfg87ef23dkos9r9wjr32232re
 
 If the authorization header is missing, or the token is invalid or expired, an HTTP 401 response is returned. After receiving a 401, a client should try to login (`POST /sessions`) again to obtain a new token.
+
+The API supports discovery of further endpoints, linking objects will absolute URIs.
 
 
 
@@ -896,7 +900,7 @@ Post a comment to the given message. Comments are text-only. The server sets the
 
 
 ### Get comments for message [GET]
-Fetch the comments for the given message, paginated. The comments will always be returned in order of descending creation date. The message must be of a public circle or a private circle to which the current user belongs, and the current user must not be blocked from the circle.
+Fetch the comments for the given message, paginated. The comments will always be returned in order of descending creation date. If the current user is not an admin, the message must be in a public circle or a private circle to which the current user belongs AND the current user must not blocked by the message author or circle owner.
 
 + Parameters
     + before (optional, string, `2015-02-28T22:11:07Z`) ... only return comments created before this datetime
@@ -937,7 +941,8 @@ Fetch the comments for the given message, paginated. The comments will always be
 + Response 404
 
         {
-            "reason": "no such message in any circle you can see"
+            "reason": "message not found in any circle you can see",
+            "message_id": 20,
         }
 
 
@@ -947,7 +952,7 @@ Fetch the comments for the given message, paginated. The comments will always be
 
 
 ### Get comment by id [GET]
-Get the comment with the given id. Comment must be for a message of a public circle or a private circle to which the current user belongs, and the current user must not be blocked from the circle.
+Get the comment. If the current user is not an admin, the comment must be on a message of a public circle or a private circle to which the current user belongs AND the current user must not be blocked by either the message author, the comment author, or the circle owner.
 + Request
     + Headers
 
@@ -968,13 +973,15 @@ Get the comment with the given id. Comment must be for a message of a public cir
 + Response 404
 
         {
-            "reason": "no such comment in any circle you can see"
+            "reason": "comment not found in any circle you can see",
+            "message_id": 20,
+            "comment_id": 7
         }
 
 
 
 ### Delete comment [DELETE]
-Permanently deletes a comment. Only succeeds if current user is the comment author, or is an admin user.
+Permanently delete the comment. Current user must be the comment author or an admin.
 + Request
     + Headers
 
@@ -988,5 +995,7 @@ Permanently deletes a comment. Only succeeds if current user is the comment auth
 + Response 404
 
         {
-            "reason": "you are not the author of any such comment"
+            "reason": "comment not found among those you have authored",
+            "message_id": 20,
+            "comment_id": 7
         }
