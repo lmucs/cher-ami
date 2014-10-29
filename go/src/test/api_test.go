@@ -195,6 +195,15 @@ func deleteUser(handle string, password string, sessionid string) (*http.Respons
 	return helper.Execute("DELETE", deleteURL, payload)
 }
 
+func postMessages(content string, sessionid string) {
+	payload := map[string]interface{}{
+		"content":   content,
+		"sessionid": sessionid,
+	}
+
+	return helper.Execute("POST", messagesURL, payload)
+}
+
 func postCircles(handle string, sessionid string, circleName string, public bool) (*http.Response, error) {
 	payload := map[string]interface{}{
 		"handle":     handle,
@@ -637,6 +646,22 @@ func (s *TestSuite) TestDeleteUserOK(c *C) {
 	c.Check(deleteUserResponse.StatusCode, Equals, 204)
 	// c.Check(getJsonResponseMessage(getUserResponse), Equals, "No results found")
 	// c.Assert(getUserResponse.StatusCode, Equals, 404)
+}
+
+//
+// Get Authored Messages Tests
+//
+func (s *TestSuite) TestGetAuthoredMessagesOK(c *C) {
+	postSignup("handleA", "handleA@test.io", "password1", "password1")
+
+	response, _ := postSessions("handleA", "password1")
+	sessionid_A := getSessionFromResponse(response)
+
+	postMessages("Go is going gophers!", sessionid_A)
+	postMessages("Hypothesize about stuff", sessionid_A)
+	postMessages("The nearest exit may be behind you", sessionid_A)
+	postMessages("I make soap.", sessionid_A)
+
 }
 
 //

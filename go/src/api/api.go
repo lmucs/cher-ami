@@ -36,7 +36,7 @@ func NewApi(uri string) *Api {
 	return api
 }
 
-// Circle constants
+// Constants
 const (
 	GOLD            = "Gold"
 	BROADCAST       = "Broadcast"
@@ -67,7 +67,7 @@ func (a Api) getSessionId(r *rest.Request) string {
 // Credentials
 //
 
-/*
+/**
  * Expects a json POST with "username", "email", "password", "confirmpassword"
  */
 func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
@@ -555,7 +555,7 @@ func (a Api) makeDefaultCircles(handle string) {
 //
 
 /**
- * Expects a json post with "handle", "sessionid", "content"
+ * Create a new, unpublished message
  */
 func (a Api) NewMessage(w rest.ResponseWriter, r *rest.Request) {
 	payload := struct {
@@ -567,7 +567,21 @@ func (a Api) NewMessage(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	handle := payload.Handle
+	handle := ""
+	if payload.Handle == "" {
+		sessionid := a.getSessionId(r)
+		if h, ok := a.Svc.GetHandleFromAuthorization(sessionid); !ok {
+			handle = h
+		} else {
+			w.WriteHeader(400)
+			w.WriteJson(map[string]string{
+				"Response": "Unexpected failure to retrieve owner of session",
+			})
+			return
+		}
+	} else {
+		handle := payload.Handle
+	}
 	content := payload.Content
 
 	if !a.authenticate(r) {
@@ -662,7 +676,6 @@ func (a Api) PublishMessage(w rest.ResponseWriter, r *rest.Request) {
 
 /**
  * Get messages authored by user
- * Expects query parameters "handle" and "sessionid"
  */
 func (a Api) GetAuthoredMessages(w rest.ResponseWriter, r *rest.Request) {
 	if !a.authenticate(r) {
