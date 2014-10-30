@@ -5,6 +5,7 @@ define(function(require, exports, module) {
     var Message = require('app/models/message').Message;
 
     var Messages = Backbone.Collection.extend({
+        url: 'api/messages',
         model: Message,
 
         initialize: function() {

@@ -24,10 +24,13 @@ define(function(require, exports, module) {
         },
 
         onSubmit: function() {
-            alert(this.ui.postArea.val());
+            //alert(this.ui.postArea.val());
             if(this.ui.postArea.val()) {
-                this.collection.add({
-                    messageData: this.ui.postArea.val()
+                this.collection.create({
+                    // API requires handle for now,
+                    // needs to be removed
+                    handle: '',
+                    content: this.ui.postArea.val()
                 })
             }
 
@@ -42,6 +45,8 @@ define(function(require, exports, module) {
 
         initialize: function(options) {
             this.collection = options.collection;
+            this.session = options.session;
+            //this.collection.fetch();
         }
 
     });
