@@ -19,7 +19,7 @@ define(function(require, exports, module) {
     var ProfileView = require('app/views/profile-view').ProfileView;
     var CommentsView = require('app/views/comments-view').CommentsView;
     var CommentView = require('app/views/comment-view').CommentView;
-    //var SidebarView = require('app/views/sidebar-view').SidebarView;
+    var SidebarView = require('app/views/sidebar-view').SidebarView;
     var Comment = require('app/models/comment').Comment;
     var Comments = require('app/collections/comments').Comments;
     var AppController = marionette.Controller.extend({
@@ -50,15 +50,6 @@ define(function(require, exports, module) {
 
             // Initialization of views will go here.
             this.app.headerRegion.show(new HeaderView());
-            //this.app.headerRegion.show(new SidebarView());
-            // this.app.mainRegion.show(new MessagesView({
-            //     collection: test
-            // }));
-            // this.app.mainRegion.show(new CommentsView({
-            //     collection: testComment
-            // }));
-            //this.app.mainRegion.show(new ProfileView());
-            // this.app.footerRegion.show(new FooterView());
         },
 
         // Needed for AppRouter to initialize index route.
