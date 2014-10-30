@@ -23,7 +23,9 @@ define(function(require, exports, module) {
         },
 
         initialize: function(options) {
-            this.model = new Login();
+            this.model = new Login({
+                session: options.session
+            });
             this.session = options.session;
         },
 
@@ -35,7 +37,8 @@ define(function(require, exports, module) {
             event.preventDefault();
             this.model.set("handle", this.ui.handle.val());
             this.model.set("password", this.ui.pass.val());
-            this.session.login(this.model)
+            this.model.authenticate();
+            this.model.clear();
         }
 
     });
