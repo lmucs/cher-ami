@@ -176,6 +176,12 @@ public class SignUpActivity extends Activity {
 
             } catch (Exception e) {
                 Log.e("MainActivity", e.getMessage(), e);
+//                if (e instanceof MyCustomException) {
+//                    MyCustomException exception = (MyCustomException) e;
+//                    Log.d("Error: ", "An error occurred while calling api/user/account API endpoint: " + e.getMessage());
+//                } else {
+//                    Log.d("Error: ", "An error occurred while trying to parse Login Response JSON object");
+//                }
             }
 
             return null;
