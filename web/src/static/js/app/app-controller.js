@@ -4,6 +4,8 @@ define(function(require, exports, module) {
     var marionette = require('marionette');
     var app = require('app/app');
     var Session = require('app/models/session').Session;
+    //var session = require('backbone/sessions');
+    var $ = require('jquery');
 
     var HeaderView = require('app/views/header-view').HeaderView;
     var SignupView = require('app/views/signup-view').SignupView;
@@ -24,18 +26,27 @@ define(function(require, exports, module) {
 
         initialize: function(options) {
             this.app = app;
-            this.app.session = new Session();
-            if (this.app.session.authenticated()) {
+            this.app.session = new Session({}, {
+                remote: false
+            });
+
+            var messages = new Messages();
+            var comments = new Comments();
+            if (this.app.session.has('sessionid')) {
+                console.log("User logged in.");
+                $.ajaxSetup({
+                    headers: {'Authorization' : this.app.session.get('sessionid')}
+                })
                 // user is authed, redirect home
-                this.app.mainRegion.show(new ProfileView());
+                this.app.mainRegion.show(new MessagesView({
+                    collection: messages,
+                    session: this.app.session
+                }));
             } else {
                 this.app.mainRegion.show(new LoginView({
                     session: this.app.session
                 }));
             }
-
-            //var test = new Messages();
-            //var testComment = new Comments();
 
             // Initialization of views will go here.
             this.app.headerRegion.show(new HeaderView());
@@ -46,7 +57,7 @@ define(function(require, exports, module) {
             // this.app.mainRegion.show(new CommentsView({
             //     collection: testComment
             // }));
-            this.app.mainRegion.show(new ProfileView());
+            //this.app.mainRegion.show(new ProfileView());
             // this.app.footerRegion.show(new FooterView());
         },
 
