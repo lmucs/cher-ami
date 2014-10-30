@@ -212,7 +212,7 @@ func (s Svc) VerifySession(sessionid string) bool {
 		Statement: `
             MATCH  (u:User)<-[:SESSION_OF]-(a:AuthToken)
             WHERE  a.sessionid = {sessionid}
-            AND    a.session_expires_at > {now}
+            AND    a.expires > {now}
             RETURN u.handle
         `,
 		Parameters: neoism.Props{

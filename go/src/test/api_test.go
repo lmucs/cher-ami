@@ -182,7 +182,7 @@ func searchForUsers(circle, nameprefix string, skip, limit int, sort string) (*h
 		"sort":       sort,
 	}
 
-	return helper.GetWithQueryParams("GET", usersURL, payload)
+	return helper.GetWithQueryParams(usersURL, payload)
 }
 
 func deleteUser(handle string, password string, sessionid string) (*http.Response, error) {
@@ -195,13 +195,22 @@ func deleteUser(handle string, password string, sessionid string) (*http.Respons
 	return helper.Execute("DELETE", deleteURL, payload)
 }
 
-func postMessages(content string, sessionid string) {
+func postMessages(content string, sessionid string) (*http.Response, error) {
 	payload := map[string]interface{}{
 		"content":   content,
 		"sessionid": sessionid,
 	}
 
 	return helper.Execute("POST", messagesURL, payload)
+}
+
+func getAuthoredMessages(handle string, sessionid string) (*http.Response, error) {
+	payload := map[string]interface{}{
+		"handle":    handle,
+		"sessionid": sessionid,
+	}
+
+	return helper.GetWithQueryParams(messagesURL, payload)
 }
 
 func postCircles(handle string, sessionid string, circleName string, public bool) (*http.Response, error) {
@@ -512,10 +521,11 @@ func (s *TestSuite) TestChangePasswordOK(c *C) {
 
 	response, _ := postSessions("handleA", "password1")
 	sessionid := getSessionFromResponse(response)
-	response, err := postChangePassword("handleA", sessionid, "password1", "password12", "password12")
+	response, err := postChangePassword("handleA", sessionid, "password1", "password2", "password2")
 	if err != nil {
 		c.Error(err)
 	}
+
 	c.Assert(response.StatusCode, Equals, 204)
 }
 
@@ -662,6 +672,9 @@ func (s *TestSuite) TestGetAuthoredMessagesOK(c *C) {
 	postMessages("The nearest exit may be behind you", sessionid_A)
 	postMessages("I make soap.", sessionid_A)
 
+	res, _ := getAuthoredMessages("handleA", sessionid_A)
+
+	fmt.Printf("%+v", res)
 }
 
 //

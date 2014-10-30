@@ -580,7 +580,7 @@ func (a Api) NewMessage(w rest.ResponseWriter, r *rest.Request) {
 			return
 		}
 	} else {
-		handle := payload.Handle
+		handle = payload.Handle
 	}
 	content := payload.Content
 
@@ -714,7 +714,6 @@ func (a Api) GetAuthoredMessages(w rest.ResponseWriter, r *rest.Request) {
 			w.WriteJson(messageData)
 		}
 	}
-
 }
 
 /**
