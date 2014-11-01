@@ -9,6 +9,10 @@ import (
 	"strconv"
 )
 
+//
+// Execute Requests:
+//
+
 func Execute(httpMethod string, url string, m map[string]interface{}) (*http.Response, error) {
 	sessionid := ""
 	str, ok := m["sessionid"].(string)
