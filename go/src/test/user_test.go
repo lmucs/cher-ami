@@ -64,20 +64,12 @@ func (s *TestSuite) TestSearchUsersOK(c *C) {
 
 		results := make([]UserResult, 0)
 		json.Unmarshal([]byte(data.Results), &results)
+		c.Assert(response.StatusCode, Equals, 200)
 		c.Check(data.Count, Equals, 3)
 		c.Check(data.Response, Equals, "Search complete")
 		c.Check(data.Reason, Equals, "")
 		c.Check(len(results), Equals, 3)
 	}
-
-	// handles := getJsonUsersData(response)
-
-	// c.Check(handles[1], Equals, "testing132")
-	// c.Check(handles[2], Equals, "testing213")
-	// c.Check(handles[3], Equals, "testing231")
-	// c.Check(handles[4], Equals, "testing312")
-	// c.Check(handles[5], Equals, "testing321")
-	// c.Assert(response.StatusCode, Equals, 200)
 }
 
 //
@@ -131,6 +123,4 @@ func (s *TestSuite) TestDeleteUserOK(c *C) {
 	// }
 
 	c.Check(deleteUserResponse.StatusCode, Equals, 204)
-	// c.Check(helper.GetJsonResponseMessage(getUserResponse), Equals, "No results found")
-	// c.Assert(getUserResponse.StatusCode, Equals, 404)
 }
