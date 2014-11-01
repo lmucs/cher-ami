@@ -11,23 +11,22 @@ import (
 // Get Authored Messages Tests
 //
 func (s *TestSuite) TestGetAuthoredMessagesInvalidAuth(c *C) {
-	req.PostSignup("handleA", "handleA@test.io", "password1", "password1")
+	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
 	res, _ := req.GetAuthoredMessages("handleA", "")
 	c.Check(res.StatusCode, Equals, 401)
 }
 
 func (s *TestSuite) TestGetAuthoredMessagesOK(c *C) {
-	req.PostSignup("handleA", "handleA@test.io", "password1", "password1")
+	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
 
-	response, _ := req.PostSessions("handleA", "password1")
-	sessionid_A := helper.GetSessionFromResponse(response)
+	sessionid := req.PostSessionGetSessionId("handleA", "password1")
 
-	req.PostMessages("Go is going gophers!", sessionid_A)
-	req.PostMessages("Hypothesize about stuff", sessionid_A)
-	req.PostMessages("The nearest exit may be behind you", sessionid_A)
-	req.PostMessages("I make soap.", sessionid_A)
+	req.PostMessages("Go is going gophers!", sessionid)
+	req.PostMessages("Hypothesize about stuff", sessionid)
+	req.PostMessages("The nearest exit may be behind you", sessionid)
+	req.PostMessages("I make soap.", sessionid)
 
-	res, _ := req.GetAuthoredMessages("handleA", sessionid_A)
+	res, _ := req.GetAuthoredMessages("handleA", sessionid)
 
 	data := struct {
 		Response string
