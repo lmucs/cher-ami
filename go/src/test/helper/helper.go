@@ -3,6 +3,7 @@ package helper
 import (
 	b "bytes"
 	"encoding/json"
+	"io/ioutil"
 	"log"
 	"net/http"
 	u "net/url"
@@ -70,4 +71,77 @@ func GetWithQueryParams(url string, m map[string]interface{}) (*http.Response, e
 		}
 		return http.DefaultClient.Do(request)
 	}
+}
+
+//
+// Read Body of Response:
+//
+
+func GetJsonResponseMessage(response *http.Response) string {
+	type Json struct {
+		Response string
+	}
+
+	var message Json
+
+	if body, err := ioutil.ReadAll(response.Body); err != nil {
+		log.Fatal(err)
+	} else if err := json.Unmarshal(body, &message); err != nil {
+		log.Fatal(err)
+	}
+
+	return message.Response
+}
+
+func GetJsonUserData(response *http.Response) string {
+	type Json struct {
+		Handle string
+		Name   string
+	}
+
+	var user Json
+
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = json.Unmarshal(body, &user)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return user.Handle
+}
+
+func Unmarshal(response *http.Response, v interface{}) {
+	if body, err := ioutil.ReadAll(response.Body); err != nil {
+		log.Fatal(err)
+	} else if err := json.Unmarshal(body, &v); err != nil {
+		log.Fatal(err)
+	}
+}
+
+//
+// Read info from headers:
+//
+
+func GetSessionFromResponse(response *http.Response) string {
+	authentication := struct {
+		Response  string
+		Sessionid string
+	}{}
+	var (
+		body []byte
+		err  error
+	)
+	if body, err = ioutil.ReadAll(response.Body); err != nil {
+		log.Fatal(err)
+	}
+
+	if err := json.Unmarshal(body, &authentication); err != nil {
+		log.Fatal(err)
+	}
+
+	return authentication.Sessionid
 }

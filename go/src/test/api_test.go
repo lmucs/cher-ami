@@ -3,15 +3,14 @@ package api_test
 import (
 	api "../api"
 	routes "../routes"
+	"./helper"
 	requester "./requester"
 	"encoding/json"
 	"flag"
 	"github.com/jadengore/goconfig"
 	. "gopkg.in/check.v1"
 	"io"
-	"io/ioutil"
 	"log"
-	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
@@ -112,79 +111,6 @@ func (s *TestSuite) TearDownSuite(c *C) {
 }
 
 //
-// Read Body of Response:
-//
-
-func getJsonResponseMessage(response *http.Response) string {
-	type Json struct {
-		Response string
-	}
-
-	var message Json
-
-	if body, err := ioutil.ReadAll(response.Body); err != nil {
-		log.Fatal(err)
-	} else if err := json.Unmarshal(body, &message); err != nil {
-		log.Fatal(err)
-	}
-
-	return message.Response
-}
-
-func getJsonUserData(response *http.Response) string {
-	type Json struct {
-		Handle string
-		Name   string
-	}
-
-	var user Json
-
-	body, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	err = json.Unmarshal(body, &user)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return user.Handle
-}
-
-func unmarshal(response *http.Response, v interface{}) {
-	if body, err := ioutil.ReadAll(response.Body); err != nil {
-		log.Fatal(err)
-	} else if err := json.Unmarshal(body, &v); err != nil {
-		log.Fatal(err)
-	}
-}
-
-//
-// Read info from headers:
-//
-
-func getSessionFromResponse(response *http.Response) string {
-	authentication := struct {
-		Response  string
-		Sessionid string
-	}{}
-	var (
-		body []byte
-		err  error
-	)
-	if body, err = ioutil.ReadAll(response.Body); err != nil {
-		log.Fatal(err)
-	}
-
-	if err := json.Unmarshal(body, &authentication); err != nil {
-		log.Fatal(err)
-	}
-
-	return authentication.Sessionid
-}
-
-//
 // Signup Tests:
 //
 
@@ -194,7 +120,7 @@ func (s *TestSuite) TestSignupEmptyHandle(c *C) {
 		c.Error(err)
 	}
 
-	c.Check(getJsonResponseMessage(response), Equals, "Handle is a required field for signup")
+	c.Check(helper.GetJsonResponseMessage(response), Equals, "Handle is a required field for signup")
 	c.Assert(response.StatusCode, Equals, 400)
 }
 
@@ -204,7 +130,7 @@ func (s *TestSuite) TestSignupEmptyEmail(c *C) {
 		c.Error(err)
 	}
 
-	c.Check(getJsonResponseMessage(response), Equals, "Email is a required field for signup")
+	c.Check(helper.GetJsonResponseMessage(response), Equals, "Email is a required field for signup")
 	c.Assert(response.StatusCode, Equals, 400)
 }
 
@@ -214,7 +140,7 @@ func (s *TestSuite) TestSignupPasswordMismatch(c *C) {
 		c.Error(err)
 	}
 
-	c.Check(getJsonResponseMessage(response), Equals, "Passwords do not match")
+	c.Check(helper.GetJsonResponseMessage(response), Equals, "Passwords do not match")
 	c.Assert(response.StatusCode, Equals, 400)
 }
 
@@ -228,7 +154,7 @@ func (s *TestSuite) TestSignupPasswordTooShort(c *C) {
 			c.Error(err)
 		}
 
-		c.Check(getJsonResponseMessage(response), Equals, "Passwords must be at least 8 characters long")
+		c.Check(helper.GetJsonResponseMessage(response), Equals, "Passwords must be at least 8 characters long")
 		c.Assert(response.StatusCode, Equals, 400, Commentf("Password length = %d.", len(entry)-i))
 	}
 }
@@ -241,7 +167,7 @@ func (s *TestSuite) TestSignupHandleTaken(c *C) {
 		c.Error(err)
 	}
 
-	c.Check(getJsonResponseMessage(response), Equals, "Sorry, handle or email is already taken")
+	c.Check(helper.GetJsonResponseMessage(response), Equals, "Sorry, handle or email is already taken")
 	c.Assert(response.StatusCode, Equals, 400)
 }
 
@@ -253,7 +179,7 @@ func (s *TestSuite) TestSignupEmailTaken(c *C) {
 		c.Error(err)
 	}
 
-	c.Check(getJsonResponseMessage(response), Equals, "Sorry, handle or email is already taken")
+	c.Check(helper.GetJsonResponseMessage(response), Equals, "Sorry, handle or email is already taken")
 	c.Assert(response.StatusCode, Equals, 400)
 }
 
@@ -263,7 +189,7 @@ func (s *TestSuite) TestSignupCreated(c *C) {
 		c.Error(err)
 	}
 
-	c.Check(getJsonResponseMessage(response), Equals, "Signed up a new user!")
+	c.Check(helper.GetJsonResponseMessage(response), Equals, "Signed up a new user!")
 	c.Assert(response.StatusCode, Equals, 201)
 }
 
@@ -277,7 +203,7 @@ func (s *TestSuite) TestLoginUserNoExist(c *C) {
 		c.Error(err)
 	}
 
-	c.Check(getJsonResponseMessage(response), Equals, "Invalid username or password, please try again.")
+	c.Check(helper.GetJsonResponseMessage(response), Equals, "Invalid username or password, please try again.")
 	c.Assert(response.StatusCode, Equals, 403)
 }
 
@@ -289,7 +215,7 @@ func (s *TestSuite) TestLoginInvalidUsername(c *C) {
 		c.Error(err)
 	}
 
-	c.Check(getJsonResponseMessage(response), Equals, "Invalid username or password, please try again.")
+	c.Check(helper.GetJsonResponseMessage(response), Equals, "Invalid username or password, please try again.")
 	c.Assert(response.StatusCode, Equals, 403)
 }
 
@@ -301,7 +227,7 @@ func (s *TestSuite) TestLoginInvalidPassword(c *C) {
 		c.Error(err)
 	}
 
-	c.Check(getJsonResponseMessage(response), Equals, "Invalid username or password, please try again.")
+	c.Check(helper.GetJsonResponseMessage(response), Equals, "Invalid username or password, please try again.")
 	c.Assert(response.StatusCode, Equals, 403)
 }
 
@@ -313,7 +239,7 @@ func (s *TestSuite) TestLoginOK(c *C) {
 		c.Error(err)
 	}
 
-	c.Check(getJsonResponseMessage(response), Equals, "Logged in handleA. Note your session id.")
+	c.Check(helper.GetJsonResponseMessage(response), Equals, "Logged in handleA. Note your session id.")
 	c.Assert(response.StatusCode, Equals, 200)
 }
 
@@ -327,7 +253,7 @@ func (s *TestSuite) TestLogoutUserNoExist(c *C) {
 		c.Error(err)
 	}
 
-	c.Check(getJsonResponseMessage(response), Equals, "Cannot invalidate token because it is missing")
+	c.Check(helper.GetJsonResponseMessage(response), Equals, "Cannot invalidate token because it is missing")
 	c.Assert(response.StatusCode, Equals, 403)
 }
 
@@ -353,8 +279,8 @@ func (s *TestSuite) TestChangePasswordUserNoExist(c *C) {
 	if err != nil {
 		c.Error(err)
 	}
-	//fmt.Println(getJsonResponseMessage(response))
-	c.Check(getJsonResponseMessage(response), Equals, "Failed to authenticate user request")
+	//fmt.Println(helper.GetJsonResponseMessage(response))
+	c.Check(helper.GetJsonResponseMessage(response), Equals, "Failed to authenticate user request")
 	c.Assert(response.StatusCode, Equals, 401)
 }
 
@@ -362,12 +288,12 @@ func (s *TestSuite) TestChangePasswordSamePassword(c *C) {
 	req.PostSignup("handleA", "handleA@test.io", "password1", "password1")
 
 	response, _ := req.PostSessions("handleA", "password1")
-	sessionid := getSessionFromResponse(response)
+	sessionid := helper.GetSessionFromResponse(response)
 	response, err := req.PostChangePassword("handleA", sessionid, "password1", "password1", "password1")
 	if err != nil {
 		c.Error(err)
 	}
-	c.Check(getJsonResponseMessage(response), Equals, "Current/new password are same, please provide a new password.")
+	c.Check(helper.GetJsonResponseMessage(response), Equals, "Current/new password are same, please provide a new password.")
 	c.Assert(response.StatusCode, Equals, 400)
 }
 
@@ -375,7 +301,7 @@ func (s *TestSuite) TestChangePasswordOK(c *C) {
 	req.PostSignup("handleA", "handleA@test.io", "password1", "password1")
 
 	sessionResponse, _ := req.PostSessions("handleA", "password1")
-	sessionid := getSessionFromResponse(sessionResponse)
+	sessionid := helper.GetSessionFromResponse(sessionResponse)
 	response, err := req.PostChangePassword("handleA", sessionid, "password1", "password2", "password2")
 	if err != nil {
 		c.Error(err)
@@ -394,7 +320,7 @@ func (s *TestSuite) TestChangePasswordOK(c *C) {
 // 		c.Error(err)
 // 	}
 
-// 	c.Check(getJsonResponseMessage(response), Equals, "No results found")
+// 	c.Check(helper.GetJsonResponseMessage(response), Equals, "No results found")
 // 	c.Assert(response.StatusCode, Equals, 404)
 // }
 
@@ -433,7 +359,7 @@ func (s *TestSuite) TestSearchUsersOK(c *C) {
 			Reason   string
 			Count    int
 		}{}
-		unmarshal(response, &data)
+		helper.Unmarshal(response, &data)
 		type UserResult struct {
 			Handle string
 			Name   string
@@ -466,14 +392,14 @@ func (s *TestSuite) TestDeleteUserInvalidUsername(c *C) {
 	req.PostSignup("handleA", "handleA@test.io", "password1", "password1")
 
 	response, _ := req.PostSessions("handleA", "password1")
-	sessionid := getSessionFromResponse(response)
+	sessionid := helper.GetSessionFromResponse(response)
 
 	response, err := req.DeleteUser("notHandleA", "password1", sessionid)
 	if err != nil {
 		c.Error(err)
 	}
 
-	c.Check(getJsonResponseMessage(response), Equals, "Invalid username or password, please try again.")
+	c.Check(helper.GetJsonResponseMessage(response), Equals, "Invalid username or password, please try again.")
 	c.Assert(response.StatusCode, Equals, 400)
 }
 
@@ -481,14 +407,14 @@ func (s *TestSuite) TestDeleteUserInvalidPassword(c *C) {
 	req.PostSignup("handleA", "handleA@test.io", "password1", "password1")
 
 	response, _ := req.PostSessions("handleA", "password1")
-	sessionid := getSessionFromResponse(response)
+	sessionid := helper.GetSessionFromResponse(response)
 
 	response, err := req.DeleteUser("handleA", "notpassword1", sessionid)
 	if err != nil {
 		c.Error(err)
 	}
 
-	c.Check(getJsonResponseMessage(response), Equals, "Invalid username or password, please try again.")
+	c.Check(helper.GetJsonResponseMessage(response), Equals, "Invalid username or password, please try again.")
 	c.Assert(response.StatusCode, Equals, 400)
 }
 
@@ -496,7 +422,7 @@ func (s *TestSuite) TestDeleteUserOK(c *C) {
 	req.PostSignup("handleA", "handleA@test.io", "password1", "password1")
 
 	response, _ := req.PostSessions("handleA", "password1")
-	sessionid := getSessionFromResponse(response)
+	sessionid := helper.GetSessionFromResponse(response)
 
 	deleteUserResponse, err := req.DeleteUser("handleA", "password1", sessionid)
 	if err != nil {
@@ -509,7 +435,7 @@ func (s *TestSuite) TestDeleteUserOK(c *C) {
 	// }
 
 	c.Check(deleteUserResponse.StatusCode, Equals, 204)
-	// c.Check(getJsonResponseMessage(getUserResponse), Equals, "No results found")
+	// c.Check(helper.GetJsonResponseMessage(getUserResponse), Equals, "No results found")
 	// c.Assert(getUserResponse.StatusCode, Equals, 404)
 }
 
@@ -526,7 +452,7 @@ func (s *TestSuite) TestGetAuthoredMessagesOK(c *C) {
 	req.PostSignup("handleA", "handleA@test.io", "password1", "password1")
 
 	response, _ := req.PostSessions("handleA", "password1")
-	sessionid_A := getSessionFromResponse(response)
+	sessionid_A := helper.GetSessionFromResponse(response)
 
 	req.PostMessages("Go is going gophers!", sessionid_A)
 	req.PostMessages("Hypothesize about stuff", sessionid_A)
@@ -540,7 +466,7 @@ func (s *TestSuite) TestGetAuthoredMessagesOK(c *C) {
 		Objects  string
 		Count    int
 	}{}
-	unmarshal(res, &data)
+	helper.Unmarshal(res, &data)
 	type Message struct {
 		Id      string
 		Author  string
@@ -569,7 +495,7 @@ func (s *TestSuite) TestPostCirclesUserNoExist(c *C) {
 	req.PostSignup("testing123", "testing123", "testing123", "testing123")
 
 	response, _ := req.PostSessions("testing123", "testing123")
-	sessionid := getSessionFromResponse(response)
+	sessionid := helper.GetSessionFromResponse(response)
 
 	req.DeleteUser("testing123", "testing123", sessionid)
 
@@ -578,7 +504,7 @@ func (s *TestSuite) TestPostCirclesUserNoExist(c *C) {
 		c.Error(err)
 	}
 
-	c.Check(getJsonResponseMessage(response), Equals, "Failed to authenticate user request")
+	c.Check(helper.GetJsonResponseMessage(response), Equals, "Failed to authenticate user request")
 	c.Assert(response.StatusCode, Equals, 400)
 }
 
@@ -586,7 +512,7 @@ func (s *TestSuite) TestPostCirclesUserNoSession(c *C) {
 	req.PostSignup("testing123", "testing123", "testing123", "testing123")
 
 	response, _ := req.PostSessions("testing123", "testing123")
-	sessionid := getSessionFromResponse(response)
+	sessionid := helper.GetSessionFromResponse(response)
 
 	req.DeleteSessions("testing123")
 
@@ -595,7 +521,7 @@ func (s *TestSuite) TestPostCirclesUserNoSession(c *C) {
 		c.Error(err)
 	}
 
-	c.Check(getJsonResponseMessage(response), Equals, "Failed to authenticate user request")
+	c.Check(helper.GetJsonResponseMessage(response), Equals, "Failed to authenticate user request")
 	c.Assert(response.StatusCode, Equals, 400)
 }
 
@@ -603,14 +529,14 @@ func (s *TestSuite) TestPostCirclesNameReservedGold(c *C) {
 	req.PostSignup("testing123", "testing123", "testing123", "testing123")
 
 	response, _ := req.PostSessions("testing123", "testing123")
-	sessionid := getSessionFromResponse(response)
+	sessionid := helper.GetSessionFromResponse(response)
 
 	response, err := req.PostCircles("testing123", sessionid, "Gold", false)
 	if err != nil {
 		c.Error(err)
 	}
 
-	c.Check(getJsonResponseMessage(response), Equals, "Gold is a reserved circle name")
+	c.Check(helper.GetJsonResponseMessage(response), Equals, "Gold is a reserved circle name")
 	c.Assert(response.StatusCode, Equals, 403)
 }
 
@@ -618,14 +544,14 @@ func (s *TestSuite) TestPostCirclesNameReservedBroadcast(c *C) {
 	req.PostSignup("testing123", "testing123", "testing123", "testing123")
 
 	response, _ := req.PostSessions("testing123", "testing123")
-	sessionid := getSessionFromResponse(response)
+	sessionid := helper.GetSessionFromResponse(response)
 
 	response, err := req.PostCircles("testing123", sessionid, "Broadcast", true)
 	if err != nil {
 		c.Error(err)
 	}
 
-	c.Check(getJsonResponseMessage(response), Equals, "Broadcast is a reserved circle name")
+	c.Check(helper.GetJsonResponseMessage(response), Equals, "Broadcast is a reserved circle name")
 	c.Assert(response.StatusCode, Equals, 403)
 }
 
@@ -633,14 +559,14 @@ func (s *TestSuite) TestPostCirclesPublicCircleCreated(c *C) {
 	req.PostSignup("testing123", "testing123", "testing123", "testing123")
 
 	response, _ := req.PostSessions("testing123", "testing123")
-	sessionid := getSessionFromResponse(response)
+	sessionid := helper.GetSessionFromResponse(response)
 
 	response, err := req.PostCircles("testing123", sessionid, "testing123", true)
 	if err != nil {
 		c.Error(err)
 	}
 
-	c.Check(getJsonResponseMessage(response), Equals, "Created new circle testing123 for testing123")
+	c.Check(helper.GetJsonResponseMessage(response), Equals, "Created new circle testing123 for testing123")
 	c.Assert(response.StatusCode, Equals, 201)
 }
 
@@ -648,14 +574,14 @@ func (s *TestSuite) TestPostCirclesPrivateCircleCreated(c *C) {
 	req.PostSignup("handleA", "test@test.io", "password1", "password1")
 
 	response, _ := req.PostSessions("handleA", "password1")
-	sessionid := getSessionFromResponse(response)
+	sessionid := helper.GetSessionFromResponse(response)
 
 	response, err := req.PostCircles("handleA", sessionid, "PrivateCircleForA", true)
 	if err != nil {
 		c.Error(err)
 	}
 
-	c.Check(getJsonResponseMessage(response), Equals, "Created new circle PrivateCircleForA for handleA")
+	c.Check(helper.GetJsonResponseMessage(response), Equals, "Created new circle PrivateCircleForA for handleA")
 	c.Assert(response.StatusCode, Equals, 201)
 }
 
@@ -668,7 +594,7 @@ func (s *TestSuite) TestPostBlockUserNoExist(c *C) {
 	req.PostSignup("testing321", "testing321", "testing321", "testing321")
 
 	response, _ := req.PostSessions("testing123", "testing123")
-	sessionid := getSessionFromResponse(response)
+	sessionid := helper.GetSessionFromResponse(response)
 
 	req.DeleteUser("testing123", "testing123", sessionid)
 
@@ -677,7 +603,7 @@ func (s *TestSuite) TestPostBlockUserNoExist(c *C) {
 		c.Error(err)
 	}
 
-	c.Check(getJsonResponseMessage(response), Equals, "Failed to authenticate user request")
+	c.Check(helper.GetJsonResponseMessage(response), Equals, "Failed to authenticate user request")
 	c.Assert(response.StatusCode, Equals, 401)
 }
 
@@ -685,14 +611,14 @@ func (s *TestSuite) TestPostBlockTargetNoExist(c *C) {
 	req.PostSignup("handleA", "test@test.io", "password1", "password1")
 
 	response, _ := req.PostSessions("handleA", "password1")
-	sessionid := getSessionFromResponse(response)
+	sessionid := helper.GetSessionFromResponse(response)
 
 	response, err := req.PostBlock("handleA", sessionid, "handleB")
 	if err != nil {
 		c.Error(err)
 	}
 
-	c.Check(getJsonResponseMessage(response), Equals, "Bad request, user handleB wasn't found")
+	c.Check(helper.GetJsonResponseMessage(response), Equals, "Bad request, user handleB wasn't found")
 	c.Assert(response.StatusCode, Equals, 400)
 }
 
@@ -701,7 +627,7 @@ func (s *TestSuite) TestPostBlockUserNoSession(c *C) {
 	req.PostSignup("testing321", "testing321", "testing321", "testing321")
 
 	response, _ := req.PostSessions("testing123", "testing123")
-	sessionid := getSessionFromResponse(response)
+	sessionid := helper.GetSessionFromResponse(response)
 
 	req.DeleteSessions("testing123")
 
@@ -710,7 +636,7 @@ func (s *TestSuite) TestPostBlockUserNoSession(c *C) {
 		c.Error(err)
 	}
 
-	c.Check(getJsonResponseMessage(response), Equals, "Failed to authenticate user request")
+	c.Check(helper.GetJsonResponseMessage(response), Equals, "Failed to authenticate user request")
 	c.Assert(response.StatusCode, Equals, 401)
 }
 
@@ -719,14 +645,14 @@ func (s *TestSuite) TestPostBlockOK(c *C) {
 	req.PostSignup("testing321", "testing321", "testing321", "testing321")
 
 	response, _ := req.PostSessions("testing123", "testing123")
-	sessionid := getSessionFromResponse(response)
+	sessionid := helper.GetSessionFromResponse(response)
 
 	response, err := req.PostBlock("testing123", sessionid, "testing321")
 	if err != nil {
 		c.Error(err)
 	}
 
-	c.Check(getJsonResponseMessage(response), Equals, "User testing321 has been blocked")
+	c.Check(helper.GetJsonResponseMessage(response), Equals, "User testing321 has been blocked")
 	c.Assert(response.StatusCode, Equals, 200)
 }
 
@@ -739,7 +665,7 @@ func (s *TestSuite) TestPostJoinDefaultUserNoSession(c *C) {
 	req.PostSignup("testing321", "testing321", "testing321", "testing321")
 
 	response, _ := req.PostSessions("testing123", "testing123")
-	sessionid := getSessionFromResponse(response)
+	sessionid := helper.GetSessionFromResponse(response)
 
 	req.DeleteSessions("testing123")
 
@@ -748,7 +674,7 @@ func (s *TestSuite) TestPostJoinDefaultUserNoSession(c *C) {
 		c.Error(err)
 	}
 
-	c.Check(getJsonResponseMessage(response), Equals, "Failed to authenticate user request")
+	c.Check(helper.GetJsonResponseMessage(response), Equals, "Failed to authenticate user request")
 	c.Assert(response.StatusCode, Equals, 401)
 }
 
@@ -756,14 +682,14 @@ func (s *TestSuite) TestPostJoinDefaultTargetNoExist(c *C) {
 	req.PostSignup("handleA", "test@test.io", "password1", "password1")
 
 	response, _ := req.PostSessions("handleA", "password1")
-	sessionid := getSessionFromResponse(response)
+	sessionid := helper.GetSessionFromResponse(response)
 
 	response, err := req.PostJoinDefault("handleA", sessionid, "handleB")
 	if err != nil {
 		c.Error(err)
 	}
 
-	c.Check(getJsonResponseMessage(response), Equals, "Bad request, user handleB wasn't found")
+	c.Check(helper.GetJsonResponseMessage(response), Equals, "Bad request, user handleB wasn't found")
 	c.Assert(response.StatusCode, Equals, 400)
 }
 
@@ -772,19 +698,19 @@ func (s *TestSuite) TestPostJoinDefaultUserBlocked(c *C) {
 	req.PostSignup("handleB", "testB@test.io", "password2", "password2")
 
 	response, _ := req.PostSessions("handleB", "password2")
-	sessionid := getSessionFromResponse(response)
+	sessionid := helper.GetSessionFromResponse(response)
 
 	req.PostBlock("handleB", sessionid, "handleA")
 
 	response, _ = req.PostSessions("handleA", "password1")
-	sessionid = getSessionFromResponse(response)
+	sessionid = helper.GetSessionFromResponse(response)
 
 	response, err := req.PostJoinDefault("handleA", sessionid, "handleB")
 	if err != nil {
 		c.Error(err)
 	}
 
-	c.Check(getJsonResponseMessage(response), Equals, "Server refusal to comply with join request")
+	c.Check(helper.GetJsonResponseMessage(response), Equals, "Server refusal to comply with join request")
 	c.Assert(response.StatusCode, Equals, 403)
 }
 
@@ -793,14 +719,14 @@ func (s *TestSuite) TestPostJoinDefaultCreated(c *C) {
 	req.PostSignup("testing321", "testing321", "testing321", "testing321")
 
 	response, _ := req.PostSessions("testing123", "testing123")
-	sessionid := getSessionFromResponse(response)
+	sessionid := helper.GetSessionFromResponse(response)
 
 	response, err := req.PostJoinDefault("testing123", sessionid, "testing123")
 	if err != nil {
 		c.Error(err)
 	}
 
-	c.Check(getJsonResponseMessage(response), Equals, "JoinDefault request successful!")
+	c.Check(helper.GetJsonResponseMessage(response), Equals, "JoinDefault request successful!")
 	c.Assert(response.StatusCode, Equals, 201)
 }
 
@@ -813,12 +739,12 @@ func (s *TestSuite) TestPostJoinUserNoSession(c *C) {
 	req.PostSignup("testing321", "testing321", "testing321", "testing321")
 
 	response, _ := req.PostSessions("testing321", "testing321")
-	sessionid := getSessionFromResponse(response)
+	sessionid := helper.GetSessionFromResponse(response)
 
 	req.PostCircles("testing321", sessionid, "testing321", true)
 
 	response, _ = req.PostSessions("testing123", "testing123")
-	sessionid = getSessionFromResponse(response)
+	sessionid = helper.GetSessionFromResponse(response)
 
 	req.DeleteSessions("testing123")
 
@@ -827,7 +753,7 @@ func (s *TestSuite) TestPostJoinUserNoSession(c *C) {
 		c.Error(err)
 	}
 
-	c.Check(getJsonResponseMessage(response), Equals, "Failed to authenticate user request")
+	c.Check(helper.GetJsonResponseMessage(response), Equals, "Failed to authenticate user request")
 	c.Assert(response.StatusCode, Equals, 401)
 }
 
@@ -836,19 +762,19 @@ func (s *TestSuite) TestPostJoinTargetNoExist(c *C) {
 	req.PostSignup("handleB", "handleB@test.io", "password2", "password2")
 
 	response, _ := req.PostSessions("handleB", "password2")
-	sessionid := getSessionFromResponse(response)
+	sessionid := helper.GetSessionFromResponse(response)
 
 	req.PostCircles("handleB", sessionid, "CircleOfB", true)
 
 	response, _ = req.PostSessions("handleA", "password1")
-	sessionid = getSessionFromResponse(response)
+	sessionid = helper.GetSessionFromResponse(response)
 
 	response, err := req.PostJoin("handleA", sessionid, "handleC", "CircleOfB")
 	if err != nil {
 		c.Error(err)
 	}
 
-	c.Check(getJsonResponseMessage(response), Equals, "Bad request, user handleC wasn't found")
+	c.Check(helper.GetJsonResponseMessage(response), Equals, "Bad request, user handleC wasn't found")
 	c.Assert(response.StatusCode, Equals, 400)
 }
 
@@ -857,21 +783,21 @@ func (s *TestSuite) TestPostJoinUserBlocked(c *C) {
 	req.PostSignup("handleB", "handleB@test.io", "password2", "password2")
 
 	response, _ := req.PostSessions("handleB", "password2")
-	sessionid := getSessionFromResponse(response)
+	sessionid := helper.GetSessionFromResponse(response)
 
 	req.PostCircles("handleB", sessionid, "CircleOfHandleB", true)
 
 	req.PostBlock("handleB", sessionid, "handleA")
 
 	response, _ = req.PostSessions("handleA", "password1")
-	sessionid = getSessionFromResponse(response)
+	sessionid = helper.GetSessionFromResponse(response)
 
 	response, err := req.PostJoin("handleA", sessionid, "handleB", "CircleOfHandleB")
 	if err != nil {
 		c.Error(err)
 	}
 
-	c.Check(getJsonResponseMessage(response), Equals, "Server refusal to comply with join request")
+	c.Check(helper.GetJsonResponseMessage(response), Equals, "Server refusal to comply with join request")
 	c.Assert(response.StatusCode, Equals, 403)
 }
 
@@ -880,14 +806,14 @@ func (s *TestSuite) TestPostJoinCircleNoExist(c *C) {
 	req.PostSignup("handleB", "testB@test.io", "password2", "password2")
 
 	response, _ := req.PostSessions("handleA", "password1")
-	sessionid := getSessionFromResponse(response)
+	sessionid := helper.GetSessionFromResponse(response)
 
 	response, err := req.PostJoin("handleA", sessionid, "handleB", "NonExistentCircle")
 	if err != nil {
 		c.Error(err)
 	}
 
-	c.Check(getJsonResponseMessage(response), Equals, "Could not find target circle, join failed")
+	c.Check(helper.GetJsonResponseMessage(response), Equals, "Could not find target circle, join failed")
 	c.Assert(response.StatusCode, Equals, 404)
 }
 
@@ -896,18 +822,18 @@ func (s *TestSuite) TestPostJoinCreated(c *C) {
 	req.PostSignup("handleB", "testB@test.io", "password2", "password2")
 
 	response_B, _ := req.PostSessions("handleB", "password2")
-	sessionid_B := getSessionFromResponse(response_B)
+	sessionid_B := helper.GetSessionFromResponse(response_B)
 
 	req.PostCircles("handleB", sessionid_B, "MyCircle", true)
 
 	response_A, _ := req.PostSessions("handleA", "password1")
-	sessionid_A := getSessionFromResponse(response_A)
+	sessionid_A := helper.GetSessionFromResponse(response_A)
 
 	response, err := req.PostJoin("handleA", sessionid_A, "handleB", "MyCircle")
 	if err != nil {
 		c.Error(err)
 	}
 
-	c.Check(getJsonResponseMessage(response), Equals, "Join request successful!")
+	c.Check(helper.GetJsonResponseMessage(response), Equals, "Join request successful!")
 	c.Assert(response.StatusCode, Equals, 201)
 }
