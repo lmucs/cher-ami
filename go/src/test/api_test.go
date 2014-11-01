@@ -662,6 +662,12 @@ func (s *TestSuite) TestDeleteUserOK(c *C) {
 //
 // Get Authored Messages Tests
 //
+func (s *TestSuite) TestGetAuthoredMessagesInvalidAuth(c *C) {
+	postSignup("handleA", "handleA@test.io", "password1", "password1")
+	res, _ := getAuthoredMessages("handleA", "")
+	c.Check(res.StatusCode, Equals, 400)
+}
+
 func (s *TestSuite) TestGetAuthoredMessagesOK(c *C) {
 	postSignup("handleA", "handleA@test.io", "password1", "password1")
 
