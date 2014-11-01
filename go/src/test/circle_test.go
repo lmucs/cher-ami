@@ -10,97 +10,102 @@ import (
 //
 
 func (s *TestSuite) TestPostCirclesUserNoExist(c *C) {
-	req.PostSignup("testing123", "testing123", "testing123", "testing123")
-
-	response, _ := req.PostSessions("testing123", "testing123")
-	sessionid := helper.GetSessionFromResponse(response)
-
-	req.DeleteUser("testing123", "testing123", sessionid)
-
-	response, err := req.PostCircles("testing123", sessionid, "testing123", true)
+	res, err := req.PostCircles("handleNotA", "SomeSessionId", "SomeCircle", true)
 	if err != nil {
 		c.Error(err)
 	}
 
-	c.Check(helper.GetJsonResponseMessage(response), Equals, "Failed to authenticate user request")
-	c.Assert(response.StatusCode, Equals, 400)
+	c.Check(helper.GetJsonResponseMessage(res), Equals, "Failed to authenticate user request")
+	c.Check(res.StatusCode, Equals, 401)
 }
 
 func (s *TestSuite) TestPostCirclesUserNoSession(c *C) {
-	req.PostSignup("testing123", "testing123", "testing123", "testing123")
-
-	response, _ := req.PostSessions("testing123", "testing123")
-	sessionid := helper.GetSessionFromResponse(response)
-
-	req.DeleteSessions("testing123")
-
-	response, err := req.PostCircles("testing123", sessionid, "testing123", true)
-	if err != nil {
-		c.Error(err)
-	}
-
-	c.Check(helper.GetJsonResponseMessage(response), Equals, "Failed to authenticate user request")
-	c.Assert(response.StatusCode, Equals, 400)
-}
-
-func (s *TestSuite) TestPostCirclesNameReservedGold(c *C) {
-	req.PostSignup("testing123", "testing123", "testing123", "testing123")
-
-	response, _ := req.PostSessions("testing123", "testing123")
-	sessionid := helper.GetSessionFromResponse(response)
-
-	response, err := req.PostCircles("testing123", sessionid, "Gold", false)
-	if err != nil {
-		c.Error(err)
-	}
-
-	c.Check(helper.GetJsonResponseMessage(response), Equals, "Gold is a reserved circle name")
-	c.Assert(response.StatusCode, Equals, 403)
-}
-
-func (s *TestSuite) TestPostCirclesNameReservedBroadcast(c *C) {
-	req.PostSignup("testing123", "testing123", "testing123", "testing123")
-
-	response, _ := req.PostSessions("testing123", "testing123")
-	sessionid := helper.GetSessionFromResponse(response)
-
-	response, err := req.PostCircles("testing123", sessionid, "Broadcast", true)
-	if err != nil {
-		c.Error(err)
-	}
-
-	c.Check(helper.GetJsonResponseMessage(response), Equals, "Broadcast is a reserved circle name")
-	c.Assert(response.StatusCode, Equals, 403)
-}
-
-func (s *TestSuite) TestPostCirclesPublicCircleCreated(c *C) {
-	req.PostSignup("testing123", "testing123", "testing123", "testing123")
-
-	response, _ := req.PostSessions("testing123", "testing123")
-	sessionid := helper.GetSessionFromResponse(response)
-
-	response, err := req.PostCircles("testing123", sessionid, "testing123", true)
-	if err != nil {
-		c.Error(err)
-	}
-
-	c.Check(helper.GetJsonResponseMessage(response), Equals, "Created new circle testing123 for testing123")
-	c.Assert(response.StatusCode, Equals, 201)
-}
-
-func (s *TestSuite) TestPostCirclesPrivateCircleCreated(c *C) {
 	req.PostSignup("handleA", "test@test.io", "password1", "password1")
 
 	response, _ := req.PostSessions("handleA", "password1")
 	sessionid := helper.GetSessionFromResponse(response)
 
-	response, err := req.PostCircles("handleA", sessionid, "PrivateCircleForA", true)
+	req.DeleteSessions("handleA")
+
+	res, err := req.PostCircles("handleA", sessionid, "SomeCircle", true)
 	if err != nil {
 		c.Error(err)
 	}
 
-	c.Check(helper.GetJsonResponseMessage(response), Equals, "Created new circle PrivateCircleForA for handleA")
-	c.Assert(response.StatusCode, Equals, 201)
+	c.Check(helper.GetJsonResponseMessage(res), Equals, "Failed to authenticate user request")
+	c.Check(res.StatusCode, Equals, 401)
+}
+
+func (s *TestSuite) TestPostCirclesNameReservedGold(c *C) {
+	req.PostSignup("handleA", "test@test.io", "password1", "password1")
+
+	response, _ := req.PostSessions("handleA", "password1")
+	sessionid := helper.GetSessionFromResponse(response)
+
+	res1, err := req.PostCircles("handleA", sessionid, "Gold", false)
+	if err != nil {
+		c.Error(err)
+	}
+	res2, err := req.PostCircles("handleA", sessionid, "Gold", true)
+	if err != nil {
+		c.Error(err)
+	}
+
+	c.Check(helper.GetJsonResponseMessage(res1), Equals, "Gold is a reserved circle name")
+	c.Check(res1.StatusCode, Equals, 403)
+	c.Check(helper.GetJsonResponseMessage(res2), Equals, "Gold is a reserved circle name")
+	c.Check(res2.StatusCode, Equals, 403)
+}
+
+func (s *TestSuite) TestPostCirclesNameReservedBroadcast(c *C) {
+	req.PostSignup("handleA", "test@test.io", "password1", "password1")
+
+	response, _ := req.PostSessions("handleA", "password1")
+	sessionid := helper.GetSessionFromResponse(response)
+
+	res1, err := req.PostCircles("handleA", sessionid, "Broadcast", false)
+	if err != nil {
+		c.Error(err)
+	}
+	res2, err := req.PostCircles("handleA", sessionid, "Broadcast", true)
+	if err != nil {
+		c.Error(err)
+	}
+
+	c.Check(helper.GetJsonResponseMessage(res1), Equals, "Broadcast is a reserved circle name")
+	c.Check(res1.StatusCode, Equals, 403)
+	c.Check(helper.GetJsonResponseMessage(res2), Equals, "Broadcast is a reserved circle name")
+	c.Check(res2.StatusCode, Equals, 403)
+}
+
+func (s *TestSuite) TestPostPublicCircleOK(c *C) {
+	req.PostSignup("handleA", "test@test.io", "password1", "password1")
+
+	response, _ := req.PostSessions("handleA", "password1")
+	sessionid := helper.GetSessionFromResponse(response)
+
+	res, err := req.PostCircles("handleA", sessionid, "MyPublicCircle", true)
+	if err != nil {
+		c.Error(err)
+	}
+
+	c.Check(helper.GetJsonResponseMessage(res), Equals, "Created new circle MyPublicCircle for handleA")
+	c.Check(res.StatusCode, Equals, 201)
+}
+
+func (s *TestSuite) TestPostPrivateCircleOK(c *C) {
+	req.PostSignup("handleA", "test@test.io", "password1", "password1")
+
+	response, _ := req.PostSessions("handleA", "password1")
+	sessionid := helper.GetSessionFromResponse(response)
+
+	res, err := req.PostCircles("handleA", sessionid, "MyPrivateCircle", true)
+	if err != nil {
+		c.Error(err)
+	}
+
+	c.Check(helper.GetJsonResponseMessage(res), Equals, "Created new circle MyPrivateCircle for handleA")
+	c.Check(res.StatusCode, Equals, 201)
 }
 
 //
