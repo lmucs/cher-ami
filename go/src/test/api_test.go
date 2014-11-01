@@ -501,7 +501,7 @@ func (s *TestSuite) TestChangePasswordUserNoExist(c *C) {
 	}
 	//fmt.Println(getJsonResponseMessage(response))
 	c.Check(getJsonResponseMessage(response), Equals, "Failed to authenticate user request")
-	c.Assert(response.StatusCode, Equals, 400)
+	c.Assert(response.StatusCode, Equals, 401)
 }
 
 func (s *TestSuite) TestChangePasswordSamePassword(c *C) {
@@ -824,7 +824,7 @@ func (s *TestSuite) TestPostBlockUserNoExist(c *C) {
 	}
 
 	c.Check(getJsonResponseMessage(response), Equals, "Failed to authenticate user request")
-	c.Assert(response.StatusCode, Equals, 400)
+	c.Assert(response.StatusCode, Equals, 401)
 }
 
 func (s *TestSuite) TestPostBlockTargetNoExist(c *C) {
@@ -857,7 +857,7 @@ func (s *TestSuite) TestPostBlockUserNoSession(c *C) {
 	}
 
 	c.Check(getJsonResponseMessage(response), Equals, "Failed to authenticate user request")
-	c.Assert(response.StatusCode, Equals, 400)
+	c.Assert(response.StatusCode, Equals, 401)
 }
 
 func (s *TestSuite) TestPostBlockOK(c *C) {
@@ -895,7 +895,7 @@ func (s *TestSuite) TestPostJoinDefaultUserNoSession(c *C) {
 	}
 
 	c.Check(getJsonResponseMessage(response), Equals, "Failed to authenticate user request")
-	c.Assert(response.StatusCode, Equals, 400)
+	c.Assert(response.StatusCode, Equals, 401)
 }
 
 func (s *TestSuite) TestPostJoinDefaultTargetNoExist(c *C) {
@@ -974,7 +974,7 @@ func (s *TestSuite) TestPostJoinUserNoSession(c *C) {
 	}
 
 	c.Check(getJsonResponseMessage(response), Equals, "Failed to authenticate user request")
-	c.Assert(response.StatusCode, Equals, 400)
+	c.Assert(response.StatusCode, Equals, 401)
 }
 
 func (s *TestSuite) TestPostJoinTargetNoExist(c *C) {

@@ -58,11 +58,21 @@ func (a Api) authenticate(r *rest.Request) (success bool) {
 
 func (a Api) writeSimpleJsonResponse(w rest.ResponseWriter, code int, message string) {
 	w.WriteHeader(code)
-	w.WriteJson(map[string]string{"Response": message})
+	w.WriteJson(map[string]interface{}{
+		"Response": message,
+	})
 }
 
 func (a Api) getSessionId(r *rest.Request) string {
 	return r.Header.Get("Authorization")
+
+
+func (a Api) failedToAuthenticate(w rest.ResponseWriter) {
+	w.WriteHeader(401)
+	w.WriteJson(map[string]interface{}{
+		"response": "Failed to authenticate user request",
+		"reason":   "Missing, illegal or expired token",
+	})
 }
 
 //
@@ -137,11 +147,7 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 	} else {
 		hashed_pass = string(hash)
 	}
-	if err := a.Svc.CreateNewUser(
-		handle,
-		email,
-		hashed_pass,
-	); err != nil {
+	if err := a.Svc.CreateNewUser(handle, email, hashed_pass); err != nil {
 		panicErr(err)
 	}
 
@@ -249,10 +255,7 @@ func (a Api) ChangePassword(w rest.ResponseWriter, r *rest.Request) {
 	confirmNewPassword := user.ConfirmNewPassword
 
 	if !a.authenticate(r) {
-		w.WriteHeader(400)
-		w.WriteJson(map[string]string{
-			"Response": "Failed to authenticate user request",
-		})
+		a.failedToAuthenticate(w)
 		return
 	}
 
@@ -428,11 +431,7 @@ func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
 	password := []byte(credentials.Password)
 
 	if !a.authenticate(r) {
-		w.WriteHeader(401)
-		w.WriteJson(map[string]string{
-			"response": "Failed to authenticate user request",
-			"reason":   "Missing, illegal or expired token",
-		})
+		a.failedToAuthenticate(w)
 		return
 	}
 
@@ -572,10 +571,7 @@ func (a Api) NewMessage(w rest.ResponseWriter, r *rest.Request) {
 	content := payload.Content
 
 	if !a.authenticate(r) {
-		w.WriteHeader(400)
-		w.WriteJson(map[string]string{
-			"Response": "Failed to authenticate user request",
-		})
+		a.failedToAuthenticate(w)
 		return
 	}
 
@@ -618,10 +614,7 @@ func (a Api) PublishMessage(w rest.ResponseWriter, r *rest.Request) {
 	messageid := payload.MessageId
 
 	if !a.authenticate(r) {
-		w.WriteHeader(400)
-		w.WriteJson(map[string]string{
-			"Response": "Failed to authenticate user request",
-		})
+		a.failedToAuthenticate(w)
 		return
 	}
 
@@ -666,10 +659,7 @@ func (a Api) PublishMessage(w rest.ResponseWriter, r *rest.Request) {
  */
 func (a Api) GetAuthoredMessages(w rest.ResponseWriter, r *rest.Request) {
 	if !a.authenticate(r) {
-		w.WriteHeader(400)
-		w.WriteJson(map[string]string{
-			"Response": "Failed to authenticate user request",
-		})
+		a.failedToAuthenticate(w)
 		return
 	} else {
 		if author, success := a.Svc.GetHandleFromAuthorization(a.getSessionId(r)); !success {
@@ -735,10 +725,7 @@ func (a Api) GetMessagesByHandle(w rest.ResponseWriter, r *rest.Request) {
 	handle := querymap["handle"][0]
 
 	if !a.authenticate(r) {
-		w.WriteHeader(400)
-		w.WriteJson(map[string]string{
-			"Response": "Failed to authenticate user request",
-		})
+		a.failedToAuthenticate(w)
 		return
 	}
 
@@ -790,10 +777,7 @@ func (a Api) DeleteMessage(w rest.ResponseWriter, r *rest.Request) {
 	lastsaved := payload.LastSaved
 
 	if !a.authenticate(r) {
-		w.WriteHeader(400)
-		w.WriteJson(map[string]string{
-			"Response": "Failed to authenticate user request",
-		})
+		a.failedToAuthenticate(w)
 		return
 	}
 
@@ -841,10 +825,7 @@ func (a Api) BlockUser(w rest.ResponseWriter, r *rest.Request) {
 	target := payload.Target
 
 	if !a.authenticate(r) {
-		w.WriteHeader(400)
-		w.WriteJson(map[string]string{
-			"Response": "Failed to authenticate user request",
-		})
+		a.failedToAuthenticate(w)
 		return
 	}
 
@@ -886,10 +867,7 @@ func (a Api) JoinDefault(w rest.ResponseWriter, r *rest.Request) {
 	target := payload.Target
 
 	if !a.authenticate(r) {
-		w.WriteHeader(400)
-		w.WriteJson(map[string]string{
-			"Response": "Failed to authenticate user request",
-		})
+		a.failedToAuthenticate(w)
 		return
 	}
 
@@ -943,10 +921,7 @@ func (a Api) Join(w rest.ResponseWriter, r *rest.Request) {
 	circleid := payload.CircleId
 
 	if !a.authenticate(r) {
-		w.WriteHeader(400)
-		w.WriteJson(map[string]string{
-			"Response": "Failed to authenticate user request",
-		})
+		a.failedToAuthenticate(w)
 		return
 	}
 
