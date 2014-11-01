@@ -423,7 +423,7 @@ func (s *TestSuite) TestLoginUserNoExist(c *C) {
 	}
 
 	c.Check(getJsonResponseMessage(response), Equals, "Invalid username or password, please try again.")
-	c.Assert(response.StatusCode, Equals, 400)
+	c.Assert(response.StatusCode, Equals, 403)
 }
 
 func (s *TestSuite) TestLoginInvalidUsername(c *C) {
@@ -435,7 +435,7 @@ func (s *TestSuite) TestLoginInvalidUsername(c *C) {
 	}
 
 	c.Check(getJsonResponseMessage(response), Equals, "Invalid username or password, please try again.")
-	c.Assert(response.StatusCode, Equals, 400)
+	c.Assert(response.StatusCode, Equals, 403)
 }
 
 func (s *TestSuite) TestLoginInvalidPassword(c *C) {
@@ -447,7 +447,7 @@ func (s *TestSuite) TestLoginInvalidPassword(c *C) {
 	}
 
 	c.Check(getJsonResponseMessage(response), Equals, "Invalid username or password, please try again.")
-	c.Assert(response.StatusCode, Equals, 400)
+	c.Assert(response.StatusCode, Equals, 403)
 }
 
 func (s *TestSuite) TestLoginOK(c *C) {
@@ -472,8 +472,8 @@ func (s *TestSuite) TestLogoutUserNoExist(c *C) {
 		c.Error(err)
 	}
 
-	c.Check(getJsonResponseMessage(response), Equals, "That user doesn't exist")
-	c.Assert(response.StatusCode, Equals, 400)
+	c.Check(getJsonResponseMessage(response), Equals, "Cannot invalidate token because it is missing")
+	c.Assert(response.StatusCode, Equals, 403)
 }
 
 func (s *TestSuite) TestLogoutOK(c *C) {
@@ -486,8 +486,7 @@ func (s *TestSuite) TestLogoutOK(c *C) {
 		c.Error(err)
 	}
 
-	c.Check(getJsonResponseMessage(response), Equals, "Goodbye handleA, have a nice day")
-	c.Assert(response.StatusCode, Equals, 200)
+	c.Assert(response.StatusCode, Equals, 204)
 }
 
 //
@@ -520,8 +519,8 @@ func (s *TestSuite) TestChangePasswordSamePassword(c *C) {
 func (s *TestSuite) TestChangePasswordOK(c *C) {
 	postSignup("handleA", "handleA@test.io", "password1", "password1")
 
-	response, _ := postSessions("handleA", "password1")
-	sessionid := getSessionFromResponse(response)
+	sessionResponse, _ := postSessions("handleA", "password1")
+	sessionid := getSessionFromResponse(sessionResponse)
 	response, err := postChangePassword("handleA", sessionid, "password1", "password2", "password2")
 	if err != nil {
 		c.Error(err)
@@ -665,7 +664,7 @@ func (s *TestSuite) TestDeleteUserOK(c *C) {
 func (s *TestSuite) TestGetAuthoredMessagesInvalidAuth(c *C) {
 	postSignup("handleA", "handleA@test.io", "password1", "password1")
 	res, _ := getAuthoredMessages("handleA", "")
-	c.Check(res.StatusCode, Equals, 400)
+	c.Check(res.StatusCode, Equals, 401)
 }
 
 func (s *TestSuite) TestGetAuthoredMessagesOK(c *C) {

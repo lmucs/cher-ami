@@ -2,6 +2,7 @@ package api
 
 import (
 	"../service"
+	"./responses"
 	"encoding/json"
 	"fmt"
 	"github.com/ChimeraCoder/go.crypto/bcrypt"
@@ -24,7 +25,8 @@ func panicErr(err error) {
 //
 
 type Api struct {
-	Svc *service.Svc
+	Svc  *service.Svc
+	Resp *responses.Resp
 }
 
 /**
@@ -33,6 +35,7 @@ type Api struct {
 func NewApi(uri string) *Api {
 	api := &Api{
 		service.NewService(uri),
+		&responses.Resp{},
 	}
 	return api
 }
@@ -56,23 +59,8 @@ func (a Api) authenticate(r *rest.Request) (success bool) {
 	}
 }
 
-func (a Api) writeSimpleJsonResponse(w rest.ResponseWriter, code int, message string) {
-	w.WriteHeader(code)
-	w.WriteJson(map[string]interface{}{
-		"Response": message,
-	})
-}
-
 func (a Api) getSessionId(r *rest.Request) string {
 	return r.Header.Get("Authorization")
-
-
-func (a Api) failedToAuthenticate(w rest.ResponseWriter) {
-	w.WriteHeader(401)
-	w.WriteJson(map[string]interface{}{
-		"response": "Failed to authenticate user request",
-		"reason":   "Missing, illegal or expired token",
-	})
 }
 
 //
@@ -106,19 +94,19 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 
 	// Handle and Email checks
 	if handle == "" {
-		a.writeSimpleJsonResponse(w, 400, "Handle is a required field for signup")
+		a.Resp.SimpleJsonResponse(w, 400, "Handle is a required field for signup")
 		return
 	} else if email == "" {
-		a.writeSimpleJsonResponse(w, 400, "Email is a required field for signup")
+		a.Resp.SimpleJsonResponse(w, 400, "Email is a required field for signup")
 		return
 	}
 
 	// Password checks
 	if password != confirm_password {
-		a.writeSimpleJsonResponse(w, 400, "Passwords do not match")
+		a.Resp.SimpleJsonResponse(w, 400, "Passwords do not match")
 		return
 	} else if len(password) < MIN_PASS_LENGTH {
-		a.writeSimpleJsonResponse(w, 400, "Passwords must be at least 8 characters long")
+		a.Resp.SimpleJsonResponse(w, 400, "Passwords must be at least 8 characters long")
 		return
 	}
 
@@ -127,7 +115,7 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 		rest.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	} else if !unique {
-		a.writeSimpleJsonResponse(w, 400, "Sorry, handle or email is already taken")
+		a.Resp.SimpleJsonResponse(w, 400, "Sorry, handle or email is already taken")
 		return
 	}
 
@@ -136,7 +124,7 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 		rest.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	} else if !unique {
-		a.writeSimpleJsonResponse(w, 400, "Sorry, handle or email is already taken")
+		a.Resp.SimpleJsonResponse(w, 400, "Sorry, handle or email is already taken")
 		return
 	}
 
@@ -156,7 +144,7 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 	}
 
 	w.WriteHeader(201)
-	w.WriteJson(map[string]string{
+	w.WriteJson(map[string]interface{}{
 		"Response": "Signed up a new user!",
 		"Handle":   handle,
 		"Email":    email,
@@ -177,29 +165,22 @@ func (a Api) Login(w rest.ResponseWriter, r *rest.Request) {
 	password := []byte(credentials.Password)
 
 	if passwordHash, ok := a.Svc.GetPasswordHash(handle); !ok {
-		w.WriteHeader(400)
-		w.WriteJson(map[string]string{
-			"Response": "Invalid username or password, please try again.",
-		})
+		a.Resp.SimpleJsonResponse(w, 403, "Invalid username or password, please try again.")
 		return
 	} else {
 		// err is nil if successful, error if comparison failed
 		if err := bcrypt.CompareHashAndPassword(passwordHash, password); err != nil {
-			w.WriteHeader(400)
-			w.WriteJson(map[string]string{
-				"Response": "Invalid username or password, please try again.",
-			})
+			a.Resp.SimpleJsonResponse(w, 403, "Invalid username or password, please try again.")
 			return
 		} else {
 			// Create an authentication node and return it to client
 			sessionid := a.Svc.SetGetNewSessionId(handle)
 
 			w.WriteHeader(200)
-			w.WriteJson(map[string]string{
+			w.WriteJson(map[string]interface{}{
 				"Response":  "Logged in " + handle + ". Note your session id.",
 				"sessionid": sessionid,
 			})
-			w.Header().Add("Authentication", sessionid)
 			return
 		}
 	}
@@ -221,16 +202,11 @@ func (a Api) Logout(w rest.ResponseWriter, r *rest.Request) {
 	handle := user.Handle
 
 	if a.Svc.UnsetSessionId(handle) {
-		w.WriteHeader(200)
-		w.WriteJson(map[string]string{
-			"Response": "Goodbye " + handle + ", have a nice day",
-		})
+		w.WriteHeader(204)
 		return
 	} else {
-		w.WriteHeader(400)
-		w.WriteJson(map[string]string{
-			"Response": "That user doesn't exist",
-		})
+
+		a.Resp.SimpleJsonResponse(w, 403, "Cannot invalidate token because it is missing")
 		return
 	}
 }
@@ -255,7 +231,7 @@ func (a Api) ChangePassword(w rest.ResponseWriter, r *rest.Request) {
 	confirmNewPassword := user.ConfirmNewPassword
 
 	if !a.authenticate(r) {
-		a.failedToAuthenticate(w)
+		a.Resp.FailedToAuthenticate(w)
 		return
 	}
 
@@ -431,7 +407,7 @@ func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
 	password := []byte(credentials.Password)
 
 	if !a.authenticate(r) {
-		a.failedToAuthenticate(w)
+		a.Resp.FailedToAuthenticate(w)
 		return
 	}
 
@@ -571,7 +547,7 @@ func (a Api) NewMessage(w rest.ResponseWriter, r *rest.Request) {
 	content := payload.Content
 
 	if !a.authenticate(r) {
-		a.failedToAuthenticate(w)
+		a.Resp.FailedToAuthenticate(w)
 		return
 	}
 
@@ -614,7 +590,7 @@ func (a Api) PublishMessage(w rest.ResponseWriter, r *rest.Request) {
 	messageid := payload.MessageId
 
 	if !a.authenticate(r) {
-		a.failedToAuthenticate(w)
+		a.Resp.FailedToAuthenticate(w)
 		return
 	}
 
@@ -659,7 +635,7 @@ func (a Api) PublishMessage(w rest.ResponseWriter, r *rest.Request) {
  */
 func (a Api) GetAuthoredMessages(w rest.ResponseWriter, r *rest.Request) {
 	if !a.authenticate(r) {
-		a.failedToAuthenticate(w)
+		a.Resp.FailedToAuthenticate(w)
 		return
 	} else {
 		if author, success := a.Svc.GetHandleFromAuthorization(a.getSessionId(r)); !success {
@@ -725,7 +701,7 @@ func (a Api) GetMessagesByHandle(w rest.ResponseWriter, r *rest.Request) {
 	handle := querymap["handle"][0]
 
 	if !a.authenticate(r) {
-		a.failedToAuthenticate(w)
+		a.Resp.FailedToAuthenticate(w)
 		return
 	}
 
@@ -777,7 +753,7 @@ func (a Api) DeleteMessage(w rest.ResponseWriter, r *rest.Request) {
 	lastsaved := payload.LastSaved
 
 	if !a.authenticate(r) {
-		a.failedToAuthenticate(w)
+		a.Resp.FailedToAuthenticate(w)
 		return
 	}
 
@@ -825,7 +801,7 @@ func (a Api) BlockUser(w rest.ResponseWriter, r *rest.Request) {
 	target := payload.Target
 
 	if !a.authenticate(r) {
-		a.failedToAuthenticate(w)
+		a.Resp.FailedToAuthenticate(w)
 		return
 	}
 
@@ -867,7 +843,7 @@ func (a Api) JoinDefault(w rest.ResponseWriter, r *rest.Request) {
 	target := payload.Target
 
 	if !a.authenticate(r) {
-		a.failedToAuthenticate(w)
+		a.Resp.FailedToAuthenticate(w)
 		return
 	}
 
@@ -921,7 +897,7 @@ func (a Api) Join(w rest.ResponseWriter, r *rest.Request) {
 	circleid := payload.CircleId
 
 	if !a.authenticate(r) {
-		a.failedToAuthenticate(w)
+		a.Resp.FailedToAuthenticate(w)
 		return
 	}
 
