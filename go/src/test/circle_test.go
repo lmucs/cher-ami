@@ -175,15 +175,14 @@ func (s *TestSuite) TestPostBlockOK(c *C) {
 //
 
 func (s *TestSuite) TestPostJoinDefaultUserNoSession(c *C) {
-	req.PostSignup("testing123", "testing123", "testing123", "testing123")
-	req.PostSignup("testing321", "testing321", "testing321", "testing321")
+	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
+	req.PostSignup("handleB", "testB@test.io", "password2", "password2")
 
-	response, _ := req.PostSessions("testing123", "testing123")
-	sessionid := helper.GetSessionFromResponse(response)
+	sessionid := req.PostSessionGetSessionId("handleA", "password1")
 
-	req.DeleteSessions("testing123")
+	req.DeleteSessions("handleA")
 
-	response, err := req.PostJoinDefault("testing123", sessionid, "testing321")
+	response, err := req.PostBlock("handleA", sessionid, "handleB")
 	if err != nil {
 		c.Error(err)
 	}
@@ -211,15 +210,13 @@ func (s *TestSuite) TestPostJoinDefaultUserBlocked(c *C) {
 	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
 	req.PostSignup("handleB", "testB@test.io", "password2", "password2")
 
-	response, _ := req.PostSessions("handleB", "password2")
-	sessionid := helper.GetSessionFromResponse(response)
+	sessionid_A := req.PostSessionGetSessionId("handleB", "password2")
 
-	req.PostBlock("handleB", sessionid, "handleA")
+	req.PostBlock("handleB", sessionid_A, "handleA")
 
-	response, _ = req.PostSessions("handleA", "password1")
-	sessionid = helper.GetSessionFromResponse(response)
+	sessionid_B := req.PostSessionGetSessionId("handleA", "password1")
 
-	response, err := req.PostJoinDefault("handleA", sessionid, "handleB")
+	response, err := req.PostJoinDefault("handleA", sessionid_B, "handleB")
 	if err != nil {
 		c.Error(err)
 	}
@@ -229,13 +226,12 @@ func (s *TestSuite) TestPostJoinDefaultUserBlocked(c *C) {
 }
 
 func (s *TestSuite) TestPostJoinDefaultCreated(c *C) {
-	req.PostSignup("testing123", "testing123", "testing123", "testing123")
-	req.PostSignup("testing321", "testing321", "testing321", "testing321")
+	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
+	req.PostSignup("handleB", "testB@test.io", "password2", "password2")
 
-	response, _ := req.PostSessions("testing123", "testing123")
-	sessionid := helper.GetSessionFromResponse(response)
+	sessionid := req.PostSessionGetSessionId("handleA", "password1")
 
-	response, err := req.PostJoinDefault("testing123", sessionid, "testing123")
+	response, err := req.PostJoinDefault("handleA", sessionid, "handleB")
 	if err != nil {
 		c.Error(err)
 	}
@@ -249,20 +245,18 @@ func (s *TestSuite) TestPostJoinDefaultCreated(c *C) {
 //
 
 func (s *TestSuite) TestPostJoinUserNoSession(c *C) {
-	req.PostSignup("testing123", "testing123", "testing123", "testing123")
-	req.PostSignup("testing321", "testing321", "testing321", "testing321")
+	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
+	req.PostSignup("handleB", "testB@test.io", "password2", "password2")
 
-	response, _ := req.PostSessions("testing321", "testing321")
-	sessionid := helper.GetSessionFromResponse(response)
+	sessionid_B := req.PostSessionGetSessionId("handleB", "password2")
 
-	req.PostCircles("testing321", sessionid, "testing321", true)
+	req.PostCircles("handleB", sessionid_B, "handleB", true)
 
-	response, _ = req.PostSessions("testing123", "testing123")
-	sessionid = helper.GetSessionFromResponse(response)
+	sessionid_A := req.PostSessionGetSessionId("handleA", "password1")
 
-	req.DeleteSessions("testing123")
+	req.DeleteSessions("handleA")
 
-	response, err := req.PostJoin("testing123", sessionid, "testing321", "testing321")
+	response, err := req.PostJoin("handleA", sessionid_A, "handleB", "CircleOfB")
 	if err != nil {
 		c.Error(err)
 	}
@@ -271,19 +265,17 @@ func (s *TestSuite) TestPostJoinUserNoSession(c *C) {
 	c.Check(response.StatusCode, Equals, 401)
 }
 
-func (s *TestSuite) TestPostJoinTargetNoExist(c *C) {
-	req.PostSignup("handleA", "handleA@test.io", "password1", "password1")
-	req.PostSignup("handleB", "handleB@test.io", "password2", "password2")
+func (s *TestSuite) TestPostJoinUserNoExist(c *C) {
+	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
+	req.PostSignup("handleB", "testB@test.io", "password2", "password2")
 
-	response, _ := req.PostSessions("handleB", "password2")
-	sessionid := helper.GetSessionFromResponse(response)
+	sessionid_B := req.PostSessionGetSessionId("handleB", "password2")
 
-	req.PostCircles("handleB", sessionid, "CircleOfB", true)
+	req.PostCircles("handleB", sessionid_B, "CircleOfB", true)
 
-	response, _ = req.PostSessions("handleA", "password1")
-	sessionid = helper.GetSessionFromResponse(response)
+	sessionid_A := req.PostSessionGetSessionId("handleA", "password1")
 
-	response, err := req.PostJoin("handleA", sessionid, "handleC", "CircleOfB")
+	response, err := req.PostJoin("handleA", sessionid_A, "handleC", "CircleOfB")
 	if err != nil {
 		c.Error(err)
 	}
@@ -293,20 +285,17 @@ func (s *TestSuite) TestPostJoinTargetNoExist(c *C) {
 }
 
 func (s *TestSuite) TestPostJoinUserBlocked(c *C) {
-	req.PostSignup("handleA", "handleA@test.io", "password1", "password1")
-	req.PostSignup("handleB", "handleB@test.io", "password2", "password2")
+	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
+	req.PostSignup("handleB", "testB@test.io", "password2", "password2")
 
-	response, _ := req.PostSessions("handleB", "password2")
-	sessionid := helper.GetSessionFromResponse(response)
+	sessionid_B := req.PostSessionGetSessionId("handleB", "password2")
 
-	req.PostCircles("handleB", sessionid, "CircleOfHandleB", true)
+	req.PostCircles("handleB", sessionid_B, "CircleOfHandleB", true)
+	req.PostBlock("handleB", sessionid_B, "handleA")
 
-	req.PostBlock("handleB", sessionid, "handleA")
+	sessionid_A := req.PostSessionGetSessionId("handleA", "password1")
 
-	response, _ = req.PostSessions("handleA", "password1")
-	sessionid = helper.GetSessionFromResponse(response)
-
-	response, err := req.PostJoin("handleA", sessionid, "handleB", "CircleOfHandleB")
+	response, err := req.PostJoin("handleA", sessionid_A, "handleB", "CircleOfHandleB")
 	if err != nil {
 		c.Error(err)
 	}
@@ -319,10 +308,9 @@ func (s *TestSuite) TestPostJoinCircleNoExist(c *C) {
 	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
 	req.PostSignup("handleB", "testB@test.io", "password2", "password2")
 
-	response, _ := req.PostSessions("handleA", "password1")
-	sessionid := helper.GetSessionFromResponse(response)
+	sessionid_A := req.PostSessionGetSessionId("handleA", "password1")
 
-	response, err := req.PostJoin("handleA", sessionid, "handleB", "NonExistentCircle")
+	response, err := req.PostJoin("handleA", sessionid_A, "handleB", "NonExistentCircle")
 	if err != nil {
 		c.Error(err)
 	}
@@ -335,13 +323,11 @@ func (s *TestSuite) TestPostJoinCreated(c *C) {
 	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
 	req.PostSignup("handleB", "testB@test.io", "password2", "password2")
 
-	response_B, _ := req.PostSessions("handleB", "password2")
-	sessionid_B := helper.GetSessionFromResponse(response_B)
+	sessionid_B := req.PostSessionGetSessionId("handleB", "password2")
 
 	req.PostCircles("handleB", sessionid_B, "MyCircle", true)
 
-	response_A, _ := req.PostSessions("handleA", "password1")
-	sessionid_A := helper.GetSessionFromResponse(response_A)
+	sessionid_A := req.PostSessionGetSessionId("handleA", "password1")
 
 	response, err := req.PostJoin("handleA", sessionid_A, "handleB", "MyCircle")
 	if err != nil {
