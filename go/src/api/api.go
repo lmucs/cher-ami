@@ -1,7 +1,8 @@
 package api
 
 import (
-	service "../service"
+	"../service"
+	"encoding/json"
 	"fmt"
 	"github.com/ChimeraCoder/go.crypto/bcrypt"
 	"github.com/ant0ine/go-json-rest/rest"
@@ -36,7 +37,7 @@ func NewApi(uri string) *Api {
 	return api
 }
 
-// Circle constants
+// Constants
 const (
 	GOLD            = "Gold"
 	BROADCAST       = "Broadcast"
@@ -60,6 +61,9 @@ func (a Api) writeSimpleJsonResponse(w rest.ResponseWriter, code int, message st
 	w.WriteJson(map[string]string{"Response": message})
 }
 
+func (a Api) getSessionId(r *rest.Request) string {
+	return r.Header.Get("Authorization")
+}
 
 //
 // API
@@ -69,7 +73,7 @@ func (a Api) writeSimpleJsonResponse(w rest.ResponseWriter, code int, message st
 // Credentials
 //
 
-/*
+/**
  * Expects a json POST with "username", "email", "password", "confirmpassword"
  */
 func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
@@ -539,7 +543,7 @@ func (a Api) makeDefaultCircles(handle string) {
 //
 
 /**
- * Expects a json post with "handle", "sessionid", "content"
+ * Create a new, unpublished message
  */
 func (a Api) NewMessage(w rest.ResponseWriter, r *rest.Request) {
 	payload := struct {
@@ -551,7 +555,20 @@ func (a Api) NewMessage(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	handle := payload.Handle
+	handle := ""
+	if payload.Handle == "" {
+		if h, ok := a.Svc.GetHandleFromAuthorization(a.getSessionId(r)); !ok {
+			w.WriteHeader(400)
+			w.WriteJson(map[string]string{
+				"Response": "Unexpected failure to retrieve owner of session",
+			})
+			return
+		} else {
+			handle = h
+		}
+	} else {
+		handle = payload.Handle
+	}
 	content := payload.Content
 
 	if !a.authenticate(r) {
@@ -646,48 +663,56 @@ func (a Api) PublishMessage(w rest.ResponseWriter, r *rest.Request) {
 
 /**
  * Get messages authored by user
- * Expects query parameters "handle" and "sessionid"
  */
 func (a Api) GetAuthoredMessages(w rest.ResponseWriter, r *rest.Request) {
-	querymap := r.URL.Query()
-
-	// Check query parameters
-	if _, ok := querymap["handle"]; !ok {
-		w.WriteHeader(400)
-		w.WriteJson(map[string]string{
-			"Response": "Bad Request, not enough parameters to authenticate user",
-		})
-		return
-	}
-
-	handle := querymap["handle"][0]
-
 	if !a.authenticate(r) {
 		w.WriteHeader(400)
 		w.WriteJson(map[string]string{
 			"Response": "Failed to authenticate user request",
 		})
 		return
+	} else {
+		if author, success := a.Svc.GetHandleFromAuthorization(a.getSessionId(r)); !success {
+			w.WriteHeader(400)
+			w.WriteJson(map[string]interface{}{
+				"Response":  "Unexpected failure to retrieve owner of session",
+				"Author":    author,
+				"Success":   success,
+				"SessionId": a.getSessionId(r),
+			})
+			return
+		} else {
+			type MessageData struct {
+				Url     string
+				Author  string
+				Content string
+				Date    time.Time
+			}
+			messages := a.Svc.GetMessagesByHandle(author)
+			messageData := make([]MessageData, len(messages))
+
+			for i := 0; i < len(messages); i++ {
+				messageData[i] = MessageData{
+					"<url>:<port>/api/messages/" + messages[i].Id, // hard-coded url/port...
+					messages[i].Author,
+					messages[i].Content,
+					messages[i].Created,
+				}
+			}
+
+			b, err := json.Marshal(messageData)
+			if err != nil {
+				panicErr(err)
+			}
+
+			w.WriteHeader(200)
+			w.WriteJson(map[string]interface{}{
+				"Response": "Found messages for user " + author,
+				"Objects":  string(b),
+				"Count":    len(messageData),
+			})
+		}
 	}
-
-	messages := []struct {
-		Content   string    `json:"message.content"`
-		LastSaved time.Time `json:"message.lastsaved"`
-	}{}
-	err := a.Svc.Db.Cypher(&neoism.CypherQuery{
-		Statement: `
-            MATCH (user:User {handle: {handle}})-[:WROTE]->(message:Message)
-            RETURN message.content, message.lastsaved
-        `,
-		Parameters: neoism.Props{
-			"handle": handle,
-		},
-		Result: &messages,
-	})
-	panicErr(err)
-
-	w.WriteHeader(200)
-	w.WriteJson(messages)
 }
 
 /**

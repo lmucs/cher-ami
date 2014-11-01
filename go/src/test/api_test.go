@@ -15,6 +15,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 )
 
 // Flag for local testing.
@@ -77,7 +78,7 @@ func (s *TestSuite) SetUpSuite(c *C) {
 
 	a = api.NewApi(uri)
 
-	handler, err := routes.MakeHandler(*a, true)
+	handler, err := routes.MakeHandler(*a, false)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -182,7 +183,7 @@ func searchForUsers(circle, nameprefix string, skip, limit int, sort string) (*h
 		"sort":       sort,
 	}
 
-	return helper.GetWithQueryParams("GET", usersURL, payload)
+	return helper.GetWithQueryParams(usersURL, payload)
 }
 
 func deleteUser(handle string, password string, sessionid string) (*http.Response, error) {
@@ -193,6 +194,24 @@ func deleteUser(handle string, password string, sessionid string) (*http.Respons
 	}
 	deleteURL := usersURL + "/" + payload["handle"].(string)
 	return helper.Execute("DELETE", deleteURL, payload)
+}
+
+func postMessages(content string, sessionid string) (*http.Response, error) {
+	payload := map[string]interface{}{
+		"content":   content,
+		"sessionid": sessionid,
+	}
+
+	return helper.Execute("POST", messagesURL, payload)
+}
+
+func getAuthoredMessages(handle string, sessionid string) (*http.Response, error) {
+	payload := map[string]interface{}{
+		"handle":    handle,
+		"sessionid": sessionid,
+	}
+
+	return helper.GetWithQueryParams(messagesURL, payload)
 }
 
 func postCircles(handle string, sessionid string, circleName string, public bool) (*http.Response, error) {
@@ -503,10 +522,11 @@ func (s *TestSuite) TestChangePasswordOK(c *C) {
 
 	response, _ := postSessions("handleA", "password1")
 	sessionid := getSessionFromResponse(response)
-	response, err := postChangePassword("handleA", sessionid, "password1", "password12", "password12")
+	response, err := postChangePassword("handleA", sessionid, "password1", "password2", "password2")
 	if err != nil {
 		c.Error(err)
 	}
+
 	c.Assert(response.StatusCode, Equals, 204)
 }
 
@@ -561,9 +581,9 @@ func (s *TestSuite) TestSearchUsersOK(c *C) {
 		}{}
 		unmarshal(response, &data)
 		type UserResult struct {
-			Handle string `json:"u.handle"`
-			Name   string `json:"u.name"`
-			Id     int    `json:"id(u)"`
+			Handle string
+			Name   string
+			Id     int
 		}
 
 		results := make([]UserResult, 0)
@@ -637,6 +657,54 @@ func (s *TestSuite) TestDeleteUserOK(c *C) {
 	c.Check(deleteUserResponse.StatusCode, Equals, 204)
 	// c.Check(getJsonResponseMessage(getUserResponse), Equals, "No results found")
 	// c.Assert(getUserResponse.StatusCode, Equals, 404)
+}
+
+//
+// Get Authored Messages Tests
+//
+func (s *TestSuite) TestGetAuthoredMessagesInvalidAuth(c *C) {
+	postSignup("handleA", "handleA@test.io", "password1", "password1")
+	res, _ := getAuthoredMessages("handleA", "")
+	c.Check(res.StatusCode, Equals, 400)
+}
+
+func (s *TestSuite) TestGetAuthoredMessagesOK(c *C) {
+	postSignup("handleA", "handleA@test.io", "password1", "password1")
+
+	response, _ := postSessions("handleA", "password1")
+	sessionid_A := getSessionFromResponse(response)
+
+	postMessages("Go is going gophers!", sessionid_A)
+	postMessages("Hypothesize about stuff", sessionid_A)
+	postMessages("The nearest exit may be behind you", sessionid_A)
+	postMessages("I make soap.", sessionid_A)
+
+	res, _ := getAuthoredMessages("handleA", sessionid_A)
+
+	data := struct {
+		Response string
+		Objects  string
+		Count    int
+	}{}
+	unmarshal(res, &data)
+	type Message struct {
+		Id      string
+		Author  string
+		Content string
+		Created time.Time
+	}
+
+	objects := make([]Message, 0)
+	json.Unmarshal([]byte(data.Objects), &objects)
+
+	c.Check(data.Response, Equals, "Found messages for user handleA")
+	c.Check(res.StatusCode, Equals, 200)
+	c.Check(data.Count, Equals, 4)
+	c.Check(objects[0].Author, Equals, "handleA")
+	c.Check(objects[0].Content, Equals, "Go is going gophers!")
+	c.Check(objects[1].Content, Equals, "Hypothesize about stuff")
+	c.Check(objects[2].Content, Equals, "The nearest exit may be behind you")
+	c.Check(objects[3].Content, Equals, "I make soap.")
 }
 
 //

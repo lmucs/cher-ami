@@ -10,12 +10,13 @@ import (
 )
 
 func Execute(httpMethod string, url string, m map[string]interface{}) (*http.Response, error) {
-	var sessionid string
+	sessionid := ""
 	str, ok := m["sessionid"].(string)
 	if ok && str != "" {
 		sessionid = str
 		delete(m, "sessionid")
 	}
+
 	if bytes, err := json.Marshal(m); err != nil {
 		log.Fatal(err)
 		return nil, err
@@ -31,8 +32,8 @@ func Execute(httpMethod string, url string, m map[string]interface{}) (*http.Res
 	}
 }
 
-func GetWithQueryParams(httpMethod string, url string, m map[string]interface{}) (*http.Response, error) {
-	var sessionid string
+func GetWithQueryParams(url string, m map[string]interface{}) (*http.Response, error) {
+	sessionid := ""
 	str, ok := m["sessionid"].(string)
 	if ok && str != "" {
 		sessionid = str
@@ -56,7 +57,7 @@ func GetWithQueryParams(httpMethod string, url string, m map[string]interface{})
 
 		queryUrl := baseUrl.String()
 
-		request, err := http.NewRequest(httpMethod, queryUrl, nil)
+		request, err := http.NewRequest("GET", queryUrl, nil)
 		if err != nil {
 			log.Fatal(err)
 		}
