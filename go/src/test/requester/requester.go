@@ -72,6 +72,14 @@ func (req Requester) PostSessions(handle string, password string) (*http.Respons
 	return helper.Execute("POST", req.Routes.sessionsURL, payload)
 }
 
+func (req Requester) PostSessionGetSessionId(handle string, password string) (sessionid string) {
+	res, err := req.PostSessions(handle, password)
+	if err != nil {
+		panic("Unexpected failure to post session.")
+	}
+	return helper.GetSessionFromResponse(res)
+}
+
 func (req Requester) DeleteSessions(handle string) (*http.Response, error) {
 	payload := map[string]interface{}{
 		"handle": handle,
