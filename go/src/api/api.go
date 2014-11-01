@@ -2,6 +2,7 @@ package api
 
 import (
 	"../service"
+	"encoding/json"
 	"fmt"
 	"github.com/ChimeraCoder/go.crypto/bcrypt"
 	"github.com/ant0ine/go-json-rest/rest"
@@ -687,9 +688,9 @@ func (a Api) GetAuthoredMessages(w rest.ResponseWriter, r *rest.Request) {
 		if author, success := a.Svc.GetHandleFromAuthorization(a.getSessionId(r)); !success {
 			w.WriteHeader(400)
 			w.WriteJson(map[string]interface{}{
-				"Response": "Unexpected failure to retrieve owner of session",
-				"Author": author,
-				"Success": success,
+				"Response":  "Unexpected failure to retrieve owner of session",
+				"Author":    author,
+				"Success":   success,
 				"SessionId": a.getSessionId(r),
 			})
 			return
@@ -712,11 +713,16 @@ func (a Api) GetAuthoredMessages(w rest.ResponseWriter, r *rest.Request) {
 				}
 			}
 
+			b, err := json.Marshal(messageData)
+			if err != nil {
+				panicErr(err)
+			}
+
 			w.WriteHeader(200)
 			w.WriteJson(map[string]interface{}{
 				"Response": "Found messages for user " + author,
-				"Objects": messageData,
-				"Count": len(messageData),
+				"Objects":  string(b),
+				"Count":    len(messageData),
 			})
 		}
 	}

@@ -15,6 +15,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 )
 
 // Flag for local testing.
@@ -580,9 +581,9 @@ func (s *TestSuite) TestSearchUsersOK(c *C) {
 		}{}
 		unmarshal(response, &data)
 		type UserResult struct {
-			Handle string `json:"u.handle"`
-			Name   string `json:"u.name"`
-			Id     int    `json:"id(u)"`
+			Handle string
+			Name   string
+			Id     int
 		}
 
 		results := make([]UserResult, 0)
@@ -676,21 +677,28 @@ func (s *TestSuite) TestGetAuthoredMessagesOK(c *C) {
 
 	data := struct {
 		Response string
-		Objects  []interface{}
+		Objects  string
 		Count    int
 	}{}
 	unmarshal(res, &data)
-
-	if obj, ok := data.Objects.(map[string]interface{}); !ok {
-		panic("data.Objects did not uncast")
-	} else {
-		c.Check(data.Response, Equals, "Found messages for user handleA")
-		c.Check(res.StatusCode, Equals, 200)
-		c.Check(data.Count, Equals, 4)
-		c.Check(obj[0]["Author"], Equals, "handleA")
-	    c.Check(obj[2]["Content"], Equals, "The nearest exit may be behind you")
+	type Message struct {
+		Id      string
+		Author  string
+		Content string
+		Created time.Time
 	}
 
+	objects := make([]Message, 0)
+	json.Unmarshal([]byte(data.Objects), &objects)
+
+	c.Check(data.Response, Equals, "Found messages for user handleA")
+	c.Check(res.StatusCode, Equals, 200)
+	c.Check(data.Count, Equals, 4)
+	c.Check(objects[0].Author, Equals, "handleA")
+	c.Check(objects[0].Content, Equals, "Go is going gophers!")
+	c.Check(objects[1].Content, Equals, "Hypothesize about stuff")
+	c.Check(objects[2].Content, Equals, "The nearest exit may be behind you")
+	c.Check(objects[3].Content, Equals, "I make soap.")
 }
 
 //
