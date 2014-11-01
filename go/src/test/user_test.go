@@ -17,7 +17,7 @@ import (
 // 	}
 
 // 	c.Check(helper.GetJsonResponseMessage(response), Equals, "No results found")
-// 	c.Assert(response.StatusCode, Equals, 404)
+// 	c.Check(response.StatusCode, Equals, 404)
 // }
 
 // func (s *TestSuite) TestGetUserOK(c *C) {
@@ -31,7 +31,7 @@ import (
 // 	handle := getJsonUserData(response)
 
 // 	c.Check(handle, Equals, "testing123")
-// 	c.Assert(response.StatusCode, Equals, 200)
+// 	c.Check(response.StatusCode, Equals, 200)
 // }
 
 //
@@ -64,7 +64,7 @@ func (s *TestSuite) TestSearchUsersOK(c *C) {
 
 		results := make([]UserResult, 0)
 		json.Unmarshal([]byte(data.Results), &results)
-		c.Assert(response.StatusCode, Equals, 200)
+		c.Check(response.StatusCode, Equals, 200)
 		c.Check(data.Count, Equals, 3)
 		c.Check(data.Response, Equals, "Search complete")
 		c.Check(data.Reason, Equals, "")
@@ -77,10 +77,9 @@ func (s *TestSuite) TestSearchUsersOK(c *C) {
 //
 
 func (s *TestSuite) TestDeleteUserInvalidUsername(c *C) {
-	req.PostSignup("handleA", "handleA@test.io", "password1", "password1")
+	req.PostSignup("handleA", "test@test.io", "password1", "password1")
 
-	response, _ := req.PostSessions("handleA", "password1")
-	sessionid := helper.GetSessionFromResponse(response)
+	sessionid := req.PostSessionGetSessionId("handleA", "password1")
 
 	response, err := req.DeleteUser("notHandleA", "password1", sessionid)
 	if err != nil {
@@ -88,14 +87,13 @@ func (s *TestSuite) TestDeleteUserInvalidUsername(c *C) {
 	}
 
 	c.Check(helper.GetJsonResponseMessage(response), Equals, "Invalid username or password, please try again.")
-	c.Assert(response.StatusCode, Equals, 400)
+	c.Check(response.StatusCode, Equals, 400)
 }
 
 func (s *TestSuite) TestDeleteUserInvalidPassword(c *C) {
-	req.PostSignup("handleA", "handleA@test.io", "password1", "password1")
+	req.PostSignup("handleA", "test@test.io", "password1", "password1")
 
-	response, _ := req.PostSessions("handleA", "password1")
-	sessionid := helper.GetSessionFromResponse(response)
+	sessionid := req.PostSessionGetSessionId("handleA", "password1")
 
 	response, err := req.DeleteUser("handleA", "notpassword1", sessionid)
 	if err != nil {
@@ -103,24 +101,23 @@ func (s *TestSuite) TestDeleteUserInvalidPassword(c *C) {
 	}
 
 	c.Check(helper.GetJsonResponseMessage(response), Equals, "Invalid username or password, please try again.")
-	c.Assert(response.StatusCode, Equals, 400)
+	c.Check(response.StatusCode, Equals, 400)
 }
 
-func (s *TestSuite) TestDeleteUserOK(c *C) {
-	req.PostSignup("handleA", "handleA@test.io", "password1", "password1")
+// func (s *TestSuite) TestDeleteUserOK(c *C) {
+// 	req.PostSignup("handleA", "test@test.io", "password1", "password1")
 
-	response, _ := req.PostSessions("handleA", "password1")
-	sessionid := helper.GetSessionFromResponse(response)
+// 	sessionid := req.PostSessionGetSessionId("handleA", "password1")
 
-	deleteUserResponse, err := req.DeleteUser("handleA", "password1", sessionid)
-	if err != nil {
-		c.Error(err)
-	}
-	// TODO check if user really deleted
-	// getUserResponse, err := getUser("handleA")
-	// if err != nil {
-	// 	c.Error(err)
-	// }
+// 	deleteUserResponse, err := req.DeleteUser("handleA", "password1", sessionid)
+// 	if err != nil {
+// 		c.Error(err)
+// 	}
+// 	// TODO check if user really deleted
+// 	// getUserResponse, err := getUser("handleA")
+// 	// if err != nil {
+// 	// 	c.Error(err)
+// 	// }
 
-	c.Check(deleteUserResponse.StatusCode, Equals, 204)
-}
+// 	c.Check(deleteUserResponse.StatusCode, Equals, 204)
+// }
