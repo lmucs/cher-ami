@@ -32,7 +32,7 @@ type Svc struct {
 //
 type Message struct {
 	Id      string    `json:"m.id"`
-	Author  string    `json:"m.author"`
+	Author  string    `json:"u.handle"`
 	Content string    `json:"m.content"`
 	Created time.Time `json:"m.created"`
 }
@@ -737,13 +737,13 @@ func (s Svc) GetMessagesByHandle(handle string) []Message {
 	messages := make([]Message, 0)
 	if err := s.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
-            MATCH (u:User)-[:WROTE]->(m:Message)
-            WHERE u.handle = {handle}
-            RETURN m.id
-                 , u.handle
-                 , m.content
-                 , m.created
-            ORDER BY m.created
+            MATCH     (u:User)-[:WROTE]->(m:Message)
+            WHERE     u.handle = {handle}
+            RETURN    m.id
+                    , u.handle
+                    , m.content
+                    , m.created
+            ORDER BY  m.created
         `,
 		Parameters: neoism.Props{
 			"handle": handle,
@@ -762,10 +762,10 @@ func (s Svc) GetHandleFromAuthorization(token string) (string, bool) {
 	}{}
 	if err := s.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
-			MATCH  (u:User)<-[:SESSION_OF]-(a:AuthToken)
-			WHERE  a.sessionid = {sessionid}
-			AND    a.expires   < {now}
-			RETURN u.handle
+			MATCH   (u:User)<-[:SESSION_OF]-(a:AuthToken)
+			WHERE   a.sessionid = {sessionid}
+			AND     {now} < a.expires
+			RETURN  u.handle
 		`,
 		Parameters: neoism.Props{
 			"sessionid": token,
@@ -776,10 +776,10 @@ func (s Svc) GetHandleFromAuthorization(token string) (string, bool) {
 		panicErr(err)
 	}
 
-	if len(found) > 0 {
-		return found[0].Handle, len(found) > 0
+	if success := len(found) > 0; success {
+		return found[0].Handle, success
 	} else {
-		return "", len(found) > 0
+		return "", success
 	}
 }
 

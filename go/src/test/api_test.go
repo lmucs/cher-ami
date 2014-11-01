@@ -77,7 +77,7 @@ func (s *TestSuite) SetUpSuite(c *C) {
 
 	a = api.NewApi(uri)
 
-	handler, err := routes.MakeHandler(*a, true)
+	handler, err := routes.MakeHandler(*a, false)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -674,7 +674,23 @@ func (s *TestSuite) TestGetAuthoredMessagesOK(c *C) {
 
 	res, _ := getAuthoredMessages("handleA", sessionid_A)
 
-	fmt.Printf("%+v", res)
+	data := struct {
+		Response string
+		Objects  []interface{}
+		Count    int
+	}{}
+	unmarshal(res, &data)
+
+	if obj, ok := data.Objects.(map[string]interface{}); !ok {
+		panic("data.Objects did not uncast")
+	} else {
+		c.Check(data.Response, Equals, "Found messages for user handleA")
+		c.Check(res.StatusCode, Equals, 200)
+		c.Check(data.Count, Equals, 4)
+		c.Check(obj[0]["Author"], Equals, "handleA")
+	    c.Check(obj[2]["Content"], Equals, "The nearest exit may be behind you")
+	}
+
 }
 
 //

@@ -569,15 +569,14 @@ func (a Api) NewMessage(w rest.ResponseWriter, r *rest.Request) {
 
 	handle := ""
 	if payload.Handle == "" {
-		sessionid := a.getSessionId(r)
-		if h, ok := a.Svc.GetHandleFromAuthorization(sessionid); !ok {
-			handle = h
-		} else {
+		if h, ok := a.Svc.GetHandleFromAuthorization(a.getSessionId(r)); !ok {
 			w.WriteHeader(400)
 			w.WriteJson(map[string]string{
 				"Response": "Unexpected failure to retrieve owner of session",
 			})
 			return
+		} else {
+			handle = h
 		}
 	} else {
 		handle = payload.Handle
@@ -687,8 +686,11 @@ func (a Api) GetAuthoredMessages(w rest.ResponseWriter, r *rest.Request) {
 	} else {
 		if author, success := a.Svc.GetHandleFromAuthorization(a.getSessionId(r)); !success {
 			w.WriteHeader(400)
-			w.WriteJson(map[string]string{
+			w.WriteJson(map[string]interface{}{
 				"Response": "Unexpected failure to retrieve owner of session",
+				"Author": author,
+				"Success": success,
+				"SessionId": a.getSessionId(r),
 			})
 			return
 		} else {
@@ -699,7 +701,7 @@ func (a Api) GetAuthoredMessages(w rest.ResponseWriter, r *rest.Request) {
 				Date    time.Time
 			}
 			messages := a.Svc.GetMessagesByHandle(author)
-			messageData := make([]MessageData, 0, len(messages))
+			messageData := make([]MessageData, len(messages))
 
 			for i := 0; i < len(messages); i++ {
 				messageData[i] = MessageData{
@@ -711,7 +713,11 @@ func (a Api) GetAuthoredMessages(w rest.ResponseWriter, r *rest.Request) {
 			}
 
 			w.WriteHeader(200)
-			w.WriteJson(messageData)
+			w.WriteJson(map[string]interface{}{
+				"Response": "Found messages for user " + author,
+				"Objects": messageData,
+				"Count": len(messageData),
+			})
 		}
 	}
 }
