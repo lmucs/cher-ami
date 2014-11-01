@@ -55,6 +55,12 @@ func (a Api) authenticate(r *rest.Request) (success bool) {
 	}
 }
 
+func (a Api) writeSimpleJsonResponse(w rest.ResponseWriter, code int, message string) {
+	w.WriteHeader(code)
+	w.WriteJson(map[string]string{"Response": message})
+}
+
+
 //
 // API
 //
@@ -86,31 +92,19 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 
 	// Handle and Email checks
 	if handle == "" {
-		w.WriteHeader(400)
-		w.WriteJson(map[string]string{
-			"Response": "Handle is a required field for signup",
-		})
+		a.writeSimpleJsonResponse(w, 400, "Handle is a required field for signup")
 		return
 	} else if email == "" {
-		w.WriteHeader(400)
-		w.WriteJson(map[string]string{
-			"Response": "Email is a required field for signup",
-		})
+		a.writeSimpleJsonResponse(w, 400, "Email is a required field for signup")
 		return
 	}
 
 	// Password checks
 	if password != confirm_password {
-		w.WriteHeader(400)
-		w.WriteJson(map[string]string{
-			"Response": "Passwords do not match",
-		})
+		a.writeSimpleJsonResponse(w, 400, "Passwords do not match")
 		return
 	} else if len(password) < MIN_PASS_LENGTH {
-		w.WriteHeader(400)
-		w.WriteJson(map[string]string{
-			"Response": "Passwords must be at least 8 characters long",
-		})
+		a.writeSimpleJsonResponse(w, 400, "Passwords must be at least 8 characters long")
 		return
 	}
 
@@ -119,10 +113,7 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 		rest.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	} else if !unique {
-		w.WriteHeader(400)
-		w.WriteJson(map[string]string{
-			"Response": "Sorry, handle or email is already taken",
-		})
+		a.writeSimpleJsonResponse(w, 400, "Sorry, handle or email is already taken")
 		return
 	}
 
@@ -131,10 +122,7 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 		rest.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	} else if !unique {
-		w.WriteHeader(400)
-		w.WriteJson(map[string]string{
-			"Response": "Sorry, handle or email is already taken",
-		})
+		a.writeSimpleJsonResponse(w, 400, "Sorry, handle or email is already taken")
 		return
 	}
 
