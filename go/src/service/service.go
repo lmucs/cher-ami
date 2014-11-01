@@ -297,13 +297,13 @@ func (s Svc) UserIsMemberOf(handle string, circleid string) bool {
 // Creation
 //
 
-func (s Svc) CreateNewUser(handle string, email string, password string) error {
+func (s Svc) CreateNewUser(handle string, email string, password string) bool {
 	newUser := []struct {
 		Handle string    `json:"user.handle"`
 		Email  string    `json:"user.email"`
 		Joined time.Time `json:"user.joined"`
 	}{}
-	err := s.Db.Cypher(&neoism.CypherQuery{
+	if err := s.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
             CREATE (user:User {
                 handle:   {handle},
@@ -321,17 +321,20 @@ func (s Svc) CreateNewUser(handle string, email string, password string) error {
 			"joined":   time.Now().Local(),
 		},
 		Result: &newUser,
-	})
-	return err
+	}); err != nil {
+		panicErr(err)
+	}
+
+	return len(newUser) > 0
 }
 
-func (s Svc) MakeDefaultCirclesFor(handle string) error {
-	made := []struct {
+func (s Svc) MakeDefaultCirclesFor(handle string) bool {
+	created := []struct {
 		Handle    string `json:"u.handle"`
 		Gold      string `json:"g.name"`
 		Broadcast string `json:"br.name"`
 	}{}
-	err := s.Db.Cypher(&neoism.CypherQuery{
+	if err := s.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
             MATCH (p:PublicDomain)
             WHERE p.iam = "PublicDomain"
@@ -349,21 +352,21 @@ func (s Svc) MakeDefaultCirclesFor(handle string) error {
 			"gold":      GOLD,
 			"broadcast": BROADCAST,
 		},
-		Result: &made,
-	})
-	if len(made) != 1 {
-		panic(fmt.Sprintf("Incorrect results len in query1()\n\tgot %d, expected 1\n", len(made)))
+		Result: &created,
+	}); err != nil {
+		panicErr(err)
 	}
-	return err
+
+	return len(created) > 0
 }
 
-func (s Svc) NewCircle(handle string, circle_name string, isPublic bool) error {
+func (s Svc) NewCircle(handle string, circle_name string, isPublic bool) bool {
 	query := `
-        MATCH (u:User)
-        WHERE u.handle = {handle}
-        CREATE (u)-[:CHIEF_OF]->(c:Circle)
-        SET c.name = {name}
-        SET c.id = {id}
+        MATCH   (u:User)
+        WHERE   u.handle = {handle}
+        CREATE  (u)-[:CHIEF_OF]->(c:Circle)
+        SET     c.name = {name}
+        SET     c.id = {id}
     `
 	if isPublic {
 		query = query + `
@@ -377,26 +380,22 @@ func (s Svc) NewCircle(handle string, circle_name string, isPublic bool) error {
         RETURN c.name
     `
 
-	made := []struct {
+	created := []struct {
 		CircleName string `json:"c.name"`
 	}{}
-	err := s.Db.Cypher(&neoism.CypherQuery{
+	if err := s.Db.Cypher(&neoism.CypherQuery{
 		Statement: query,
 		Parameters: neoism.Props{
 			"handle": handle,
 			"name":   circle_name,
 			"id":     uniuri.NewLen(uniuri.UUIDLen),
 		},
-		Result: &made,
-	})
-	if err != nil {
+		Result: &created,
+	}); err != nil {
 		panicErr(err)
 	}
-	if len(made) != 1 {
-		panic(fmt.Sprintf("Incorrect results len in query1()\n\tgot %d, expected 1\n", len(made)))
-	}
 
-	return err
+	return len(created) > 0
 }
 
 func (s Svc) NewMessage(handle string, content string) bool {

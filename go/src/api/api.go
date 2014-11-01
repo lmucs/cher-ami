@@ -137,12 +137,14 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 	} else {
 		hashed_pass = string(hash)
 	}
-	if err := a.Svc.CreateNewUser(handle, email, hashed_pass); err != nil {
-		panicErr(err)
+	if !a.Svc.CreateNewUser(handle, email, hashed_pass) {
+		a.Resp.SimpleJsonResponse(w, 400, "Unexpected failure to create new user")
+		return
 	}
 
-	if err := a.Svc.MakeDefaultCirclesFor(handle); err != nil {
-		panicErr(err)
+	if !a.Svc.MakeDefaultCirclesFor(handle) {
+		a.Resp.SimpleJsonResponse(w, 400, "Unexpected failure to make default circles")
+		return
 	}
 
 	w.WriteHeader(201)
