@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	c, err := goconfig.ReadConfigFile("../../config.cfg")
+	c, err := goconfig.ReadConfigFile("../config.cfg")
 	port, err := c.GetString("default", "server-port")
 	var uri string
 	if len(os.Args) > 1 {

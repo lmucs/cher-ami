@@ -46,7 +46,7 @@ var _ = Suite(&TestSuite{})
 //
 
 func (s *TestSuite) SetUpSuite(c *C) {
-	config, err := goconfig.ReadConfigFile("../../../config.cfg")
+	config, err := goconfig.ReadConfigFile("../../config.cfg")
 	var location string
 	if *local {
 		location = "local-test"
