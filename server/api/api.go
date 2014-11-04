@@ -2,7 +2,7 @@ package api
 
 import (
 	"../service"
-	"./responses"
+	"./api-util"
 	encoding "encoding/json"
 	"github.com/ChimeraCoder/go.crypto/bcrypt"
 	"github.com/ant0ine/go-json-rest/rest"

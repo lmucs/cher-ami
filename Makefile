@@ -1,23 +1,23 @@
-WEB_SRC = web/src
-WEB_ROOT = web
-GO_SRC = go/src
-GO_TEST_SRC = go/src/test
+WEB_ROOT        = web
+WEB_SRC         = web/src
+API_SERVER      = server
+API_TEST_DIR    = server/test
 
 .PHONY: start
 start:
-	cd $(GO_SRC); go run main.go
+	cd $(API_SERVER); go run api-server.go
 
 .PHONY: local
 local:
-	cd $(GO_SRC); go run main.go local
+	cd $(API_SERVER); go run api-server.go local
 
 .PHONY: test
 test:
-	cd $(GO_TEST_SRC); go test -check.v
+	cd $(API_TEST_DIR); go test -check.v
 
 .PHONY: localtest
 localtest:
-	cd $(GO_TEST_SRC); go test -check.v -local=true
+	cd $(API_TEST_DIR); go test -check.v -local=true
 
 .PHONY: serve
 serve:
@@ -32,12 +32,12 @@ install-test-reqs:
 	npm install karma --save-dev
 	npm install -g karma-cli
 
-.PHONY: deps
+.PHONY: install-deps
 install-deps:
 	@echo '--------------------------'
 	@echo 'Getting Go dependencies...'
 	@echo '--------------------------'
-	cd $(GO_SRC); go get all; cd ../..
+	cd $(API_SERVER); go get all; cd ..
 	@echo '-----------------'
 	@echo 'Packages installed.'
 	@echo '-----------------'
@@ -47,7 +47,7 @@ update-deps:
 	@echo '---------------------------'
 	@echo 'Updating Go dependencies...'
 	@echo '---------------------------'
-	cd $(GO_SRC); go get -u all; cd ../..
+	cd $(API_SERVER); go get -u all; cd ..
 	@echo '-----------------'
 	@echo 'Packages updated.'
 	@echo '-----------------'
