@@ -2,7 +2,7 @@ package api
 
 import (
 	"../service"
-	"./api-util"
+	apiutil "./api-util"
 	encoding "encoding/json"
 	"github.com/ChimeraCoder/go.crypto/bcrypt"
 	"github.com/ant0ine/go-json-rest/rest"
@@ -25,7 +25,7 @@ func panicErr(err error) {
 
 type Api struct {
 	Svc  *service.Svc
-	Resp *responses.Resp
+	Util *apiutil.Util
 }
 
 /**
@@ -34,7 +34,7 @@ type Api struct {
 func NewApi(uri string) *Api {
 	api := &Api{
 		service.NewService(uri),
-		&responses.Resp{},
+		&apiutil.Util{},
 	}
 	return api
 }
@@ -95,19 +95,19 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 
 	// Handle and Email checks
 	if handle == "" {
-		a.Resp.SimpleJsonResponse(w, 400, "Handle is a required field for signup")
+		a.Util.SimpleJsonResponse(w, 400, "Handle is a required field for signup")
 		return
 	} else if email == "" {
-		a.Resp.SimpleJsonResponse(w, 400, "Email is a required field for signup")
+		a.Util.SimpleJsonResponse(w, 400, "Email is a required field for signup")
 		return
 	}
 
 	// Password checks
 	if password != confirm_password {
-		a.Resp.SimpleJsonResponse(w, 400, "Passwords do not match")
+		a.Util.SimpleJsonResponse(w, 400, "Passwords do not match")
 		return
 	} else if len(password) < MIN_PASS_LENGTH {
-		a.Resp.SimpleJsonResponse(w, 400, "Passwords must be at least 8 characters long")
+		a.Util.SimpleJsonResponse(w, 400, "Passwords must be at least 8 characters long")
 		return
 	}
 
@@ -116,7 +116,7 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 		rest.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	} else if !unique {
-		a.Resp.SimpleJsonResponse(w, 400, "Sorry, handle or email is already taken")
+		a.Util.SimpleJsonResponse(w, 400, "Sorry, handle or email is already taken")
 		return
 	}
 
@@ -125,7 +125,7 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 		rest.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	} else if !unique {
-		a.Resp.SimpleJsonResponse(w, 400, "Sorry, handle or email is already taken")
+		a.Util.SimpleJsonResponse(w, 400, "Sorry, handle or email is already taken")
 		return
 	}
 
@@ -137,12 +137,12 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 		hashed_pass = string(hash)
 	}
 	if !a.Svc.CreateNewUser(handle, email, hashed_pass) {
-		a.Resp.SimpleJsonResponse(w, 400, "Unexpected failure to create new user")
+		a.Util.SimpleJsonResponse(w, 400, "Unexpected failure to create new user")
 		return
 	}
 
 	if !a.Svc.MakeDefaultCirclesFor(handle) {
-		a.Resp.SimpleJsonResponse(w, 400, "Unexpected failure to make default circles")
+		a.Util.SimpleJsonResponse(w, 400, "Unexpected failure to make default circles")
 		return
 	}
 
@@ -168,12 +168,12 @@ func (a Api) Login(w rest.ResponseWriter, r *rest.Request) {
 	password := []byte(credentials.Password)
 
 	if passwordHash, ok := a.Svc.GetPasswordHash(handle); !ok {
-		a.Resp.SimpleJsonResponse(w, 403, "Invalid username or password, please try again.")
+		a.Util.SimpleJsonResponse(w, 403, "Invalid username or password, please try again.")
 		return
 	} else {
 		// err is nil if successful, error if comparison failed
 		if err := bcrypt.CompareHashAndPassword(passwordHash, password); err != nil {
-			a.Resp.SimpleJsonResponse(w, 403, "Invalid username or password, please try again.")
+			a.Util.SimpleJsonResponse(w, 403, "Invalid username or password, please try again.")
 			return
 		} else {
 			// Create an authentication node and return it to client
@@ -209,7 +209,7 @@ func (a Api) Logout(w rest.ResponseWriter, r *rest.Request) {
 		return
 	} else {
 
-		a.Resp.SimpleJsonResponse(w, 403, "Cannot invalidate token because it is missing")
+		a.Util.SimpleJsonResponse(w, 403, "Cannot invalidate token because it is missing")
 		return
 	}
 }
@@ -233,7 +233,7 @@ func (a Api) ChangePassword(w rest.ResponseWriter, r *rest.Request) {
 	confirmNewPassword := user.ConfirmNewPassword
 
 	if !a.authenticate(r) {
-		a.Resp.FailedToAuthenticate(w)
+		a.Util.FailedToAuthenticate(w)
 		return
 	}
 
@@ -245,12 +245,12 @@ func (a Api) ChangePassword(w rest.ResponseWriter, r *rest.Request) {
 		})
 		return
 	} else if len(newPassword) < MIN_PASS_LENGTH {
-		a.Resp.SimpleJsonResponse(w, 400, "Passwords must be at least 8 characters long")
+		a.Util.SimpleJsonResponse(w, 400, "Passwords must be at least 8 characters long")
 		return
 	}
 
 	if passwordHash, ok := a.Svc.GetPasswordHash(handle); !ok {
-		a.Resp.SimpleJsonResponse(w, 400, "Invalid username or password, please try again.")
+		a.Util.SimpleJsonResponse(w, 400, "Invalid username or password, please try again.")
 		return
 	} else {
 		// err is nil if successful, error
@@ -261,7 +261,7 @@ func (a Api) ChangePassword(w rest.ResponseWriter, r *rest.Request) {
 			})
 			return
 		} else if err := bcrypt.CompareHashAndPassword(passwordHash, []byte(newPassword)); err == nil {
-			a.Resp.SimpleJsonResponse(w, 400, "Current/new password are same, please provide a new password.")
+			a.Util.SimpleJsonResponse(w, 400, "Current/new password are same, please provide a new password.")
 			return
 		} else {
 			if hash, err := bcrypt.GenerateFromPassword([]byte(newPassword), 10); err != nil {
@@ -271,7 +271,7 @@ func (a Api) ChangePassword(w rest.ResponseWriter, r *rest.Request) {
 				hashed_new_pass := string(hash)
 				// Now set the new password
 				if !a.Svc.SetNewPassword(handle, hashed_new_pass) {
-					a.Resp.SimpleJsonResponse(w, 400, "Password change unsuccessful")
+					a.Util.SimpleJsonResponse(w, 400, "Password change unsuccessful")
 					return
 				} else {
 					// No JSON is written.
@@ -397,7 +397,7 @@ func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
 	password := []byte(credentials.Password)
 
 	if !a.authenticate(r) {
-		a.Resp.FailedToAuthenticate(w)
+		a.Util.FailedToAuthenticate(w)
 		return
 	}
 
@@ -449,21 +449,21 @@ func (a Api) NewCircle(w rest.ResponseWriter, r *rest.Request) {
 	isPublic := payload.Public
 
 	if !a.authenticate(r) {
-		a.Resp.FailedToAuthenticate(w)
+		a.Util.FailedToAuthenticate(w)
 		return
 	}
 
 	if circleName == GOLD || circleName == BROADCAST {
-		a.Resp.SimpleJsonResponse(w, 403, circleName+" is a reserved circle name")
+		a.Util.SimpleJsonResponse(w, 403, circleName+" is a reserved circle name")
 		return
 	}
 
 	if !a.Svc.NewCircle(handle, circleName, isPublic) {
-		a.Resp.SimpleJsonResponse(w, 400, "Unexpected failure to create circle")
+		a.Util.SimpleJsonResponse(w, 400, "Unexpected failure to create circle")
 		return
 	}
 
-	a.Resp.SimpleJsonResponse(w, 201, "Created new circle "+circleName+" for "+handle)
+	a.Util.SimpleJsonResponse(w, 201, "Created new circle "+circleName+" for "+handle)
 }
 
 //
@@ -500,17 +500,17 @@ func (a Api) NewMessage(w rest.ResponseWriter, r *rest.Request) {
 	content := payload.Content
 
 	if !a.authenticate(r) {
-		a.Resp.FailedToAuthenticate(w)
+		a.Util.FailedToAuthenticate(w)
 		return
 	}
 
 	if payload.Content == "" {
-		a.Resp.SimpleJsonResponse(w, 400, "Please enter some content for your message")
+		a.Util.SimpleJsonResponse(w, 400, "Please enter some content for your message")
 		return
 	}
 
 	if !a.Svc.NewMessage(handle, content) {
-		a.Resp.SimpleJsonResponse(w, 400, "No message created")
+		a.Util.SimpleJsonResponse(w, 400, "No message created")
 	} else {
 		w.WriteHeader(201)
 		w.WriteJson(json{
@@ -540,7 +540,7 @@ func (a Api) PublishMessage(w rest.ResponseWriter, r *rest.Request) {
 	messageid := payload.MessageId
 
 	if !a.authenticate(r) {
-		a.Resp.FailedToAuthenticate(w)
+		a.Util.FailedToAuthenticate(w)
 		return
 	}
 
@@ -554,17 +554,17 @@ func (a Api) PublishMessage(w rest.ResponseWriter, r *rest.Request) {
 	}
 
 	if !a.Svc.CanSeeCircle(handle, circleid) {
-		a.Resp.SimpleJsonResponse(w, 400, "Could not find specified circle to publish to")
+		a.Util.SimpleJsonResponse(w, 400, "Could not find specified circle to publish to")
 		return
 	} else if !a.Svc.MessageExists(messageid) {
-		a.Resp.SimpleJsonResponse(w, 400, "Could not find intended message for publishing")
+		a.Util.SimpleJsonResponse(w, 400, "Could not find intended message for publishing")
 		return
 	}
 
 	if !a.Svc.PublishMessage(messageid, circleid) {
-		a.Resp.SimpleJsonResponse(w, 400, "Bad request, no message published")
+		a.Util.SimpleJsonResponse(w, 400, "Bad request, no message published")
 	} else {
-		a.Resp.SimpleJsonResponse(w, 201, "Success! Published message to "+circleid)
+		a.Util.SimpleJsonResponse(w, 201, "Success! Published message to "+circleid)
 	}
 }
 
@@ -573,7 +573,7 @@ func (a Api) PublishMessage(w rest.ResponseWriter, r *rest.Request) {
  */
 func (a Api) GetAuthoredMessages(w rest.ResponseWriter, r *rest.Request) {
 	if !a.authenticate(r) {
-		a.Resp.FailedToAuthenticate(w)
+		a.Util.FailedToAuthenticate(w)
 		return
 	}
 
@@ -639,7 +639,7 @@ func (a Api) GetMessagesByHandle(w rest.ResponseWriter, r *rest.Request) {
 	handle := querymap["handle"][0]
 
 	if !a.authenticate(r) {
-		a.Resp.FailedToAuthenticate(w)
+		a.Util.FailedToAuthenticate(w)
 		return
 	}
 
@@ -691,7 +691,7 @@ func (a Api) DeleteMessage(w rest.ResponseWriter, r *rest.Request) {
 	lastsaved := payload.LastSaved
 
 	if !a.authenticate(r) {
-		a.Resp.FailedToAuthenticate(w)
+		a.Util.FailedToAuthenticate(w)
 		return
 	}
 
@@ -739,21 +739,21 @@ func (a Api) BlockUser(w rest.ResponseWriter, r *rest.Request) {
 	target := payload.Target
 
 	if !a.authenticate(r) {
-		a.Resp.FailedToAuthenticate(w)
+		a.Util.FailedToAuthenticate(w)
 		return
 	}
 
 	if !a.Svc.UserExists(target) {
-		a.Resp.SimpleJsonResponse(w, 400, "Bad request, user "+target+" wasn't found")
+		a.Util.SimpleJsonResponse(w, 400, "Bad request, user "+target+" wasn't found")
 		return
 	}
 
 	a.Svc.RevokeMembershipBetween(handle, target)
 
 	if !a.Svc.CreateBlockFromTo(handle, target) {
-		a.Resp.SimpleJsonResponse(w, 400, "Unexpected failure to block user")
+		a.Util.SimpleJsonResponse(w, 400, "Unexpected failure to block user")
 	} else {
-		a.Resp.SimpleJsonResponse(w, 200, "User "+target+" has been blocked")
+		a.Util.SimpleJsonResponse(w, 200, "User "+target+" has been blocked")
 	}
 }
 
@@ -771,24 +771,24 @@ func (a Api) JoinDefault(w rest.ResponseWriter, r *rest.Request) {
 	target := payload.Target
 
 	if !a.authenticate(r) {
-		a.Resp.FailedToAuthenticate(w)
+		a.Util.FailedToAuthenticate(w)
 		return
 	}
 
 	if !a.Svc.UserExists(target) {
-		a.Resp.SimpleJsonResponse(w, 400, "Bad request, user "+target+" wasn't found")
+		a.Util.SimpleJsonResponse(w, 400, "Bad request, user "+target+" wasn't found")
 		return
 	}
 
 	if a.Svc.BlockExistsFromTo(target, handle) {
-		a.Resp.SimpleJsonResponse(w, 403, "Server refusal to comply with join request")
+		a.Util.SimpleJsonResponse(w, 403, "Server refusal to comply with join request")
 		return
 	}
 
 	if !a.Svc.JoinBroadcast(handle, target) {
-		a.Resp.SimpleJsonResponse(w, 400, "Unexpected failure to join Broadcast")
+		a.Util.SimpleJsonResponse(w, 400, "Unexpected failure to join Broadcast")
 	} else {
-		a.Resp.SimpleJsonResponse(w, 201, "JoinDefault request successful!")
+		a.Util.SimpleJsonResponse(w, 201, "JoinDefault request successful!")
 	}
 }
 
@@ -813,23 +813,23 @@ func (a Api) Join(w rest.ResponseWriter, r *rest.Request) {
 	circleid := payload.CircleId
 
 	if !a.authenticate(r) {
-		a.Resp.FailedToAuthenticate(w)
+		a.Util.FailedToAuthenticate(w)
 		return
 	}
 
 	if !a.Svc.UserExists(target) {
-		a.Resp.SimpleJsonResponse(w, 400, "Bad request, user "+target+" wasn't found")
+		a.Util.SimpleJsonResponse(w, 400, "Bad request, user "+target+" wasn't found")
 		return
 	}
 
 	if a.Svc.BlockExistsFromTo(target, handle) {
-		a.Resp.SimpleJsonResponse(w, 403, "Server refusal to comply with join request")
+		a.Util.SimpleJsonResponse(w, 403, "Server refusal to comply with join request")
 		return
 	}
 
 	if circleid == "" {
 		if id := a.Svc.GetCircleId(target, circle); id == "" {
-			a.Resp.SimpleJsonResponse(w, 404, "Could not find target circle, join failed")
+			a.Util.SimpleJsonResponse(w, 404, "Could not find target circle, join failed")
 			return
 		} else {
 			circleid = id
@@ -837,13 +837,13 @@ func (a Api) Join(w rest.ResponseWriter, r *rest.Request) {
 	}
 
 	if !a.Svc.CanSeeCircle(handle, circleid) {
-		a.Resp.SimpleJsonResponse(w, 404, "Could not find target circle, join failed")
+		a.Util.SimpleJsonResponse(w, 404, "Could not find target circle, join failed")
 		return
 	}
 
 	if a.Svc.JoinCircle(handle, circleid) {
-		a.Resp.SimpleJsonResponse(w, 201, "Join request successful!")
+		a.Util.SimpleJsonResponse(w, 201, "Join request successful!")
 	} else {
-		a.Resp.SimpleJsonResponse(w, 400, "Unexpected failure to join circle, join failed")
+		a.Util.SimpleJsonResponse(w, 400, "Unexpected failure to join circle, join failed")
 	}
 }
