@@ -63,8 +63,8 @@
   , "uri":            "/users/:handle"
   , "desc":           "Get single user"
   , "testing":        1
-  , "implementation": 2
-  , "note":           "route doesn't follow specs, takes in query params"
+  , "implementation": 0
+  , "note":           "Not functional/implemented"
 }
 ```
 
@@ -73,9 +73,9 @@
     "method": "GET"
   , "uri":    "/users"
   , "desc":   "Search For Users"
-  , "testing":        2
+  , "testing":        4
   , "implementation": 4
-  , "note":           "needs a thorough testing to 8-8"
+  , "note":           "needs a thorough testing to 8-8, probably safe to use based on limited testing."
 }
 ```
 
@@ -85,8 +85,8 @@
   , "uri":            "/users/:handle"
   , "desc":           "Delete User"
   , "testing":        4
-  , "implementation": 4
-  , "note":           "needs GET /user for complete testing"
+  , "implementation": 1
+  , "note":           "needs GET /user for complete testing, a bug certainly exists in its implementation."
 }
 ```
 
@@ -95,9 +95,9 @@
     "method":         "GET"
   , "uri":            "/messages"
   , "desc":           "Get Authored Messages"
-  , "testing":        0
-  , "implementation": 1
-  , "note":           "artifact implementation."
+  , "testing":        4
+  , "implementation": 4
+  , "note":           "implementation does not fully match specs. This route just simply returns all the messages written by the logged-in user without extra parameters like target circle and pagination."
 }
 ```
 
@@ -108,7 +108,7 @@
   , "desc":           "Get Messages By Handle"
   , "testing":        0
   , "implementation": 1
-  , "note":           "artifact implementation."
+  , "note":           "artifact implementation, is implemented in the service layer--api layer needs a refactor for this."
 }
 ```
 
