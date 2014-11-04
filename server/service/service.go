@@ -755,6 +755,32 @@ func (s Svc) GetMessagesByHandle(handle string) []Message {
 	return messages
 }
 
+func (s Svc) GetMessageById(messageid string) (*Message, bool){
+	messages := make([]Message, 0)
+	if err := s.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+			MATCH   (u:User)-[:WROTE]->(m:Message)
+			WHERE   m.id = {messageid}
+			RETURN  m.id
+	              , u.handle
+	              , m.content
+	              , m.created
+		`,
+		Parameters: neoism.Props{
+			"messageid": messageid,
+		},
+		Result: &messages,
+	}); err != nil {
+		panicErr(err)
+	}
+
+	if success := len(messages) > 0; success {
+		return &messages[0], success
+	} else {
+		return nil, success
+	}
+}
+
 func (s Svc) GetHandleFromAuthorization(token string) (string, bool) {
 	found := []struct {
 		Handle string `json:"u.handle"`
