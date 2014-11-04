@@ -1,7 +1,7 @@
 WEB_ROOT        = web
 WEB_SRC         = web/src
-API_SERVER      = api-server
-API_TEST_DIR    = api-server/test
+API_SERVER      = server
+API_TEST_DIR    = server/test
 
 .PHONY: start
 start:
@@ -32,7 +32,7 @@ install-test-reqs:
 	npm install karma --save-dev
 	npm install -g karma-cli
 
-.PHONY: deps
+.PHONY: install-deps
 install-deps:
 	@echo '--------------------------'
 	@echo 'Getting Go dependencies...'
