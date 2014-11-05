@@ -22,6 +22,9 @@ define(function(require, exports, module) {
     var SidebarView = require('app/views/sidebar-view').SidebarView;
     var Comment = require('app/models/comment').Comment;
     var Comments = require('app/collections/comments').Comments;
+
+    var LandingLayout = require('app/layouts/landing-layout').LandingLayout;
+
     var AppController = marionette.Controller.extend({
 
         initialize: function(options) {
@@ -48,6 +51,7 @@ define(function(require, exports, module) {
                 }));
             }
 
+            // this.app.mainRegion.show(new LandingLayout());
             // Initialization of views will go here.
             this.app.headerRegion.show(new HeaderView());
         },

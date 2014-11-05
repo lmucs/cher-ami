@@ -7,7 +7,8 @@ define(function(require, exports, module) {
         template: template,
 
         regions: {
-
+            signup: '#signUpContainer',
+            login: '#loginContainer'
         },
 
         initialize: function(options) {

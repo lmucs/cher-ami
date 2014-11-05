@@ -83,6 +83,21 @@ h1 {
     min-width: 50%;
     margin-left: 24%;
 }
+
+#loginContainer {
+    border-radius: 14px;
+    /*background-color: lightblue;*/
+    background: hsla(181, 100%, 87%, 0.4); 
+    box-shadow: 0 1px 5px rgba(0,0,0,0.75);
+
+    padding-top: 15px;
+    padding-bottom: 15px;
+    padding-right: 20px;
+    padding-left: 20px;
+    max-width: 55%;
+    min-width: 50%;
+    margin-left: 24%;
+}
 .col-sm-6 {
     width: 80%;
 }
