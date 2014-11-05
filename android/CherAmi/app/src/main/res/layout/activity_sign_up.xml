@@ -42,7 +42,7 @@
         android:layout_alignParentRight="true"
         android:layout_below="@id/confirmPassword"
         android:text="Create Account"
-        android:onClick="attemptCreateAccount"
+        android:onClick="signupButtonClicked"
         android:id="@+id/button" />
     <Button
         android:id="@+id/login"

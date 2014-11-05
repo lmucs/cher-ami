@@ -72,9 +72,24 @@ public class SignUpActivity extends Activity {
         finish();
     }
 
-    public void attemptCreateAccount(View view) {
-        AsyncHttpClient client = new AsyncHttpClient();
+    public String getLocalUrlForApi () {
+        AssetManager assetManager = getResources().getAssets();
+        InputStream inputStream = null;
+        try {
+            inputStream = assetManager.open("config.properties");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        Properties properties = new Properties();
+        try {
+            properties.load(inputStream);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return properties.getProperty("myUrl");
+    }
 
+    public JSONObject getUserObjectRequestAsJson () {
         JSONObject jsonParams = new JSONObject();
         try {
             jsonParams.put("handle", mUsername.getText().toString());
@@ -84,14 +99,25 @@ public class SignUpActivity extends Activity {
         } catch (JSONException j) {
             System.out.println("DONT LIKE JSON!");
         }
+        return jsonParams;
+    }
+
+    public StringEntity convertJsonUserToStringEntity (JSONObject jsonParams) {
         StringEntity entity = null;
         try {
             entity = new StringEntity(jsonParams.toString());
         } catch (UnsupportedEncodingException i) {
             System.out.println("DONT LIKE TO STRING!");
         }
+        return entity;
+    }
 
-        client.post(this.getApplicationContext(), "http://10.0.1.29:8228/api/signup", entity, "application/json", new AsyncHttpResponseHandler() {
+    public void attemptCreateAccount() {
+        AsyncHttpClient client = new AsyncHttpClient();
+
+        client.post(this.getApplicationContext(), "http://" + getLocalUrlForApi() + "/api/signup",
+                    convertJsonUserToStringEntity(getUserObjectRequestAsJson()), "application/json",
+                    new AsyncHttpResponseHandler() {
 
             @Override
             public void onStart() {
@@ -106,19 +132,33 @@ public class SignUpActivity extends Activity {
 
                 // called when response HTTP status is "200 OK"
                 System.out.println("SUCCESS IN POSTING THAT USER!");
-                System.out.println("status code: " + statusCode);
-                System.out.println("response: " + s);
+
+                String responseText = null;
+                try {
+                    responseText = new JSONObject(new String(response)).getString("Response");
+                } catch (JSONException j) {
+                    System.out.println("Dont like JSON");
+                }
+
+                Toast toast = Toast.makeText(getApplicationContext(), responseText, Toast.LENGTH_LONG);
+                toast.show();
             }
 
             @Override
             public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
-                String s = new String(errorResponse);
                 // called when response HTTP status is "4XX" (eg. 401, 403, 404)
                 System.out.println("AWE FUCK");
-                System.out.println("status code: " + statusCode);
-                System.out.println("response: " + s);
-                e.printStackTrace();
 
+                String responseText = null;
+                try {
+                    responseText = new JSONObject(new String(errorResponse)).getString("Response");
+                } catch (JSONException j) {
+                    System.out.println("Dont like JSON");
+                }
+
+                Toast toast = Toast.makeText(getApplicationContext(), responseText, Toast.LENGTH_LONG);
+                toast.show();
+                e.printStackTrace();
             }
 
             @Override
@@ -127,136 +167,65 @@ public class SignUpActivity extends Activity {
                 System.out.println("RETRYING?!?!");
             }
         });
-
-
-
-//        View focusView = null;
-//        Boolean cancel = false;
-//
-//        String username = mUsername.getText().toString();
-//        String email = mEmail.getText().toString();
-//        String password = mPassword.getText().toString();
-//        String confrimPassword = mConfirmPassword.getText().toString();
-//        /* First, data sanitization: No fields should be left blank, email should have @ symbol,
-//        password and Confirm password should be the same (this is done in back end)
-//        Also, handle/username must be unique (also back end?)
-//        Then,
-//        POST to db with Handle, Email, Password, and Confirm
-//        */
-//
-//        // Check for a valid email address.
-//        if (TextUtils.isEmpty(email)) {
-//            mEmail.setError(getString(R.string.error_field_required));
-//            focusView = mEmail;
-//            cancel = true;
-//        } else if (!isEmailValid(email)) {
-//            mEmail.setError(getString(R.string.error_invalid_email));
-//            focusView = mEmail;
-//            cancel = true;
-//        }
-//
-//        if (TextUtils.isEmpty(password)) {
-//            mPassword.setError(getString(R.string.error_field_required));
-//            focusView = mPassword;
-//            cancel = true;
-//        } else if (!isPasswordValid(password)) {
-//            mPassword.setError(getString(R.string.error_invalid_password));
-//            focusView = mPassword;
-//            cancel = true;
-//        }
-//
-//        if (!confrimPassword.equals(password)) {
-//            mConfirmPassword.setError(getString(R.string.error_invalid_confirm));
-//            focusView = mConfirmPassword;
-//            cancel = true;
-//        }
-//
-//        if (TextUtils.isEmpty(username)) {
-//            mUsername.setError(getString(R.string.error_field_required));
-//            focusView = mUsername;
-//            cancel = true;
-//        }
-//
-//
-//        if (cancel) {
-//            //Something is wrong; don't sign up
-//            focusView.requestFocus();
-//        } else {
-//            // Sign them up
-//            new HttpRequestTask().execute(MediaType.APPLICATION_JSON);
-//
-//        }
-
     }
 
+    public void signupButtonClicked (View view) {
+        View focusView = null;
+        Boolean cancel = false;
 
-//    private class HttpRequestTask extends AsyncTask<MediaType, Void, String> {
-//        private NewUser u;
-//        private String host;
-//
-//        @Override
-//        protected void onPreExecute() {
-//            u = new NewUser(mUsername.getText().toString(), mEmail.getText().toString(), mPassword.getText().toString(), mConfirmPassword.getText().toString());
-//
-//            AssetManager assetManager = getResources().getAssets();
-//            InputStream inputStream = null;
-//            try {
-//                inputStream = assetManager.open("config.properties");
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//            Properties properties = new Properties();
-//            try {
-//                properties.load(inputStream);
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//            host = properties.getProperty("myUrl");
-//        }
-//
-//
-//        @Override
-//        protected String doInBackground(MediaType... params) {
-//            try {
-//                final String url = host + "/api/signup";
-//
-//
-//                // Set the Content-Type header
-//                HttpHeaders requestHeaders = new HttpHeaders();
-//                requestHeaders.setContentType(MediaType.APPLICATION_JSON);
-//                HttpEntity<NewUser> requestEntity = new HttpEntity<NewUser>(u, requestHeaders);
-//
-//                // Create a new RestTemplate instance
-//                RestTemplate restTemplate = new RestTemplate();
-//
-//                // Add the Jackson and String message converters
-//                restTemplate.getMessageConverters().add(new StringHttpMessageConverter());
-//                restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-//
-//
-//                // Make the HTTP POST request, marshaling the request to JSON, and the response to a String
-//                ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
-//                return response.getBody();
-//
-//            } catch (Exception e) {
-//                Log.e("MainActivity", e.getMessage(), e);
-////                if (e instanceof MyCustomException) {
-////                    MyCustomException exception = (MyCustomException) e;
-////                    Log.d("Error: ", "An error occurred while calling api/user/account API endpoint: " + e.getMessage());
-////                } else {
-////                    Log.d("Error: ", "An error occurred while trying to parse Login Response JSON object");
-////                }
-//            }
-//
-//            return null;
-//        }
-//
-//        @Override
-//        protected void onPostExecute(String result) {
-//            Toast toast = Toast.makeText(getApplicationContext(), result, Toast.LENGTH_LONG);
-//            toast.show();
-//        }
-//    }
+        String username = mUsername.getText().toString();
+        String email = mEmail.getText().toString();
+        String password = mPassword.getText().toString();
+        String confrimPassword = mConfirmPassword.getText().toString();
+        /* First, data sanitization: No fields should be left blank, email should have @ symbol,
+        password and Confirm password should be the same (this is done in back end)
+        Also, handle/username must be unique (also back end?)
+        Then,
+        POST to db with Handle, Email, Password, and Confirm
+        */
+
+        // Check for a valid email address.
+        if (TextUtils.isEmpty(email)) {
+            mEmail.setError(getString(R.string.error_field_required));
+            focusView = mEmail;
+            cancel = true;
+        } else if (!isEmailValid(email)) {
+            mEmail.setError(getString(R.string.error_invalid_email));
+            focusView = mEmail;
+            cancel = true;
+        }
+
+        if (TextUtils.isEmpty(password)) {
+            mPassword.setError(getString(R.string.error_field_required));
+            focusView = mPassword;
+            cancel = true;
+        } else if (!isPasswordValid(password)) {
+            mPassword.setError(getString(R.string.error_invalid_password));
+            focusView = mPassword;
+            cancel = true;
+        }
+
+        if (!confrimPassword.equals(password)) {
+            mConfirmPassword.setError(getString(R.string.error_invalid_confirm));
+            focusView = mConfirmPassword;
+            cancel = true;
+        }
+
+        if (TextUtils.isEmpty(username)) {
+            mUsername.setError(getString(R.string.error_field_required));
+            focusView = mUsername;
+            cancel = true;
+        }
+
+
+        if (cancel) {
+            //Something is wrong; don't sign up
+            focusView.requestFocus();
+        } else {
+            // Attempt to sign them up
+            attemptCreateAccount();
+        }
+    }
 
     private boolean isEmailValid(String email) {
         //TODO: Replace this with your own logic
