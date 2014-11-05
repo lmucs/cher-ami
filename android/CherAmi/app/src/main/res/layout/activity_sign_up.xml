@@ -26,14 +26,16 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/email"
-        android:hint="@string/Password" />
+        android:hint="@string/Password"
+        android:text="password" />
     <EditText
         android:id="@+id/confirmPassword"
         android:inputType="textPassword"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/password"
-        android:hint="@string/confirmPassword" />
+        android:hint="@string/confirmPassword"
+        android:text="password" />
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
