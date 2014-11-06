@@ -1,13 +1,51 @@
-<div class="row">
-	<div class="col-md-4"></div>
-	<div class="col-md-4">
-		<div class="row">
-			<div class="main-comment-area">
-				<div id="comments"></div>
-				<textarea id="commentInput" class="form-control">
-				</textarea>
-				<button id="submitButton" type="submit">Comment</button>
+<div id="circleCreateContainer" class="container">
+    <h3 id="containerHeader">Create Circle</h3>
+
+	
+    <div id="profileFieldsContainer">
+		<div id="profileForm" class="row">
+		
+		  <div class="form-group 1">
+		    <label class="col-xs-3 control-label">Name</label>
+		    <div class="circleCreateInput">
+		        <input id="circle-name" type="text" name="Location" class="form-control"
+		           placeholder="Circle Name" data-role="tagsinput"/>
+		    </div>
+		  </div>
+
+		  <div class="form-group 2">
+		    <label class="col-xs-3 control-label">Description</label>
+		    <div class="circleCreateInput">
+		        <textarea class="form-control" rows="5" placeholder="Circle Description"></textarea>
+		    </div>
+		  </div>
+
+		  <div  class="form-group 3" id="visibility">
+		      <label for="visibilitySelector" class="col-xs-3 control-label">Visibility</label>
+			  <div class="circleCreateInput">
+				<select id="visibilitySelector" class="form-control">
+				  <option>Private</option>
+				  <option>Public</option>
+				</select>
+			  </div>
+	      </div>
+
+		  <div class="page-header">
+		    <h3>Members</h3>
+		  </div>
+		 
+		  <div  class="form-group 3" id="admin">
+		      <label for="adminSelector" class="col-xs-3 control-label">Admin</label>
+			  <div class="circleCreateInput">
+				<select id="adminSelector" class="form-control">
+				  <option>Me</option>
+				  <option>Other Friend</option>
+				</select>
+			  </div>
+	      </div>
+
+  		  <button id="circleAddMemberButton" type="submit" class="btn btn-default">Add Members</button>
 		</div>
-	</div>
-	<div class="col-md-4"></div>
+    </div>
 </div>
+
