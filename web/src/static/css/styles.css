@@ -155,6 +155,38 @@ h1 {
     float: right;
     margin-right: 26%;
 }
+
+/*** Create New Circle ***/
+#circleCreateContainer {
+    border-radius: 14px;
+    background: hsla(181, 100%, 87%, 0.4); 
+    box-shadow: 0 1px 5px rgba(0,0,0,0.75);
+
+    padding-top: 15px;
+    padding-bottom: 15px;
+    padding-right: 20px;
+    padding-left: 30px;
+    max-width: 55%;
+    min-width: 400px;
+    margin-left: 24%;
+    margin-bottom: 5%;
+    position: relative;
+    top: 15%;
+    left: 0;
+    width: 100%;
+    height: 80%;
+}
+
+.circleCreateInput {
+     min-width: 60%;
+}
+
+#circleAddMemberButton{
+    float: right;
+    margin-right: 15%;
+}
+
+
 /*Message box css*/
 
 .main-message-box {
