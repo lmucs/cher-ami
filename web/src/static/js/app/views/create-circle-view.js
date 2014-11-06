@@ -7,12 +7,19 @@ define(function(require, exports, module) {
         template: template,
 
         ui: {
-
+            dropdown: "#visibility"
         },
 
         events: {
+            'click #visibility': 'onDropdownClick'
         },
 
+        onDropdownClick: function () {
+            console.log("I got clicked!!");
+            // if($(this).hasClass('dropdown-menu-form')) {
+            //     e.stopPropagation();
+            // }
+        }
         
 
     });
