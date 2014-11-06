@@ -176,7 +176,7 @@ public class SignUpActivity extends Activity {
         String username = mUsername.getText().toString();
         String email = mEmail.getText().toString();
         String password = mPassword.getText().toString();
-        String confrimPassword = mConfirmPassword.getText().toString();
+        String confirmPassword = mConfirmPassword.getText().toString();
         /* First, data sanitization: No fields should be left blank, email should have @ symbol,
         password and Confirm password should be the same (this is done in back end)
         Also, handle/username must be unique (also back end?)
@@ -205,7 +205,7 @@ public class SignUpActivity extends Activity {
             cancel = true;
         }
 
-        if (!confrimPassword.equals(password)) {
+        if (!confirmPassword.equals(password)) {
             mConfirmPassword.setError(getString(R.string.error_invalid_confirm));
             focusView = mConfirmPassword;
             cancel = true;
@@ -234,7 +234,7 @@ public class SignUpActivity extends Activity {
 
     private boolean isPasswordValid(String password) {
         //TODO: Replace this with your own logic
-        return password.length() > 4;
+        return password.length() >= 8;
     }
 
     @Override
