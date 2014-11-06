@@ -14,11 +14,14 @@ define(function(require, exports, module) {
             'click #visibility': 'onDropdownClick'
         },
 
-        onDropdownClick: function () {
+        onDropdownClick: function (e) {
             console.log("I got clicked!!");
-            // if($(this).hasClass('dropdown-menu-form')) {
-            //     e.stopPropagation();
-            // }
+            console.log("this: ", document.getElementById("dropdown-menu-form"));
+
+            if(document.getElementById("dropdown-menu-form")) {
+                console.log("I got here");
+                e.stopPropagation();
+            }
         }
         
 
