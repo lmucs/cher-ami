@@ -23,6 +23,7 @@ define(function(require, exports, module) {
     var Comment = require('app/models/comment').Comment;
     var Comments = require('app/collections/comments').Comments;
     var CircleView = require('app/views/circle-view').CircleView;
+    var CreateCircleView = require('app/views/create-circle-view').CreateCircleView;
 
     var LandingLayout = require('app/layouts/landing-layout').LandingLayout;
 
@@ -55,7 +56,7 @@ define(function(require, exports, module) {
             // this.app.mainRegion.show(new LandingLayout());
             // Initialization of views will go here.
             this.app.headerRegion.show(new HeaderView());
-            this.app.mainRegion.show(new CircleView());
+            this.app.mainRegion.show(new CreateCircleView());
         },
 
         // Needed for AppRouter to initialize index route.
