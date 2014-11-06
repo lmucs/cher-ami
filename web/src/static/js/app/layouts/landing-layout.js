@@ -13,6 +13,26 @@ define(function(require, exports, module) {
             login: '#login'
         },
 
+        ui: {
+            showSingup: '#showSignup',
+            signup: '#signup',
+            login: '#login'
+        },
+
+        events: {
+            'click #showSignup': 'showForm'
+        },
+
+        showForm: function(options) {
+            var newSignup = new SignupView();
+            var temp = $(signup).html()
+            // newSignup.signup.add(newSignup.el);
+            this.ui.login.html(newSignup.el);
+            console.log(temp);
+            console.log(newSignup.el);
+            newSignup.render();
+        },
+
         initialize: function(options) {
 
         }
