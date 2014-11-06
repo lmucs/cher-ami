@@ -9,14 +9,12 @@ define(function(require, exports, module) {
         template: template,
 
         regions: {
-            signup: '#signup',
-            login: '#login'
+            container: '#containerArea'
         },
 
         ui: {
-            showSingup: '#showSignup',
-            signup: '#signup',
-            login: '#login'
+            showSignup: '#showSignup',
+            containerArea: '#containerArea',
         },
 
         events: {
@@ -24,13 +22,10 @@ define(function(require, exports, module) {
         },
 
         showForm: function(options) {
-            var newSignup = new SignupView();
-            var temp = $(signup).html()
-            // newSignup.signup.add(newSignup.el);
-            this.ui.login.html(newSignup.el);
-            console.log(temp);
-            console.log(newSignup.el);
-            newSignup.render();
+            var signupView = new SignupView();
+            this.ui.containerArea.html(signupView.el);
+            console.log(signupView.el);
+            signupView.render();
         },
 
         initialize: function(options) {
