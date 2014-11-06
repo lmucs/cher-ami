@@ -37,21 +37,21 @@ define(function(require, exports, module) {
 
             var messages = new Messages();
             var comments = new Comments();
-            // if (this.app.session.has('sessionid')) {
-            //     console.log("User logged in.");
-            //     $.ajaxSetup({
-            //         headers: {'Authorization' : this.app.session.get('sessionid')}
-            //     })
-            //     // user is authed, redirect home
-            //     this.app.mainRegion.show(new MessagesView({
-            //         collection: messages,
-            //         session: this.app.session
-            //     }));
-            // } else {
-            //     this.app.mainRegion.show(new LoginView({
-            //         session: this.app.session
-            //     }));
-            // }
+            if (this.app.session.has('sessionid')) {
+                console.log("User logged in.");
+                $.ajaxSetup({
+                    headers: {'Authorization' : this.app.session.get('sessionid')}
+                })
+                // user is authed, redirect home
+                this.app.mainRegion.show(new MessagesView({
+                    collection: messages,
+                    session: this.app.session
+                }));
+            } else {
+                this.app.mainRegion.show(new LoginView({
+                    session: this.app.session
+                }));
+            }
 
             // this.app.mainRegion.show(new LandingLayout());
             // Initialization of views will go here.
