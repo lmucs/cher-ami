@@ -1,24 +1,17 @@
-<!-- <div>
-	<div id="comment-box" class="row">
-		<div class = "col-md-2">
-			<div class="comment-box-icon"></div>
-		</div>
-		<div class = "col-md-10">
-			<p class="main-comment-box">{{commentData}} </p>
-		<div>
-	<div>
-</div> -->
-
-<div class="row">
-	<div class="col-md-4"></div>
-	<div class="col-md-4">
-		<div class="row">
-			<div class="main-circle-area">
-				<div id="circles"></div>
-				<textarea id="circleDescription" class="form-control" style="overflow:auto;resize:none">
-				</textarea>
-				<button id="submitButton" type="submit">Comment</button>
-		</div>
+<div class = "row">
+	<div class="col-sm-6" id="CircleTitleContainer">
+	<h3 id="CircleHeader"> Circle</h3>
+		
 	</div>
-	<div class="col-md-4"></div>
+</div>
+<div class = "row">
+	<div class="col-sm-6" id="CircleContainer">
+	  <form method="post" action="/signup" id="signupform" class="form-horizontal" role="form">
+		<div class="main-circle-area">
+			<div id="circles"></div>
+			<textarea id="circleDescription" class="form-control" style="overflow:auto;resize:none"></textarea>
+			<button id="submitButton" type="submit">Post</button>
+		</div>
+	  </form>
+	</div>
 </div>

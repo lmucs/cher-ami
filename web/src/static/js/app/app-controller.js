@@ -58,6 +58,7 @@ define(function(require, exports, module) {
             this.app.headerRegion.show(new HeaderView());
             //this.app.mainRegion.show(new SidebarView());
             this.app.mainRegion.show(new LandingLayout());
+            //this.app.mainRegion.show(new CircleView());
         },
 
         // Needed for AppRouter to initialize index route.
