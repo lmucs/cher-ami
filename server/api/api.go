@@ -470,6 +470,13 @@ func (a Api) NewCircle(w rest.ResponseWriter, r *rest.Request) {
 // Messages
 //
 
+type MessageData struct {
+	Url     string
+	Author  string
+	Content string
+	Date    time.Time
+}
+
 /**
  * Create a new, unpublished message
  */
@@ -587,12 +594,6 @@ func (a Api) GetAuthoredMessages(w rest.ResponseWriter, r *rest.Request) {
 		})
 		return
 	} else {
-		type MessageData struct {
-			Url     string
-			Author  string
-			Content string
-			Date    time.Time
-		}
 		messages := a.Svc.GetMessagesByHandle(author)
 		messageData := make([]MessageData, len(messages))
 
@@ -619,60 +620,91 @@ func (a Api) GetAuthoredMessages(w rest.ResponseWriter, r *rest.Request) {
 	}
 }
 
-/**
- * Get messages authored by a User that are visible to the authenticated
- * user. This means from all shared circles that the queried User has published to.
- */
-func (a Api) GetMessagesByHandle(w rest.ResponseWriter, r *rest.Request) {
-	author := r.PathParam("author")
-	querymap := r.URL.Query()
-
-	// check query parameters
-	if _, ok := querymap["handle"]; !ok {
-		w.WriteHeader(400)
-		w.WriteJson(json{
-			"Response": "Bad Request, not enough parameters to authenticate user",
-		})
-		return
-	}
-
-	handle := querymap["handle"][0]
+func (a Api) GetMessageById(w rest.ResponseWriter, r *rest.Request) {
+	id := r.PathParam("id")
 
 	if !a.authenticate(r) {
 		a.Util.FailedToAuthenticate(w)
 		return
 	}
 
-	if !a.Svc.UserExists(author) {
-		w.WriteHeader(400)
-		w.WriteJson(json{
-			"Response": "Bad request, user doesn't exist",
-		})
+	if message, success := a.Svc.GetMessageById(id); success {
+		data := MessageData{
+			"<url>:<port>/api/messages/" + message.Id, // hard-coded url/port...
+			message.Author,
+			message.Content,
+			message.Created,
+		}
+
+		if b, err := encoding.Marshal(data); err != nil {
+			panicErr(err)
+		} else {
+			w.WriteHeader(200)
+			w.WriteJson(json{
+				"Response": "Found message!",
+				"Object":   b,
+			})
+		}
+	} else {
+		a.Util.SimpleJsonResponse(w, 404, "No such message in any circle you can see")
 		return
 	}
-
-	messages := []struct {
-		Content   string    `json:"message.content"`
-		Published time.Time `json:"message.published"`
-	}{}
-	err := a.Svc.Db.Cypher(&neoism.CypherQuery{
-		Statement: `
-            MATCH (author:User {handle: {author}}), (user:User {handle: {handle}})
-            OPTIONAL MATCH (user)-[r:MEMBER_OF]->(circle:Circle)
-            OPTIONAL MATCH (author)-[w:WROTE]-(visible:Message)-[p:PUB_TO]->(circle)
-            RETURN visible.content, visible.published_at
-        `,
-		Parameters: neoism.Props{
-			"author": author,
-			"handle": handle,
-		},
-		Result: &messages,
-	})
-	panicErr(err)
-
-	w.WriteHeader(200)
-	w.WriteJson(messages)
 }
+
+/**
+ * Get messages authored by a User that are visible to the authenticated
+ * user. This means from all shared circles that the queried User has published to.
+ */
+// func (a Api) GetMessagesByHandle(w rest.ResponseWriter, r *rest.Request) {
+// 	author := r.PathParam("author")
+// 	querymap := r.URL.Query()
+
+// 	// check query parameters
+// 	if _, ok := querymap["handle"]; !ok {
+// 		w.WriteHeader(400)
+// 		w.WriteJson(json{
+// 			"Response": "Bad Request, not enough parameters to authenticate user",
+// 		})
+// 		return
+// 	}
+
+// 	handle := querymap["handle"][0]
+
+// 	if !a.authenticate(r) {
+// 		a.Util.FailedToAuthenticate(w)
+// 		return
+// 	}
+
+// 	if !a.Svc.UserExists(author) {
+// 		w.WriteHeader(400)
+// 		w.WriteJson(json{
+// 			"Response": "Bad request, user doesn't exist",
+// 		})
+// 		return
+// 	}
+
+// 	messages := []struct {
+// 		Content   string    `json:"message.content"`
+// 		Published time.Time `json:"message.published"`
+// 	}{}
+// 	err := a.Svc.Db.Cypher(&neoism.CypherQuery{
+// 		Statement: `
+//             MATCH (author:User {handle: {author}}), (user:User {handle: {handle}})
+//             OPTIONAL MATCH (user)-[r:MEMBER_OF]->(circle:Circle)
+//             OPTIONAL MATCH (author)-[w:WROTE]-(visible:Message)-[p:PUB_TO]->(circle)
+//             RETURN visible.content, visible.published_at
+//         `,
+// 		Parameters: neoism.Props{
+// 			"author": author,
+// 			"handle": handle,
+// 		},
+// 		Result: &messages,
+// 	})
+// 	panicErr(err)
+
+// 	w.WriteHeader(200)
+// 	w.WriteJson(messages)
+// }
 
 /**
  * Deletes an unpublished message

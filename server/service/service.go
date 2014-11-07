@@ -755,7 +755,7 @@ func (s Svc) GetMessagesByHandle(handle string) []Message {
 	return messages
 }
 
-func (s Svc) GetMessageById(messageid string) (*Message, bool){
+func (s Svc) GetMessageById(messageid string) (message *Message, found bool) {
 	messages := make([]Message, 0)
 	if err := s.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
