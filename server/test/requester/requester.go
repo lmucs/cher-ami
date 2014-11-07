@@ -156,6 +156,20 @@ func (req Requester) PostMessages(content string, sessionid string) (*http.Respo
 	return helper.Execute("POST", req.Routes.messagesURL, payload)
 }
 
+func (req Requester) PostMessageGetMessageId(content, sessionid string) string {
+	payload := json{
+		"content":   content,
+		"sessionid": sessionid,
+	}
+	res, err := helper.Execute("POST", req.Routes.messagesURL, payload)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return helper.GetIdFromResponse(res)
+}
+
 func (req Requester) PostSessions(handle string, password string) (*http.Response, error) {
 	payload := json{
 		"handle":   handle,

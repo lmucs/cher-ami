@@ -516,12 +516,13 @@ func (a Api) NewMessage(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	if !a.Svc.NewMessage(handle, content) {
+	if id, success := a.Svc.NewMessage(handle, content); !success {
 		a.Util.SimpleJsonResponse(w, 400, "No message created")
 	} else {
 		w.WriteHeader(201)
 		w.WriteJson(json{
 			"Response":  "Successfully created message for " + handle,
+			"Id":        id,
 			"Published": false,
 		})
 	}

@@ -145,3 +145,17 @@ func GetSessionFromResponse(response *http.Response) string {
 
 	return authentication.Sessionid
 }
+
+func GetIdFromResponse(response *http.Response) string {
+	r := struct {
+		Sessionid string
+	}{}
+
+	if body, err := ioutil.ReadAll(response.Body); err != nil {
+		log.Fatal(err)
+	} else if err := json.Unmarshal(body, &r); err != nil {
+		log.Fatal(err)
+	}
+
+	return r.Sessionid
+}

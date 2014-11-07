@@ -398,10 +398,10 @@ func (s Svc) NewCircle(handle string, circle_name string, isPublic bool) bool {
 	return len(created) > 0
 }
 
-func (s Svc) NewMessage(handle string, content string) bool {
+func (s Svc) NewMessage(handle string, content string) (messageid string, success bool) {
 	created := []struct {
-		Content  string      `json:"m.content"`
-		Relation neoism.Node `json:"r"`
+		Content string `json:"m.content"`
+		Id      string `json:"m.id"`
 	}{}
 	now := time.Now().Local()
 	if err := s.Db.Cypher(&neoism.CypherQuery{
@@ -415,7 +415,7 @@ func (s Svc) NewMessage(handle string, content string) bool {
               , id:        {id}
             })
             CREATE (u)-[r:WROTE]->(m)
-            RETURN m.content, r
+            RETURN m.content, m.id
         `,
 		Parameters: neoism.Props{
 			"handle":  handle,
@@ -427,7 +427,12 @@ func (s Svc) NewMessage(handle string, content string) bool {
 	}); err != nil {
 		panicErr(err)
 	}
-	return len(created) > 0
+
+	if success = len(created) > 0; success {
+		return created[0].Id, success
+	} else {
+		return "", success
+	}
 }
 
 func (s Svc) PublishMessage(messageid, circleid string) bool {
