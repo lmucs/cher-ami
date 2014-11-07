@@ -23,10 +23,10 @@ define(function(require, exports, module) {
         },
 
         initialize: function(options) {
-            this.model = new Login({
-                session: options.session
-            });
-            this.session = options.session;
+            // this.model = new Login({
+            //     session: options.session
+            // });
+            // this.session = options.session;
         },
 
         onRememberConfirm: function() {

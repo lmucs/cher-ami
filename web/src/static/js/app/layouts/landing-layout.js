@@ -19,28 +19,26 @@ define(function(require, exports, module) {
         },
 
         events: {
-            'click #showSignup': 'showForm',
-            'click #showLogin' : 'showForm'
+            'click #showSignup': 'showSignupForm',
+            'click #showLogin' : 'showLoginForm'
         },
 
-        showForm: function(options) {
+        showSignupForm: function(options) {
             var signupView = new SignupView();
-            var loginView = new LoginView();
-            // if("#showSignup") {
-                $("#showSignup").html('show login');
-                $("#showSignup").attr('id', 'showLogin')
-                this.ui.containerArea.html(signupView.el);
-                console.log(signupView.el);
-                signupView.render();
-            // } else if("#showLogin") {
-            //     console.log("ggalkjsdfhladskfkldjash")
-            //     $("#showLogin").html('show sign up');
-            //     $("#showLogin").attr('id', 'showSignup')
-            //     this.ui.login.html(signupView.el);
-            //     console.log(signupView.el);
-            //     signupView.render();
-            // }
+            $("#showSignup").html('show login');
+            $("#showSignup").attr('id', 'showLogin')
+            this.ui.containerArea.html(signupView.el);
+            console.log(signupView.el);
+            signupView.render();
+        },
 
+        showLoginForm: function(options) {
+            var loginView = new LoginView();
+            $("#showLogin").html('show sign up');
+            $("#showLogin").attr('id', 'showSignup')
+            this.ui.containerArea.html(loginView.el);
+            console.log(loginView.el);
+            loginView.render();
         },
 
         initialize: function(options) {
