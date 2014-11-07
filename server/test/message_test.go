@@ -53,3 +53,20 @@ func (s *TestSuite) TestGetAuthoredMessagesOK(c *C) {
 	c.Check(objects[2].Content, Equals, "The nearest exit may be behind you")
 	c.Check(objects[3].Content, Equals, "I make soap.")
 }
+
+//
+// Get Message By ID Tests
+//
+func (s *TestSuite) TestGetMessageByIdInvalidAuth(c *C) {
+	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
+
+	if res, _ := req.GetMessageById("some_id", "handleA", ""); true {
+		c.Check(res.StatusCode, Equals, 401)
+	}
+	if res, _ := req.GetMessageById("some_id", "handleA", "bad_id"); true {
+		c.Check(res.StatusCode, Equals, 401)
+	}
+	if res, _ := req.GetMessageById("some_id", "handleA", "sCxs2ad213124jP1241d"); true {
+		c.Check(res.StatusCode, Equals, 401)
+	}
+}
