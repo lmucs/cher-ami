@@ -308,3 +308,12 @@ ul.dropdown-menu-form {
     max-height: 300px;
     overflow-y: scroll;
 }
+
+/*Layouts css*/
+
+#showSignup {
+    margin-left: 45%;
+}
+#showLogin {
+    margin-left: 45%;
+}

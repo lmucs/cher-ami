@@ -14,18 +14,33 @@ define(function(require, exports, module) {
 
         ui: {
             showSignup: '#showSignup',
+            showLogin: '#showLogin',
             containerArea: '#containerArea',
         },
 
         events: {
-            'click #showSignup': 'showForm'
+            'click #showSignup': 'showForm',
+            'click #showLogin' : 'showForm'
         },
 
         showForm: function(options) {
             var signupView = new SignupView();
-            this.ui.containerArea.html(signupView.el);
-            console.log(signupView.el);
-            signupView.render();
+            var loginView = new LoginView();
+            // if("#showSignup") {
+                $("#showSignup").html('show login');
+                $("#showSignup").attr('id', 'showLogin')
+                this.ui.containerArea.html(signupView.el);
+                console.log(signupView.el);
+                signupView.render();
+            // } else if("#showLogin") {
+            //     console.log("ggalkjsdfhladskfkldjash")
+            //     $("#showLogin").html('show sign up');
+            //     $("#showLogin").attr('id', 'showSignup')
+            //     this.ui.login.html(signupView.el);
+            //     console.log(signupView.el);
+            //     signupView.render();
+            // }
+
         },
 
         initialize: function(options) {
