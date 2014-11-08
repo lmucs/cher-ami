@@ -5,8 +5,12 @@ import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.res.AssetManager;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v13.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.text.TextUtils;
@@ -16,8 +20,21 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.Toast;
 
+import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.AsyncHttpResponseHandler;
+
+import org.apache.http.Header;
+import org.apache.http.entity.StringEntity;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.Locale;
+import java.util.Properties;
 
 /**
  * Created by goalsman on 10/7/14.
@@ -38,8 +55,14 @@ public class LoginActivity extends Activity {
     EditText mUsername;
     EditText mPassword;
 
+    SharedPreferences prefs;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Context context = getApplicationContext();
+        System.out.println(context);
+
+        prefs = context.getSharedPreferences(
+                "com.cherami.cherami", Context.MODE_PRIVATE);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         getActionBar().hide();
@@ -61,7 +84,113 @@ public class LoginActivity extends Activity {
         startActivity(intent);
     }
 
-    public void attemptLoginUser(View view) {
+    public String getLocalUrlForApi () {
+        AssetManager assetManager = getResources().getAssets();
+        InputStream inputStream = null;
+        try {
+            inputStream = assetManager.open("config.properties");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        Properties properties = new Properties();
+        try {
+            properties.load(inputStream);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return properties.getProperty("myUrl");
+    }
+
+    public JSONObject getUserObjectRequestAsJson () {
+        JSONObject jsonParams = new JSONObject();
+        try {
+            jsonParams.put("handle", mUsername.getText().toString());
+            jsonParams.put("password", mPassword.getText().toString());
+        } catch (JSONException j) {
+            System.out.println("DONT LIKE JSON!");
+        }
+        return jsonParams;
+    }
+
+    public StringEntity convertJsonUserToStringEntity (JSONObject jsonParams) {
+        StringEntity entity = null;
+        try {
+            entity = new StringEntity(jsonParams.toString());
+        } catch (UnsupportedEncodingException i) {
+            System.out.println("DONT LIKE TO STRING!");
+        }
+        return entity;
+    }
+
+    public void attemptLoginAccount() {
+        AsyncHttpClient client = new AsyncHttpClient();
+
+        client.post(this.getApplicationContext(), "http://" + getLocalUrlForApi() + "/api/sessions",
+                convertJsonUserToStringEntity(getUserObjectRequestAsJson()), "application/json",
+                new AsyncHttpResponseHandler() {
+
+                    @Override
+                    public void onStart() {
+                        // called before request is started
+                        System.out.println("STARTING POST REQUEST");
+
+                    }
+
+                    @Override
+                    public void onSuccess(int statusCode, Header[] headers, byte[] response) {
+                        String s = new String(response);
+                        JSONObject returnVal = new JSONObject();
+                        try {
+                            returnVal = new JSONObject(s);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        try {
+                            String sessionKey = "com.cherami.cherami.sessionid";
+                            prefs.edit().putString(sessionKey, returnVal.getString("sessionid")).apply();
+                            System.out.println("we are hurrr dog " + prefs.getString(sessionKey, null));
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        // called when response HTTP status is "200 OK"
+
+                        String responseText = null;
+                        try {
+                            responseText = new JSONObject(new String(response)).getString("Response");
+                        } catch (JSONException j) {
+                            System.out.println("Dont like JSON");
+                        }
+
+                        Toast toast = Toast.makeText(getApplicationContext(), responseText, Toast.LENGTH_LONG);
+                        toast.show();
+                    }
+
+                    @Override
+                    public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
+                        // called when response HTTP status is "4XX" (eg. 401, 403, 404)
+                        System.out.println("AWE FUCK");
+
+                        String responseText = null;
+                        try {
+                            responseText = new JSONObject(new String(errorResponse)).getString("Response");
+                        } catch (JSONException j) {
+                            System.out.println("Dont like JSON");
+                        }
+
+                        Toast toast = Toast.makeText(getApplicationContext(), responseText, Toast.LENGTH_LONG);
+                        toast.show();
+                        e.printStackTrace();
+                    }
+
+                    @Override
+                    public void onRetry(int retryNo) {
+                        // called when request is retried
+                        System.out.println("RETRYING?!?!");
+                    }
+                });
+    }
+
+    public void loginClicked(View view) {
         View focusView = null;
         Boolean cancel = false;
 
@@ -89,16 +218,18 @@ public class LoginActivity extends Activity {
             focusView.requestFocus();
         } else {
             // Sign them up; for now, redirect to Main
+            attemptLoginAccount();
             Intent intent = new Intent(this, MainActivity.class);
             startActivity(intent);
             finish();
+
         }
 
     }
 
     private boolean isPasswordValid(String password) {
         //TODO: Replace this with your own logic
-        return password.length() > 4;
+        return password.length() >= 8;
     }
 
 
