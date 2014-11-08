@@ -7,6 +7,14 @@ import (
 	"time"
 )
 
+// Testing Structs
+type Message struct {
+	Id      string
+	Author  string
+	Content string
+	Created time.Time
+}
+
 //
 // Get Authored Messages Tests
 //
@@ -34,12 +42,6 @@ func (s *TestSuite) TestGetAuthoredMessagesOK(c *C) {
 		Count    int
 	}{}
 	helper.Unmarshal(res, &data)
-	type Message struct {
-		Id      string
-		Author  string
-		Content string
-		Created time.Time
-	}
 
 	objects := make([]Message, 0)
 	json.Unmarshal([]byte(data.Objects), &objects)
@@ -57,6 +59,8 @@ func (s *TestSuite) TestGetAuthoredMessagesOK(c *C) {
 //
 // Get Message By ID Tests
 //
+
+// Absent or incorrect session token
 func (s *TestSuite) TestGetMessageByIdInvalidAuth(c *C) {
 	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
 
@@ -68,5 +72,70 @@ func (s *TestSuite) TestGetMessageByIdInvalidAuth(c *C) {
 	}
 	if res, _ := req.GetMessageById("some_id", "handleA", "sCxs2ad213124jP1241d"); true {
 		c.Check(res.StatusCode, Equals, 401)
+	}
+}
+
+// Target id doesn't exist
+func (s *TestSuite) TestGetMessageByIdNotFound(c *C) {
+	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
+
+	sessionid := req.PostSessionGetSessionId("handleA", "password1")
+
+	req.PostMessages("Go is going gophers!", sessionid)
+	req.PostMessages("Hypothesize about stuff", sessionid)
+	req.PostMessages("The nearest exit may be behind you", sessionid)
+	req.PostMessages("I make soap.", sessionid)
+
+	if res, _ := req.GetMessageById("some_id", "handleA", sessionid); true {
+		c.Check(res.StatusCode, Equals, 404)
+		message_response := struct {
+			Response string
+			Object   Message
+		}{}
+		helper.Unmarshal(res, &message_response)
+		c.Check(message_response.Response, Equals, "No such message in any circle you can see")
+	}
+
+	if res, _ := req.GetMessageById("another-wrong-id", "handleA", sessionid); true {
+		c.Check(res.StatusCode, Equals, 404)
+		message_response := struct {
+			Response string
+			Object   Message
+		}{}
+		helper.Unmarshal(res, &message_response)
+		c.Check(message_response.Response, Equals, "No such message in any circle you can see")
+	}
+
+	if res, _ := req.GetMessageById("2", "handleA", sessionid); true {
+		c.Check(res.StatusCode, Equals, 404)
+		message_response := struct {
+			Response string
+			Object   Message
+		}{}
+		helper.Unmarshal(res, &message_response)
+		c.Check(message_response.Response, Equals, "No such message in any circle you can see")
+	}
+}
+
+// Successful retrieval by id
+func (s *TestSuite) TestGetMessageByIdOK(c *C) {
+	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
+	req.PostSignup("handleB", "testB@test.io", "password2", "password2")
+
+	sessionid_A := req.PostSessionGetSessionId("handleA", "password1")
+	sessionid_B := req.PostSessionGetSessionId("handleB", "password2")
+
+	messageid_1 := req.PostMessageGetMessageId("Go is going gophers!", sessionid_A)
+
+	if res, _ := req.GetMessageById(messageid_1, "handleB", sessionid_B); true {
+		c.Check(res.StatusCode, Equals, 200)
+		message_response := struct {
+			Response string
+			Object   Message
+		}{}
+		helper.Unmarshal(res, &message_response)
+		c.Check(message_response.Object.Id, Equals, messageid_1)
+		c.Check(message_response.Object.Author, Equals, "handleA")
+		c.Check(message_response.Object.Content, Equals, "Go is going gophers!")
 	}
 }
