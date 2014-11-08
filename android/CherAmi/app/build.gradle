@@ -35,7 +35,6 @@ dependencies {
     compile 'com.google.android.gms:play-services:5.0.89'
     compile 'com.android.support:appcompat-v7:20.0.0'
     compile 'com.android.support:support-v4:20.0.0'
-    compile 'org.springframework.android:spring-android-rest-template:2.0.0.M1'
     compile 'com.fasterxml.jackson.core:jackson-databind:2.2.+'
     compile 'com.fasterxml.jackson.core:jackson-core:2.2.+'
     compile 'com.fasterxml.jackson.core:jackson-annotations:2.2.+'
@@ -43,7 +42,5 @@ dependencies {
 }
 
 repositories {
-    maven {
-        url 'http://repo.spring.io/milestone'
-    }
+
 }
