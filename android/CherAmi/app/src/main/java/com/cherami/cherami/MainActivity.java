@@ -188,9 +188,16 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         switch (item.getItemId()) {
-            case R.id.action_settings:
-                Intent intent = new Intent(this, SettingsActivity.class);
+//            case R.id.action_settings:
+//                Intent intent = new Intent(this, SettingsActivity.class);
+//                startActivity(intent);
+//                return true;
+            case R.id.action_logout:
+//                logoutUser();
+                System.out.println("IN LOGOUT SECTION");
+                Intent intent = new Intent(this, LoginActivity.class);
                 startActivity(intent);
+                finish();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

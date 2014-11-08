@@ -32,10 +32,10 @@
             android:name=".content_activity"
             android:label="@string/title_activity_content_activity" >
         </activity>
-        <activity
-            android:name=".SettingsActivity"
-            android:label="@string/title_activity_settings" >
-        </activity>
+        <!--<activity-->
+            <!--android:name=".SettingsActivity"-->
+            <!--android:label="@string/title_activity_settings" >-->
+        <!--</activity>-->
         <activity
             android:name=".FeedActivity"
             android:label="@string/title_activity_feed" >
