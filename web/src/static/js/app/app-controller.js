@@ -26,6 +26,7 @@ define(function(require, exports, module) {
     var CreateCircleView = require('app/views/create-circle-view').CreateCircleView;
 
     var LandingLayout = require('app/layouts/landing-layout').LandingLayout;
+    var HomeLayout = require('app/layouts/home-layout').HomeLayout;
 
     var AppController = marionette.Controller.extend({
 
@@ -57,7 +58,7 @@ define(function(require, exports, module) {
             // Initialization of views will go here.
             this.app.headerRegion.show(new HeaderView());
             //this.app.mainRegion.show(new SidebarView());
-            this.app.mainRegion.show(new LoginView());
+            this.app.mainRegion.show(new HomeLayout());
             //this.app.mainRegion.show(new CircleView());
         },
 
