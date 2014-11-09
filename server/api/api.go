@@ -645,7 +645,19 @@ func (a Api) GetMessageById(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	if message, success := a.Svc.GetMessageById(id); success {
+	handle, success := a.Svc.GetHandleFromAuthorization(a.getSessionId(r))
+	if !success {
+		w.WriteHeader(400)
+		w.WriteJson(json{
+			"Response":  "Unexpected failure to retrieve owner of session",
+			"Handle":    handle,
+			"Success":   success,
+			"SessionId": a.getSessionId(r),
+		})
+		return
+	}
+
+	if message, success := a.Svc.GetMessageById(handle, id); success {
 		data := MessageData{
 			message.Id,
 			"<url>:<port>/api/messages/" + message.Id, // hard-coded url/port...
