@@ -59,7 +59,13 @@ define(function(require, exports, module) {
             // Initialization of views will go here.
             this.app.headerRegion.show(new HeaderView());
             //this.app.mainRegion.show(new SidebarView());
+<<<<<<< Updated upstream
             this.app.mainRegion.show(new CircleLayout());
+=======
+            this.app.mainRegion.show(new LandingLayout({
+                session: this.app.session
+            }));
+>>>>>>> Stashed changes
             //this.app.mainRegion.show(new CircleView());
         },
 

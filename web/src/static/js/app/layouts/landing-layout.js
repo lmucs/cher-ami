@@ -34,7 +34,9 @@ define(function(require, exports, module) {
         },
 
         showLoginForm: function(options) {
-            var loginView = new LoginView();
+            var loginView = new LoginView({
+                session: this.session
+            });
             $("#showLogin").html('show sign up');
             $("#showLogin").attr('id', 'showSignup')
             this.ui.containerArea.html(loginView.el);
@@ -43,10 +45,7 @@ define(function(require, exports, module) {
         },
 
         initialize: function(options) {
-            // this.model = new Login({
-            //     session: options.session
-            // });
-            // this.session = options.session;
+            this.session = options.session;
         }
 
     });
