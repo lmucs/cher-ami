@@ -471,7 +471,6 @@ type MessageData struct {
  */
 func (a Api) NewMessage(w rest.ResponseWriter, r *rest.Request) {
 	payload := struct {
-		Handle  string
 		Content string
 	}{}
 	if err := r.DecodeJsonPayload(&payload); err != nil {
@@ -479,26 +478,21 @@ func (a Api) NewMessage(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	handle := ""
-	if payload.Handle == "" {
-		if h, ok := a.Svc.GetHandleFromAuthorization(a.getSessionId(r)); !ok {
-			w.WriteHeader(400)
-			w.WriteJson(json{
-				"Response": "Unexpected failure to retrieve owner of session",
-			})
-			return
-		} else {
-			handle = h
-		}
-	} else {
-		handle = payload.Handle
-	}
-	content := payload.Content
-
 	if !a.authenticate(r) {
 		a.Util.FailedToAuthenticate(w)
 		return
 	}
+
+	handle, ok := a.Svc.GetHandleFromAuthorization(a.getSessionId(r))
+	if !ok {
+		w.WriteHeader(400)
+		w.WriteJson(json{
+			"Response": "Unexpected failure to retrieve owner of session",
+		})
+		return
+	}
+
+	content := payload.Content
 
 	if payload.Content == "" {
 		a.Util.SimpleJsonResponse(w, 400, "Please enter some content for your message")
@@ -522,8 +516,11 @@ func (a Api) NewMessage(w rest.ResponseWriter, r *rest.Request) {
  * by the user.
  */
 func (a Api) PublishMessage(w rest.ResponseWriter, r *rest.Request) {
+	if !a.authenticate(r) {
+		a.Util.FailedToAuthenticate(w)
+		return
+	}
 	payload := struct {
-		Handle    string
 		CircleId  string
 		MessageId string
 	}{}
@@ -532,36 +529,41 @@ func (a Api) PublishMessage(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	handle := payload.Handle
-	circleid := payload.CircleId
-	messageid := payload.MessageId
-
-	if !a.authenticate(r) {
-		a.Util.FailedToAuthenticate(w)
-		return
-	}
-
-	if !a.Svc.UserIsMemberOf(handle, circleid) {
-		w.WriteHeader(401)
+	if author, success := a.Svc.GetHandleFromAuthorization(a.getSessionId(r)); !success {
+		w.WriteHeader(400)
 		w.WriteJson(json{
-			"Response": "Refusal to comply with request",
-			"Reason":   "You are not a member or owner of the specified circle",
+			"Response":  "Unexpected failure to retrieve owner of session",
+			"Author":    author,
+			"Success":   success,
+			"SessionId": a.getSessionId(r),
 		})
 		return
-	}
-
-	if !a.Svc.CanSeeCircle(handle, circleid) {
-		a.Util.SimpleJsonResponse(w, 400, "Could not find specified circle to publish to")
-		return
-	} else if !a.Svc.MessageExists(messageid) {
-		a.Util.SimpleJsonResponse(w, 400, "Could not find intended message for publishing")
-		return
-	}
-
-	if !a.Svc.PublishMessage(messageid, circleid) {
-		a.Util.SimpleJsonResponse(w, 400, "Bad request, no message published")
 	} else {
-		a.Util.SimpleJsonResponse(w, 201, "Success! Published message to "+circleid)
+		circleid := payload.CircleId
+		messageid := payload.MessageId
+
+		if !a.Svc.UserIsMemberOf(author, circleid) {
+			w.WriteHeader(401)
+			w.WriteJson(json{
+				"Response": "Refusal to comply with request",
+				"Reason":   "You are not a member or owner of the specified circle",
+			})
+			return
+		}
+
+		if !a.Svc.CanSeeCircle(author, circleid) {
+			a.Util.SimpleJsonResponse(w, 400, "Could not find specified circle to publish to")
+			return
+		} else if !a.Svc.MessageExists(messageid) {
+			a.Util.SimpleJsonResponse(w, 400, "Could not find intended message for publishing")
+			return
+		}
+
+		if !a.Svc.PublishMessage(messageid, circleid) {
+			a.Util.SimpleJsonResponse(w, 400, "Bad request, no message published")
+		} else {
+			a.Util.SimpleJsonResponse(w, 201, "Success! Published message to "+circleid)
+		}
 	}
 }
 
@@ -702,47 +704,63 @@ func (a Api) GetMessageById(w rest.ResponseWriter, r *rest.Request) {
  * Deletes an unpublished message
  */
 func (a Api) DeleteMessage(w rest.ResponseWriter, r *rest.Request) {
-	payload := struct {
-		Handle    string
-		LastSaved time.Time
-	}{}
-	if err := r.DecodeJsonPayload(&payload); err != nil {
-		rest.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	handle := payload.Handle
-	lastsaved := payload.LastSaved
-
 	if !a.authenticate(r) {
 		a.Util.FailedToAuthenticate(w)
 		return
 	}
 
-	deleted := []struct {
-		Count int `json:"count(m)"`
+	payload := struct {
+		LastSaved time.Time
 	}{}
-	if err := a.Svc.Db.Cypher(&neoism.CypherQuery{
-		Statement: `
-        MATCH (user:User {handle: {handle}})
-        OPTIONAL MATCH (user)-[r:WROTE]->(m:Message {lastsaved: {lastsaved}})
-        DELETE r, m
-        RETURN count(m)
-        `,
-		Parameters: neoism.Props{
-			"handle":    handle,
-			"lastsaved": lastsaved,
-		},
-		Result: &deleted,
-	}); err != nil {
-		panicErr(err)
+
+	if err := r.DecodeJsonPayload(&payload); err != nil {
+		rest.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 
-	w.WriteHeader(200)
-	w.WriteJson(json{
-		"Response": "Success!",
-		"Deleted":  deleted[0].Count,
-	})
+	if author, success := a.Svc.GetHandleFromAuthorization(a.getSessionId(r)); !success {
+		w.WriteHeader(400)
+		w.WriteJson(json{
+			"Response":  "Unexpected failure to retrieve owner of session",
+			"Author":    author,
+			"Success":   success,
+			"SessionId": a.getSessionId(r),
+		})
+		return
+	} else {
+		handle := author
+		lastsaved := payload.LastSaved
+
+		if !a.authenticate(r) {
+			a.Util.FailedToAuthenticate(w)
+			return
+		}
+
+		deleted := []struct {
+			Count int `json:"count(m)"`
+		}{}
+		if err := a.Svc.Db.Cypher(&neoism.CypherQuery{
+			Statement: `
+	        MATCH (user:User {handle: {handle}})
+	        OPTIONAL MATCH (user)-[r:WROTE]->(m:Message {lastsaved: {lastsaved}})
+	        DELETE r, m
+	        RETURN count(m)
+	        `,
+			Parameters: neoism.Props{
+				"handle":    handle,
+				"lastsaved": lastsaved,
+			},
+			Result: &deleted,
+		}); err != nil {
+			panicErr(err)
+		}
+
+		w.WriteHeader(200)
+		w.WriteJson(json{
+			"Response": "Success!",
+			"Deleted":  deleted[0].Count,
+		})
+	}
 }
 
 //
