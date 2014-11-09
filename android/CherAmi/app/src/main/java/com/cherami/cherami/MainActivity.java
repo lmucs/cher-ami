@@ -102,21 +102,6 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
         return true;
     }
 
-    public void showLogin(View view) {
-        Intent intent = new Intent(this, LoginActivity.class);
-        startActivity(intent);
-    }
-
-    private boolean isEmailValid(String email) {
-        //TODO: Replace this with your own logic
-        return email.contains("@");
-    }
-
-    private boolean isPasswordValid(String password) {
-        //TODO: Replace this with your own logic
-        return password.length() > 4;
-    }
-
     public void attemptCreateCircle(View view) {
         System.out.println("new circle");
     }
