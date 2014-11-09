@@ -4,7 +4,8 @@ define(function(require, exports, module) {
 
     var Message = Backbone.Model.extend({
         defaults: {
-            content: null
+            content: null,
+            id: null
         },
 
         initialize: function() {
