@@ -20,7 +20,7 @@ func MakeHandler(a cheramiapi.Api, disableLogs bool) (rest.ResourceHandler, erro
 		&rest.Route{"GET", "/users", a.SearchForUsers},
 		&rest.Route{"DELETE", "/users/:handle", a.DeleteUser},
 		&rest.Route{"GET", "/messages", a.GetAuthoredMessages},
-		&rest.Route{"GET", "/messages/:author", a.GetMessagesByHandle},
+		&rest.Route{"GET", "/messages/:id", a.GetMessageById},
 		&rest.Route{"POST", "/messages", a.NewMessage},
 		&rest.Route{"DELETE", "/messages", a.DeleteMessage},
 		&rest.Route{"POST", "/publish", a.PublishMessage},

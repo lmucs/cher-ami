@@ -398,10 +398,10 @@ func (s Svc) NewCircle(handle string, circle_name string, isPublic bool) bool {
 	return len(created) > 0
 }
 
-func (s Svc) NewMessage(handle string, content string) bool {
+func (s Svc) NewMessage(handle string, content string) (messageid string, success bool) {
 	created := []struct {
-		Content  string      `json:"m.content"`
-		Relation neoism.Node `json:"r"`
+		Content string `json:"m.content"`
+		Id      string `json:"m.id"`
 	}{}
 	now := time.Now().Local()
 	if err := s.Db.Cypher(&neoism.CypherQuery{
@@ -415,7 +415,7 @@ func (s Svc) NewMessage(handle string, content string) bool {
               , id:        {id}
             })
             CREATE (u)-[r:WROTE]->(m)
-            RETURN m.content, r
+            RETURN m.content, m.id
         `,
 		Parameters: neoism.Props{
 			"handle":  handle,
@@ -427,7 +427,12 @@ func (s Svc) NewMessage(handle string, content string) bool {
 	}); err != nil {
 		panicErr(err)
 	}
-	return len(created) > 0
+
+	if success = len(created) > 0; success {
+		return created[0].Id, success
+	} else {
+		return "", success
+	}
 }
 
 func (s Svc) PublishMessage(messageid, circleid string) bool {
@@ -753,6 +758,32 @@ func (s Svc) GetMessagesByHandle(handle string) []Message {
 	}
 
 	return messages
+}
+
+func (s Svc) GetMessageById(messageid string) (message *Message, found bool) {
+	messages := make([]Message, 0)
+	if err := s.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+			MATCH   (u:User)-[:WROTE]->(m:Message)
+			WHERE   m.id = {messageid}
+			RETURN  m.id
+	              , u.handle
+	              , m.content
+	              , m.created
+		`,
+		Parameters: neoism.Props{
+			"messageid": messageid,
+		},
+		Result: &messages,
+	}); err != nil {
+		panicErr(err)
+	}
+
+	if success := len(messages) > 0; success {
+		return &messages[0], success
+	} else {
+		return nil, success
+	}
 }
 
 func (s Svc) GetHandleFromAuthorization(token string) (string, bool) {
