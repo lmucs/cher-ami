@@ -768,40 +768,52 @@ func (a Api) DeleteMessage(w rest.ResponseWriter, r *rest.Request) {
 //
 
 func (a Api) BlockUser(w rest.ResponseWriter, r *rest.Request) {
+	if !a.authenticate(r) {
+		a.Util.FailedToAuthenticate(w)
+		return
+	}
+
 	payload := struct {
-		Handle string
 		Target string
 	}{}
 	if err := r.DecodeJsonPayload(&payload); err != nil {
 		rest.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
-	handle := payload.Handle
-	target := payload.Target
-
-	if !a.authenticate(r) {
-		a.Util.FailedToAuthenticate(w)
+	if handle, success := a.Svc.GetHandleFromAuthorization(a.getSessionId(r)); !success {
+		w.WriteHeader(400)
+		w.WriteJson(json{
+			"Response":  "Unexpected failure to retrieve owner of session",
+			"Handle":    handle,
+			"Success":   success,
+			"SessionId": a.getSessionId(r),
+		})
 		return
-	}
-
-	if !a.Svc.UserExists(target) {
-		a.Util.SimpleJsonResponse(w, 400, "Bad request, user "+target+" wasn't found")
-		return
-	}
-
-	a.Svc.RevokeMembershipBetween(handle, target)
-
-	if !a.Svc.CreateBlockFromTo(handle, target) {
-		a.Util.SimpleJsonResponse(w, 400, "Unexpected failure to block user")
 	} else {
-		a.Util.SimpleJsonResponse(w, 200, "User "+target+" has been blocked")
+		target := payload.Target
+
+		if !a.Svc.UserExists(target) {
+			a.Util.SimpleJsonResponse(w, 400, "Bad request, user "+target+" wasn't found")
+			return
+		}
+
+		a.Svc.RevokeMembershipBetween(handle, target)
+
+		if !a.Svc.CreateBlockFromTo(handle, target) {
+			a.Util.SimpleJsonResponse(w, 400, "Unexpected failure to block user")
+		} else {
+			a.Util.SimpleJsonResponse(w, 200, "User "+target+" has been blocked")
+		}
 	}
 }
 
 func (a Api) JoinDefault(w rest.ResponseWriter, r *rest.Request) {
+	if !a.authenticate(r) {
+		a.Util.FailedToAuthenticate(w)
+		return
+	}
+
 	payload := struct {
-		Handle string
 		Target string
 	}{}
 	if err := r.DecodeJsonPayload(&payload); err != nil {
@@ -809,28 +821,33 @@ func (a Api) JoinDefault(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	handle := payload.Handle
-	target := payload.Target
-
-	if !a.authenticate(r) {
-		a.Util.FailedToAuthenticate(w)
+	if handle, success := a.Svc.GetHandleFromAuthorization(a.getSessionId(r)); !success {
+		w.WriteHeader(400)
+		w.WriteJson(json{
+			"Response":  "Unexpected failure to retrieve owner of session",
+			"Handle":    handle,
+			"Success":   success,
+			"SessionId": a.getSessionId(r),
+		})
 		return
-	}
-
-	if !a.Svc.UserExists(target) {
-		a.Util.SimpleJsonResponse(w, 400, "Bad request, user "+target+" wasn't found")
-		return
-	}
-
-	if a.Svc.BlockExistsFromTo(target, handle) {
-		a.Util.SimpleJsonResponse(w, 403, "Server refusal to comply with join request")
-		return
-	}
-
-	if !a.Svc.JoinBroadcast(handle, target) {
-		a.Util.SimpleJsonResponse(w, 400, "Unexpected failure to join Broadcast")
 	} else {
-		a.Util.SimpleJsonResponse(w, 201, "JoinDefault request successful!")
+		target := payload.Target
+
+		if !a.Svc.UserExists(target) {
+			a.Util.SimpleJsonResponse(w, 400, "Bad request, user "+target+" wasn't found")
+			return
+		}
+
+		if a.Svc.BlockExistsFromTo(target, handle) {
+			a.Util.SimpleJsonResponse(w, 403, "Server refusal to comply with join request")
+			return
+		}
+
+		if !a.Svc.JoinBroadcast(handle, target) {
+			a.Util.SimpleJsonResponse(w, 400, "Unexpected failure to join Broadcast")
+		} else {
+			a.Util.SimpleJsonResponse(w, 201, "JoinDefault request successful!")
+		}
 	}
 }
 
@@ -838,8 +855,12 @@ func (a Api) JoinDefault(w rest.ResponseWriter, r *rest.Request) {
  * Allows joining by (target, circlename) or (circleid) candidate keys
  */
 func (a Api) Join(w rest.ResponseWriter, r *rest.Request) {
+	if !a.authenticate(r) {
+		a.Util.FailedToAuthenticate(w)
+		return
+	}
+
 	payload := struct {
-		Handle   string
 		Target   string
 		Circle   string
 		CircleId string
@@ -849,43 +870,48 @@ func (a Api) Join(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	handle := payload.Handle
-	target := payload.Target
-	circle := payload.Circle
-	circleid := payload.CircleId
-
-	if !a.authenticate(r) {
-		a.Util.FailedToAuthenticate(w)
+	if handle, success := a.Svc.GetHandleFromAuthorization(a.getSessionId(r)); !success {
+		w.WriteHeader(400)
+		w.WriteJson(json{
+			"Response":  "Unexpected failure to retrieve owner of session",
+			"Handle":    handle,
+			"Success":   success,
+			"SessionId": a.getSessionId(r),
+		})
 		return
-	}
+	} else {
+		target := payload.Target
+		circle := payload.Circle
+		circleid := payload.CircleId
 
-	if !a.Svc.UserExists(target) {
-		a.Util.SimpleJsonResponse(w, 400, "Bad request, user "+target+" wasn't found")
-		return
-	}
+		if !a.Svc.UserExists(target) {
+			a.Util.SimpleJsonResponse(w, 400, "Bad request, user "+target+" wasn't found")
+			return
+		}
 
-	if a.Svc.BlockExistsFromTo(target, handle) {
-		a.Util.SimpleJsonResponse(w, 403, "Server refusal to comply with join request")
-		return
-	}
+		if a.Svc.BlockExistsFromTo(target, handle) {
+			a.Util.SimpleJsonResponse(w, 403, "Server refusal to comply with join request")
+			return
+		}
 
-	if circleid == "" {
-		if id := a.Svc.GetCircleId(target, circle); id == "" {
+		if circleid == "" {
+			if id := a.Svc.GetCircleId(target, circle); id == "" {
+				a.Util.SimpleJsonResponse(w, 404, "Could not find target circle, join failed")
+				return
+			} else {
+				circleid = id
+			}
+		}
+
+		if !a.Svc.CanSeeCircle(handle, circleid) {
 			a.Util.SimpleJsonResponse(w, 404, "Could not find target circle, join failed")
 			return
-		} else {
-			circleid = id
 		}
-	}
 
-	if !a.Svc.CanSeeCircle(handle, circleid) {
-		a.Util.SimpleJsonResponse(w, 404, "Could not find target circle, join failed")
-		return
-	}
-
-	if a.Svc.JoinCircle(handle, circleid) {
-		a.Util.SimpleJsonResponse(w, 201, "Join request successful!")
-	} else {
-		a.Util.SimpleJsonResponse(w, 400, "Unexpected failure to join circle, join failed")
+		if a.Svc.JoinCircle(handle, circleid) {
+			a.Util.SimpleJsonResponse(w, 201, "Join request successful!")
+		} else {
+			a.Util.SimpleJsonResponse(w, 400, "Unexpected failure to join circle, join failed")
+		}
 	}
 }
