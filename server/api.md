@@ -796,9 +796,7 @@ Fetch the messages for the given circle or user, paginated. The messages will al
 
 
 
-## Message [/messages/{id}]
-
-
+## Message [/messages/:id]
 
 ### Get message by id [GET]
 Get the message with the given id.
@@ -832,6 +830,51 @@ Get the message with the given id.
         }
 
 
+
+### Patch a message by id [PATCH]
+Edit an existing message by id. Is used to change properties like the message's content but will be more commonly used to publish a message. Patching a message will return a 200 and the newly-updated field values as well as the `published` field.
++ Parameters
+At least one parameter must be supplied for a successful PATCH request
+    + circles (optional, []string, ["circleid_001", ...]) Target circle(s) that the message should be posted to
+    + content (optional, string, "some new content") Set the new content of this message
++ Request
+    + Headers
+
+            Authorization: Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+    
+    + Body
+            
+            {
+                "Circles": ["circleid_001", "circleid_075"],
+                "Content": "Hello world ... again"
+            }
++ Response 200
+
+        {
+            "Updated": "https://cher-ami.example.com/messages/802",
+            "Circles": [
+                {"circleid": "circleid_001", "published_at": "2012-10-20T14:22:09Z"},
+                {"circleid": "circleid_075", "published_at": "2012-10-20T14:22:11Z"}
+            ],
+            "DateModified": "2012-10-20T14:22:09Z",
+            "Published": true
+        }
++ Response 400
+
+        {
+            "Response": "Failed to patch message",
+            "Reason": ("No field to patch specified"|"Some specified circle did not exist, or could not be published to")
+        }
++ Response 401
+
+        {
+            "reason": "missing, illegal, or expired auth token"
+        }
++ Response 404
+
+        {
+            "reason": "you are not the author of any such message"
+        }
 
 ### Delete message [DELETE]
 + Request
