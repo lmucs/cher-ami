@@ -102,82 +102,8 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
         return true;
     }
 
-    public void showLogin(View view) {
-        Intent intent = new Intent(this, LoginActivity.class);
-        startActivity(intent);
-    }
-
-    public void attemptCreateAccount(View view) {
-        View focusView = null;
-        Boolean cancel = false;
-
-        mUsername = (EditText)findViewById(R.id.username);
-        mEmail = (EditText)findViewById(R.id.email);
-        mPassword = (EditText)findViewById(R.id.password);
-        mConfirmPassword = (EditText)findViewById(R.id.confirmPassword);
-        String username = mUsername.getText().toString();
-        String email = mEmail.getText().toString();
-        String password = mPassword.getText().toString();
-        String confrimPassword = mConfirmPassword.getText().toString();
-        /* First, data sanitization: No fields should be left blank, email should have @ symbol,
-        password and Confirm password should be the same (this is done in back end)
-        Also, handle/username must be unique (also back end?)
-        Then,
-        POST to db with Handle, Email, Password, and Confirm
-        */
-
-        // Check for a valid email address.
-        if (TextUtils.isEmpty(email)) {
-            mEmail.setError(getString(R.string.error_field_required));
-            focusView = mEmail;
-            cancel = true;
-        } else if (!isEmailValid(email)) {
-            mEmail.setError(getString(R.string.error_invalid_email));
-            focusView = mEmail;
-            cancel = true;
-        }
-
-        if (TextUtils.isEmpty(password)) {
-            mPassword.setError(getString(R.string.error_field_required));
-            focusView = mPassword;
-            cancel = true;
-        } else if (!isPasswordValid(password)) {
-            mPassword.setError(getString(R.string.error_invalid_password));
-            focusView = mPassword;
-            cancel = true;
-        }
-
-        if (!confrimPassword.equals(password)) {
-            mConfirmPassword.setError(getString(R.string.error_invalid_confirm));
-            focusView = mConfirmPassword;
-            cancel = true;
-        }
-
-        if (TextUtils.isEmpty(username)) {
-            mUsername.setError(getString(R.string.error_field_required));
-            focusView = mUsername;
-            cancel = true;
-        }
-
-
-        if (cancel) {
-            //Something is wrong; don't sign up
-            focusView.requestFocus();
-        } else {
-            // Sign them up
-
-        }
-
-    }
-
-    private boolean isEmailValid(String email) {
-        //TODO: Replace this with your own logic
-        return email.contains("@");
-    }
-
-    private boolean isPasswordValid(String password) {
-        //TODO: Replace this with your own logic
-        return password.length() > 4;
+    public void attemptCreateCircle(View view) {
+        System.out.println("new circle");
     }
 
 
