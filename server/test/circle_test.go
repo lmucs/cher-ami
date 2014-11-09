@@ -10,7 +10,7 @@ import (
 //
 
 func (s *TestSuite) TestPostCirclesUserNoExist(c *C) {
-	res, err := req.PostCircles("handleNotA", "SomeSessionId", "SomeCircle", true)
+	res, err := req.PostCircles("SomeSessionId", "SomeCircle", true)
 	if err != nil {
 		c.Error(err)
 	}
@@ -26,7 +26,7 @@ func (s *TestSuite) TestPostCirclesUserNoSession(c *C) {
 
 	req.DeleteSessions(sessionid)
 
-	res, err := req.PostCircles("handleA", sessionid, "SomeCircle", true)
+	res, err := req.PostCircles(sessionid, "SomeCircle", true)
 	if err != nil {
 		c.Error(err)
 	}
@@ -40,11 +40,11 @@ func (s *TestSuite) TestPostCirclesNameReservedGold(c *C) {
 
 	sessionid := req.PostSessionGetSessionId("handleA", "password1")
 
-	res1, err := req.PostCircles("handleA", sessionid, "Gold", false)
+	res1, err := req.PostCircles(sessionid, "Gold", false)
 	if err != nil {
 		c.Error(err)
 	}
-	res2, err := req.PostCircles("handleA", sessionid, "Gold", true)
+	res2, err := req.PostCircles(sessionid, "Gold", true)
 	if err != nil {
 		c.Error(err)
 	}
@@ -60,11 +60,11 @@ func (s *TestSuite) TestPostCirclesNameReservedBroadcast(c *C) {
 
 	sessionid := req.PostSessionGetSessionId("handleA", "password1")
 
-	res1, err := req.PostCircles("handleA", sessionid, "Broadcast", false)
+	res1, err := req.PostCircles(sessionid, "Broadcast", false)
 	if err != nil {
 		c.Error(err)
 	}
-	res2, err := req.PostCircles("handleA", sessionid, "Broadcast", true)
+	res2, err := req.PostCircles(sessionid, "Broadcast", true)
 	if err != nil {
 		c.Error(err)
 	}
@@ -80,7 +80,7 @@ func (s *TestSuite) TestPostPublicCircleOK(c *C) {
 
 	sessionid := req.PostSessionGetSessionId("handleA", "password1")
 
-	res, err := req.PostCircles("handleA", sessionid, "MyPublicCircle", true)
+	res, err := req.PostCircles(sessionid, "MyPublicCircle", true)
 	if err != nil {
 		c.Error(err)
 	}
@@ -94,7 +94,7 @@ func (s *TestSuite) TestPostPrivateCircleOK(c *C) {
 
 	sessionid := req.PostSessionGetSessionId("handleA", "password1")
 
-	res, err := req.PostCircles("handleA", sessionid, "MyPrivateCircle", true)
+	res, err := req.PostCircles(sessionid, "MyPrivateCircle", true)
 	if err != nil {
 		c.Error(err)
 	}
@@ -115,7 +115,7 @@ func (s *TestSuite) TestPostBlockUserNoExist(c *C) {
 
 	req.DeleteUser("handleA", "password1", sessionid)
 
-	response, err := req.PostBlock("handleA", sessionid, "handleB")
+	response, err := req.PostBlock(sessionid, "handleB")
 	if err != nil {
 		c.Error(err)
 	}
@@ -129,7 +129,7 @@ func (s *TestSuite) TestPostBlockTargetNoExist(c *C) {
 
 	sessionid := req.PostSessionGetSessionId("handleA", "password1")
 
-	response, err := req.PostBlock("handleA", sessionid, "handleB")
+	response, err := req.PostBlock(sessionid, "handleB")
 	if err != nil {
 		c.Error(err)
 	}
@@ -146,7 +146,7 @@ func (s *TestSuite) TestPostBlockUserNoSession(c *C) {
 
 	req.DeleteSessions(sessionid)
 
-	response, err := req.PostBlock("handleA", sessionid, "handleB")
+	response, err := req.PostBlock(sessionid, "handleB")
 	if err != nil {
 		c.Error(err)
 	}
@@ -161,7 +161,7 @@ func (s *TestSuite) TestPostBlockOK(c *C) {
 
 	sessionid := req.PostSessionGetSessionId("handleA", "password1")
 
-	response, err := req.PostBlock("handleA", sessionid, "handleB")
+	response, err := req.PostBlock(sessionid, "handleB")
 	if err != nil {
 		c.Error(err)
 	}
@@ -182,7 +182,7 @@ func (s *TestSuite) TestPostJoinDefaultUserNoSession(c *C) {
 
 	req.DeleteSessions(sessionid)
 
-	response, err := req.PostBlock("handleA", sessionid, "handleB")
+	response, err := req.PostBlock(sessionid, "handleB")
 	if err != nil {
 		c.Error(err)
 	}
@@ -197,7 +197,7 @@ func (s *TestSuite) TestPostJoinDefaultTargetNoExist(c *C) {
 	response, _ := req.PostSessions("handleA", "password1")
 	sessionid := helper.GetSessionFromResponse(response)
 
-	response, err := req.PostJoinDefault("handleA", sessionid, "handleB")
+	response, err := req.PostJoinDefault(sessionid, "handleB")
 	if err != nil {
 		c.Error(err)
 	}
@@ -210,13 +210,13 @@ func (s *TestSuite) TestPostJoinDefaultUserBlocked(c *C) {
 	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
 	req.PostSignup("handleB", "testB@test.io", "password2", "password2")
 
-	sessionid_A := req.PostSessionGetSessionId("handleB", "password2")
+	sessionid_B := req.PostSessionGetSessionId("handleB", "password2")
 
-	req.PostBlock("handleB", sessionid_A, "handleA")
+	req.PostBlock(sessionid_B, "handleA")
 
-	sessionid_B := req.PostSessionGetSessionId("handleA", "password1")
+	sessionid_A := req.PostSessionGetSessionId("handleA", "password1")
 
-	response, err := req.PostJoinDefault("handleA", sessionid_B, "handleB")
+	response, err := req.PostJoinDefault(sessionid_A, "handleB")
 	if err != nil {
 		c.Error(err)
 	}
@@ -231,7 +231,7 @@ func (s *TestSuite) TestPostJoinDefaultCreated(c *C) {
 
 	sessionid := req.PostSessionGetSessionId("handleA", "password1")
 
-	response, err := req.PostJoinDefault("handleA", sessionid, "handleB")
+	response, err := req.PostJoinDefault(sessionid, "handleB")
 	if err != nil {
 		c.Error(err)
 	}
@@ -250,13 +250,13 @@ func (s *TestSuite) TestPostJoinUserNoSession(c *C) {
 
 	sessionid_B := req.PostSessionGetSessionId("handleB", "password2")
 
-	req.PostCircles("handleB", sessionid_B, "handleB", true)
+	req.PostCircles(sessionid_B, "handleB", true)
 
 	sessionid_A := req.PostSessionGetSessionId("handleA", "password1")
 
 	req.DeleteSessions(sessionid_A)
 
-	response, err := req.PostJoin("handleA", sessionid_A, "handleB", "CircleOfB")
+	response, err := req.PostJoin(sessionid_A, "handleB", "CircleOfB")
 	if err != nil {
 		c.Error(err)
 	}
@@ -271,11 +271,11 @@ func (s *TestSuite) TestPostJoinUserNoExist(c *C) {
 
 	sessionid_B := req.PostSessionGetSessionId("handleB", "password2")
 
-	req.PostCircles("handleB", sessionid_B, "CircleOfB", true)
+	req.PostCircles(sessionid_B, "CircleOfB", true)
 
 	sessionid_A := req.PostSessionGetSessionId("handleA", "password1")
 
-	response, err := req.PostJoin("handleA", sessionid_A, "handleC", "CircleOfB")
+	response, err := req.PostJoin(sessionid_A, "handleC", "CircleOfB")
 	if err != nil {
 		c.Error(err)
 	}
@@ -290,12 +290,12 @@ func (s *TestSuite) TestPostJoinUserBlocked(c *C) {
 
 	sessionid_B := req.PostSessionGetSessionId("handleB", "password2")
 
-	req.PostCircles("handleB", sessionid_B, "CircleOfHandleB", true)
-	req.PostBlock("handleB", sessionid_B, "handleA")
+	req.PostCircles(sessionid_B, "CircleOfHandleB", true)
+	req.PostBlock(sessionid_B, "handleA")
 
 	sessionid_A := req.PostSessionGetSessionId("handleA", "password1")
 
-	response, err := req.PostJoin("handleA", sessionid_A, "handleB", "CircleOfHandleB")
+	response, err := req.PostJoin(sessionid_A, "handleB", "CircleOfHandleB")
 	if err != nil {
 		c.Error(err)
 	}
@@ -310,7 +310,7 @@ func (s *TestSuite) TestPostJoinCircleNoExist(c *C) {
 
 	sessionid_A := req.PostSessionGetSessionId("handleA", "password1")
 
-	response, err := req.PostJoin("handleA", sessionid_A, "handleB", "NonExistentCircle")
+	response, err := req.PostJoin(sessionid_A, "handleB", "NonExistentCircle")
 	if err != nil {
 		c.Error(err)
 	}
@@ -325,11 +325,11 @@ func (s *TestSuite) TestPostJoinCreated(c *C) {
 
 	sessionid_B := req.PostSessionGetSessionId("handleB", "password2")
 
-	req.PostCircles("handleB", sessionid_B, "MyCircle", true)
+	req.PostCircles(sessionid_B, "MyCircle", true)
 
 	sessionid_A := req.PostSessionGetSessionId("handleA", "password1")
 
-	response, err := req.PostJoin("handleA", sessionid_A, "handleB", "MyCircle")
+	response, err := req.PostJoin(sessionid_A, "handleB", "MyCircle")
 	if err != nil {
 		c.Error(err)
 	}

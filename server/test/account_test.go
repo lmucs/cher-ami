@@ -171,7 +171,7 @@ func (s *TestSuite) TestLogoutOK(c *C) {
 //
 
 func (s *TestSuite) TestChangePasswordUserNoExist(c *C) {
-	response, err := req.PostChangePassword("handleA", "SomeSessionId", "password1", "password123", "password123")
+	response, err := req.PostChangePassword("SomeSessionId", "password1", "password123", "password123")
 	if err != nil {
 		c.Error(err)
 	}
@@ -184,7 +184,7 @@ func (s *TestSuite) TestChangePasswordSamePassword(c *C) {
 	req.PostSignup("handleA", "handleA@test.io", "password1", "password1")
 
 	sessionid := req.PostSessionGetSessionId("handleA", "password1")
-	response, err := req.PostChangePassword("handleA", sessionid, "password1", "password1", "password1")
+	response, err := req.PostChangePassword(sessionid, "password1", "password1", "password1")
 	if err != nil {
 		c.Error(err)
 	}
@@ -197,7 +197,7 @@ func (s *TestSuite) TestChangePasswordOK(c *C) {
 	req.PostSignup("handleA", "handleA@test.io", "password1", "password1")
 
 	sessionid := req.PostSessionGetSessionId("handleA", "password1")
-	response, err := req.PostChangePassword("handleA", sessionid, "password1", "password2", "password2")
+	response, err := req.PostChangePassword(sessionid, "password1", "password2", "password2")
 	if err != nil {
 		c.Error(err)
 	}

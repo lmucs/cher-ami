@@ -77,9 +77,8 @@ func (req Requester) DeleteSessions(sessionid string) (*http.Response, error) {
 	return helper.Execute("DELETE", req.Routes.sessionsURL, payload)
 }
 
-func (req Requester) GetAuthoredMessages(handle string, sessionid string) (*http.Response, error) {
+func (req Requester) GetAuthoredMessages(sessionid string) (*http.Response, error) {
 	payload := json{
-		"handle":    handle,
 		"sessionid": sessionid,
 	}
 
@@ -102,9 +101,8 @@ func (req Requester) GetUser(handle string) (*http.Response, error) {
 	return helper.GetWithQueryParams(req.Routes.usersURL+"/"+handle, payload)
 }
 
-func (req Requester) PostBlock(handle string, sessionid string, target string) (*http.Response, error) {
+func (req Requester) PostBlock(sessionid string, target string) (*http.Response, error) {
 	payload := json{
-		"handle":    handle,
 		"sessionid": sessionid,
 		"target":    target,
 	}
@@ -112,9 +110,8 @@ func (req Requester) PostBlock(handle string, sessionid string, target string) (
 	return helper.Execute("POST", req.Routes.blockURL, payload)
 }
 
-func (req Requester) PostChangePassword(handle string, sessionid string, password string, newPassword string, confirmNewPassword string) (*http.Response, error) {
+func (req Requester) PostChangePassword(sessionid string, password string, newPassword string, confirmNewPassword string) (*http.Response, error) {
 	payload := json{
-		"handle":             handle,
 		"sessionid":          sessionid,
 		"password":           password,
 		"newpassword":        newPassword,
@@ -124,9 +121,8 @@ func (req Requester) PostChangePassword(handle string, sessionid string, passwor
 	return helper.Execute("POST", req.Routes.changePassURL, payload)
 }
 
-func (req Requester) PostCircles(handle string, sessionid string, circleName string, public bool) (*http.Response, error) {
+func (req Requester) PostCircles(sessionid string, circleName string, public bool) (*http.Response, error) {
 	payload := json{
-		"handle":     handle,
 		"sessionid":  sessionid,
 		"circlename": circleName,
 		"public":     public,
@@ -135,9 +131,8 @@ func (req Requester) PostCircles(handle string, sessionid string, circleName str
 	return helper.Execute("POST", req.Routes.circlesURL, payload)
 }
 
-func (req Requester) PostJoin(handle string, sessionid string, target string, circle string) (*http.Response, error) {
+func (req Requester) PostJoin(sessionid string, target string, circle string) (*http.Response, error) {
 	payload := json{
-		"handle":    handle,
 		"sessionid": sessionid,
 		"target":    target,
 		"circle":    circle,
@@ -197,9 +192,8 @@ func (req Requester) PostSignup(handle string, email string, password string, co
 	return helper.Execute("POST", req.Routes.signupURL, proposal)
 }
 
-func (req Requester) PostJoinDefault(handle string, sessionid string, target string) (*http.Response, error) {
+func (req Requester) PostJoinDefault(sessionid string, target string) (*http.Response, error) {
 	payload := json{
-		"handle":    handle,
 		"sessionid": sessionid,
 		"target":    target,
 	}
