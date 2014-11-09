@@ -21,7 +21,7 @@ type MessageData struct {
 //
 func (s *TestSuite) TestGetAuthoredMessagesInvalidAuth(c *C) {
 	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
-	res, _ := req.GetAuthoredMessages("handleA", "")
+	res, _ := req.GetAuthoredMessages("")
 	c.Check(res.StatusCode, Equals, 401)
 }
 
@@ -35,7 +35,7 @@ func (s *TestSuite) TestGetAuthoredMessagesOK(c *C) {
 	req.PostMessages("The nearest exit may be behind you", sessionid)
 	req.PostMessages("I make soap.", sessionid)
 
-	res, _ := req.GetAuthoredMessages("handleA", sessionid)
+	res, _ := req.GetAuthoredMessages(sessionid)
 
 	data := struct {
 		Response string

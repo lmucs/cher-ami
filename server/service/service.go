@@ -882,21 +882,19 @@ func (s Svc) SetNewPassword(handle string, password string) bool {
 	return len(user) > 0
 }
 
-func (s Svc) UnsetSessionId(handle string) bool {
+func (s Svc) UnsetSessionId(sessionid string) bool {
 	unset := []struct {
 		Handle string `json:"u.handle"`
 	}{}
 	if err := s.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
-            MATCH          (u:User)
-            WHERE          u.handle = {handle}
-            WITH           u
-            OPTIONAL MATCH (u)<-[so:SESSION_OF]-(a:AuthToken)
-            DELETE         so, a
-            RETURN         u.handle
+            MATCH   (u:User)<-[so:SESSION_OF]-(a:AuthToken)
+            WHERE   a.sessionid = {sessionid}
+            DELETE  so, a
+            RETURN  u.handle
         `,
 		Parameters: neoism.Props{
-			"handle": handle,
+			"sessionid": sessionid,
 		},
 		Result: &unset,
 	}); err != nil {

@@ -193,30 +193,21 @@ func (a Api) Login(w rest.ResponseWriter, r *rest.Request) {
  * Expects a json post with "handle"
  */
 func (a Api) Logout(w rest.ResponseWriter, r *rest.Request) {
-	user := struct {
-		Handle string
-	}{}
-
-	if err := r.DecodeJsonPayload(&user); err != nil {
-		rest.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	handle := user.Handle
-
-	if a.Svc.UnsetSessionId(handle) {
+	if a.Svc.UnsetSessionId(a.getSessionId(r)) {
 		w.WriteHeader(204)
 		return
 	} else {
-
 		a.Util.SimpleJsonResponse(w, 403, "Cannot invalidate token because it is missing")
 		return
 	}
 }
 
 func (a Api) ChangePassword(w rest.ResponseWriter, r *rest.Request) {
+	if !a.authenticate(r) {
+		a.Util.FailedToAuthenticate(w)
+		return
+	}
 	user := struct {
-		Handle             string
 		Password           string
 		NewPassword        string
 		ConfirmNewPassword string
@@ -227,56 +218,61 @@ func (a Api) ChangePassword(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	handle := user.Handle
-	password := []byte(user.Password)
-	newPassword := user.NewPassword
-	confirmNewPassword := user.ConfirmNewPassword
-
-	if !a.authenticate(r) {
-		a.Util.FailedToAuthenticate(w)
-		return
-	}
-
-	// Password checks
-	if newPassword != confirmNewPassword {
+	if handle, success := a.Svc.GetHandleFromAuthorization(a.getSessionId(r)); !success {
 		w.WriteHeader(400)
 		w.WriteJson(json{
-			"Response": "Passwords do not match",
+			"Response":  "Unexpected failure to retrieve owner of session",
+			"Handle":    handle,
+			"Success":   success,
+			"SessionId": a.getSessionId(r),
 		})
 		return
-	} else if len(newPassword) < MIN_PASS_LENGTH {
-		a.Util.SimpleJsonResponse(w, 400, "Passwords must be at least 8 characters long")
-		return
-	}
-
-	if passwordHash, ok := a.Svc.GetPasswordHash(handle); !ok {
-		a.Util.SimpleJsonResponse(w, 400, "Invalid username or password, please try again.")
-		return
 	} else {
-		// err is nil if successful, error
-		if err := bcrypt.CompareHashAndPassword(passwordHash, password); err != nil {
+		password := []byte(user.Password)
+		newPassword := user.NewPassword
+		confirmNewPassword := user.ConfirmNewPassword
+
+		// Password checks
+		if newPassword != confirmNewPassword {
 			w.WriteHeader(400)
 			w.WriteJson(json{
-				"Response": "Invalid username or password, please try again.",
+				"Response": "Passwords do not match",
 			})
 			return
-		} else if err := bcrypt.CompareHashAndPassword(passwordHash, []byte(newPassword)); err == nil {
-			a.Util.SimpleJsonResponse(w, 400, "Current/new password are same, please provide a new password.")
+		} else if len(newPassword) < MIN_PASS_LENGTH {
+			a.Util.SimpleJsonResponse(w, 400, "Passwords must be at least 8 characters long")
+			return
+		}
+
+		if passwordHash, ok := a.Svc.GetPasswordHash(handle); !ok {
+			a.Util.SimpleJsonResponse(w, 400, "Invalid username or password, please try again.")
 			return
 		} else {
-			if hash, err := bcrypt.GenerateFromPassword([]byte(newPassword), 10); err != nil {
-				rest.Error(w, err.Error(), http.StatusInternalServerError)
+			// err is nil if successful, error
+			if err := bcrypt.CompareHashAndPassword(passwordHash, password); err != nil {
+				w.WriteHeader(400)
+				w.WriteJson(json{
+					"Response": "Invalid username or password, please try again.",
+				})
+				return
+			} else if err := bcrypt.CompareHashAndPassword(passwordHash, []byte(newPassword)); err == nil {
+				a.Util.SimpleJsonResponse(w, 400, "Current/new password are same, please provide a new password.")
 				return
 			} else {
-				hashed_new_pass := string(hash)
-				// Now set the new password
-				if !a.Svc.SetNewPassword(handle, hashed_new_pass) {
-					a.Util.SimpleJsonResponse(w, 400, "Password change unsuccessful")
+				if hash, err := bcrypt.GenerateFromPassword([]byte(newPassword), 10); err != nil {
+					rest.Error(w, err.Error(), http.StatusInternalServerError)
 					return
 				} else {
-					// No JSON is written.
-					w.WriteHeader(204)
-					return
+					hashed_new_pass := string(hash)
+					// Now set the new password
+					if !a.Svc.SetNewPassword(handle, hashed_new_pass) {
+						a.Util.SimpleJsonResponse(w, 400, "Password change unsuccessful")
+						return
+					} else {
+						// No JSON is written.
+						w.WriteHeader(204)
+						return
+					}
 				}
 			}
 		}
@@ -384,8 +380,11 @@ func (a Api) SearchForUsers(w rest.ResponseWriter, r *rest.Request) {
 }
 
 func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
+	if !a.authenticate(r) {
+		a.Util.FailedToAuthenticate(w)
+		return
+	}
 	credentials := struct {
-		Handle   string
 		Password string
 	}{}
 	if err := r.DecodeJsonPayload(&credentials); err != nil {
@@ -393,37 +392,42 @@ func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	handle := credentials.Handle
-	password := []byte(credentials.Password)
-
-	if !a.authenticate(r) {
-		a.Util.FailedToAuthenticate(w)
-		return
-	}
-
-	if passwordHash, ok := a.Svc.GetPasswordHash(handle); !ok {
+	if handle, success := a.Svc.GetHandleFromAuthorization(a.getSessionId(r)); !success {
 		w.WriteHeader(400)
 		w.WriteJson(json{
-			"Response": "Invalid username or password, please try again.",
+			"Response":  "Unexpected failure to retrieve owner of session",
+			"Handle":    handle,
+			"Success":   success,
+			"SessionId": a.getSessionId(r),
 		})
 		return
 	} else {
-		// err is nil if successful, error
-		if err := bcrypt.CompareHashAndPassword(passwordHash, password); err != nil {
+		password := []byte(credentials.Password)
+
+		if passwordHash, ok := a.Svc.GetPasswordHash(handle); !ok {
 			w.WriteHeader(400)
 			w.WriteJson(json{
 				"Response": "Invalid username or password, please try again.",
 			})
 			return
 		} else {
-			if deleted := a.Svc.DeleteUser(handle); !deleted {
+			// err is nil if successful, error
+			if err := bcrypt.CompareHashAndPassword(passwordHash, password); err != nil {
 				w.WriteHeader(400)
 				w.WriteJson(json{
-					"Response": "Unexpected failure to delete user",
+					"Response": "Invalid username or password, please try again.",
 				})
 				return
 			} else {
-				w.WriteHeader(204)
+				if deleted := a.Svc.DeleteUser(handle); !deleted {
+					w.WriteHeader(400)
+					w.WriteJson(json{
+						"Response": "Unexpected failure to delete user",
+					})
+					return
+				} else {
+					w.WriteHeader(204)
+				}
 			}
 		}
 	}
@@ -434,8 +438,11 @@ func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
 //
 
 func (a Api) NewCircle(w rest.ResponseWriter, r *rest.Request) {
+	if !a.authenticate(r) {
+		a.Util.FailedToAuthenticate(w)
+		return
+	}
 	payload := struct {
-		Handle     string
 		CircleName string
 		Public     bool
 	}{}
@@ -444,26 +451,31 @@ func (a Api) NewCircle(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	handle := payload.Handle
-	circleName := payload.CircleName
-	isPublic := payload.Public
-
-	if !a.authenticate(r) {
-		a.Util.FailedToAuthenticate(w)
+	if handle, success := a.Svc.GetHandleFromAuthorization(a.getSessionId(r)); !success {
+		w.WriteHeader(400)
+		w.WriteJson(json{
+			"Response":  "Unexpected failure to retrieve owner of session",
+			"Handle":    handle,
+			"Success":   success,
+			"SessionId": a.getSessionId(r),
+		})
 		return
-	}
+	} else {
+		circleName := payload.CircleName
+		isPublic := payload.Public
 
-	if circleName == GOLD || circleName == BROADCAST {
-		a.Util.SimpleJsonResponse(w, 403, circleName+" is a reserved circle name")
-		return
-	}
+		if circleName == GOLD || circleName == BROADCAST {
+			a.Util.SimpleJsonResponse(w, 403, circleName+" is a reserved circle name")
+			return
+		}
 
-	if !a.Svc.NewCircle(handle, circleName, isPublic) {
-		a.Util.SimpleJsonResponse(w, 400, "Unexpected failure to create circle")
-		return
-	}
+		if !a.Svc.NewCircle(handle, circleName, isPublic) {
+			a.Util.SimpleJsonResponse(w, 400, "Unexpected failure to create circle")
+			return
+		}
 
-	a.Util.SimpleJsonResponse(w, 201, "Created new circle "+circleName+" for "+handle)
+		a.Util.SimpleJsonResponse(w, 201, "Created new circle "+circleName+" for "+handle)
+	}
 }
 
 //
@@ -483,7 +495,6 @@ type MessageData struct {
  */
 func (a Api) NewMessage(w rest.ResponseWriter, r *rest.Request) {
 	payload := struct {
-		Handle  string
 		Content string
 	}{}
 	if err := r.DecodeJsonPayload(&payload); err != nil {
@@ -491,26 +502,21 @@ func (a Api) NewMessage(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	handle := ""
-	if payload.Handle == "" {
-		if h, ok := a.Svc.GetHandleFromAuthorization(a.getSessionId(r)); !ok {
-			w.WriteHeader(400)
-			w.WriteJson(json{
-				"Response": "Unexpected failure to retrieve owner of session",
-			})
-			return
-		} else {
-			handle = h
-		}
-	} else {
-		handle = payload.Handle
-	}
-	content := payload.Content
-
 	if !a.authenticate(r) {
 		a.Util.FailedToAuthenticate(w)
 		return
 	}
+
+	handle, ok := a.Svc.GetHandleFromAuthorization(a.getSessionId(r))
+	if !ok {
+		w.WriteHeader(400)
+		w.WriteJson(json{
+			"Response": "Unexpected failure to retrieve owner of session",
+		})
+		return
+	}
+
+	content := payload.Content
 
 	if payload.Content == "" {
 		a.Util.SimpleJsonResponse(w, 400, "Please enter some content for your message")
@@ -534,8 +540,11 @@ func (a Api) NewMessage(w rest.ResponseWriter, r *rest.Request) {
  * by the user.
  */
 func (a Api) PublishMessage(w rest.ResponseWriter, r *rest.Request) {
+	if !a.authenticate(r) {
+		a.Util.FailedToAuthenticate(w)
+		return
+	}
 	payload := struct {
-		Handle    string
 		CircleId  string
 		MessageId string
 	}{}
@@ -544,36 +553,41 @@ func (a Api) PublishMessage(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	handle := payload.Handle
-	circleid := payload.CircleId
-	messageid := payload.MessageId
-
-	if !a.authenticate(r) {
-		a.Util.FailedToAuthenticate(w)
-		return
-	}
-
-	if !a.Svc.UserIsMemberOf(handle, circleid) {
-		w.WriteHeader(401)
+	if author, success := a.Svc.GetHandleFromAuthorization(a.getSessionId(r)); !success {
+		w.WriteHeader(400)
 		w.WriteJson(json{
-			"Response": "Refusal to comply with request",
-			"Reason":   "You are not a member or owner of the specified circle",
+			"Response":  "Unexpected failure to retrieve owner of session",
+			"Author":    author,
+			"Success":   success,
+			"SessionId": a.getSessionId(r),
 		})
 		return
-	}
-
-	if !a.Svc.CanSeeCircle(handle, circleid) {
-		a.Util.SimpleJsonResponse(w, 400, "Could not find specified circle to publish to")
-		return
-	} else if !a.Svc.MessageExists(messageid) {
-		a.Util.SimpleJsonResponse(w, 400, "Could not find intended message for publishing")
-		return
-	}
-
-	if !a.Svc.PublishMessage(messageid, circleid) {
-		a.Util.SimpleJsonResponse(w, 400, "Bad request, no message published")
 	} else {
-		a.Util.SimpleJsonResponse(w, 201, "Success! Published message to "+circleid)
+		circleid := payload.CircleId
+		messageid := payload.MessageId
+
+		if !a.Svc.UserIsMemberOf(author, circleid) {
+			w.WriteHeader(401)
+			w.WriteJson(json{
+				"Response": "Refusal to comply with request",
+				"Reason":   "You are not a member or owner of the specified circle",
+			})
+			return
+		}
+
+		if !a.Svc.CanSeeCircle(author, circleid) {
+			a.Util.SimpleJsonResponse(w, 400, "Could not find specified circle to publish to")
+			return
+		} else if !a.Svc.MessageExists(messageid) {
+			a.Util.SimpleJsonResponse(w, 400, "Could not find intended message for publishing")
+			return
+		}
+
+		if !a.Svc.PublishMessage(messageid, circleid) {
+			a.Util.SimpleJsonResponse(w, 400, "Bad request, no message published")
+		} else {
+			a.Util.SimpleJsonResponse(w, 201, "Success! Published message to "+circleid)
+		}
 	}
 }
 
@@ -762,40 +776,52 @@ func (a Api) DeleteMessage(w rest.ResponseWriter, r *rest.Request) {
 //
 
 func (a Api) BlockUser(w rest.ResponseWriter, r *rest.Request) {
+	if !a.authenticate(r) {
+		a.Util.FailedToAuthenticate(w)
+		return
+	}
+
 	payload := struct {
-		Handle string
 		Target string
 	}{}
 	if err := r.DecodeJsonPayload(&payload); err != nil {
 		rest.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
-	handle := payload.Handle
-	target := payload.Target
-
-	if !a.authenticate(r) {
-		a.Util.FailedToAuthenticate(w)
+	if handle, success := a.Svc.GetHandleFromAuthorization(a.getSessionId(r)); !success {
+		w.WriteHeader(400)
+		w.WriteJson(json{
+			"Response":  "Unexpected failure to retrieve owner of session",
+			"Handle":    handle,
+			"Success":   success,
+			"SessionId": a.getSessionId(r),
+		})
 		return
-	}
-
-	if !a.Svc.UserExists(target) {
-		a.Util.SimpleJsonResponse(w, 400, "Bad request, user "+target+" wasn't found")
-		return
-	}
-
-	a.Svc.RevokeMembershipBetween(handle, target)
-
-	if !a.Svc.CreateBlockFromTo(handle, target) {
-		a.Util.SimpleJsonResponse(w, 400, "Unexpected failure to block user")
 	} else {
-		a.Util.SimpleJsonResponse(w, 200, "User "+target+" has been blocked")
+		target := payload.Target
+
+		if !a.Svc.UserExists(target) {
+			a.Util.SimpleJsonResponse(w, 400, "Bad request, user "+target+" wasn't found")
+			return
+		}
+
+		a.Svc.RevokeMembershipBetween(handle, target)
+
+		if !a.Svc.CreateBlockFromTo(handle, target) {
+			a.Util.SimpleJsonResponse(w, 400, "Unexpected failure to block user")
+		} else {
+			a.Util.SimpleJsonResponse(w, 200, "User "+target+" has been blocked")
+		}
 	}
 }
 
 func (a Api) JoinDefault(w rest.ResponseWriter, r *rest.Request) {
+	if !a.authenticate(r) {
+		a.Util.FailedToAuthenticate(w)
+		return
+	}
+
 	payload := struct {
-		Handle string
 		Target string
 	}{}
 	if err := r.DecodeJsonPayload(&payload); err != nil {
@@ -803,28 +829,33 @@ func (a Api) JoinDefault(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	handle := payload.Handle
-	target := payload.Target
-
-	if !a.authenticate(r) {
-		a.Util.FailedToAuthenticate(w)
+	if handle, success := a.Svc.GetHandleFromAuthorization(a.getSessionId(r)); !success {
+		w.WriteHeader(400)
+		w.WriteJson(json{
+			"Response":  "Unexpected failure to retrieve owner of session",
+			"Handle":    handle,
+			"Success":   success,
+			"SessionId": a.getSessionId(r),
+		})
 		return
-	}
-
-	if !a.Svc.UserExists(target) {
-		a.Util.SimpleJsonResponse(w, 400, "Bad request, user "+target+" wasn't found")
-		return
-	}
-
-	if a.Svc.BlockExistsFromTo(target, handle) {
-		a.Util.SimpleJsonResponse(w, 403, "Server refusal to comply with join request")
-		return
-	}
-
-	if !a.Svc.JoinBroadcast(handle, target) {
-		a.Util.SimpleJsonResponse(w, 400, "Unexpected failure to join Broadcast")
 	} else {
-		a.Util.SimpleJsonResponse(w, 201, "JoinDefault request successful!")
+		target := payload.Target
+
+		if !a.Svc.UserExists(target) {
+			a.Util.SimpleJsonResponse(w, 400, "Bad request, user "+target+" wasn't found")
+			return
+		}
+
+		if a.Svc.BlockExistsFromTo(target, handle) {
+			a.Util.SimpleJsonResponse(w, 403, "Server refusal to comply with join request")
+			return
+		}
+
+		if !a.Svc.JoinBroadcast(handle, target) {
+			a.Util.SimpleJsonResponse(w, 400, "Unexpected failure to join Broadcast")
+		} else {
+			a.Util.SimpleJsonResponse(w, 201, "JoinDefault request successful!")
+		}
 	}
 }
 
@@ -832,8 +863,12 @@ func (a Api) JoinDefault(w rest.ResponseWriter, r *rest.Request) {
  * Allows joining by (target, circlename) or (circleid) candidate keys
  */
 func (a Api) Join(w rest.ResponseWriter, r *rest.Request) {
+	if !a.authenticate(r) {
+		a.Util.FailedToAuthenticate(w)
+		return
+	}
+
 	payload := struct {
-		Handle   string
 		Target   string
 		Circle   string
 		CircleId string
@@ -843,43 +878,48 @@ func (a Api) Join(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	handle := payload.Handle
-	target := payload.Target
-	circle := payload.Circle
-	circleid := payload.CircleId
-
-	if !a.authenticate(r) {
-		a.Util.FailedToAuthenticate(w)
+	if handle, success := a.Svc.GetHandleFromAuthorization(a.getSessionId(r)); !success {
+		w.WriteHeader(400)
+		w.WriteJson(json{
+			"Response":  "Unexpected failure to retrieve owner of session",
+			"Handle":    handle,
+			"Success":   success,
+			"SessionId": a.getSessionId(r),
+		})
 		return
-	}
+	} else {
+		target := payload.Target
+		circle := payload.Circle
+		circleid := payload.CircleId
 
-	if !a.Svc.UserExists(target) {
-		a.Util.SimpleJsonResponse(w, 400, "Bad request, user "+target+" wasn't found")
-		return
-	}
+		if !a.Svc.UserExists(target) {
+			a.Util.SimpleJsonResponse(w, 400, "Bad request, user "+target+" wasn't found")
+			return
+		}
 
-	if a.Svc.BlockExistsFromTo(target, handle) {
-		a.Util.SimpleJsonResponse(w, 403, "Server refusal to comply with join request")
-		return
-	}
+		if a.Svc.BlockExistsFromTo(target, handle) {
+			a.Util.SimpleJsonResponse(w, 403, "Server refusal to comply with join request")
+			return
+		}
 
-	if circleid == "" {
-		if id := a.Svc.GetCircleId(target, circle); id == "" {
+		if circleid == "" {
+			if id := a.Svc.GetCircleId(target, circle); id == "" {
+				a.Util.SimpleJsonResponse(w, 404, "Could not find target circle, join failed")
+				return
+			} else {
+				circleid = id
+			}
+		}
+
+		if !a.Svc.CanSeeCircle(handle, circleid) {
 			a.Util.SimpleJsonResponse(w, 404, "Could not find target circle, join failed")
 			return
-		} else {
-			circleid = id
 		}
-	}
 
-	if !a.Svc.CanSeeCircle(handle, circleid) {
-		a.Util.SimpleJsonResponse(w, 404, "Could not find target circle, join failed")
-		return
-	}
-
-	if a.Svc.JoinCircle(handle, circleid) {
-		a.Util.SimpleJsonResponse(w, 201, "Join request successful!")
-	} else {
-		a.Util.SimpleJsonResponse(w, 400, "Unexpected failure to join circle, join failed")
+		if a.Svc.JoinCircle(handle, circleid) {
+			a.Util.SimpleJsonResponse(w, 201, "Join request successful!")
+		} else {
+			a.Util.SimpleJsonResponse(w, 400, "Unexpected failure to join circle, join failed")
+		}
 	}
 }
