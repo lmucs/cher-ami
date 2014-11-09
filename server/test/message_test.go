@@ -8,8 +8,9 @@ import (
 )
 
 // Testing Structs
-type Message struct {
+type MessageData struct {
 	Id      string
+	Url     string
 	Author  string
 	Content string
 	Created time.Time
@@ -43,7 +44,7 @@ func (s *TestSuite) TestGetAuthoredMessagesOK(c *C) {
 	}{}
 	helper.Unmarshal(res, &data)
 
-	objects := make([]Message, 0)
+	objects := make([]MessageData, 0)
 	json.Unmarshal([]byte(data.Objects), &objects)
 
 	c.Check(data.Response, Equals, "Found messages for user handleA")
@@ -64,13 +65,13 @@ func (s *TestSuite) TestGetAuthoredMessagesOK(c *C) {
 func (s *TestSuite) TestGetMessageByIdInvalidAuth(c *C) {
 	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
 
-	if res, _ := req.GetMessageById("some_id", "handleA", ""); true {
+	if res, _ := req.GetMessageById("some_id", ""); true {
 		c.Check(res.StatusCode, Equals, 401)
 	}
-	if res, _ := req.GetMessageById("some_id", "handleA", "bad_id"); true {
+	if res, _ := req.GetMessageById("some_id", "bad_id"); true {
 		c.Check(res.StatusCode, Equals, 401)
 	}
-	if res, _ := req.GetMessageById("some_id", "handleA", "sCxs2ad213124jP1241d"); true {
+	if res, _ := req.GetMessageById("some_id", "sCxs2ad213124jP1241d"); true {
 		c.Check(res.StatusCode, Equals, 401)
 	}
 }
@@ -86,31 +87,31 @@ func (s *TestSuite) TestGetMessageByIdNotFound(c *C) {
 	req.PostMessages("The nearest exit may be behind you", sessionid)
 	req.PostMessages("I make soap.", sessionid)
 
-	if res, _ := req.GetMessageById("some_id", "handleA", sessionid); true {
+	if res, _ := req.GetMessageById("some_id", sessionid); true {
 		c.Check(res.StatusCode, Equals, 404)
 		message_response := struct {
 			Response string
-			Object   Message
+			Object   string
 		}{}
 		helper.Unmarshal(res, &message_response)
 		c.Check(message_response.Response, Equals, "No such message in any circle you can see")
 	}
 
-	if res, _ := req.GetMessageById("another-wrong-id", "handleA", sessionid); true {
+	if res, _ := req.GetMessageById("another-wrong-id", sessionid); true {
 		c.Check(res.StatusCode, Equals, 404)
 		message_response := struct {
 			Response string
-			Object   Message
+			Object   string
 		}{}
 		helper.Unmarshal(res, &message_response)
 		c.Check(message_response.Response, Equals, "No such message in any circle you can see")
 	}
 
-	if res, _ := req.GetMessageById("2", "handleA", sessionid); true {
+	if res, _ := req.GetMessageById("2", sessionid); true {
 		c.Check(res.StatusCode, Equals, 404)
 		message_response := struct {
 			Response string
-			Object   Message
+			Object   string
 		}{}
 		helper.Unmarshal(res, &message_response)
 		c.Check(message_response.Response, Equals, "No such message in any circle you can see")
@@ -127,15 +128,18 @@ func (s *TestSuite) TestGetMessageByIdOK(c *C) {
 
 	messageid_1 := req.PostMessageGetMessageId("Go is going gophers!", sessionid_A)
 
-	if res, _ := req.GetMessageById(messageid_1, "handleB", sessionid_B); true {
+	if res, _ := req.GetMessageById(messageid_1, sessionid_B); true {
 		c.Check(res.StatusCode, Equals, 200)
 		message_response := struct {
 			Response string
-			Object   Message
+			Object   string
 		}{}
 		helper.Unmarshal(res, &message_response)
-		c.Check(message_response.Object.Id, Equals, messageid_1)
-		c.Check(message_response.Object.Author, Equals, "handleA")
-		c.Check(message_response.Object.Content, Equals, "Go is going gophers!")
+		var msg MessageData
+		json.Unmarshal([]byte(message_response.Object), &msg)
+		c.Check(message_response.Response, Equals, "Found message!")
+		c.Check(msg.Id, Equals, messageid_1)
+		c.Check(msg.Author, Equals, "handleA")
+		c.Check(msg.Content, Equals, "Go is going gophers!")
 	}
 }

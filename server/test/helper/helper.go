@@ -16,8 +16,7 @@ import (
 
 func Execute(httpMethod string, url string, m map[string]interface{}) (*http.Response, error) {
 	sessionid := ""
-	str, ok := m["sessionid"].(string)
-	if ok && str != "" {
+	if str, ok := m["sessionid"].(string); ok && str != "" {
 		sessionid = str
 		delete(m, "sessionid")
 	}
@@ -30,9 +29,7 @@ func Execute(httpMethod string, url string, m map[string]interface{}) (*http.Res
 		if err != nil {
 			log.Fatal(err)
 		}
-		if ok && str != "" {
-			request.Header.Add("Authorization", sessionid)
-		}
+		request.Header.Add("Authorization", sessionid)
 		return http.DefaultClient.Do(request)
 	}
 }
@@ -148,7 +145,7 @@ func GetSessionFromResponse(response *http.Response) string {
 
 func GetIdFromResponse(response *http.Response) string {
 	r := struct {
-		Sessionid string
+		Id string
 	}{}
 
 	if body, err := ioutil.ReadAll(response.Body); err != nil {
@@ -157,5 +154,5 @@ func GetIdFromResponse(response *http.Response) string {
 		log.Fatal(err)
 	}
 
-	return r.Sessionid
+	return r.Id
 }

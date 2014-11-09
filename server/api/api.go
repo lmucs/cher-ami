@@ -471,10 +471,11 @@ func (a Api) NewCircle(w rest.ResponseWriter, r *rest.Request) {
 //
 
 type MessageData struct {
+	Id      string
 	Url     string
 	Author  string
 	Content string
-	Date    time.Time
+	Created time.Time
 }
 
 /**
@@ -600,6 +601,7 @@ func (a Api) GetAuthoredMessages(w rest.ResponseWriter, r *rest.Request) {
 
 		for i := 0; i < len(messages); i++ {
 			messageData[i] = MessageData{
+				messages[i].Id,
 				"<url>:<port>/api/messages/" + messages[i].Id, // hard-coded url/port...
 				messages[i].Author,
 				messages[i].Content,
@@ -631,6 +633,7 @@ func (a Api) GetMessageById(w rest.ResponseWriter, r *rest.Request) {
 
 	if message, success := a.Svc.GetMessageById(id); success {
 		data := MessageData{
+			message.Id,
 			"<url>:<port>/api/messages/" + message.Id, // hard-coded url/port...
 			message.Author,
 			message.Content,
@@ -643,7 +646,7 @@ func (a Api) GetMessageById(w rest.ResponseWriter, r *rest.Request) {
 			w.WriteHeader(200)
 			w.WriteJson(json{
 				"Response": "Found message!",
-				"Object":   b,
+				"Object":   string(b),
 			})
 		}
 	} else {

@@ -86,9 +86,8 @@ func (req Requester) GetAuthoredMessages(handle string, sessionid string) (*http
 	return helper.GetWithQueryParams(req.Routes.messagesURL, payload)
 }
 
-func (req Requester) GetMessageById(id, handle, sessionid string) (*http.Response, error) {
+func (req Requester) GetMessageById(id, sessionid string) (*http.Response, error) {
 	payload := json{
-		"handle":    handle,
 		"sessionid": sessionid,
 	}
 
