@@ -2,8 +2,8 @@ define(function(require, exports, module) {
 
     var marionette = require('marionette');
     var template = require('hbs!../templates/layouts/home-layout')
-    var SidebarView = require('app/views/sidebar-view').SidebarView; 
-    var MessagesView = require('app/views/messages-view').MessagesView; 
+    var SidebarView = require('app/views/sidebar-view').SidebarView;
+    var MessagesView = require('app/views/messages-view').MessagesView;
     var MessageView = require('app/views/message-view').MessageView;
     var Message = require('app/models/message').Message;
     var Messages = require('app/collections/messages').Messages;
@@ -12,8 +12,8 @@ define(function(require, exports, module) {
         template: template,
 
         regions: {
-            sidebarContainer: '#sidebar-container',
-            feedContainer: '#feed-container'
+            sidebar: '#sidebar-container',
+            feed: '#feed-container'
         },
 
         ui: {
@@ -23,26 +23,19 @@ define(function(require, exports, module) {
         },
 
         events: {
-            'click #showContent': 'showContent'
-        },
-
-        showContent: function(options) { 
-            var sidebar = new SidebarView();
-            var messages = new Messages();
-            var newMessages = new MessagesView();
-            var feed = new MessagesView({
-                    collection: messages
-            });
-
-            this.ui.feedContainer.html(feed.el);
-            this.ui.sidebarContainer.html(sidebar.el);
-            console.log(feed.el);
-            //messages.render();
-            sidebar.render();
         },
 
         initialize: function(options) {
+        },
 
+        onRender: function() {
+            var sidebar = new SidebarView();
+            var messages = new Messages();
+            var feed = new MessagesView({
+                collection: messages
+            });
+            this.sidebar.show(sidebar);
+            this.feed.show(feed);
         }
 
     });
