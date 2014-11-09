@@ -8,6 +8,10 @@ define(function(require, exports, module) {
         url: 'api/messages',
         model: Message,
 
+        parse: function(response) {
+            return JSON.parse(response.Objects);
+        },
+
         initialize: function() {
 
         }
