@@ -24,7 +24,7 @@ func (s *TestSuite) TestPostCirclesUserNoSession(c *C) {
 
 	sessionid := req.PostSessionGetSessionId("handleA", "password1")
 
-	req.DeleteSessions("handleA")
+	req.DeleteSessions(sessionid)
 
 	res, err := req.PostCircles("handleA", sessionid, "SomeCircle", true)
 	if err != nil {
@@ -144,7 +144,7 @@ func (s *TestSuite) TestPostBlockUserNoSession(c *C) {
 
 	sessionid := req.PostSessionGetSessionId("handleA", "password1")
 
-	req.DeleteSessions("handleA")
+	req.DeleteSessions(sessionid)
 
 	response, err := req.PostBlock("handleA", sessionid, "handleB")
 	if err != nil {
@@ -180,7 +180,7 @@ func (s *TestSuite) TestPostJoinDefaultUserNoSession(c *C) {
 
 	sessionid := req.PostSessionGetSessionId("handleA", "password1")
 
-	req.DeleteSessions("handleA")
+	req.DeleteSessions(sessionid)
 
 	response, err := req.PostBlock("handleA", sessionid, "handleB")
 	if err != nil {
@@ -254,7 +254,7 @@ func (s *TestSuite) TestPostJoinUserNoSession(c *C) {
 
 	sessionid_A := req.PostSessionGetSessionId("handleA", "password1")
 
-	req.DeleteSessions("handleA")
+	req.DeleteSessions(sessionid_A)
 
 	response, err := req.PostJoin("handleA", sessionid_A, "handleB", "CircleOfB")
 	if err != nil {
