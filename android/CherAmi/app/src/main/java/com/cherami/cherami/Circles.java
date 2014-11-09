@@ -78,7 +78,7 @@ public class Circles extends Fragment {
                 R.layout.circle_item_row, circle_data);
 
 
-        circleList = (ListView)rootView.findViewById(R.id.circleList);
+        circleList = (ListView) rootView.findViewById(R.id.circleList);
 
         circleList.setAdapter(adapter);
 

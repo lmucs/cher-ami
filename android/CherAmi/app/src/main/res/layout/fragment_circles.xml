@@ -17,6 +17,14 @@
         android:text="Circles"
         android:id="@+id/textView"/>
 
+    <Button
+        android:layout_width="200dp"
+        android:layout_height="30dp"
+        android:layout_alignParentRight="true"
+        android:text="Create Circle"
+        android:onClick="attemptCreateCircle"
+        android:id="@+id/newCircle" />
+
     <ListView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
