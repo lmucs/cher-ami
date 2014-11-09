@@ -471,9 +471,8 @@ Create a circle given only a name, description, and visibility setting, setting 
     + Body
 
             {
-                "name": "bffs",
-                "description": "All my closest friends",
-                "visibility": ("public"|["private"])
+                "circleName": "bffs",
+                "public": true|false
             }
 + Response 201
 
