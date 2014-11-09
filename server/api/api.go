@@ -438,8 +438,11 @@ func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
 //
 
 func (a Api) NewCircle(w rest.ResponseWriter, r *rest.Request) {
+	if !a.authenticate(r) {
+		a.Util.FailedToAuthenticate(w)
+		return
+	}
 	payload := struct {
-		Handle     string
 		CircleName string
 		Public     bool
 	}{}
@@ -448,26 +451,31 @@ func (a Api) NewCircle(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	handle := payload.Handle
-	circleName := payload.CircleName
-	isPublic := payload.Public
-
-	if !a.authenticate(r) {
-		a.Util.FailedToAuthenticate(w)
+	if handle, success := a.Svc.GetHandleFromAuthorization(a.getSessionId(r)); !success {
+		w.WriteHeader(400)
+		w.WriteJson(json{
+			"Response":  "Unexpected failure to retrieve owner of session",
+			"Handle":    handle,
+			"Success":   success,
+			"SessionId": a.getSessionId(r),
+		})
 		return
-	}
+	} else {
+		circleName := payload.CircleName
+		isPublic := payload.Public
 
-	if circleName == GOLD || circleName == BROADCAST {
-		a.Util.SimpleJsonResponse(w, 403, circleName+" is a reserved circle name")
-		return
-	}
+		if circleName == GOLD || circleName == BROADCAST {
+			a.Util.SimpleJsonResponse(w, 403, circleName+" is a reserved circle name")
+			return
+		}
 
-	if !a.Svc.NewCircle(handle, circleName, isPublic) {
-		a.Util.SimpleJsonResponse(w, 400, "Unexpected failure to create circle")
-		return
-	}
+		if !a.Svc.NewCircle(handle, circleName, isPublic) {
+			a.Util.SimpleJsonResponse(w, 400, "Unexpected failure to create circle")
+			return
+		}
 
-	a.Util.SimpleJsonResponse(w, 201, "Created new circle "+circleName+" for "+handle)
+		a.Util.SimpleJsonResponse(w, 201, "Created new circle "+circleName+" for "+handle)
+	}
 }
 
 //
@@ -720,63 +728,47 @@ func (a Api) GetMessageById(w rest.ResponseWriter, r *rest.Request) {
  * Deletes an unpublished message
  */
 func (a Api) DeleteMessage(w rest.ResponseWriter, r *rest.Request) {
-	if !a.authenticate(r) {
-		a.Util.FailedToAuthenticate(w)
-		return
-	}
-
 	payload := struct {
+		Handle    string
 		LastSaved time.Time
 	}{}
-
 	if err := r.DecodeJsonPayload(&payload); err != nil {
 		rest.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	if author, success := a.Svc.GetHandleFromAuthorization(a.getSessionId(r)); !success {
-		w.WriteHeader(400)
-		w.WriteJson(json{
-			"Response":  "Unexpected failure to retrieve owner of session",
-			"Author":    author,
-			"Success":   success,
-			"SessionId": a.getSessionId(r),
-		})
+	handle := payload.Handle
+	lastsaved := payload.LastSaved
+
+	if !a.authenticate(r) {
+		a.Util.FailedToAuthenticate(w)
 		return
-	} else {
-		handle := author
-		lastsaved := payload.LastSaved
-
-		if !a.authenticate(r) {
-			a.Util.FailedToAuthenticate(w)
-			return
-		}
-
-		deleted := []struct {
-			Count int `json:"count(m)"`
-		}{}
-		if err := a.Svc.Db.Cypher(&neoism.CypherQuery{
-			Statement: `
-	        MATCH (user:User {handle: {handle}})
-	        OPTIONAL MATCH (user)-[r:WROTE]->(m:Message {lastsaved: {lastsaved}})
-	        DELETE r, m
-	        RETURN count(m)
-	        `,
-			Parameters: neoism.Props{
-				"handle":    handle,
-				"lastsaved": lastsaved,
-			},
-			Result: &deleted,
-		}); err != nil {
-			panicErr(err)
-		}
-
-		w.WriteHeader(200)
-		w.WriteJson(json{
-			"Response": "Success!",
-			"Deleted":  deleted[0].Count,
-		})
 	}
+
+	deleted := []struct {
+		Count int `json:"count(m)"`
+	}{}
+	if err := a.Svc.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+        MATCH (user:User {handle: {handle}})
+        OPTIONAL MATCH (user)-[r:WROTE]->(m:Message {lastsaved: {lastsaved}})
+        DELETE r, m
+        RETURN count(m)
+        `,
+		Parameters: neoism.Props{
+			"handle":    handle,
+			"lastsaved": lastsaved,
+		},
+		Result: &deleted,
+	}); err != nil {
+		panicErr(err)
+	}
+
+	w.WriteHeader(200)
+	w.WriteJson(json{
+		"Response": "Success!",
+		"Deleted":  deleted[0].Count,
+	})
 }
 
 //
