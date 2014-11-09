@@ -69,9 +69,9 @@ func (req Requester) DeleteUser(handle string, password string, sessionid string
 	return helper.Execute("DELETE", deleteURL, payload)
 }
 
-func (req Requester) DeleteSessions(handle string) (*http.Response, error) {
+func (req Requester) DeleteSessions(sessionid string) (*http.Response, error) {
 	payload := json{
-		"handle": handle,
+		"sessionid": sessionid,
 	}
 
 	return helper.Execute("DELETE", req.Routes.sessionsURL, payload)

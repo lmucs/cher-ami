@@ -193,22 +193,10 @@ func (a Api) Login(w rest.ResponseWriter, r *rest.Request) {
  * Expects a json post with "handle"
  */
 func (a Api) Logout(w rest.ResponseWriter, r *rest.Request) {
-	user := struct {
-		Handle string
-	}{}
-
-	if err := r.DecodeJsonPayload(&user); err != nil {
-		rest.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	handle := user.Handle
-
-	if a.Svc.UnsetSessionId(handle) {
+	if a.Svc.UnsetSessionId(a.getSessionId(r)) {
 		w.WriteHeader(204)
 		return
 	} else {
-
 		a.Util.SimpleJsonResponse(w, 403, "Cannot invalidate token because it is missing")
 		return
 	}

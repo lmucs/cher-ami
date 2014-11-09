@@ -143,21 +143,22 @@ func (s *TestSuite) TestLoginOK(c *C) {
 //
 
 func (s *TestSuite) TestLogoutUserNoExist(c *C) {
-	response, err := req.DeleteSessions("handleA")
+	response, err := req.DeleteSessions("session-id-of-noone")
 	if err != nil {
 		c.Error(err)
+		c.Error(response)
 	}
 
-	c.Check(helper.GetJsonResponseMessage(response), Equals, "Cannot invalidate token because it is missing")
 	c.Check(response.StatusCode, Equals, 403)
+	c.Check(helper.GetJsonResponseMessage(response), Equals, "Cannot invalidate token because it is missing")
 }
 
 func (s *TestSuite) TestLogoutOK(c *C) {
 	req.PostSignup("handleA", "handleA@test.io", "password1", "password1")
 
-	req.PostSessions("handleA", "password1")
+	sessionid_A := req.PostSessionGetSessionId("handleA", "password1")
 
-	response, err := req.DeleteSessions("handleA")
+	response, err := req.DeleteSessions(sessionid_A)
 	if err != nil {
 		c.Error(err)
 	}
