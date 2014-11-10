@@ -30,6 +30,8 @@ func main() {
 
 	http.Handle("/api/", http.StripPrefix("/api", &handler))
 
+	http.Handle("/api/docs/", http.StripPrefix("/api/docs", http.FileServer(http.Dir("docs/"))))
+
 	http.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("../web/src/"))))
 
 	fmt.Printf("Listening on port %s\n", port)

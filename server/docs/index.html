@@ -1,0 +1,646 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>The CherAmi API</title><link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css"><link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css"><link rel="stylesheet" href="//fonts.googleapis.com/css?family=Roboto:400,700|Inconsolata|Raleway:200"><style>/* Highlight.js Theme Tomorrow */
+.hljs-comment,.hljs-title{color:#8e908c}.hljs-variable,.hljs-attribute,.hljs-tag,.hljs-regexp,.ruby .hljs-constant,.xml .hljs-tag .hljs-title,.xml .hljs-pi,.xml .hljs-doctype,.html .hljs-doctype,.css .hljs-id,.css .hljs-class,.css .hljs-pseudo{color:#c82829}.hljs-number,.hljs-preprocessor,.hljs-pragma,.hljs-built_in,.hljs-literal,.hljs-params,.hljs-constant{color:#f5871f}.ruby .hljs-class .hljs-title,.css .hljs-rules .hljs-attribute{color:#eab700}.hljs-string,.hljs-value,.hljs-inheritance,.hljs-header,.ruby .hljs-symbol,.xml .hljs-cdata{color:#718c00}.css .hljs-hexcolor{color:#3e999f}.hljs-function,.python .hljs-decorator,.python .hljs-title,.ruby .hljs-function .hljs-title,.ruby .hljs-title .hljs-keyword,.perl .hljs-sub,.javascript .hljs-title,.coffeescript .hljs-title{color:#4271ae}.hljs-keyword,.javascript .hljs-function{color:#8959a8}.hljs{display:block;background:white;color:#4d4d4c;padding:.5em}.coffeescript .javascript,.javascript .xml,.tex .hljs-formula,.xml .javascript,.xml .vbscript,.xml .css,.xml .hljs-cdata{opacity:.5}</style><style>body,
+h4,
+h5 {
+  font-family: 'Roboto' sans-serif !important;
+}
+h1,
+h2,
+h3,
+.aglio {
+  font-family: 'Raleway' sans-serif !important;
+}
+h1 a,
+h2 a,
+h3 a,
+h4 a,
+h5 a {
+  display: none;
+}
+h1:hover a,
+h2:hover a,
+h3:hover a,
+h4:hover a,
+h5:hover a {
+  display: inline;
+}
+code {
+  color: #444;
+  background-color: #ddd;
+  font-family: 'Inconsolata' monospace !important;
+}
+a[data-target] {
+  cursor: pointer;
+}
+h4 {
+  font-size: 100%;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+.back-to-top {
+  position: fixed;
+  z-index: 1;
+  bottom: 0px;
+  right: 24px;
+  padding: 4px 8px;
+  background-color: #eee;
+  text-decoration: none !important;
+  border-top: 1px solid rgba(0,0,0,0.1);
+  border-left: 1px solid rgba(0,0,0,0.1);
+  border-right: 1px solid rgba(0,0,0,0.1);
+  border-top-left-radius: 3px;
+  border-top-right-radius: 3px;
+}
+.panel {
+  overflow: hidden;
+}
+.panel-heading code {
+  margin-left: 3px;
+  color: #c7254e;
+  background-color: rgba(255,255,255,0.7);
+  white-space: pre-wrap;
+  white-space: -moz-pre-wrap;
+  white-space: -pre-wrap;
+  white-space: -o-pre-wrap;
+  word-wrap: break-word;
+}
+.panel-heading h3 {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+a.list-group-item:hover {
+  background-color: #f8f8f8;
+  border-left: 2px solid #555;
+  padding-left: 15px;
+}
+.indent {
+  display: block;
+  text-indent: 16px;
+}
+.list-group-item {
+  padding-left: 16px;
+}
+.list-group-item .toggle .open {
+  display: block;
+}
+.list-group-item .toggle .closed {
+  display: none;
+}
+.list-group-item.collapsed .toggle .open {
+  display: none;
+}
+.list-group-item.collapsed .toggle .closed {
+  display: block;
+}
+a.list-group-item {
+  font-size: 13px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+a.list-group-item.heading {
+  font-size: 15px;
+  background-color: #f5f5f5;
+}
+a.list-group-item.heading:hover {
+  background-color: #f8f8f8;
+}
+.list-group-item.collapse {
+  display: none;
+}
+.list-group-item.collapse.in {
+  display: block;
+}
+.list-group-item a span.closed {
+  display: none;
+}
+.list-group-item a span.open {
+  display: block;
+}
+.list-group-item a.collapsed span.closed {
+  display: block;
+}
+.list-group-item a.collapsed span.open {
+  display: none;
+}
+#nav {
+  width: inherit;
+  margin-top: 38px;
+  max-width: 255px;
+  top: 0;
+  bottom: 0;
+  padding-right: 12px;
+  padding-bottom: 12px;
+  overflow-y: auto;
+}
+@media( max-width: 1199px) {
+  #nav {
+    max-width: 212px;
+  }
+}
+</style></head><body><a href="#top" class="text-muted back-to-top"><i class="fa fa-toggle-up"></i>&nbsp;Back to top</a><div class="container"><div class="row"><div class="col-md-3"><nav id="nav" class="hidden-sm hidden-xs affix nav"><div class="list-group"><a data-toggle="" data-target="#users-menu" href="#users" class="list-group-item heading collapsed">Users</a><div id="users-menu"><a href="#users-signup" style="border-top-left-radius: 0; border-top-right-radius: 0" class="list-group-item"><span class="badge alert-success"><i class="fa fa-plus"></i></span>Signup</a><a href="#users-login-and-logout" style="border-top-left-radius: 0; border-top-right-radius: 0" class="list-group-item">Login and Logout</a><a href="#users-login-and-logout-post" style="border-top-left-radius: 0; border-top-right-radius: 0" class="list-group-item"><span class="badge alert-success"><i class="fa fa-plus"></i></span><span class="indent">Login</span></a><a href="#users-login-and-logout-delete" style="border-top-left-radius: 0; border-top-right-radius: 0" class="list-group-item"><span class="badge alert-danger"><i class="fa fa-times"></i></span><span class="indent">Logout</span></a><a href="#users-user-search" style="border-top-left-radius: 0; border-top-right-radius: 0" class="list-group-item"><span class="badge alert-info"><i class="fa fa-arrow-down"></i></span>User Search</a><a href="#users-user" style="border-top-left-radius: 0; border-top-right-radius: 0" class="list-group-item">User</a><a href="#users-user-get" style="border-top-left-radius: 0; border-top-right-radius: 0" class="list-group-item"><span class="badge alert-info"><i class="fa fa-arrow-down"></i></span><span class="indent">Get user by handle</span></a><a href="#users-user-patch" style="border-top-left-radius: 0; border-top-right-radius: 0" class="list-group-item"><span class="badge alert-warning"><i class="fa fa-pencil"></i></span><span class="indent">Edit user</span></a><a href="#users-user-delete" style="border-top-left-radius: 0; border-top-right-radius: 0" class="list-group-item"><span class="badge alert-danger"><i class="fa fa-times"></i></span><span class="indent">Delete user</span></a><a href="#users-blocking" style="border-top-left-radius: 0; border-top-right-radius: 0" class="list-group-item"><span class="badge alert-warning"><i class="fa fa-pencil"></i></span>Blocking</a><a href="#users-viewing-blocked-users" style="border-top-left-radius: 0; border-top-right-radius: 0" class="list-group-item"><span class="badge alert-info"><i class="fa fa-arrow-down"></i></span>Viewing Blocked Users</a><a href="#users-reputation" style="border-top-left-radius: 0; border-top-right-radius: 0" class="list-group-item">Reputation</a><a href="#users-reputation-patch" style="border-top-left-radius: 0; border-top-right-radius: 0" class="list-group-item"><span class="badge alert-warning"><i class="fa fa-pencil"></i></span><span class="indent">Adjust reputation +/-</span></a><a href="#users-reputation-put" style="border-top-left-radius: 0; border-top-right-radius: 0" class="list-group-item"><span class="badge alert-warning"><i class="fa fa-pencil"></i></span><span class="indent">Set reputation directly</span></a><a href="#users-avatar" style="border-top-left-radius: 0; border-top-right-radius: 0" class="list-group-item"><span class="badge alert-warning"><i class="fa fa-pencil"></i></span>Avatar</a></div></div><div class="list-group"><a data-toggle="" data-target="#circles-menu" href="#circles" class="list-group-item heading collapsed">Circles</a><div id="circles-menu"><a href="#circles-circle-creation" style="border-top-left-radius: 0; border-top-right-radius: 0" class="list-group-item"><span class="badge alert-success"><i class="fa fa-plus"></i></span>Circle Creation</a><a href="#circles-circle-search" style="border-top-left-radius: 0; border-top-right-radius: 0" class="list-group-item"><span class="badge alert-info"><i class="fa fa-arrow-down"></i></span>Circle Search</a><a href="#circles-circle" style="border-top-left-radius: 0; border-top-right-radius: 0" class="list-group-item">Circle</a><a href="#circles-circle-get" style="border-top-left-radius: 0; border-top-right-radius: 0" class="list-group-item"><span class="badge alert-info"><i class="fa fa-arrow-down"></i></span><span class="indent">Get circle by id</span></a><a href="#circles-circle-patch" style="border-top-left-radius: 0; border-top-right-radius: 0" class="list-group-item"><span class="badge alert-warning"><i class="fa fa-pencil"></i></span><span class="indent">Edit circle info</span></a><a href="#circles-get-circle-members" style="border-top-left-radius: 0; border-top-right-radius: 0" class="list-group-item"><span class="badge alert-info"><i class="fa fa-arrow-down"></i></span>Get Circle Members</a><a href="#circles-manage-circle-members" style="border-top-left-radius: 0; border-top-right-radius: 0" class="list-group-item"><span class="badge alert-warning"><i class="fa fa-pencil"></i></span>Manage Circle Members</a></div></div><div class="list-group"><a data-toggle="" data-target="#messages-menu" href="#messages" class="list-group-item heading collapsed">Messages</a><div id="messages-menu"><a href="#messages-message-creation" style="border-top-left-radius: 0; border-top-right-radius: 0" class="list-group-item"><span class="badge alert-success"><i class="fa fa-plus"></i></span>Message Creation</a><a href="#messages-message-search" style="border-top-left-radius: 0; border-top-right-radius: 0" class="list-group-item"><span class="badge alert-info"><i class="fa fa-arrow-down"></i></span>Message Search</a><a href="#messages-message" style="border-top-left-radius: 0; border-top-right-radius: 0" class="list-group-item">Message</a><a href="#messages-message-get" style="border-top-left-radius: 0; border-top-right-radius: 0" class="list-group-item"><span class="badge alert-info"><i class="fa fa-arrow-down"></i></span><span class="indent">Get message by id</span></a><a href="#messages-message-delete" style="border-top-left-radius: 0; border-top-right-radius: 0" class="list-group-item"><span class="badge alert-danger"><i class="fa fa-times"></i></span><span class="indent">Delete message</span></a><a href="#messages-edit-message" style="border-top-left-radius: 0; border-top-right-radius: 0" class="list-group-item"><span class="badge alert-warning"><i class="fa fa-pencil"></i></span>Edit Message</a><a href="#messages-comment-creation" style="border-top-left-radius: 0; border-top-right-radius: 0" class="list-group-item"><span class="badge alert-success"><i class="fa fa-plus"></i></span>Comment Creation</a><a href="#messages-comment-search" style="border-top-left-radius: 0; border-top-right-radius: 0" class="list-group-item"><span class="badge alert-info"><i class="fa fa-arrow-down"></i></span>Comment Search</a><a href="#messages-comment" style="border-top-left-radius: 0; border-top-right-radius: 0" class="list-group-item">Comment</a><a href="#messages-comment-get" style="border-top-left-radius: 0; border-top-right-radius: 0" class="list-group-item"><span class="badge alert-info"><i class="fa fa-arrow-down"></i></span><span class="indent">Get comment by id</span></a><a href="#messages-comment-delete" style="border-top-left-radius: 0; border-top-right-radius: 0" class="list-group-item"><span class="badge alert-danger"><i class="fa fa-times"></i></span><span class="indent">Delete comment</span></a></div></div></nav></div><div class="col-md-8"><div><header><div class="page-header"><h1 id="top">The CherAmi API</h1></div></header><div class="description"><p>This is the API for the CherAmi social network.</p>
+<p>This is an all-JSON API. All requests and responses, except those transferring audio, image, or video content, must have a content-type header set to <code>application/json</code>.</p>
+<p>All endpoints except signup (<code>POST /users</code>) and login (<code>POST /sessions</code>) require an <code>Authorization</code> header in which you pass in the token that you previously received from a successful login request. For example:</p>
+<pre><code><span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Token 8dsfg87ef23dkos9r9wjr32232re</span>
+</code></pre><p>If the authorization header is missing, or the token is invalid or expired, an HTTP 401 response is returned. After receiving a 401, a client should try to login (<code>POST /sessions</code>) again to obtain a new token.</p>
+<p>The API supports discovery of further endpoints, linking objects will absolute URIs.</p>
+</div></div><div><div class="panel panel-default"><div class="panel-heading"><h3 id="users">Users&nbsp;<a href="#users"><i class="fa fa-link"></i></a></h3></div><div class="panel-body"><h4 id="users-signup">Signup&nbsp;<a href="#users-signup"><i class="fa fa-link"></i></a></h4><section id="users-signup-post" class="panel panel-success"><div class="panel-heading"><div style="float:right"><span style="text-transform: lowercase">Signup/create a new user</span></div><div style="float:left"><a href="#users-signup-post" class="btn btn-xs btn-success">POST</a></div><div style="overflow:hidden"><code>/users</code></div></div><div class="panel-body"><p>Create a user given only a handle, name, email, and password. The service will create an initial status, reputation, and default circles, as well as record the creation timestamp. All other profile information is set in a different operations.</p>
+</div><ul class="list-group"><li class="list-group-item"><strong>Request</strong><a data-toggle="collapse" data-target="#aeb3e8bd9afcb7c170857f8efe1263fb" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="aeb3e8bd9afcb7c170857f8efe1263fb" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">handle</span>": <span class="hljs-value"><span class="hljs-string">"pelé"</span></span>,
+    "<span class="hljs-attribute">name</span>": <span class="hljs-value"><span class="hljs-string">"Edson Arantes do Nascimento"</span></span>,
+    "<span class="hljs-attribute">email</span>": <span class="hljs-value"><span class="hljs-string">"number10@brasil.example.com"</span></span>,
+    "<span class="hljs-attribute">password</span>": <span class="hljs-value"><span class="hljs-string">"Brasil Uber Alles"</span>
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>201</code></strong><a data-toggle="collapse" data-target="#d6016dcd222c583ce0c4f3c42e452ee9" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="d6016dcd222c583ce0c4f3c42e452ee9" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">url</span>": <span class="hljs-value"><span class="hljs-string">"https://cher-ami.example.com/users/pelé"</span></span>,
+    "<span class="hljs-attribute">handle</span>": <span class="hljs-value"><span class="hljs-string">"pelé"</span></span>,
+    "<span class="hljs-attribute">name</span>": <span class="hljs-value"><span class="hljs-string">"Edson Arantes do Nascimento"</span></span>,
+    "<span class="hljs-attribute">email</span>": <span class="hljs-value"><span class="hljs-string">"number10@brasil.example.com"</span></span>,
+    "<span class="hljs-attribute">status</span>": <span class="hljs-value"><span class="hljs-string">"new"</span></span>,
+    "<span class="hljs-attribute">reputation</span>": <span class="hljs-value"><span class="hljs-number">1</span></span>,
+    "<span class="hljs-attribute">joined</span>": <span class="hljs-value"><span class="hljs-string">"2011-10-20T08:15Z"</span></span>,
+    "<span class="hljs-attribute">circles</span>": <span class="hljs-value">[
+        {"<span class="hljs-attribute">name</span>": <span class="hljs-value"><span class="hljs-string">"public"</span></span>, "<span class="hljs-attribute">url</span>": <span class="hljs-value"><span class="hljs-string">"https://cher-ami.example.com/circles/207"</span></span>},
+        {"<span class="hljs-attribute">name</span>": <span class="hljs-value"><span class="hljs-string">"gold"</span></span>, "<span class="hljs-attribute">url</span>": <span class="hljs-value"><span class="hljs-string">"https://cher-ami.example.com/circles/208"</span></span>}
+    ]
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>400</code></strong><a data-toggle="collapse" data-target="#ffbf63123730736f25c98ed3c04b5eaa" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="ffbf63123730736f25c98ed3c04b5eaa" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value">(<span class="hljs-string">"malformed json"</span>|<span class="hljs-string">"missing handle"</span>|<span class="hljs-string">"missing name"</span>|<span class="hljs-string">"missing email"</span>|<span class="hljs-string">"missing password"</span>)
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>403</code></strong><a data-toggle="collapse" data-target="#c25d207c1c209d45436e14c701109fb4" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="c25d207c1c209d45436e14c701109fb4" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value">(<span class="hljs-string">"invalid handle"</span>|<span class="hljs-string">"invalid name"</span>|<span class="hljs-string">"invalid email"</span>|<span class="hljs-string">"password too weak"</span>)
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>409</code></strong><a data-toggle="collapse" data-target="#e77cd4f8594c73db14c72608f7418425" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="e77cd4f8594c73db14c72608f7418425" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value">(<span class="hljs-string">"handle already used"</span>|<span class="hljs-string">"email already used"</span>)
+</span>}
+</code></pre></li></ul></section><h4 id="users-login-and-logout">Login and Logout&nbsp;<a href="#users-login-and-logout"><i class="fa fa-link"></i></a></h4><section id="users-login-and-logout-post" class="panel panel-success"><div class="panel-heading"><div style="float:right"><span style="text-transform: lowercase">Login</span></div><div style="float:left"><a href="#users-login-and-logout-post" class="btn btn-xs btn-success">POST</a></div><div style="overflow:hidden"><code>/sessions</code></div></div><div class="panel-body"><p>If the given username-password combination is valid, generate and return a token.</p>
+</div><ul class="list-group"><li class="list-group-item"><strong>Request</strong><a data-toggle="collapse" data-target="#879f59b07f873a4b541d8ff587919118" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="879f59b07f873a4b541d8ff587919118" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">handle</span>": <span class="hljs-value"><span class="hljs-string">"a string"</span></span>,
+    "<span class="hljs-attribute">password</span>": <span class="hljs-value"><span class="hljs-string">"a string"</span>
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>201</code></strong><a data-toggle="collapse" data-target="#66bee53dabe9eda47a46c85715d80b50" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="66bee53dabe9eda47a46c85715d80b50" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+   "<span class="hljs-attribute">token</span>": <span class="hljs-value"><span class="hljs-string">"hu876xvyft3ufib230ffn0spdfmwefna"</span>
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>400</code></strong><a data-toggle="collapse" data-target="#a8378b449ef0e0406eb28cb05c06b0e3" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="a8378b449ef0e0406eb28cb05c06b0e3" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"malformed json"</span>
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>403</code></strong><a data-toggle="collapse" data-target="#4fd3496ed2f4fdc4ec82efaea1687a09" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="4fd3496ed2f4fdc4ec82efaea1687a09" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"invalid handle-password combination"</span>
+</span>}
+</code></pre></li></ul></section><section id="users-login-and-logout-delete" class="panel panel-danger"><div class="panel-heading"><div style="float:right"><span style="text-transform: lowercase">Logout</span></div><div style="float:left"><a href="#users-login-and-logout-delete" class="btn btn-xs btn-danger">DELETE</a></div><div style="overflow:hidden"><code>/sessions</code></div></div><div class="panel-body"><p>The token is passed in a header (not as a parameter in the URL) and, if it is valid, the server will invalidate it.</p>
+</div><ul class="list-group"><li class="list-group-item"><strong>Request</strong><a data-toggle="collapse" data-target="#c60f4962b3fc64e36f62ce5db6ba527c" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="c60f4962b3fc64e36f62ce5db6ba527c" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</span><br></code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>204</code></strong></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>403</code></strong><a data-toggle="collapse" data-target="#832a562f5ddc1b473daa8a224fbe5356" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="832a562f5ddc1b473daa8a224fbe5356" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"cannot invalidate token because it is missing"</span>
+</span>}
+</code></pre></li></ul></section><h4 id="users-user-search">User Search&nbsp;<a href="#users-user-search"><i class="fa fa-link"></i></a></h4><section id="users-user-search-get" class="panel panel-info"><div class="panel-heading"><div style="float:right"><span style="text-transform: lowercase">Get users</span></div><div style="float:left"><a href="#users-user-search-get" class="btn btn-xs btn-primary">GET</a></div><div style="overflow:hidden"><code>/users{?circle,nameprefix,skip,limit,sort}</code></div></div><div class="panel-body"><p>Fetch a desired set of users. You may filter by circle or leading characters of a name. You <em>must</em> specify a sort order. The results <em>will</em> be paginated since there is a potential for returning millions of users. Only a subset of user data is returned; however, the url to get the complete data <em>is</em> returned, in good HATEOAS-style.</p>
+</div><ul class="list-group"><li class="list-group-item bg-default"><strong>Parameters</strong></li><li class="list-group-item"><dl class="dl-horizontal"><dt>circle</dt><dd><code>string</code>&nbsp;<span>(optional)</span>&nbsp;<span class="text-muted example"><strong>Example:&nbsp;</strong><span>393</span></span><p>only return users from the circle with this id</p>
+</dd><dt>nameprefix</dt><dd><code>string</code>&nbsp;<span>(optional)</span>&nbsp;<span class="text-muted example"><strong>Example:&nbsp;</strong><span>sta</span></span><p>only return users whose names begin with this value (good for autocomplete)</p>
+</dd><dt>skip</dt><dd><code>number</code>&nbsp;<span>(optional)</span>&nbsp;<span class="text-muted example"><strong>Example:&nbsp;</strong><span>0</span></span><p>number of results to skip, for pagination, default 0, min 0</p>
+</dd><dt>limit</dt><dd><code>number</code>&nbsp;<span>(optional)</span>&nbsp;<span class="text-muted example"><strong>Example:&nbsp;</strong><span>20</span></span><p>max number of results to return, for pagination, default 20, min 1, max 100</p>
+</dd><dt>sort</dt><dd><code>string</code>&nbsp;<span class="required">(required)</span>&nbsp;<span class="text-muted example"><strong>Example:&nbsp;</strong><span>joined</span></span><p>sort results by name ascending, reputation descending, or join datetime descending (newest users first)</p>
+<p><strong>Choices:&nbsp;</strong><code>name</code> <code>reputation</code> <code>joined</code> </p></dd></dl></li></ul><ul class="list-group"><li class="list-group-item"><strong>Request</strong><a data-toggle="collapse" data-target="#02c3dbd483500a0ecf7e0dbcfe24fbd1" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="02c3dbd483500a0ecf7e0dbcfe24fbd1" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</span><br></code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>200</code></strong><a data-toggle="collapse" data-target="#4aa919c6169e9bc47fada8bf53432486" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="4aa919c6169e9bc47fada8bf53432486" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>[
+    {
+        "<span class="hljs-attribute">url</span>": <span class="hljs-value"><span class="hljs-string">"https://cher-ami.example.com/users/pelé"</span></span>,
+        "<span class="hljs-attribute">handle</span>": <span class="hljs-value"><span class="hljs-string">"pelé"</span></span>,
+        "<span class="hljs-attribute">name</span>": <span class="hljs-value"><span class="hljs-string">"Edson Arantes do Nascimento"</span></span>,
+        "<span class="hljs-attribute">reputation</span>": <span class="hljs-value"><span class="hljs-number">303</span></span>,
+        "<span class="hljs-attribute">joined</span>": <span class="hljs-value"><span class="hljs-string">"2011-10-20T08:15Z"</span>
+    </span>},
+    . . .
+]
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>400</code></strong><a data-toggle="collapse" data-target="#fbbc14d16e783937cfc1e2d72fb952f2" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="fbbc14d16e783937cfc1e2d72fb952f2" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value">(<span class="hljs-string">"malformed json"</span>|<span class="hljs-string">"missing sort"</span>|<span class="hljs-string">"no such sort"</span>|<span class="hljs-string">"malformed skip"</span>|<span class="hljs-string">"malformed limit"</span>)
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>401</code></strong><a data-toggle="collapse" data-target="#2364528bcf9f8b3adfda809e19221c35" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="2364528bcf9f8b3adfda809e19221c35" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"missing, illegal, or expired token"</span>
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>403</code></strong><a data-toggle="collapse" data-target="#a2d4c852a0cebcccd698151e80584142" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="a2d4c852a0cebcccd698151e80584142" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "reason": ("you <span class="hljs-operator"><span class="hljs-keyword">do</span> <span class="hljs-keyword">not</span> own <span class="hljs-keyword">or</span> belong <span class="hljs-keyword">to</span> this circle<span class="hljs-string">"|"</span>skip out <span class="hljs-keyword">of</span> range<span class="hljs-string">"|"</span><span class="hljs-keyword">limit</span> out <span class="hljs-keyword">of</span> range<span class="hljs-string">")
+}
+</span></span></code></pre></li></ul></section><h4 id="users-user">User&nbsp;<a href="#users-user"><i class="fa fa-link"></i></a></h4><section id="users-user-get" class="panel panel-info"><div class="panel-heading"><div style="float:right"><span style="text-transform: lowercase">Get user by handle</span></div><div style="float:left"><a href="#users-user-get" class="btn btn-xs btn-primary">GET</a></div><div style="overflow:hidden"><code>/users/{handle}</code></div></div><div class="panel-body"><p>Get <em>complete</em> user data, including all profile information as well as blocked users and circle membership.</p>
+</div><ul class="list-group"><li class="list-group-item"><strong>Request</strong><a data-toggle="collapse" data-target="#44d01e4af4e012b24b42c5bedb2e7cfb" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="44d01e4af4e012b24b42c5bedb2e7cfb" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</span><br></code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>200</code></strong><a data-toggle="collapse" data-target="#59274d78401c065a7047e865d38368dd" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="59274d78401c065a7047e865d38368dd" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">url</span>": <span class="hljs-value"><span class="hljs-string">"https://cher-ami.example.com/users/pelé"</span></span>,
+    "<span class="hljs-attribute">avatar_url</span>": <span class="hljs-value"><span class="hljs-string">"https://images.cher-ami.example.com/users/pelé"</span></span>,
+    "<span class="hljs-attribute">handle</span>": <span class="hljs-value"><span class="hljs-string">"pelé"</span></span>,
+    "<span class="hljs-attribute">name</span>": <span class="hljs-value"><span class="hljs-string">"Edson Arantes do Nascimento"</span></span>,
+    "<span class="hljs-attribute">email</span>": <span class="hljs-value"><span class="hljs-string">"number10@brasil.example.com"</span></span>,
+    "<span class="hljs-attribute">status</span>": <span class="hljs-value"><span class="hljs-string">"retired, but coaching"</span></span>,
+    "<span class="hljs-attribute">reputation</span>": <span class="hljs-value"><span class="hljs-number">1435346</span></span>,
+    "<span class="hljs-attribute">joined</span>": <span class="hljs-value"><span class="hljs-string">"2011-10-20T08:15Z"</span></span>,
+    "<span class="hljs-attribute">circles</span>": <span class="hljs-value">[
+        {"<span class="hljs-attribute">name</span>": <span class="hljs-value"><span class="hljs-string">"public"</span></span>, "<span class="hljs-attribute">url</span>": <span class="hljs-value"><span class="hljs-string">"https://cher-ami.example.com/circles/207"</span></span>},
+        {"<span class="hljs-attribute">name</span>": <span class="hljs-value"><span class="hljs-string">"gold"</span></span>, "<span class="hljs-attribute">url</span>": <span class="hljs-value"><span class="hljs-string">"https://cher-ami.example.com/circles/208"</span></span>}
+        {"<span class="hljs-attribute">name</span>": <span class="hljs-value"><span class="hljs-string">"coaches"</span></span>, "<span class="hljs-attribute">url</span>": <span class="hljs-value"><span class="hljs-string">"https://cher-ami.example.com/circles/5922"</span></span>}
+    ]
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>401</code></strong><a data-toggle="collapse" data-target="#c0727ee0e840204734f7fbc1924579d3" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="c0727ee0e840204734f7fbc1924579d3" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"missing, illegal, or expired token"</span>
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>404</code></strong><a data-toggle="collapse" data-target="#4b7d333b856618bb4d06397d4f109832" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="4b7d333b856618bb4d06397d4f109832" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"no such user"</span>
+</span>}
+</code></pre></li></ul></section><section id="users-user-patch" class="panel panel-warning"><div class="panel-heading"><div style="float:right"><span style="text-transform: lowercase">Edit user</span></div><div style="float:left"><a href="#users-user-patch" class="btn btn-xs btn-warning">PATCH</a></div><div style="overflow:hidden"><code>/users/{handle}</code></div></div><div class="panel-body"><p>Change only basic user information here such as display name, email, and status. Use a different endpoint for complex properties like the set of users that this user has blocked, or the circles in which this user participates. Also use different endpoints to adjust reputation and to upload a new avatar picture. Note that certain user data, such as the internal id, handle, and join date, cannot be changed at all.</p>
+</div><ul class="list-group"><li class="list-group-item"><strong>Request</strong><a data-toggle="collapse" data-target="#e6d072af3e6095b048959866c02a51b8" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="e6d072af3e6095b048959866c02a51b8" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</span><br></code></pre><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">name</span>": <span class="hljs-value"><span class="hljs-string">"New name (optional)"</span></span>,
+    "<span class="hljs-attribute">email</span>": <span class="hljs-value"><span class="hljs-string">"New email (optional)"</span></span>,
+    "<span class="hljs-attribute">status</span>": <span class="hljs-value"><span class="hljs-string">"New status (optional)"</span></span>,
+}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>204</code></strong></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>401</code></strong><a data-toggle="collapse" data-target="#86cf74e8c6079eff1e719445802d0ba2" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="86cf74e8c6079eff1e719445802d0ba2" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"missing, illegal, or expired token"</span>
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>403</code></strong><a data-toggle="collapse" data-target="#d74d8e64c26ab86c2d7204e6c3370840" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="d74d8e64c26ab86c2d7204e6c3370840" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"you can only edit yourself unless you are an admin"</span>
+</span>}
+</code></pre></li></ul></section><section id="users-user-delete" class="panel panel-danger"><div class="panel-heading"><div style="float:right"><span style="text-transform: lowercase">Delete user</span></div><div style="float:left"><a href="#users-user-delete" class="btn btn-xs btn-danger">DELETE</a></div><div style="overflow:hidden"><code>/users/{handle}</code></div></div><ul class="list-group"><li class="list-group-item"><strong>Request</strong><a data-toggle="collapse" data-target="#cb500ea7ac6e82fa9db48f297cd00f24" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="cb500ea7ac6e82fa9db48f297cd00f24" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</span><br></code></pre><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">handle</span>": <span class="hljs-value"><span class="hljs-string">"pelé"</span></span>,
+    "<span class="hljs-attribute">password</span>": <span class="hljs-value"><span class="hljs-string">"Brasil Uber Alles"</span>
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>204</code></strong></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>401</code></strong><a data-toggle="collapse" data-target="#5040d6e750eec21d17c3d61b05b3b3f1" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="5040d6e750eec21d17c3d61b05b3b3f1" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"missing, illegal, or expired token"</span>
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>403</code></strong><a data-toggle="collapse" data-target="#713a91bea192b302b854eeb9fb92c87d" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="713a91bea192b302b854eeb9fb92c87d" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"you can only delete yourself unless you are an admin"</span>
+</span>}
+</code></pre></li></ul></section><h4 id="users-blocking">Blocking&nbsp;<a href="#users-blocking"><i class="fa fa-link"></i></a></h4><section id="users-blocking-patch" class="panel panel-warning"><div class="panel-heading"><div style="float:right"><span style="text-transform: lowercase">Block or unblock user</span></div><div style="float:left"><a href="#users-blocking-patch" class="btn btn-xs btn-warning">PATCH</a></div><div style="overflow:hidden"><code>/users/{handle}/blocked</code></div></div><div class="panel-body"><p>If user A blocks user B, then B is removed from all of A’s circles, public and private.  As long as B is blocked by A, B will not be allowed to join any of A’s circles.</p>
+</div><ul class="list-group"><li class="list-group-item"><strong>Request</strong><a data-toggle="collapse" data-target="#55af387dcb2ca50dbe40d44417c3f73c" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="55af387dcb2ca50dbe40d44417c3f73c" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</span><br></code></pre><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">handle</span>": <span class="hljs-value"><span class="hljs-string">"pelé"</span></span>,
+    "<span class="hljs-attribute">action</span>": <span class="hljs-value">(<span class="hljs-string">"block"</span>|<span class="hljs-string">"unblock"</span>)
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>204</code></strong></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>400</code></strong><a data-toggle="collapse" data-target="#ac070c31a033b814772b6bd07627a6f9" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="ac070c31a033b814772b6bd07627a6f9" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value">(<span class="hljs-string">"malformed json"</span>|<span class="hljs-string">"missing handle"</span>|<span class="hljs-string">"missing action"</span>|<span class="hljs-string">"unknown action"</span>)
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>401</code></strong><a data-toggle="collapse" data-target="#51ce74b9b524c7ce47478806fe9bccba" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="51ce74b9b524c7ce47478806fe9bccba" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"missing, illegal, or expired token"</span>
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>403</code></strong><a data-toggle="collapse" data-target="#2a11e925f96c57945b7ff88e1f6546d9" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="2a11e925f96c57945b7ff88e1f6546d9" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"you can not block yourself"</span>
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>404</code></strong><a data-toggle="collapse" data-target="#57c426ab7085f7dfc62599c1cbf606aa" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="57c426ab7085f7dfc62599c1cbf606aa" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"no such user"</span>
+</span>}
+</code></pre></li></ul></section><h4 id="users-viewing-blocked-users">Viewing Blocked Users&nbsp;<a href="#users-viewing-blocked-users"><i class="fa fa-link"></i></a></h4><section id="users-viewing-blocked-users-get" class="panel panel-info"><div class="panel-heading"><div style="float:right"><span style="text-transform: lowercase">Get blocked users</span></div><div style="float:left"><a href="#users-viewing-blocked-users-get" class="btn btn-xs btn-primary">GET</a></div><div style="overflow:hidden"><code>/users/{handle}/blocked{?skip,limit}</code></div></div><div class="panel-body"><p>Fetch the list of blocked users for the given user, paginated. The blocked users will always be returned in alphabetical order by handle.</p>
+</div><ul class="list-group"><li class="list-group-item bg-default"><strong>Parameters</strong></li><li class="list-group-item"><dl class="dl-horizontal"><dt>skip</dt><dd><code>number</code>&nbsp;<span>(optional)</span>&nbsp;<span class="text-muted example"><strong>Example:&nbsp;</strong><span>10</span></span><p>number of results to skip, default is 0, min 0</p>
+</dd><dt>limit</dt><dd><code>number</code>&nbsp;<span>(optional)</span>&nbsp;<span class="text-muted example"><strong>Example:&nbsp;</strong><span>20</span></span><p>max number of results to return, for pagination, default 20, min 1, max 100</p>
+</dd></dl></li></ul><ul class="list-group"><li class="list-group-item"><strong>Request</strong><a data-toggle="collapse" data-target="#2d27df59fbb60ad8660231ecf71b8b2d" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="2d27df59fbb60ad8660231ecf71b8b2d" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</span><br></code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>200</code></strong><a data-toggle="collapse" data-target="#8cb5bf9a763de80753e1ed3e5ebfca26" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="8cb5bf9a763de80753e1ed3e5ebfca26" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>[
+    {
+        "<span class="hljs-attribute">url</span>": <span class="hljs-value"><span class="hljs-string">"https://cher-ami.example.com/users/liane"</span></span>,
+        "<span class="hljs-attribute">handle</span>": <span class="hljs-value"><span class="hljs-string">"pelé"</span></span>,
+        "<span class="hljs-attribute">name</span>": <span class="hljs-value"><span class="hljs-string">"Liane Cartman"</span></span>,
+        "<span class="hljs-attribute">reputation</span>": <span class="hljs-value"><span class="hljs-number">303</span></span>,
+        "<span class="hljs-attribute">joined</span>": <span class="hljs-value"><span class="hljs-string">"2011-10-20T08:15Z"</span>
+    </span>},
+    . . .
+]
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>400</code></strong><a data-toggle="collapse" data-target="#c8082fded7e2b0fe99a2bcabbe93c19e" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="c8082fded7e2b0fe99a2bcabbe93c19e" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value">(<span class="hljs-string">"malformed json"</span>|<span class="hljs-string">"malformed skip"</span>|<span class="hljs-string">"malformed limit"</span>)
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>401</code></strong><a data-toggle="collapse" data-target="#b2407fb8e91efc3aaa4f0b49a26ac0c5" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="b2407fb8e91efc3aaa4f0b49a26ac0c5" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"missing, illegal, or expired token"</span>
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>403</code></strong><a data-toggle="collapse" data-target="#97ad759c6e77e986bba5d4d6c7e514b5" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="97ad759c6e77e986bba5d4d6c7e514b5" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value">(<span class="hljs-string">"limit out of range"</span>|<span class="hljs-string">"you not allowed to see this user's blocked list"</span>)
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>404</code></strong><a data-toggle="collapse" data-target="#1c6b360ec5bc74b2374d6b2bfc9c3c79" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="1c6b360ec5bc74b2374d6b2bfc9c3c79" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"no such user"</span>
+</span>}
+</code></pre></li></ul></section><h4 id="users-reputation">Reputation&nbsp;<a href="#users-reputation"><i class="fa fa-link"></i></a></h4><section id="users-reputation-patch" class="panel panel-warning"><div class="panel-heading"><div style="float:right"><span style="text-transform: lowercase">Adjust reputation +/-</span></div><div style="float:left"><a href="#users-reputation-patch" class="btn btn-xs btn-warning">PATCH</a></div><div style="overflow:hidden"><code>/users/{handle}/reputation</code></div></div><ul class="list-group"><li class="list-group-item"><strong>Request</strong><a data-toggle="collapse" data-target="#7e755c2b661c6c0524f143ad512752ba" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="7e755c2b661c6c0524f143ad512752ba" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</span><br></code></pre><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">delta</span>": <span class="hljs-value"><span class="hljs-number">5</span></span>,
+    "<span class="hljs-attribute">action</span>": <span class="hljs-value">(<span class="hljs-string">"inc"</span>|<span class="hljs-string">"dec"</span>)
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>204</code></strong></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>400</code></strong><a data-toggle="collapse" data-target="#02824f1c4f91955606f534a3f39f0187" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="02824f1c4f91955606f534a3f39f0187" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value">(<span class="hljs-string">"malformed json"</span>|<span class="hljs-string">"missing delta"</span>|<span class="hljs-string">"missing action"</span>|<span class="hljs-string">"unknown action"</span>|<span class="hljs-string">"delta not an integer"</span>)
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>401</code></strong><a data-toggle="collapse" data-target="#85583229ac776ce1bd0f225939e9625b" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="85583229ac776ce1bd0f225939e9625b" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"missing, illegal, or expired token"</span>
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>403</code></strong><a data-toggle="collapse" data-target="#8898b21ffb78756ce79b1b0f262723e1" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="8898b21ffb78756ce79b1b0f262723e1" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"you can not adjust others' reputations unless you are an admin"</span>
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>404</code></strong><a data-toggle="collapse" data-target="#d4d2ae6a5ae44cb9e4c0e0c51cb34ef0" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="d4d2ae6a5ae44cb9e4c0e0c51cb34ef0" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"no such user"</span>
+</span>}
+</code></pre></li></ul></section><section id="users-reputation-put" class="panel panel-warning"><div class="panel-heading"><div style="float:right"><span style="text-transform: lowercase">Set reputation directly</span></div><div style="float:left"><a href="#users-reputation-put" class="btn btn-xs btn-warning">PUT</a></div><div style="overflow:hidden"><code>/users/{handle}/reputation</code></div></div><ul class="list-group"><li class="list-group-item"><strong>Request</strong><a data-toggle="collapse" data-target="#a1466a3eeb77fa634489c91f8a5ae878" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="a1466a3eeb77fa634489c91f8a5ae878" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</span><br></code></pre><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reputatiom</span>": <span class="hljs-value"><span class="hljs-number">1005</span></span>,
+}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>204</code></strong></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>400</code></strong><a data-toggle="collapse" data-target="#26421049b5a5a32dad2c463445299745" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="26421049b5a5a32dad2c463445299745" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value">(<span class="hljs-string">"malformed json"</span>|<span class="hljs-string">"missing reputation"</span>|<span class="hljs-string">"reputation not an integer"</span>)
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>401</code></strong><a data-toggle="collapse" data-target="#bf543e641b269a88e94420681d0b6899" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="bf543e641b269a88e94420681d0b6899" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"missing, illegal, or expired token"</span>
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>403</code></strong><a data-toggle="collapse" data-target="#2a2e75e453bd241b9ac237ffb6cb3ac8" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="2a2e75e453bd241b9ac237ffb6cb3ac8" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"you can not set others' reputations unless you are an admin"</span>
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>404</code></strong><a data-toggle="collapse" data-target="#5724272a0923e126cfce4fc4c4d0f5f6" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="5724272a0923e126cfce4fc4c4d0f5f6" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"no such user"</span>
+</span>}
+</code></pre></li></ul></section><h4 id="users-avatar">Avatar&nbsp;<a href="#users-avatar"><i class="fa fa-link"></i></a></h4><section id="users-avatar-put" class="panel panel-warning"><div class="panel-heading"><div style="float:right"><span style="text-transform: lowercase">Upload avatar</span></div><div style="float:left"><a href="#users-avatar-put" class="btn btn-xs btn-warning">PUT</a></div><div style="overflow:hidden"><code>/users/{handle}/avatar</code></div></div><ul class="list-group"><li class="list-group-item"><strong>Request</strong><a data-toggle="collapse" data-target="#50ca6f10e8be6f22d1fa715db4a0d7e6" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="50ca6f10e8be6f22d1fa715db4a0d7e6" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</span><br><span class="hljs-attribute">Content-type</span>: <span class="hljs-string">image/png</span><br></code></pre><h5>Body</h5><pre><code><span class="hljs-keyword">...</span> image content <span class="hljs-keyword">...</span>
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>204</code></strong></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>400</code></strong><a data-toggle="collapse" data-target="#f5d8053571a6fb500dddddf3b7f094fb" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="f5d8053571a6fb500dddddf3b7f094fb" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"bad media"</span>
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>401</code></strong><a data-toggle="collapse" data-target="#388f4d6bbe087cbd20ceea2b474e0970" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="388f4d6bbe087cbd20ceea2b474e0970" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"missing, illegal, or expired token"</span>
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>403</code></strong><a data-toggle="collapse" data-target="#cbffa15243fe048378b479a49f3e78cf" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="cbffa15243fe048378b479a49f3e78cf" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"you can not set others' avatars unless you are an admin"</span>
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>404</code></strong><a data-toggle="collapse" data-target="#c5531193286342e98c308647d1105727" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="c5531193286342e98c308647d1105727" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"no such user"</span>
+</span>}
+</code></pre></li></ul></section></div></div></div><div><div class="panel panel-default"><div class="panel-heading"><h3 id="circles">Circles&nbsp;<a href="#circles"><i class="fa fa-link"></i></a></h3></div><div class="panel-body"><h4 id="circles-circle-creation">Circle Creation&nbsp;<a href="#circles-circle-creation"><i class="fa fa-link"></i></a></h4><section id="circles-circle-creation-post" class="panel panel-success"><div class="panel-heading"><div style="float:right"><span style="text-transform: lowercase">Create circle</span></div><div style="float:left"><a href="#circles-circle-creation-post" class="btn btn-xs btn-success">POST</a></div><div style="overflow:hidden"><code>/circles</code></div></div><div class="panel-body"><p>Create a circle given only a name, description, and visibility setting, setting the owner to the currently logged-in user. Members will be added to the circle using a different endpoint (whose url is part of the returned resource). Circles are private by default.</p>
+</div><ul class="list-group"><li class="list-group-item"><strong>Request</strong><a data-toggle="collapse" data-target="#31443025654d6a8a9fc47512f89f633c" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="31443025654d6a8a9fc47512f89f633c" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</span><br></code></pre><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">circleName</span>": <span class="hljs-value"><span class="hljs-string">"bffs"</span></span>,
+    "<span class="hljs-attribute">public</span>": <span class="hljs-value"><span class="hljs-literal">true</span>|<span class="hljs-literal">false</span>
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>201</code></strong><a data-toggle="collapse" data-target="#a12bbdceececac959cb8e67861db6f6f" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="a12bbdceececac959cb8e67861db6f6f" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">name</span>": <span class="hljs-value"><span class="hljs-string">"bffs"</span></span>,
+    "<span class="hljs-attribute">url</span>": <span class="hljs-value"><span class="hljs-string">"https://cher-ami.example.com/circles/2997"</span></span>,
+    "<span class="hljs-attribute">description</span>": <span class="hljs-value"><span class="hljs-string">"All my closest friends"</span></span>,
+    "<span class="hljs-attribute">owner</span>": <span class="hljs-value"><span class="hljs-string">"wendy"</span></span>,
+    "<span class="hljs-attribute">visibility</span>": <span class="hljs-value"><span class="hljs-string">"private"</span></span>,
+    "<span class="hljs-attribute">members</span>": <span class="hljs-value"><span class="hljs-string">"https://cher-ami.example.com/circles/2997/members"</span></span>,
+    "<span class="hljs-attribute">creation</span>": <span class="hljs-value"><span class="hljs-string">"2011-10-20T14:22:09Z"</span>
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>400</code></strong><a data-toggle="collapse" data-target="#0b89eacb74aaf088090da27d0a859fad" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="0b89eacb74aaf088090da27d0a859fad" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value">(<span class="hljs-string">"malformed json"</span>|<span class="hljs-string">"missing name"</span>|<span class="hljs-string">"missing description"</span>)
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>403</code></strong><a data-toggle="collapse" data-target="#245d0a456e5818e336d5052603f897b7" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="245d0a456e5818e336d5052603f897b7" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value">(<span class="hljs-string">"invalid name"</span>|<span class="hljs-string">"invalid description"</span>)
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>409</code></strong><a data-toggle="collapse" data-target="#d08098aabe3bce4d53bc5fd43336fcc9" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="d08098aabe3bce4d53bc5fd43336fcc9" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"name already used"</span>
+</span>}
+</code></pre></li></ul></section><h4 id="circles-circle-search">Circle Search&nbsp;<a href="#circles-circle-search"><i class="fa fa-link"></i></a></h4><section id="circles-circle-search-get" class="panel panel-info"><div class="panel-heading"><div style="float:right"><span style="text-transform: lowercase">Search for circles</span></div><div style="float:left"><a href="#circles-circle-search-get" class="btn btn-xs btn-primary">GET</a></div><div style="overflow:hidden"><code>/circles{?user,before,limit}</code></div></div><div class="panel-body"><p>Fetch circles, optionally restricted to those with a given owner. The results will be paginated. Only basic circle data is returned; however, the url to get the complete data is also returned. Circles are returned in order of descending creation date.  We may add custom sorting capability in the future.</p>
+</div><ul class="list-group"><li class="list-group-item bg-default"><strong>Parameters</strong></li><li class="list-group-item"><dl class="dl-horizontal"><dt>user</dt><dd><code>string</code>&nbsp;<span>(optional)</span>&nbsp;<span class="text-muted example"><strong>Example:&nbsp;</strong><span>alice</span></span><p>only return circles owned by this user</p>
+</dd><dt>before</dt><dd><code>string</code>&nbsp;<span>(optional)</span>&nbsp;<span class="text-muted example"><strong>Example:&nbsp;</strong><span>2015-02-28</span></span><p>only return circles created before this date (YYYY-MM-DD)</p>
+</dd><dt>limit</dt><dd><code>number</code>&nbsp;<span>(optional)</span>&nbsp;<span class="text-muted example"><strong>Example:&nbsp;</strong><span>20</span></span><p>max number of results to return, for pagination, default 20, min 1, max 100</p>
+</dd></dl></li></ul><ul class="list-group"><li class="list-group-item"><strong>Request</strong><a data-toggle="collapse" data-target="#819a453b6f46521a42efc3bf9e43b2d0" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="819a453b6f46521a42efc3bf9e43b2d0" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</span><br></code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>200</code></strong><a data-toggle="collapse" data-target="#418f0ea376ed210204e68545dee70820" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="418f0ea376ed210204e68545dee70820" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>[
+    {
+        "<span class="hljs-attribute">name</span>": <span class="hljs-value"><span class="hljs-string">"bffs"</span></span>,
+        "<span class="hljs-attribute">url</span>": <span class="hljs-value"><span class="hljs-string">"https://cher-ami.example.com/circles/2997"</span></span>,
+        "<span class="hljs-attribute">description</span>": <span class="hljs-value"><span class="hljs-string">"All my closest friends"</span></span>,
+        "<span class="hljs-attribute">owner</span>": <span class="hljs-value"><span class="hljs-string">"wendy"</span></span>,
+        "<span class="hljs-attribute">visibility</span>": <span class="hljs-value"><span class="hljs-string">"private"</span></span>,
+        "<span class="hljs-attribute">members</span>": <span class="hljs-value"><span class="hljs-string">"https://cher-ami.example.com/circles/2997/members"</span></span>,
+        "<span class="hljs-attribute">creation</span>": <span class="hljs-value"><span class="hljs-string">"2011-10-20T14:22:09Z"</span>
+    </span>},
+    . . .
+]
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>400</code></strong><a data-toggle="collapse" data-target="#c48207edcf34ccf75a9e5e8491462928" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="c48207edcf34ccf75a9e5e8491462928" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value">(<span class="hljs-string">"malformed json"</span>|<span class="hljs-string">"malformed before"</span>|<span class="hljs-string">"malformed limit"</span>)
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>401</code></strong><a data-toggle="collapse" data-target="#b1db17af4ed1ade6aa46e6d3357802bb" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="b1db17af4ed1ade6aa46e6d3357802bb" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"missing, illegal, or expired token"</span>
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>403</code></strong><a data-toggle="collapse" data-target="#d69acdc323f99f8ac2b02071e16c587e" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="d69acdc323f99f8ac2b02071e16c587e" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"limit out of range"</span>
+</span>}
+</code></pre></li></ul></section><h4 id="circles-circle">Circle&nbsp;<a href="#circles-circle"><i class="fa fa-link"></i></a></h4><section id="circles-circle-get" class="panel panel-info"><div class="panel-heading"><div style="float:right"><span style="text-transform: lowercase">Get circle by id</span></div><div style="float:left"><a href="#circles-circle-get" class="btn btn-xs btn-primary">GET</a></div><div style="overflow:hidden"><code>/circles/{id}</code></div></div><div class="panel-body"><p>Get complete circle data for the circle with the given id.</p>
+</div><ul class="list-group"><li class="list-group-item"><strong>Request</strong><a data-toggle="collapse" data-target="#fec87e6d2db39f2b99ae0491ee8fbc76" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="fec87e6d2db39f2b99ae0491ee8fbc76" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</span><br></code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>200</code></strong><a data-toggle="collapse" data-target="#9ccb6b60f341b706e99f9cf79d573a2c" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="9ccb6b60f341b706e99f9cf79d573a2c" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    <span class="hljs-string">"name"</span>: <span class="hljs-string">"bffs"</span>,
+    <span class="hljs-string">"url"</span>: <span class="hljs-string">"https://cher-ami.example.com/circles/2997"</span>,
+    <span class="hljs-string">"description"</span>: <span class="hljs-string">"All my closest friends"</span>,
+    <span class="hljs-string">"owner"</span>: <span class="hljs-string">"wendy"</span>,
+    <span class="hljs-string">"visibility"</span>: <span class="hljs-string">"private"</span>,
+    <span class="hljs-string">"members"</span>: <span class="hljs-string">"https://cher-ami.example.com/circles/2997/members"</span>,
+    <span class="hljs-string">"creation"</span>: <span class="hljs-string">"2011-10-20T14:22:09Z"</span>
+},
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>401</code></strong><a data-toggle="collapse" data-target="#55f81ccdd52c135966611058df1182ec" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="55f81ccdd52c135966611058df1182ec" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"missing, illegal, or expired token"</span>
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>404</code></strong><a data-toggle="collapse" data-target="#d3ac513146b2a7932107149e4afa9887" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="d3ac513146b2a7932107149e4afa9887" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"no such circle"</span>
+</span>}
+</code></pre></li></ul></section><section id="circles-circle-patch" class="panel panel-warning"><div class="panel-heading"><div style="float:right"><span style="text-transform: lowercase">Edit circle info</span></div><div style="float:left"><a href="#circles-circle-patch" class="btn btn-xs btn-warning">PATCH</a></div><div style="overflow:hidden"><code>/circles/{id}</code></div></div><div class="panel-body"><p>Edits only the name and description of the circle. Members are managed elsewhere. You cannot ever change the owner or creation time.</p>
+</div><ul class="list-group"><li class="list-group-item"><strong>Request</strong><a data-toggle="collapse" data-target="#736d65076eb94f49fca4c80538fddc9c" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="736d65076eb94f49fca4c80538fddc9c" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</span><br></code></pre><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">name</span>": <span class="hljs-value"><span class="hljs-string">"New name (optional)"</span></span>,
+    "<span class="hljs-attribute">description</span>": <span class="hljs-value"><span class="hljs-string">"New description (optional)"</span></span>,
+}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>204</code></strong></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>401</code></strong><a data-toggle="collapse" data-target="#98508c4bcb5f8f7992ed24941ca0f884" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="98508c4bcb5f8f7992ed24941ca0f884" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"missing, illegal, or expired token"</span>
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>403</code></strong><a data-toggle="collapse" data-target="#77ae51599d130f39be570769e6125447" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="77ae51599d130f39be570769e6125447" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"you can only edit circles you own unless you are an admin"</span>
+</span>}
+</code></pre></li></ul></section><h4 id="circles-get-circle-members">Get Circle Members&nbsp;<a href="#circles-get-circle-members"><i class="fa fa-link"></i></a></h4><section id="circles-get-circle-members-get" class="panel panel-info"><div class="panel-heading"><div style="float:right"><span style="text-transform: lowercase">Get circle members</span></div><div style="float:left"><a href="#circles-get-circle-members-get" class="btn btn-xs btn-primary">GET</a></div><div style="overflow:hidden"><code>/circles/{id}/members{?skip,limit}</code></div></div><div class="panel-body"><p>Fetch the list of members of this circle, paginated. The members will always be returned in alphabetical order by handle.</p>
+</div><ul class="list-group"><li class="list-group-item bg-default"><strong>Parameters</strong></li><li class="list-group-item"><dl class="dl-horizontal"><dt>skip</dt><dd><code>number</code>&nbsp;<span>(optional)</span>&nbsp;<span class="text-muted example"><strong>Example:&nbsp;</strong><span>10</span></span><p>number of results to skip, default is 0, min 0</p>
+</dd><dt>limit</dt><dd><code>number</code>&nbsp;<span>(optional)</span>&nbsp;<span class="text-muted example"><strong>Example:&nbsp;</strong><span>20</span></span><p>max number of results to return, for pagination, default 20, min 1, max 100</p>
+</dd></dl></li></ul><ul class="list-group"><li class="list-group-item"><strong>Request</strong><a data-toggle="collapse" data-target="#17e65505e8a2415925100562f063a6e5" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="17e65505e8a2415925100562f063a6e5" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</span><br></code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>200</code></strong><a data-toggle="collapse" data-target="#f445de9234d0ee1593486a3e9d4649d1" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="f445de9234d0ee1593486a3e9d4649d1" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>[
+    {
+        "<span class="hljs-attribute">url</span>": <span class="hljs-value"><span class="hljs-string">"https://cher-ami.example.com/users/towelie"</span></span>,
+        "<span class="hljs-attribute">handle</span>": <span class="hljs-value"><span class="hljs-string">"towelie"</span></span>,
+        "<span class="hljs-attribute">name</span>": <span class="hljs-value"><span class="hljs-string">"Smart Towel RG-400"</span></span>,
+        "<span class="hljs-attribute">reputation</span>": <span class="hljs-value"><span class="hljs-number">420</span></span>,
+        "<span class="hljs-attribute">joined</span>": <span class="hljs-value"><span class="hljs-string">"2011-04-20T16:20Z"</span>
+    </span>},
+    . . .
+]
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>400</code></strong><a data-toggle="collapse" data-target="#d3e3d87b756156645480113fcec8f468" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="d3e3d87b756156645480113fcec8f468" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value">(<span class="hljs-string">"malformed json"</span>|<span class="hljs-string">"malformed skip"</span>|<span class="hljs-string">"malformed limit"</span>)
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>401</code></strong><a data-toggle="collapse" data-target="#ea81fb0bdb5cbec98d4e9bf19e75c3a0" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="ea81fb0bdb5cbec98d4e9bf19e75c3a0" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"missing, illegal, or expired auth token"</span>
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>403</code></strong><a data-toggle="collapse" data-target="#9d9916b9b63daaedd219d3d396f684b3" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="9d9916b9b63daaedd219d3d396f684b3" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"limit out of range"</span>
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>404</code></strong><a data-toggle="collapse" data-target="#c552825191ba5e16c07e31bb98c567a8" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="c552825191ba5e16c07e31bb98c567a8" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"no such circle that you can see"</span>
+</span>}
+</code></pre></li></ul></section><h4 id="circles-manage-circle-members">Manage Circle Members&nbsp;<a href="#circles-manage-circle-members"><i class="fa fa-link"></i></a></h4><section id="circles-manage-circle-members-patch" class="panel panel-warning"><div class="panel-heading"><div style="float:right"><span style="text-transform: lowercase">Add/remove circle members</span></div><div style="float:left"><a href="#circles-manage-circle-members-patch" class="btn btn-xs btn-warning">PATCH</a></div><div style="overflow:hidden"><code>/circles/{id}/members</code></div></div><div class="panel-body"><p>If a circle is public, all user can let themselves in, unless blocked by the circle owner. If private, only the owner can add. To remove a user, the requestor must be that very user, the circle owner, or an admin.</p>
+</div><ul class="list-group"><li class="list-group-item"><strong>Request</strong><a data-toggle="collapse" data-target="#624e345f3dc265a5cfba83068c312a43" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="624e345f3dc265a5cfba83068c312a43" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</span><br></code></pre><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">handle</span>": <span class="hljs-value"><span class="hljs-string">"sharon"</span></span>,
+    "<span class="hljs-attribute">action</span>": <span class="hljs-value">(<span class="hljs-string">"add"</span>|<span class="hljs-string">"remove"</span>)
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>204</code></strong></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>400</code></strong><a data-toggle="collapse" data-target="#a8a144fc4fcf588b802749cb7897ef48" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="a8a144fc4fcf588b802749cb7897ef48" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value">(<span class="hljs-string">"malformed json"</span>|<span class="hljs-string">"missing handle"</span>|<span class="hljs-string">"missing action"</span>|<span class="hljs-string">"unknown action"</span>)
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>401</code></strong><a data-toggle="collapse" data-target="#594637d294634eeac020069b6363bf9f" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="594637d294634eeac020069b6363bf9f" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"missing, illegal, or expired auth token"</span>
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>403</code></strong><a data-toggle="collapse" data-target="#61ef18a6596a32bc0b3ce98edbb66b7c" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="61ef18a6596a32bc0b3ce98edbb66b7c" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value">(<span class="hljs-string">"no such circle visible to you"</span>|<span class="hljs-string">"only owner can add others to private circles"</span>|<span class="hljs-string">"blocked by circle owner"</span>|<span class="hljs-string">"not allowed to remove"</span>)
+</span>}
+</code></pre></li></ul></section></div></div></div><div><div class="panel panel-default"><div class="panel-heading"><h3 id="messages">Messages&nbsp;<a href="#messages"><i class="fa fa-link"></i></a></h3></div><div class="panel-body"><h4 id="messages-message-creation">Message Creation&nbsp;<a href="#messages-message-creation"><i class="fa fa-link"></i></a></h4><section id="messages-message-creation-post" class="panel panel-success"><div class="panel-heading"><div style="float:right"><span style="text-transform: lowercase">Create message</span></div><div style="float:left"><a href="#messages-message-creation-post" class="btn btn-xs btn-success">POST</a></div><div style="overflow:hidden"><code>/messages</code></div></div><div class="panel-body"><p>Creates a message for a given circle, with the given content. Optionally, the creator can set a minimum reputation threshold for viewing (defaults to 0, in a way). Server sets the id, creation timestamp, and author.</p>
+</div><ul class="list-group"><li class="list-group-item"><strong>Request</strong><a data-toggle="collapse" data-target="#01066274919e789415fad7976b503b3b" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="01066274919e789415fad7976b503b3b" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</span><br></code></pre><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">circle</span>": <span class="hljs-value"><span class="hljs-number">488</span></span>,
+    "<span class="hljs-attribute">min_rep</span>": <span class="hljs-value"><span class="hljs-number">500</span></span>,
+    "<span class="hljs-attribute">content</span>": <span class="hljs-value"><span class="hljs-string">"There are no such things as stupid questions, only stupid people"</span>
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>201</code></strong><a data-toggle="collapse" data-target="#80a65e5d798e6701bdbe9314648085e2" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="80a65e5d798e6701bdbe9314648085e2" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">content</span>": <span class="hljs-value"><span class="hljs-string">"There are no such things as stupid questions, only stupid people"</span></span>,
+    "<span class="hljs-attribute">url</span>": <span class="hljs-value"><span class="hljs-string">"https://cher-ami.example.com/messages/98"</span></span>,
+    "<span class="hljs-attribute">author</span>": <span class="hljs-value"><span class="hljs-string">"garrison"</span></span>,
+    "<span class="hljs-attribute">min_rep</span>": <span class="hljs-value"><span class="hljs-number">500</span></span>,
+    "<span class="hljs-attribute">creation</span>": <span class="hljs-value"><span class="hljs-string">"2011-10-20T14:22:09Z"</span>
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>400</code></strong><a data-toggle="collapse" data-target="#e05d127cb93763c27289d6ba1eece9f5" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="e05d127cb93763c27289d6ba1eece9f5" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value">(<span class="hljs-string">"malformed json"</span>|<span class="hljs-string">"missing circle"</span>|<span class="hljs-string">"missing content"</span>)
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>403</code></strong><a data-toggle="collapse" data-target="#eb82db7f9d736ed0ec4f6c204e362cbb" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="eb82db7f9d736ed0ec4f6c204e362cbb" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"no such circle or you are not allowed to post to it"</span>
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>413</code></strong><a data-toggle="collapse" data-target="#488a449807a48b058acb353958280f18" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="488a449807a48b058acb353958280f18" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"content too large"</span></span>,
+    "<span class="hljs-attribute">max_comment_size_in_bytes</span>": <span class="hljs-value"><span class="hljs-number">2048</span>
+</span>}
+</code></pre></li></ul></section><h4 id="messages-message-search">Message Search&nbsp;<a href="#messages-message-search"><i class="fa fa-link"></i></a></h4><section id="messages-message-search-get" class="panel panel-info"><div class="panel-heading"><div style="float:right"><span style="text-transform: lowercase">Get messages</span></div><div style="float:left"><a href="#messages-message-search-get" class="btn btn-xs btn-primary">GET</a></div><div style="overflow:hidden"><code>/messages{?circle,name,before,limit}</code></div></div><div class="panel-body"><p>Fetch the messages for the given circle or user, paginated. The messages will always be returned in order of descending creation date. Only messages corresponding to circles that the current user is allowed to see , and that the user has enough reputation to see, will be returned.</p>
+</div><ul class="list-group"><li class="list-group-item bg-default"><strong>Parameters</strong></li><li class="list-group-item"><dl class="dl-horizontal"><dt>circle</dt><dd><code>string</code>&nbsp;<span>(optional)</span>&nbsp;<span class="text-muted example"><strong>Example:&nbsp;</strong><span>284</span></span><p>only return messages from this circle, required if name not supplied</p>
+</dd><dt>name</dt><dd><code>string</code>&nbsp;<span>(optional)</span>&nbsp;<span class="text-muted example"><strong>Example:&nbsp;</strong><span>liane</span></span><p>only return messages authored by this user, required if circle not supplied</p>
+</dd><dt>before</dt><dd><code>string</code>&nbsp;<span>(optional)</span>&nbsp;<span class="text-muted example"><strong>Example:&nbsp;</strong><span>2015-02-28T22:11:07Z</span></span><p>only return messages created before this datetime</p>
+</dd><dt>limit</dt><dd><code>number</code>&nbsp;<span>(optional)</span>&nbsp;<span class="text-muted example"><strong>Example:&nbsp;</strong><span>20</span></span><p>max number of results to return, for pagination, default 20, min 1, max 100</p>
+</dd></dl></li></ul><ul class="list-group"><li class="list-group-item"><strong>Request</strong><a data-toggle="collapse" data-target="#3213fa235eab8fc322d4030bc3d08dac" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="3213fa235eab8fc322d4030bc3d08dac" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</span><br></code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>200</code></strong><a data-toggle="collapse" data-target="#ce07a7762711cad635051891ec4cc601" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="ce07a7762711cad635051891ec4cc601" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>[
+    {
+        "<span class="hljs-attribute">url</span>": <span class="hljs-value"><span class="hljs-string">"https://cher-ami.example.com/messages/802"</span></span>,
+        "<span class="hljs-attribute">author</span>": <span class="hljs-value"><span class="hljs-string">"stan"</span></span>,
+        "<span class="hljs-attribute">content</span>": <span class="hljs-value"><span class="hljs-string">"I'm not getting on this bus"</span></span>,
+        "<span class="hljs-attribute">date</span>": <span class="hljs-value"><span class="hljs-string">"2012-10-20T14:22:09Z"</span>
+    </span>},
+    . . .
+]
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>400</code></strong><a data-toggle="collapse" data-target="#2858e62635e7049ac849b973681ec5c6" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="2858e62635e7049ac849b973681ec5c6" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value">(<span class="hljs-string">"malformed json"</span>|<span class="hljs-string">"malformed before"</span>|<span class="hljs-string">"malformed limit"</span>|<span class="hljs-string">"circle or user required"</span>)</span>,
+    "<span class="hljs-attribute">details</span>": <span class="hljs-value">(<span class="hljs-string">"before must be a datetime in ISO 8601 format"</span>|<span class="hljs-string">"limit must be a positive integer"</span>)
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>401</code></strong><a data-toggle="collapse" data-target="#ab7bf289ced2046548e1b0b324cf5357" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="ab7bf289ced2046548e1b0b324cf5357" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"missing, illegal, or expired auth token"</span>
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>403</code></strong><a data-toggle="collapse" data-target="#3aad352753489bbc57192378428f2d3c" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="3aad352753489bbc57192378428f2d3c" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"limit out of range"</span></span>,
+    "<span class="hljs-attribute">details</span>": <span class="hljs-value"><span class="hljs-string">"limit must be between 1 and 100, inclusive"</span>
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>404</code></strong><a data-toggle="collapse" data-target="#6d4abf0d8ab5e7ffd2022b3fc40d890f" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="6d4abf0d8ab5e7ffd2022b3fc40d890f" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value">(<span class="hljs-string">"no such circle that you can see"</span>|<span class="hljs-string">"no such user"</span>)
+</span>}
+</code></pre></li></ul></section><h4 id="messages-message">Message&nbsp;<a href="#messages-message"><i class="fa fa-link"></i></a></h4><section id="messages-message-get" class="panel panel-info"><div class="panel-heading"><div style="float:right"><span style="text-transform: lowercase">Get message by id</span></div><div style="float:left"><a href="#messages-message-get" class="btn btn-xs btn-primary">GET</a></div><div style="overflow:hidden"><code>/messages/{id}</code></div></div><div class="panel-body"><p>Get the message with the given id.</p>
+</div><ul class="list-group"><li class="list-group-item"><strong>Request</strong><a data-toggle="collapse" data-target="#18603d4e6e17cf253c39f3f7d619c59c" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="18603d4e6e17cf253c39f3f7d619c59c" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</span><br></code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>200</code></strong><a data-toggle="collapse" data-target="#73655cf4cecb3675011919c88acd2e66" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="73655cf4cecb3675011919c88acd2e66" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">url</span>": <span class="hljs-value"><span class="hljs-string">"https://cher-ami.example.com/messages/802"</span></span>,
+    "<span class="hljs-attribute">author</span>": <span class="hljs-value"><span class="hljs-string">"stan"</span></span>,
+    "<span class="hljs-attribute">content</span>": <span class="hljs-value"><span class="hljs-string">"I'm not getting on this bus"</span></span>,
+    "<span class="hljs-attribute">date</span>": <span class="hljs-value"><span class="hljs-string">"2012-10-20T14:22:09Z"</span>
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>401</code></strong><a data-toggle="collapse" data-target="#24febf4dc92358aed5ee4b9fa2696f3a" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="24febf4dc92358aed5ee4b9fa2696f3a" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"missing, illegal, or expired auth token"</span>
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>403</code></strong><a data-toggle="collapse" data-target="#cb2487242149ec39dd86a5bbb0533303" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="cb2487242149ec39dd86a5bbb0533303" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"you don't have enough reputation to see this message"</span></span>,
+    "<span class="hljs-attribute">rep_required</span>": <span class="hljs-value"><span class="hljs-number">250</span>
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>404</code></strong><a data-toggle="collapse" data-target="#b4cc5e8452fa2be7c3a006cba2b95dd1" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="b4cc5e8452fa2be7c3a006cba2b95dd1" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"no such message in any circle you can see"</span>
+</span>}
+</code></pre></li></ul></section><section id="messages-message-delete" class="panel panel-danger"><div class="panel-heading"><div style="float:right"><span style="text-transform: lowercase">Delete message</span></div><div style="float:left"><a href="#messages-message-delete" class="btn btn-xs btn-danger">DELETE</a></div><div style="overflow:hidden"><code>/messages/{id}</code></div></div><ul class="list-group"><li class="list-group-item"><strong>Request</strong><a data-toggle="collapse" data-target="#9664167d87b06d5c95d97019f4ede633" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="9664167d87b06d5c95d97019f4ede633" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</span><br></code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>204</code></strong></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>401</code></strong><a data-toggle="collapse" data-target="#9e3766f86b1c9126e1274f6d2157dd27" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="9e3766f86b1c9126e1274f6d2157dd27" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"missing, illegal, or expired auth token"</span>
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>404</code></strong><a data-toggle="collapse" data-target="#842cff1f0f6dc7a16fb758b99a9de5d5" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="842cff1f0f6dc7a16fb758b99a9de5d5" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"you are not the author of any such message"</span>
+</span>}
+</code></pre></li></ul></section><h4 id="messages-edit-message">Edit Message&nbsp;<a href="#messages-edit-message"><i class="fa fa-link"></i></a></h4><section id="messages-edit-message-patch" class="panel panel-warning"><div class="panel-heading"><div style="float:right"><span style="text-transform: lowercase">Patch a message by id</span></div><div style="float:left"><a href="#messages-edit-message-patch" class="btn btn-xs btn-warning">PATCH</a></div><div style="overflow:hidden"><code>/messages/{id}{&amp;circles,content}</code></div></div><div class="panel-body"><p>Edit an existing message by id. Is used to change properties like the message’s content but will be more commonly used to publish a message. Patching a message will return a 200 and the newly-updated field values as well as the <code>published</code> field. At least one parameter must be supplied for a successful PATCH request.</p>
+</div><ul class="list-group"><li class="list-group-item bg-default"><strong>Parameters</strong></li><li class="list-group-item"><dl class="dl-horizontal"><dt>circles</dt><dd><code>[]string</code>&nbsp;<span>(optional)</span>&nbsp;<span class="text-muted example"><strong>Example:&nbsp;</strong><span>[&quot;circleid_001&quot;, &quot;circleid_075&quot;]</span></span><p>Target circle(s) that the message should be posted to</p>
+</dd><dt>content</dt><dd><code>string</code>&nbsp;<span>(optional)</span>&nbsp;<span class="text-muted example"><strong>Example:&nbsp;</strong><span>some new content</span></span><p>Set the new content of this message</p>
+</dd></dl></li></ul><ul class="list-group"><li class="list-group-item"><strong>Request</strong><a data-toggle="collapse" data-target="#4877d3caa2fc08b170608db50d761192" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="4877d3caa2fc08b170608db50d761192" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</span><br></code></pre><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">circles</span>": <span class="hljs-value">[<span class="hljs-string">"circleid_001"</span>, <span class="hljs-string">"circleid_075"</span>]</span>,
+    "<span class="hljs-attribute">content</span>": <span class="hljs-value"><span class="hljs-string">"Hello world ... again"</span>
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>200</code></strong><a data-toggle="collapse" data-target="#cf964a07f6a384cb300db0d1351750d9" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="cf964a07f6a384cb300db0d1351750d9" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">updated</span>": <span class="hljs-value"><span class="hljs-string">"https://cher-ami.example.com/messages/802"</span></span>,
+    "<span class="hljs-attribute">circles</span>": <span class="hljs-value">[
+        {"<span class="hljs-attribute">circleid</span>": <span class="hljs-value"><span class="hljs-string">"circleid_001"</span></span>, "<span class="hljs-attribute">published_at</span>": <span class="hljs-value"><span class="hljs-string">"2012-10-20T14:22:09Z"</span></span>},
+        {"<span class="hljs-attribute">circleid</span>": <span class="hljs-value"><span class="hljs-string">"circleid_075"</span></span>, "<span class="hljs-attribute">published_at</span>": <span class="hljs-value"><span class="hljs-string">"2012-10-20T14:22:11Z"</span></span>}
+    ]</span>,
+    "<span class="hljs-attribute">dateModified</span>": <span class="hljs-value"><span class="hljs-string">"2012-10-20T14:22:09Z"</span></span>,
+    "<span class="hljs-attribute">published</span>": <span class="hljs-value"><span class="hljs-literal">true</span>
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>400</code></strong><a data-toggle="collapse" data-target="#ac061b5bc6ce97df3c4abeee417d9a14" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="ac061b5bc6ce97df3c4abeee417d9a14" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">response</span>": <span class="hljs-value"><span class="hljs-string">"Failed to patch message"</span></span>,
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value">(<span class="hljs-string">"No field to patch specified"</span>|<span class="hljs-string">"Some specified circle did not exist, or could not be published to"</span>)
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>401</code></strong><a data-toggle="collapse" data-target="#f7f598378433ca0975376f7f8f26842b" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="f7f598378433ca0975376f7f8f26842b" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"missing, illegal, or expired auth token"</span>
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>404</code></strong><a data-toggle="collapse" data-target="#b63de69ee6d4b3c804853ae4ea9f9168" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="b63de69ee6d4b3c804853ae4ea9f9168" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"you are not the author of any such message"</span>
+</span>}
+</code></pre></li></ul></section><h4 id="messages-comment-creation">Comment Creation&nbsp;<a href="#messages-comment-creation"><i class="fa fa-link"></i></a></h4><section id="messages-comment-creation-post" class="panel panel-success"><div class="panel-heading"><div style="float:right"><span style="text-transform: lowercase">Post comment</span></div><div style="float:left"><a href="#messages-comment-creation-post" class="btn btn-xs btn-success">POST</a></div><div style="overflow:hidden"><code>/messages/{id}/comments</code></div></div><div class="panel-body"><p>Post a comment to the given message. Comments are text-only. The server sets the timestamp and sets the author to the currently logged in user.</p>
+</div><ul class="list-group"><li class="list-group-item"><strong>Request</strong><a data-toggle="collapse" data-target="#b6da970809bb58ab59cf21619323a32f" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="b6da970809bb58ab59cf21619323a32f" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</span><br></code></pre><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">content</span>": <span class="hljs-value"><span class="hljs-string">"You killed Kenny! You BASTARD!"</span>
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>201</code></strong><a data-toggle="collapse" data-target="#2858c07a0271a99675d8b518996f470d" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="2858c07a0271a99675d8b518996f470d" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">content</span>": <span class="hljs-value"><span class="hljs-string">"You killed Kenny! You BASTARD!"</span></span>,
+    "<span class="hljs-attribute">url</span>": <span class="hljs-value"><span class="hljs-string">"https://cher-ami.example.com/messages/983/comments/22"</span></span>,
+    "<span class="hljs-attribute">author</span>": <span class="hljs-value"><span class="hljs-string">"kyle"</span></span>,
+    "<span class="hljs-attribute">creation</span>": <span class="hljs-value"><span class="hljs-string">"2015-10-20T14:22:09Z"</span>
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>400</code></strong><a data-toggle="collapse" data-target="#961e90835a4e2ba9449e8f0f49df263b" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="961e90835a4e2ba9449e8f0f49df263b" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value">(<span class="hljs-string">"malformed json"</span>|<span class="hljs-string">"missing content"</span>)
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>403</code></strong><a data-toggle="collapse" data-target="#4819d9de586260566399bf097d14c020" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="4819d9de586260566399bf097d14c020" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"no such message or you are not allowed to comment on it"</span>
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>413</code></strong><a data-toggle="collapse" data-target="#43ffb18ee16524a36157e943ab1c778c" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="43ffb18ee16524a36157e943ab1c778c" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"content too large"</span></span>,
+    "<span class="hljs-attribute">max_comment_size_in_bytes</span>": <span class="hljs-value"><span class="hljs-number">512</span>
+</span>}
+</code></pre></li></ul></section><h4 id="messages-comment-search">Comment Search&nbsp;<a href="#messages-comment-search"><i class="fa fa-link"></i></a></h4><section id="messages-comment-search-get" class="panel panel-info"><div class="panel-heading"><div style="float:right"><span style="text-transform: lowercase">Get comments for message</span></div><div style="float:left"><a href="#messages-comment-search-get" class="btn btn-xs btn-primary">GET</a></div><div style="overflow:hidden"><code>/messages/{id}/comments{?before,limit}</code></div></div><div class="panel-body"><p>Fetch the comments for the given message, paginated. The comments will always be returned in order of descending creation date. If the current user is not an admin, the message must be in a public circle or a private circle to which the current user belongs AND the current user must not blocked by the message author or circle owner.</p>
+</div><ul class="list-group"><li class="list-group-item bg-default"><strong>Parameters</strong></li><li class="list-group-item"><dl class="dl-horizontal"><dt>before</dt><dd><code>string</code>&nbsp;<span>(optional)</span>&nbsp;<span class="text-muted example"><strong>Example:&nbsp;</strong><span>2015-02-28T22:11:07Z</span></span><p>only return comments created before this datetime</p>
+</dd><dt>limit</dt><dd><code>number</code>&nbsp;<span>(optional)</span>&nbsp;<span class="text-muted example"><strong>Example:&nbsp;</strong><span>20</span></span><p>max number of results to return, for pagination, default 20, min 1, max 100</p>
+</dd></dl></li></ul><ul class="list-group"><li class="list-group-item"><strong>Request</strong><a data-toggle="collapse" data-target="#f76ebdaba8a8dae256d0f39057714d90" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="f76ebdaba8a8dae256d0f39057714d90" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</span><br></code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>200</code></strong><a data-toggle="collapse" data-target="#4a6278121ef862b8c5f4ade66dbe470d" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="4a6278121ef862b8c5f4ade66dbe470d" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>[
+    {
+        "<span class="hljs-attribute">content</span>": <span class="hljs-value"><span class="hljs-string">"You killed Kenny! You BASTARD!"</span></span>,
+        "<span class="hljs-attribute">url</span>": <span class="hljs-value"><span class="hljs-string">"https://cher-ami.example.com/messages/983/comments/22"</span></span>,
+        "<span class="hljs-attribute">author</span>": <span class="hljs-value"><span class="hljs-string">"kyle"</span></span>,
+        "<span class="hljs-attribute">creation</span>": <span class="hljs-value"><span class="hljs-string">"2015-10-20T14:22:09Z"</span>
+    </span>},
+    . . .
+]
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>400</code></strong><a data-toggle="collapse" data-target="#c775094dedc45bdc7e337281c3471efe" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="c775094dedc45bdc7e337281c3471efe" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value">(<span class="hljs-string">"malformed json"</span>|<span class="hljs-string">"malformed before"</span>|<span class="hljs-string">"malformed limit"</span>)</span>,
+    "<span class="hljs-attribute">details</span>": <span class="hljs-value">(<span class="hljs-string">"before must be a datetime in ISO 8601 format"</span>|<span class="hljs-string">"limit must be a positive integer"</span>)
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>401</code></strong><a data-toggle="collapse" data-target="#8080c4daf4598e9ace51ebfa11fc4b06" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="8080c4daf4598e9ace51ebfa11fc4b06" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"missing, illegal, or expired auth token"</span>
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>403</code></strong><a data-toggle="collapse" data-target="#78495467df7d2e3328b1635b27657c32" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="78495467df7d2e3328b1635b27657c32" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"limit out of range"</span></span>,
+    "<span class="hljs-attribute">details</span>": <span class="hljs-value"><span class="hljs-string">"limit must be between 1 and 100, inclusive"</span>
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>404</code></strong><a data-toggle="collapse" data-target="#aafd9de280e86e3f0316a51d9e8531b1" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="aafd9de280e86e3f0316a51d9e8531b1" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"message not found in any circle you can see"</span></span>,
+    "<span class="hljs-attribute">message_id</span>": <span class="hljs-value"><span class="hljs-number">20</span></span>,
+}
+</code></pre></li></ul></section><h4 id="messages-comment">Comment&nbsp;<a href="#messages-comment"><i class="fa fa-link"></i></a></h4><section id="messages-comment-get" class="panel panel-info"><div class="panel-heading"><div style="float:right"><span style="text-transform: lowercase">Get comment by id</span></div><div style="float:left"><a href="#messages-comment-get" class="btn btn-xs btn-primary">GET</a></div><div style="overflow:hidden"><code>/messages/{id}/comments/{id}</code></div></div><div class="panel-body"><p>Get the comment. If the current user is not an admin, the comment must be on a message of a public circle or a private circle to which the current user belongs AND the current user must not be blocked by either the message author, the comment author, or the circle owner.</p>
+</div><ul class="list-group"><li class="list-group-item"><strong>Request</strong><a data-toggle="collapse" data-target="#17f6d5a07b0da74ca18c80bc2d77c661" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="17f6d5a07b0da74ca18c80bc2d77c661" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</span><br></code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>200</code></strong><a data-toggle="collapse" data-target="#f490ba13c956a0859cd27829a2c8cf0d" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="f490ba13c956a0859cd27829a2c8cf0d" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">content</span>": <span class="hljs-value"><span class="hljs-string">"You killed Kenny! You BASTARD!"</span></span>,
+    "<span class="hljs-attribute">url</span>": <span class="hljs-value"><span class="hljs-string">"https://cher-ami.example.com/messages/983/comments/22"</span></span>,
+    "<span class="hljs-attribute">author</span>": <span class="hljs-value"><span class="hljs-string">"kyle"</span></span>,
+    "<span class="hljs-attribute">creation</span>": <span class="hljs-value"><span class="hljs-string">"2015-10-20T14:22:09Z"</span>
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>401</code></strong><a data-toggle="collapse" data-target="#5367f22bde50a8bb364b60ffadff4921" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="5367f22bde50a8bb364b60ffadff4921" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"missing, illegal, or expired auth token"</span>
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>404</code></strong><a data-toggle="collapse" data-target="#29fc559af8241b14d025f82a467e55f0" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="29fc559af8241b14d025f82a467e55f0" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"comment not found in any circle you can see"</span></span>,
+    "<span class="hljs-attribute">message_id</span>": <span class="hljs-value"><span class="hljs-number">20</span></span>,
+    "<span class="hljs-attribute">comment_id</span>": <span class="hljs-value"><span class="hljs-number">7</span>
+</span>}
+</code></pre></li></ul></section><section id="messages-comment-delete" class="panel panel-danger"><div class="panel-heading"><div style="float:right"><span style="text-transform: lowercase">Delete comment</span></div><div style="float:left"><a href="#messages-comment-delete" class="btn btn-xs btn-danger">DELETE</a></div><div style="overflow:hidden"><code>/messages/{id}/comments/{id}</code></div></div><div class="panel-body"><p>Permanently delete the comment. Current user must be the comment author or an admin.</p>
+</div><ul class="list-group"><li class="list-group-item"><strong>Request</strong><a data-toggle="collapse" data-target="#b666d0e11178b506ad878046bdbcf3ae" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="b666d0e11178b506ad878046bdbcf3ae" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</span><br></code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>204</code></strong></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>401</code></strong><a data-toggle="collapse" data-target="#ccf47a67171e93b3ef8c91040d517793" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="ccf47a67171e93b3ef8c91040d517793" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"missing, illegal, or expired auth token"</span>
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>404</code></strong><a data-toggle="collapse" data-target="#8aaa5e4f3204c3de9b7d780ff22289c4" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="8aaa5e4f3204c3de9b7d780ff22289c4" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"comment not found among those you have authored"</span></span>,
+    "<span class="hljs-attribute">message_id</span>": <span class="hljs-value"><span class="hljs-number">20</span></span>,
+    "<span class="hljs-attribute">comment_id</span>": <span class="hljs-value"><span class="hljs-number">7</span>
+</span>}
+</code></pre></li></ul></section></div></div></div></div></div></div><p style="text-align: center;" class="text-muted">Generated by&nbsp;<a href="https://github.com/danielgtaylor/aglio" class="aglio">aglio</a>&nbsp;on 09 Nov 2014</p><div id="localFile" style="display: none; position: absolute; top: 0; left: 0; width: 100%; color: white; background: red; font-size: 150%; text-align: center; padding: 1em;">This page may not display correctly when opened as a local file. Instead, view it from a web server.
+
+</div></body><script src="//code.jquery.com/jquery-1.11.0.min.js"></script><script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script><script>(function() {
+  if (location.protocol === 'file:') {
+    document.getElementById('localFile').style.display = 'block';
+  }
+
+}).call(this);
+</script><script>(function() {
+  $('table').addClass('table');
+
+}).call(this);
+</script></html>
