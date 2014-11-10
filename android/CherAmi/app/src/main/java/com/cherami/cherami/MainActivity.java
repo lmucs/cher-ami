@@ -1,13 +1,20 @@
 package com.cherami.cherami;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.Locale;
+import java.util.Properties;
 
 import android.app.Activity;
 import android.app.ActionBar;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.res.AssetManager;
 import android.net.Uri;
 import android.support.v13.app.FragmentPagerAdapter;
 import android.os.Bundle;
@@ -22,6 +29,16 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.AsyncHttpResponseHandler;
+
+import org.apache.http.Header;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.auth.BasicScheme;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 
 public class MainActivity extends Activity implements ActionBar.TabListener, Feed.OnFragmentInteractionListener, Circles.OnFragmentInteractionListener, Profile.OnFragmentInteractionListener {
@@ -40,13 +57,16 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
      * The {@link ViewPager} that will host the section contents.
      */
     ViewPager mViewPager;
-    EditText mUsername;
-    EditText mEmail;
-    EditText mPassword;
-    EditText mConfirmPassword;
+    SharedPreferences prefs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Context context = getApplicationContext();
+        System.out.println(context);
+
+        prefs = context.getSharedPreferences(
+                "com.cherami.cherami", Context.MODE_PRIVATE);
+        super.onCreate(savedInstanceState);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -102,8 +122,102 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
         return true;
     }
 
+    public String getLocalUrlForApi () {
+        AssetManager assetManager = getResources().getAssets();
+        InputStream inputStream = null;
+        try {
+            inputStream = assetManager.open("config.properties");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        Properties properties = new Properties();
+        try {
+            properties.load(inputStream);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return properties.getProperty("myUrl");
+    }
+
+    public JSONObject getUserObjectRequestAsJson () {
+        JSONObject jsonParams = new JSONObject();
+        try {
+            jsonParams.put("CircleName", "TestCircle1");
+            jsonParams.put("Public", true);
+        } catch (JSONException j) {
+            System.out.println("DONT LIKE JSON!");
+        }
+        return jsonParams;
+    }
+
+    public StringEntity convertJsonUserToStringEntity (JSONObject jsonParams) {
+        StringEntity entity = null;
+        try {
+            entity = new StringEntity(jsonParams.toString());
+        } catch (UnsupportedEncodingException i) {
+            System.out.println("DONT LIKE TO STRING!");
+        }
+        return entity;
+    }
+
     public void attemptCreateCircle(View view) {
-        System.out.println("new circle");
+        AsyncHttpClient client = new AsyncHttpClient();
+        String sessionKey = "com.cherami.cherami.sessionid";
+        String sessionid = prefs.getString(sessionKey, null);
+        System.out.println("sessionid: " + sessionid);
+
+
+        client.addHeader("sessionid", sessionid);
+        client.post(this.getApplicationContext(), "http://" + getLocalUrlForApi() + "/api/circles",
+                convertJsonUserToStringEntity(getUserObjectRequestAsJson()), "application/json",
+                new AsyncHttpResponseHandler() {
+
+                    @Override
+                    public void onStart() {
+                        // called before request is started
+                        System.out.println("STARTING POST REQUEST");
+
+                    }
+
+                    @Override
+                    public void onSuccess(int statusCode, Header[] headers, byte[] response) {
+                        String s = new String(response);
+                        // called when response HTTP status is "200 OK"
+
+                        String responseText = null;
+                        try {
+                            responseText = new JSONObject(new String(response)).getString("Response");
+                        } catch (JSONException j) {
+                            System.out.println("Dont like JSON");
+                        }
+
+                        Toast toast = Toast.makeText(getApplicationContext(), responseText, Toast.LENGTH_LONG);
+                        toast.show();
+                    }
+
+                    @Override
+                    public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
+                        // called when response HTTP status is "4XX" (eg. 401, 403, 404)
+                        System.out.println("AWE FUCK");
+
+                        String responseText = null;
+                        try {
+                            responseText = new JSONObject(new String(errorResponse)).getString("Response");
+                        } catch (JSONException j) {
+                            System.out.println("Dont like JSON");
+                        }
+
+                        Toast toast = Toast.makeText(getApplicationContext(), responseText, Toast.LENGTH_LONG);
+                        toast.show();
+                        e.printStackTrace();
+                    }
+
+                    @Override
+                    public void onRetry(int retryNo) {
+                        // called when request is retried
+                        System.out.println("RETRYING?!?!");
+                    }
+                });
     }
 
 
