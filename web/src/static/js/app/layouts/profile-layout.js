@@ -14,6 +14,16 @@ define(function(require, exports, module) {
             profile: '#profile-container'
         },
 
+        ui: {
+            editProfile: '#editProfile',
+            profileSaveButton: '#profileSaveButton'
+        },
+
+        events: {
+            'click #editProfile': 'showEditProfile',
+            'click #profileSaveButton': 'onRender'
+        },
+
         initialize: function(options) {
 
         },
@@ -21,8 +31,12 @@ define(function(require, exports, module) {
         onRender: function() {
             var sidebar = new SidebarView();
             var profile = new ProfileView();
-            var editProfile = new EditProfileView();
             this.sidebar.show(sidebar);
+            this.profile.show(profile);
+        },
+
+        showEditProfile: function(options) {
+            var editProfile = new EditProfileView();
             this.profile.show(editProfile);
         }
 
