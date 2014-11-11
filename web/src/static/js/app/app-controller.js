@@ -41,7 +41,7 @@ define(function(require, exports, module) {
             // Initialize header view.
             this.app.headerRegion.show(new HeaderView());
 
-            // // Logic for auth check.
+            // Logic for auth check.
             if (this.app.session.has('sessionid')) {
                 console.log("User logged in.");
                 $.ajaxSetup({
@@ -57,7 +57,6 @@ define(function(require, exports, module) {
                 }));
             }
             
-            // this.app.mainRegion.show(new ProfileLayout())
         },
 
         // Needed for AppRouter to initialize index route.
