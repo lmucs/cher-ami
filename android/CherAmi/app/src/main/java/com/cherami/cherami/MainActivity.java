@@ -167,7 +167,7 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
         System.out.println("sessionid: " + sessionid);
 
 
-        client.addHeader("sessionid", sessionid);
+        client.addHeader("Authorization", sessionid);
         client.post(this.getApplicationContext(), "http://" + getLocalUrlForApi() + "/api/circles",
                 convertJsonUserToStringEntity(getUserObjectRequestAsJson()), "application/json",
                 new AsyncHttpResponseHandler() {
@@ -198,11 +198,11 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
                     @Override
                     public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
                         // called when response HTTP status is "4XX" (eg. 401, 403, 404)
-                        System.out.println("AWE FUCK");
 
                         String responseText = null;
                         try {
                             responseText = new JSONObject(new String(errorResponse)).getString("Response");
+
                         } catch (JSONException j) {
                             System.out.println("Dont like JSON");
                         }

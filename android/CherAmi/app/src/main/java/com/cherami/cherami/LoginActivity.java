@@ -148,7 +148,7 @@ public class LoginActivity extends Activity {
                         try {
                             String sessionKey = "com.cherami.cherami.sessionid";
                             prefs.edit().putString(sessionKey, returnVal.getString("sessionid")).apply();
-                            System.out.println("we are hurrr dog " + prefs.getString(sessionKey, null));
+                            System.out.println("Session Id " + prefs.getString(sessionKey, null));
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
@@ -168,7 +168,6 @@ public class LoginActivity extends Activity {
                     @Override
                     public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
                         // called when response HTTP status is "4XX" (eg. 401, 403, 404)
-                        System.out.println("AWE FUCK");
 
                         String responseText = null;
                         try {
