@@ -5,6 +5,7 @@ define(function(require, exports, module) {
     var SidebarView = require('app/views/sidebar-view').SidebarView;
     var ProfileView = require('app/views/profile-view').ProfileView
     var EditProfileView = require('app/views/edit-profile-view').EditProfileView
+    
 
     var ProfileLayout = marionette.LayoutView.extend({
         template: template,
@@ -16,12 +17,14 @@ define(function(require, exports, module) {
 
         ui: {
             editProfile: '#editProfile',
-            profileSaveButton: '#profileSaveButton'
+            profileSaveButton: '#profileSaveButton',
+            
         },
 
         events: {
             'click #editProfile': 'showEditProfile',
-            'click #profileSaveButton': 'onRender'
+            'click #profileSaveButton': 'onRender',
+            
         },
 
         initialize: function(options) {
