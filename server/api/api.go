@@ -179,7 +179,7 @@ func (a Api) Login(w rest.ResponseWriter, r *rest.Request) {
 			// Create an authentication node and return it to client
 			sessionid := a.Svc.SetGetNewSessionId(handle)
 
-			w.WriteHeader(200)
+			w.WriteHeader(201)
 			w.WriteJson(json{
 				"Response":  "Logged in " + handle + ". Note your session id.",
 				"sessionid": sessionid,

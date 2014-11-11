@@ -95,7 +95,7 @@ The token is passed in a header (not as a parameter in the URL) and, if it is va
 + Response 403
 
         {
-            "reason": "cannot invalidate token because it is missing"
+            "reason": "Cannot invalidate token because it is missing"
         }
 
 

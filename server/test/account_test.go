@@ -135,7 +135,7 @@ func (s *TestSuite) TestLoginOK(c *C) {
 	}
 
 	c.Check(helper.GetJsonResponseMessage(response), Equals, "Logged in handleA. Note your session id.")
-	c.Check(response.StatusCode, Equals, 200)
+	c.Check(response.StatusCode, Equals, 201)
 }
 
 //
