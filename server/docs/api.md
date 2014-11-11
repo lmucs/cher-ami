@@ -23,47 +23,36 @@ The API supports discovery of further endpoints, linking objects will absolute U
 
 
 ### Signup/create a new user [POST]
-Create a user given only a handle, name, email, and password. The service will create an initial status, reputation, and default circles, as well as record the creation timestamp. All other profile information is set in a different operations.
+Create a user given only a handle, email, and password. The service will create an initial status, reputation, and default circles, as well as record the creation timestamp. All other profile information is set using different operations.
 + Request
 
         {
             "handle": "pelé",
-            "name": "Edson Arantes do Nascimento",
             "email": "number10@brasil.example.com",
             "password": "Brasil Uber Alles"
         }
 + Response 201
 
         {
-            "url": "https://cher-ami.example.com/users/pelé",
+            "response": "Signed up a new user!",
             "handle": "pelé",
-            "name": "Edson Arantes do Nascimento",
-            "email": "number10@brasil.example.com",
-            "status": "new",
-            "reputation": 1,
-            "joined": "2011-10-20T08:15Z",
-            "circles": [
-                {"name": "public", "url": "https://cher-ami.example.com/circles/207"},
-                {"name": "gold", "url": "https://cher-ami.example.com/circles/208"}
-            ]
+            "email": "number10@brasil.example.com"
         }
 + Response 400
 
         {
-            "reason": ("malformed json"|"missing handle"|"missing name"|"missing email"|"missing password")
+            "reason": ("malformed json"|"Handle is a required field for signup"|"Email is a required field for signup")
         }
 + Response 403
 
         {
-            "reason": ("invalid handle"|"invalid name"|"invalid email"|"password too weak")
+            "reason": ("Passwords do not match"|"Passwords must be at least 8 characters long")
         }
 + Response 409
 
         {
-            "reason": ("handle already used"|"email already used")
+            "reason": "Sorry, handle or email is already taken"
         }
-
-
 
 ## Login and Logout [/sessions]
 
@@ -74,12 +63,13 @@ If the given username-password combination is valid, generate and return a token
 + Request
 
         {
-            "handle": "a string",
+            "handle": "pelé",
             "password": "a string"
         }
 + Response 201
 
         {
+           "Response":  "Logged in pelé. Note your session id.",
            "token": "hu876xvyft3ufib230ffn0spdfmwefna"
         }
 + Response 400
@@ -90,7 +80,7 @@ If the given username-password combination is valid, generate and return a token
 + Response 403
 
         {
-            "reason": "invalid handle-password combination"
+            "reason": "Invalid username or password, please try again."
         }
 
 

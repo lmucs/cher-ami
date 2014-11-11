@@ -104,10 +104,10 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 
 	// Password checks
 	if password != confirm_password {
-		a.Util.SimpleJsonResponse(w, 400, "Passwords do not match")
+		a.Util.SimpleJsonResponse(w, 403, "Passwords do not match")
 		return
 	} else if len(password) < MIN_PASS_LENGTH {
-		a.Util.SimpleJsonResponse(w, 400, "Passwords must be at least 8 characters long")
+		a.Util.SimpleJsonResponse(w, 403, "Passwords must be at least 8 characters long")
 		return
 	}
 
@@ -116,7 +116,7 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 		rest.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	} else if !unique {
-		a.Util.SimpleJsonResponse(w, 400, "Sorry, handle or email is already taken")
+		a.Util.SimpleJsonResponse(w, 409, "Sorry, handle or email is already taken")
 		return
 	}
 
@@ -125,7 +125,7 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 		rest.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	} else if !unique {
-		a.Util.SimpleJsonResponse(w, 400, "Sorry, handle or email is already taken")
+		a.Util.SimpleJsonResponse(w, 409, "Sorry, handle or email is already taken")
 		return
 	}
 
@@ -137,12 +137,12 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 		hashed_pass = string(hash)
 	}
 	if !a.Svc.CreateNewUser(handle, email, hashed_pass) {
-		a.Util.SimpleJsonResponse(w, 400, "Unexpected failure to create new user")
+		a.Util.SimpleJsonResponse(w, http.StatusInternalServerError, "Unexpected failure to create new user")
 		return
 	}
 
 	if !a.Svc.MakeDefaultCirclesFor(handle) {
-		a.Util.SimpleJsonResponse(w, 400, "Unexpected failure to make default circles")
+		a.Util.SimpleJsonResponse(w, http.StatusInternalServerError, "Unexpected failure to make default circles")
 		return
 	}
 
