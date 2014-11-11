@@ -1,7 +1,9 @@
 package com.cherami.cherami;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -30,9 +32,16 @@ public class SignUpActivity extends Activity {
     EditText mEmail;
     EditText mPassword;
     EditText mConfirmPassword;
+    SharedPreferences prefs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        Context context = getApplicationContext();
+        System.out.println(context);
+
+        prefs = context.getSharedPreferences(
+                "com.cherami.cherami", Context.MODE_PRIVATE);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sign_up);
         getActionBar().hide();
@@ -80,6 +89,16 @@ public class SignUpActivity extends Activity {
         }
         return jsonParams;
     }
+    public JSONObject getLoginObjectRequestAsJson () {
+        JSONObject jsonParams = new JSONObject();
+        try {
+            jsonParams.put("handle", mUsername.getText().toString());
+            jsonParams.put("password", mPassword.getText().toString());
+        } catch (JSONException j) {
+            System.out.println("DONT LIKE JSON!");
+        }
+        return jsonParams;
+    }
 
     public StringEntity convertJsonUserToStringEntity (JSONObject jsonParams) {
         StringEntity entity = null;
@@ -91,6 +110,73 @@ public class SignUpActivity extends Activity {
         return entity;
     }
 
+    public void getAuthToken(){
+        AsyncHttpClient client = new AsyncHttpClient();
+
+        client.post(this.getApplicationContext(), "http://" + getLocalUrlForApi() + "/api/sessions",
+                convertJsonUserToStringEntity(getUserObjectRequestAsJson()), "application/json",
+                new AsyncHttpResponseHandler() {
+
+                    @Override
+                    public void onStart() {
+                        // called before request is started
+                        System.out.println("STARTING POST REQUEST");
+
+                    }
+
+                    @Override
+                    public void onSuccess(int statusCode, Header[] headers, byte[] response) {
+                        String s = new String(response);
+                        JSONObject returnVal = new JSONObject();
+                        try {
+                            returnVal = new JSONObject(s);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        try {
+                            String sessionKey = "com.cherami.cherami.sessionid";
+                            prefs.edit().putString(sessionKey, returnVal.getString("sessionid")).apply();
+                            System.out.println("we are hurrr dog " + prefs.getString(sessionKey, null));
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        // called when response HTTP status is "200 OK"
+
+                        String responseText = null;
+                        try {
+                            responseText = new JSONObject(new String(response)).getString("Response");
+                        } catch (JSONException j) {
+                            System.out.println("Dont like JSON");
+                        }
+
+                        Toast toast = Toast.makeText(getApplicationContext(), responseText, Toast.LENGTH_LONG);
+                        toast.show();
+                    }
+
+                    @Override
+                    public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
+                        // called when response HTTP status is "4XX" (eg. 401, 403, 404)
+                        System.out.println("AWE FUCK");
+
+                        String responseText = null;
+                        try {
+                            responseText = new JSONObject(new String(errorResponse)).getString("Response");
+                        } catch (JSONException j) {
+                            System.out.println("Dont like JSON");
+                        }
+
+                        Toast toast = Toast.makeText(getApplicationContext(), responseText, Toast.LENGTH_LONG);
+                        toast.show();
+                        e.printStackTrace();
+                    }
+
+                    @Override
+                    public void onRetry(int retryNo) {
+                        // called when request is retried
+                        System.out.println("RETRYING?!?!");
+                    }
+                });
+    }
     public void attemptCreateAccount() {
         AsyncHttpClient client = new AsyncHttpClient();
 
@@ -121,12 +207,13 @@ public class SignUpActivity extends Activity {
 
                 Toast toast = Toast.makeText(getApplicationContext(), responseText, Toast.LENGTH_LONG);
                 toast.show();
+                getAuthToken();
             }
 
             @Override
             public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
                 // called when response HTTP status is "4XX" (eg. 401, 403, 404)
-                System.out.println("AWE FUCK");
+                System.out.println("AWE RATS");
 
                 String responseText = null;
                 try {
@@ -203,6 +290,9 @@ public class SignUpActivity extends Activity {
         } else {
             // Attempt to sign them up
             attemptCreateAccount();
+            Intent intent = new Intent(this, MainActivity.class);
+            startActivity(intent);
+            finish();
         }
     }
 
