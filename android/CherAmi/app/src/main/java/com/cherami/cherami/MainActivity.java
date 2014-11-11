@@ -139,6 +139,17 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
         return properties.getProperty("myUrl");
     }
 
+    public JSONObject getMessageObjectRequestAsJson () {
+        JSONObject jsonParams = new JSONObject();
+        try {
+            jsonParams.put("Circle", "irY8AAwt3MICe89uYjDl");
+            jsonParams.put("Content", "WE'RE BOYS AGAIN!!!");
+        } catch (JSONException j) {
+            System.out.println("DONT LIKE JSON!");
+        }
+        return jsonParams;
+    }
+
     public JSONObject getUserObjectRequestAsJson () {
         JSONObject jsonParams = new JSONObject();
         try {
@@ -158,6 +169,66 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
             System.out.println("DONT LIKE TO STRING!");
         }
         return entity;
+    }
+
+    public void attemptCreateMessage(View view) {
+        AsyncHttpClient client = new AsyncHttpClient();
+        String sessionKey = "com.cherami.cherami.sessionid";
+        String sessionid = prefs.getString(sessionKey, null);
+        System.out.println("sessionid: " + sessionid);
+
+
+        client.addHeader("Authorization", sessionid);
+        client.post(this.getApplicationContext(), "http://" + getLocalUrlForApi() + "/api/messages",
+                convertJsonUserToStringEntity(getMessageObjectRequestAsJson()), "application/json",
+                new AsyncHttpResponseHandler() {
+
+                    @Override
+                    public void onStart() {
+                        // called before request is started
+                        System.out.println("STARTING POST REQUEST");
+
+                    }
+
+                    @Override
+                    public void onSuccess(int statusCode, Header[] headers, byte[] response) {
+                        String s = new String(response);
+                        // called when response HTTP status is "200 OK"
+
+                        String responseText = null;
+                        try {
+                            responseText = new JSONObject(new String(response)).getString("Response");
+                        } catch (JSONException j) {
+                            System.out.println("Dont like JSON");
+                        }
+
+                        Toast toast = Toast.makeText(getApplicationContext(), responseText, Toast.LENGTH_LONG);
+                        toast.show();
+                    }
+
+                    @Override
+                    public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
+                        // called when response HTTP status is "4XX" (eg. 401, 403, 404)
+
+                        String responseText = null;
+                        try {
+                            responseText = new JSONObject(new String(errorResponse)).getString("Response");
+
+                        } catch (JSONException j) {
+                            System.out.println("Dont like JSON");
+                        }
+
+                        Toast toast = Toast.makeText(getApplicationContext(), responseText, Toast.LENGTH_LONG);
+                        toast.show();
+                        e.printStackTrace();
+                    }
+
+                    @Override
+                    public void onRetry(int retryNo) {
+                        // called when request is retried
+                        System.out.println("RETRYING?!?!");
+                    }
+                });
     }
 
     public void attemptCreateCircle(View view) {
