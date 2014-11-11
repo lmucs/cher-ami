@@ -4,32 +4,31 @@ define(function(require, exports, module) {
     var template = require('hbs!../templates/layouts/circle-layout')
     var SidebarView = require('app/views/sidebar-view').SidebarView;
     var CreateCircleView = require('app/views/create-circle-view').CreateCircleView;
+    var CircleView = require('app/views/circle-view').CircleView;
 
     var CircleLayout = marionette.LayoutView.extend({
         template: template,
 
         regions: {
-            sidebarContainer: '#sidebar-container',
-            circleContainer: '#circle-container'
+            sidebar: '#sidebar-container',
+            circle: '#circle-container'
         },
 
         ui: {
-            sidebarContainer: '#sidebar-container',
-            circleContainer: '#circle-container',
-            showContent: '#showContent'
+
         },
 
         events: {
-            'click #showContent': 'showContent'
+
         },
 
-        showContent: function(options) { 
+        onRender: function(options) { 
             var sidebar = new SidebarView();
-            var circle = new CreateCircleView();
-            this.ui.sidebarContainer.html(sidebar.el);
-            this.ui.circleContainer.html(circle.el);
-            sidebar.render();
-            circle.render();
+            var CreateCircle = new CreateCircleView();
+            var circle = new CircleView();
+            this.sidebar.show(sidebar);
+            this.circle.show(CreateCircle);
+            // this.circle.show(circle);
         },
 
         initialize: function(options) {

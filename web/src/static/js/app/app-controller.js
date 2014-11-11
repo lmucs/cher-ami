@@ -49,21 +49,20 @@ define(function(require, exports, module) {
             this.app.headerRegion.show(new HeaderView());
 
             // Logic for auth check.
-            // if (this.app.session.has('sessionid')) {
-            //     console.log("User logged in.");
-            //     $.ajaxSetup({
-            //         headers: {'Authorization' : this.app.session.get('sessionid')}
-            //     })
-            //     // user is authed, redirect home
-            //     this.app.mainRegion.show(new HomeLayout({
-            //         session: this.app.session
-            //     }));
-            // } else {
-            //     this.app.mainRegion.show(new LandingLayout({
-            //         session: this.app.session
-            //     }));
-            // }
-            this.app.mainRegion.show(new ProfileLayout());
+            if (this.app.session.has('sessionid')) {
+                console.log("User logged in.");
+                $.ajaxSetup({
+                    headers: {'Authorization' : this.app.session.get('sessionid')}
+                })
+                // user is authed, redirect home
+                this.app.mainRegion.show(new HomeLayout({
+                    session: this.app.session
+                }));
+            } else {
+                this.app.mainRegion.show(new LandingLayout({
+                    session: this.app.session
+                }));
+            }
         },
 
         // Needed for AppRouter to initialize index route.
