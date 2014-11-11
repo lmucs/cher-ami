@@ -163,6 +163,10 @@ public class LoginActivity extends Activity {
 
                         Toast toast = Toast.makeText(getApplicationContext(), responseText, Toast.LENGTH_LONG);
                         toast.show();
+
+                        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                        startActivity(intent);
+                        finish();
                     }
 
                     @Override
@@ -218,9 +222,6 @@ public class LoginActivity extends Activity {
         } else {
             // Sign them up; for now, redirect to Main
             attemptLoginAccount();
-            Intent intent = new Intent(this, MainActivity.class);
-            startActivity(intent);
-            finish();
 
         }
 
