@@ -28,6 +28,7 @@ define(function(require, exports, module) {
     var LandingLayout = require('app/layouts/landing-layout').LandingLayout;
     var HomeLayout = require('app/layouts/home-layout').HomeLayout;
     var CircleLayout = require('app/layouts/circle-layout').CircleLayout;
+    var ProfileLayout = require('app/layouts/profile-layout').ProfileLayout;
 
     var AppController = marionette.Controller.extend({
 
@@ -40,7 +41,7 @@ define(function(require, exports, module) {
             // Initialize header view.
             this.app.headerRegion.show(new HeaderView());
 
-            // Logic for auth check.
+            // // Logic for auth check.
             if (this.app.session.has('sessionid')) {
                 console.log("User logged in.");
                 $.ajaxSetup({
@@ -55,6 +56,8 @@ define(function(require, exports, module) {
                     session: this.app.session
                 }));
             }
+            
+            // this.app.mainRegion.show(new ProfileLayout())
         },
 
         // Needed for AppRouter to initialize index route.
