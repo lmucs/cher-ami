@@ -151,12 +151,16 @@ public class SignUpActivity extends Activity {
 
                         Toast toast = Toast.makeText(getApplicationContext(), responseText, Toast.LENGTH_LONG);
                         toast.show();
+
+                        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                        startActivity(intent);
+                        finish();
                     }
 
                     @Override
                     public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
                         // called when response HTTP status is "4XX" (eg. 401, 403, 404)
-                        System.out.println("AWE FUCK");
+                        System.out.println("AWE RATS");
 
                         String responseText = null;
                         try {
@@ -290,9 +294,6 @@ public class SignUpActivity extends Activity {
         } else {
             // Attempt to sign them up
             attemptCreateAccount();
-            Intent intent = new Intent(this, MainActivity.class);
-            startActivity(intent);
-            finish();
         }
     }
 
