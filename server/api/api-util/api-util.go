@@ -10,6 +10,7 @@ import (
 //
 
 type Util struct{}
+type json map[string]interface{}
 
 func (u Util) SimpleJsonResponse(w rest.ResponseWriter, code int, message string) {
 	w.WriteHeader(code)
@@ -24,4 +25,12 @@ func (u Util) FailedToAuthenticate(w rest.ResponseWriter) {
 		"response": "Failed to authenticate user request",
 		"reason":   "Missing, illegal or expired token",
 	})
+}
+
+func (u Util) FailedToDetermineHandleFromSession(w rest.ResponseWriter) {
+	w.WriteHeader(400)
+	w.WriteJson(json{
+		"Response": "Unexpected failure to retrieve owner of session",
+	})
+	return
 }

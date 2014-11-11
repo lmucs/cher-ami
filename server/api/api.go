@@ -601,13 +601,7 @@ func (a Api) GetAuthoredMessages(w rest.ResponseWriter, r *rest.Request) {
 	}
 
 	if author, success := a.Svc.GetHandleFromAuthorization(a.getSessionId(r)); !success {
-		w.WriteHeader(400)
-		w.WriteJson(json{
-			"Response":  "Unexpected failure to retrieve owner of session",
-			"Author":    author,
-			"Success":   success,
-			"SessionId": a.getSessionId(r),
-		})
+		a.Util.FailedToDetermineHandleFromSession(w)
 		return
 	} else {
 		messages := a.Svc.GetMessagesByHandle(author)
@@ -688,10 +682,46 @@ func (a Api) GetMessagesByHandle(w rest.ResponseWriter, r *rest.Request) {
 	})
 }
 
+func (a Api) EditMessage(w rest.ResponseWriter, r *rest.Request) {
+	payload := struct {
+		Circles []string
+		Content string
+	}{}
+	if err := r.DecodeJsonPayload(&payload); err != nil {
+		rest.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
+	circles := payload.Circles
+	content := payload.Content
+	messageid := r.PathParam("id")
 
+	if !a.authenticate(r) {
+		a.Util.FailedToAuthenticate(w)
+		return
+	}
 
+	if content != "" {
+		a.Svc.EditMessageContent(a.getSessionId(r), content)
+	}
 
+	for i, circleid := range circles {
+		result := a.Svc.PublishMessage(circleid, messageid)
+		if result == "bad-circle" {
+			w.WriteHeader(400)
+			w.WriteJson(json{
+				"Response": "Failed to patch message",
+				"Reason":   "Some specified circle did not exist, or could not be published to",
+			})
+		} else if result == "no-such-message" {
+			w.WriteHeader(400)
+			w.WriteJson(json{
+				"Response": "Failed to patch message",
+				"Reason":   "You are not the author of any such message",
+			})
+		}
+	}
+}
 
 /**
  * Deletes an unpublished message
