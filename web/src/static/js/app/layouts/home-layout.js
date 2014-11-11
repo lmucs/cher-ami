@@ -31,6 +31,7 @@ define(function(require, exports, module) {
         onRender: function() {
             var sidebar = new SidebarView();
             var messages = new Messages();
+            console.log(messages);
             var feed = new MessagesView({
                 collection: messages
             });

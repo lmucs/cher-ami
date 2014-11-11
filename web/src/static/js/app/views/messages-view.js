@@ -3,6 +3,7 @@ define(function(require, exports, module) {
     var marionette = require('marionette');
     var template = require('hbs!../templates/messages-view')
     var MessageView = require('app/views/message-view').MessageView;
+    var Message = require('app/models/message').Message;
     // var postValidator = require('app/utils/post-validator').PostValidator;
 
     var MessagesView = marionette.CompositeView.extend({
@@ -26,17 +27,18 @@ define(function(require, exports, module) {
         onSubmit: function() {
             //alert(this.ui.postArea.val());
             if(this.ui.postArea.val()) {
-                this.collection.create({
-                    // API requires handle for now,
-                    // needs to be removed
-                    handle: '',
+                var message = new Message({
                     content: this.ui.postArea.val()
-                }, {wait: true})
+                })
+                message.save();
+                this.collection.add(message);
+
+                this.ui.postArea.val('');
+                console.log("Added");
+            } else {
+                console.log("Unable to add");
             }
 
-            this.ui.postArea.val('');
-
-            console.log("Added");
         },
 
         // PostValidat: function(event) {
