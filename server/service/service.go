@@ -818,14 +818,16 @@ func (s Svc) GetMessageById(handle, messageid string) (message *Message, found b
 	messages := make([]Message, 0)
 	if err := s.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
-			MATCH   (t:User)-[:WROTE]->(m:Message), (u:User)
-			WHERE   m.id = {messageid}
+			MATCH   (t:User)-[:WROTE]->(m:Message)-[:PUB_TO]->(c:Circle)<-[:MEMBER_OF | CHIEF_OF]-(u:User)
+			WHERE   u.handle = {handle}
+            AND     m.id     = {messageid}
 			RETURN  m.id
 	              , t.handle
 	              , m.content
 	              , m.created
 		`,
 		Parameters: neoism.Props{
+			"handle":    handle,
 			"messageid": messageid,
 		},
 		Result: &messages,
@@ -833,10 +835,10 @@ func (s Svc) GetMessageById(handle, messageid string) (message *Message, found b
 		panicErr(err)
 	}
 
-	if success := len(messages) > 0; success {
-		return &messages[0], success
+	if ok := len(messages) > 0; ok {
+		return &messages[0], ok
 	} else {
-		return nil, success
+		return nil, ok
 	}
 }
 
