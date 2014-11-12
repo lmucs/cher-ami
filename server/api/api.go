@@ -452,7 +452,7 @@ func (a Api) NewCircle(w rest.ResponseWriter, r *rest.Request) {
 	}
 
 	if handle, success := a.Svc.GetHandleFromAuthorization(a.getSessionId(r)); !success {
-		w.WriteHeader(400)
+		w.WriteHeader(500)
 		w.WriteJson(json{
 			"Response":  "Unexpected failure to retrieve owner of session",
 			"Handle":    handle,
@@ -470,7 +470,7 @@ func (a Api) NewCircle(w rest.ResponseWriter, r *rest.Request) {
 		}
 
 		if !a.Svc.NewCircle(handle, circleName, isPublic) {
-			a.Util.SimpleJsonResponse(w, 400, "Unexpected failure to create circle")
+			a.Util.SimpleJsonResponse(w, http.StatusInternalServerError, "Unexpected failure to create circle")
 			return
 		}
 

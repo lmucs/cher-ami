@@ -453,7 +453,7 @@ Fetch the list of blocked users for the given user, paginated. The blocked users
 
 
 ### Create circle [POST]
-Create a circle given only a name, description, and visibility setting, setting the owner to the currently logged-in user. Members will be added to the circle using a different endpoint (whose url is part of the returned resource). Circles are private by default.
+Create a circle given only a name and visibility setting, setting the owner to the currently logged-in user. Members will be added to the circle using a different endpoint (whose url is part of the returned resource).
 + Request
     + Headers
 
@@ -467,23 +467,16 @@ Create a circle given only a name, description, and visibility setting, setting 
 + Response 201
 
         {
-            "name": "bffs",
-            "url": "https://cher-ami.example.com/circles/2997",
-            "description": "All my closest friends",
-            "owner": "wendy",
-            "visibility": "private",
-            "members": "https://cher-ami.example.com/circles/2997/members",
-            "creation": "2011-10-20T14:22:09Z"
+            "response": "Created new circle bffs for pelé"
         }
 + Response 400
 
-        {
-            "reason": ("malformed json"|"missing name"|"missing description")
-        }
+        Malformed JSON passed into API.
+
 + Response 403
 
         {
-            "reason": ("invalid name"|"invalid description")
+            "reason": "bffs is a reserved circle name"
         }
 + Response 409
 
