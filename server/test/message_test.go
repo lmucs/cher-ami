@@ -187,3 +187,51 @@ func (s *TestSuite) TestGetMessageByIdOK(c *C) {
 		c.Check(msg.Content, Equals, "Go is going gophers!")
 	}
 }
+
+//
+// Edit Message Tests
+//
+
+func (s *TestSuite) TestEditMessageInvalidAuth(c *C) {
+
+}
+
+func (s *TestSuite) TestEditMessageMissingParams(c *C) {
+
+}
+
+func (s *TestSuite) TestEditMessageBadResource(c *C) {
+
+}
+
+func (s *TestSuite) TestEditMessageBadValue(c *C) {
+
+}
+
+func (s *TestSuite) TestEditMessageBadPatchObject(c *C) {
+
+}
+
+func (s *TestSuite) TestEditMessageUnableToPublish(c *C) {
+
+}
+
+func (s *TestSuite) TestEditMessageUnableToUnpublish(c *C) {
+
+}
+
+func (s *TestSuite) TestEditMessageContentOK(c *C) {
+
+}
+
+func (s *TestSuite) TestEditMessagePublishOK(c *C) {
+
+}
+
+func (s *TestSuite) TestEditMessageUnpublishOK(c *C) {
+
+}
+
+func (s *TestSuite) TestEditMessageAllOK(c *C) {
+
+}
