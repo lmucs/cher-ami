@@ -638,8 +638,12 @@ func (a Api) EditMessage(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	token := a.getSessionId(r)
 	messageid := r.PathParam("id")
+	handle, ok := a.Svc.GetHandleFromAuthorization(a.getSessionId(r))
+	if !ok {
+		a.Util.FailedToDetermineHandleFromSession(w)
+		return
+	}
 
 	// Validate input of patch objects
 	for i, obj := range payload {
@@ -666,12 +670,12 @@ func (a Api) EditMessage(w rest.ResponseWriter, r *rest.Request) {
 					return
 				}
 			} else if op == "publish" && resource == "circle" {
-				if !a.Svc.UserCanPublishTo(token, value) {
+				if !a.Svc.UserCanPublishTo(handle, value) {
 					a.Util.SimpleJsonReason(w, 400, "Could not publish message to circle "+value)
 					return
 				}
 			} else if op == "unpublish" && resource == "circle" {
-				if !a.Svc.UserCanRetractPublication(token, value) {
+				if !a.Svc.UserCanRetractPublication(handle, messageid, value) {
 					a.Util.SimpleJsonReason(w, 400, "Cannot unpublish message, specified published relation not found")
 					return
 				}
@@ -774,13 +778,7 @@ func (a Api) BlockUser(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 	if handle, success := a.Svc.GetHandleFromAuthorization(a.getSessionId(r)); !success {
-		w.WriteHeader(400)
-		w.WriteJson(json{
-			"Response":  "Unexpected failure to retrieve owner of session",
-			"Handle":    handle,
-			"Success":   success,
-			"SessionId": a.getSessionId(r),
-		})
+		a.Util.FailedToDetermineHandleFromSession(w)
 		return
 	} else {
 		target := payload.Target

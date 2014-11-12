@@ -147,12 +147,34 @@ func (s Svc) CanSeeCircle(fromPerspectiveOf string, circleid string) bool {
 	return len(found) > 0
 }
 
-func (s Svc) UserCanPublishTo(token, circleid string) bool {
-	panic("unimplemented")
+func (s Svc) UserCanPublishTo(handle, circleid string) bool {
+	return s.UserIsMemberOf(handle, circleid)
 }
 
-func (s Svc) UserCanRetractPublication(token, circleid string) bool {
-	panic("unimplemented")
+func (s Svc) UserCanRetractPublication(handle, messageid, circleid string) bool {
+	found := []struct {
+		R *neoism.Relationship `json:"r"`
+	}{}
+
+	if err := s.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+            MATCH (u:User)-[:WROTE]->(m:Message)->[r:PUB_TO]->(c:Circle)
+            WHERE u.handle = {handle}
+            AND   m.id     = {messageid}
+            AND   c.id     = {circleid}
+            RETURN r
+        `,
+		Parameters: neoism.Props{
+			"handle":    handle,
+			"messageid": messageid,
+			"circleid":  circleid,
+		},
+		Result: &found,
+	}); err != nil {
+		panicErr(err)
+	}
+
+	return len(found) > 0
 }
 
 func (s Svc) MessageExists(messageid string) bool {
@@ -624,7 +646,27 @@ func (s Svc) DeleteUser(handle string) bool {
 }
 
 func (s Svc) UnpublishMessageFromCircle(messageid, circleid string) bool {
-	panic("unimplemented")
+	deleted := []struct {
+		R *neoism.Relationship `json:"r"`
+	}{}
+	if err := s.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+            MATCH  (m:Message)-[r:PUB_TO]->(c:Circle)
+            WHERE  m.id = {messageid}
+            AND    c.id = {circleid}
+            DELETE r
+            RETURN r
+        `,
+		Parameters: neoism.Props{
+			"messageid": messageid,
+			"circleid":  circleid,
+		},
+		Result: &deleted,
+	}); err != nil {
+		panicErr(err)
+	}
+
+	return len(deleted) > 0
 }
 
 //
@@ -940,8 +982,29 @@ func (s Svc) SetGetName(handle string, name string) string {
 	return user[0].Name
 }
 
-func (s Svc) UpdateContentOfMessage(messageid, content string) {
-	panic("unimplemented")
+func (s Svc) UpdateContentOfMessage(messageid, content string) bool {
+	updated := []struct {
+		Content string
+	}{}
+	if err := s.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+            MATCH  (m:Message)
+            WHERE  m.id        = {messageid}
+            SET    m.content   = {content}
+            SET    m.lastsaved = {now}
+            RETURN m.content
+        `,
+		Parameters: neoism.Props{
+			"messageid": messageid,
+			"content":   content,
+			"now":       time.Now().Local(),
+		},
+		Result: &updated,
+	}); err != nil {
+		panicErr(err)
+	}
+
+	return len(updated) > 0
 }
 
 //
