@@ -147,6 +147,14 @@ func (s Svc) CanSeeCircle(fromPerspectiveOf string, circleid string) bool {
 	return len(found) > 0
 }
 
+func (s Svc) UserCanPublishTo(token, circleid string) bool {
+	panic("unimplemented")
+}
+
+func (s Svc) UserCanRetractPublication(token, circleid string) bool {
+	panic("unimplemented")
+}
+
 func (s Svc) MessageExists(messageid string) bool {
 	found := []struct {
 		Id int `json:"m.id"`
@@ -435,19 +443,18 @@ func (s Svc) NewMessage(handle string, content string) (messageid string, succes
 	}
 }
 
-func (s Svc) PublishMessage(messageid, circleid string) bool {
+func (s Svc) PublishMessageToCircle(messageid, circleid string) bool {
 	created := []struct {
 		R *neoism.Relationship `json:"r"`
 	}{}
 	if err := s.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
-            MATCH (m:Message)
-            WHERE m.id={messageid}
-            MATCH (c:Circle)
-            WHERE c.id={circleid}
-            CREATE (m)-[r:PUB_TO]->(c)
-            SET r.published_at={now}
-            RETURN r
+            MATCH   (m:Message), (c:Circle)
+            WHERE   m.id = {messageid}
+            AND     c.id = {circleid}
+            CREATE  (m)-[r:PUB_TO]->(c)
+            SET     r.published_at = {now}
+            RETURN  r
         `,
 		Parameters: neoism.Props{
 			"messageid": messageid,
@@ -458,6 +465,7 @@ func (s Svc) PublishMessage(messageid, circleid string) bool {
 	}); err != nil {
 		panicErr(err)
 	}
+
 	return len(created) > 0
 }
 
@@ -613,6 +621,10 @@ func (s Svc) DeleteUser(handle string) bool {
 		panicErr(err)
 	}
 	return true
+}
+
+func (s Svc) UnpublishMessageFromCircle(messageid, circleid string) bool {
+	panic("unimplemented")
 }
 
 //
@@ -926,6 +938,10 @@ func (s Svc) SetGetName(handle string, name string) string {
 	}
 
 	return user[0].Name
+}
+
+func (s Svc) UpdateContentOfMessage(messageid, content string) {
+	panic("unimplemented")
 }
 
 //
