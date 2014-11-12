@@ -6,24 +6,30 @@ define(function(require, exports, module) {
     var MessageView = require('app/views/message-view').MessageView;
     var Message = require('app/models/message').Message;
     var Messages = require('app/collections/messages').Messages;
+    var CreateCircleView = require('app/views/create-circle-view').CreateCircleView;
 
     var HomeLayout = marionette.LayoutView.extend({
         template: template,
 
         regions: {
-            feed: '#feed-container'
+            feed: '#feed-container',
+            circle: '#create-circle-view'
         },
 
         ui: {
             feedContainer: '#feed-container',
-            showContent: '#showContent'
+            showContent: '#showContent',
+            createCircle: '#goToCreateCircle'
         },
 
         events: {
+            'click #goToCreateCircle': 'showCreateCircle'
         },
 
         initialize: function(options) {
         },
+
+        
 
         onRender: function() {
             var messages = new Messages();
@@ -31,6 +37,10 @@ define(function(require, exports, module) {
                 collection: messages
             });
             this.feed.show(feed);
+        },
+        showCreateCircle: function(options) {
+            var createCircle = new CreateCircleView();
+            this.circle.show(createCircle);
         }
 
     });
