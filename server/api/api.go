@@ -536,62 +536,6 @@ func (a Api) NewMessage(w rest.ResponseWriter, r *rest.Request) {
 }
 
 /**
- * Publishes a message identified by it's lastSaved time to a specific circle owned
- * by the user.
- */
-func (a Api) PublishMessage(w rest.ResponseWriter, r *rest.Request) {
-	if !a.authenticate(r) {
-		a.Util.FailedToAuthenticate(w)
-		return
-	}
-	payload := struct {
-		CircleId  string
-		MessageId string
-	}{}
-	if err := r.DecodeJsonPayload(&payload); err != nil {
-		rest.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	if author, success := a.Svc.GetHandleFromAuthorization(a.getSessionId(r)); !success {
-		w.WriteHeader(400)
-		w.WriteJson(json{
-			"Response":  "Unexpected failure to retrieve owner of session",
-			"Author":    author,
-			"Success":   success,
-			"SessionId": a.getSessionId(r),
-		})
-		return
-	} else {
-		circleid := payload.CircleId
-		messageid := payload.MessageId
-
-		if !a.Svc.UserIsMemberOf(author, circleid) {
-			w.WriteHeader(401)
-			w.WriteJson(json{
-				"Response": "Refusal to comply with request",
-				"Reason":   "You are not a member or owner of the specified circle",
-			})
-			return
-		}
-
-		if !a.Svc.CanSeeCircle(author, circleid) {
-			a.Util.SimpleJsonResponse(w, 400, "Could not find specified circle to publish to")
-			return
-		} else if !a.Svc.MessageExists(messageid) {
-			a.Util.SimpleJsonResponse(w, 400, "Could not find intended message for publishing")
-			return
-		}
-
-		if !a.Svc.PublishMessage(messageid, circleid) {
-			a.Util.SimpleJsonResponse(w, 400, "Bad request, no message published")
-		} else {
-			a.Util.SimpleJsonResponse(w, 201, "Success! Published message to "+circleid)
-		}
-	}
-}
-
-/**
  * Get messages authored by user
  */
 func (a Api) GetAuthoredMessages(w rest.ResponseWriter, r *rest.Request) {

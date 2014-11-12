@@ -24,7 +24,6 @@ func MakeHandler(api cheramiapi.Api, disableLogs bool) (rest.ResourceHandler, er
 		&rest.Route{"POST", "/messages", api.NewMessage},
 		&rest.Route{"PATCH", "/messages/:id", api.EditMessage},
 		&rest.Route{"DELETE", "/messages", api.DeleteMessage},
-		&rest.Route{"POST", "/publish", api.PublishMessage},
 		&rest.Route{"POST", "/joindefault", api.JoinDefault},
 		&rest.Route{"POST", "/join", api.Join},
 		&rest.Route{"POST", "/block", api.BlockUser},
