@@ -1,6 +1,8 @@
 CherAmi Web App: Marionette/Backbone/Require/Sass
 ==========================================
 
+Looking for the Marionette app? Check it out [here](https://github.com/rtoal/cher-ami/tree/master/web/src/static/js/app).
+
 ##Getting Started
 
 ### First Time Setup
