@@ -19,7 +19,6 @@ define(function(require, exports, module) {
     var ProfileView = require('app/views/profile-view').ProfileView;
     var CommentsView = require('app/views/comments-view').CommentsView;
     var CommentView = require('app/views/comment-view').CommentView;
-    var SidebarView = require('app/views/sidebar-view').SidebarView;
     var CircleView = require('app/views/circle-view').CircleView;
     var CreateCircleView = require('app/views/create-circle-view').CreateCircleView;
 

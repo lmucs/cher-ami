@@ -2,7 +2,6 @@ define(function(require, exports, module) {
 
     var marionette = require('marionette');
     var template = require('hbs!../templates/layouts/profile-layout')
-    var SidebarView = require('app/views/sidebar-view').SidebarView;
     var ProfileView = require('app/views/profile-view').ProfileView
     var EditProfileView = require('app/views/edit-profile-view').EditProfileView
     
@@ -11,7 +10,6 @@ define(function(require, exports, module) {
         template: template,
 
         regions: {
-            sidebar: '#sidebar-container',
             profile: '#profile-container'
         },
 
@@ -32,9 +30,7 @@ define(function(require, exports, module) {
         },
         
         onRender: function() {
-            var sidebar = new SidebarView();
             var profile = new ProfileView();
-            this.sidebar.show(sidebar);
             this.profile.show(profile);
         },
 
