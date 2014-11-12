@@ -15,17 +15,15 @@ CherAmi Web App: Marionette/Backbone/Require/Sass
 
 ### Terminal Commands
 
-#### Start Test Server
+Run these commands in the root directory (`cher-ami/`).
+
+#### Start Test Server (Web only)
 
 	make serve
 
 #### Start Compass
 
 	make watch
-
-#### Start Server/Compass
-
-	make all
 
 ##Dependencies
 
