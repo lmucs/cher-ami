@@ -683,44 +683,86 @@ func (a Api) GetMessagesByHandle(w rest.ResponseWriter, r *rest.Request) {
 }
 
 func (a Api) EditMessage(w rest.ResponseWriter, r *rest.Request) {
-	payload := struct {
-		Circles []string
-		Content string
-	}{}
-	if err := r.DecodeJsonPayload(&payload); err != nil {
-		rest.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	circles := payload.Circles
-	content := payload.Content
-	messageid := r.PathParam("id")
-
 	if !a.authenticate(r) {
 		a.Util.FailedToAuthenticate(w)
 		return
 	}
 
-	if content != "" {
-		a.Svc.EditMessageContent(a.getSessionId(r), content)
+	payload := make([]json, 0)
+	if err := r.DecodeJsonPayload(&payload); err != nil {
+		rest.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 
-	for i, circleid := range circles {
-		result := a.Svc.PublishMessage(circleid, messageid)
-		if result == "bad-circle" {
-			w.WriteHeader(400)
-			w.WriteJson(json{
-				"Response": "Failed to patch message",
-				"Reason":   "Some specified circle did not exist, or could not be published to",
-			})
-		} else if result == "no-such-message" {
-			w.WriteHeader(400)
-			w.WriteJson(json{
-				"Response": "Failed to patch message",
-				"Reason":   "You are not the author of any such message",
-			})
+	token := a.getSessionId(r)
+	messageid := r.PathParam("id")
+
+	// Validate input of patch objects
+	for i, obj := range payload {
+		index := strconv.Itoa(i)
+		if op, ok := obj["op"].(string); !ok {
+			a.Util.SimpleJsonReason(w, 400, "missing `op` parameter in object "+index)
+			return
+		} else if resource, ok := obj["resource"].(string); !ok {
+			a.Util.SimpleJsonReason(w, 400, "missing `resource` parameter in object "+index)
+			return
+		} else if value, ok := obj["value"].(string); !ok {
+			a.Util.SimpleJsonReason(w, 400, "missing `value` parameter in object "+index)
+			return
+		} else {
+			if op == "update" {
+				if resource != "content" && resource != "image" {
+					a.Util.SimpleJsonReason(w, 400, "Message only allows update to (content|image) at "+index)
+					return
+				} else if resource == "content" && value == "" {
+					a.Util.SimpleJsonReason(w, 400, "Cannot update message content to empty at "+index)
+					return
+				} else if resource == "image" {
+					a.Util.SimpleJsonResponse(w, 405, "Edit message image value has yet to be implemented")
+					return
+				}
+			} else if op == "publish" && resource == "circle" {
+				if !a.Svc.UserCanPublishTo(token, value) {
+					a.Util.SimpleJsonReason(w, 400, "Could not publish message to circle "+value)
+					return
+				}
+			} else if op == "unpublish" && resource == "circle" {
+				if !a.Svc.UserCanRetractPublication(token, value) {
+					a.Util.SimpleJsonReason(w, 400, "Cannot unpublish message, specified published relation not found")
+					return
+				}
+			} else {
+				a.Util.SimpleJsonReason(w, 400, "Malformed patch request object at "+index)
+				return
+			}
 		}
 	}
+
+	// Service requests
+	for i, obj := range payload {
+		op, _ := obj["op"].(string)
+		resource, _ := obj["resource"].(string)
+		value, _ := obj["value"].(string)
+
+		if op == "update" {
+			if resource == "content" {
+				a.Svc.UpdateContentOfMessage(messageid, value)
+			}
+		} else if op == "publish" {
+			a.Svc.PublishMessageToCircle(messageid, value)
+		} else if op == "unpublish" {
+			a.Svc.UnpublishMessageFromCircle(messageid, value)
+		} else {
+			a.Util.SimpleJsonResponse(w, 500, "Unexpected failure to fulfill service request at "+strconv.Itoa(i))
+			return
+		}
+	}
+
+	w.WriteHeader(200)
+	w.WriteJson(json{
+		"response": "Successfully patched message " + messageid,
+		"changes":  len(payload),
+	})
 }
 
 /**
