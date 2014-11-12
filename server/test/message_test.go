@@ -77,7 +77,7 @@ func (s *TestSuite) TestGetMessageByIdInvalidAuth(c *C) {
 }
 
 // Target id doesn't exist
-func (s *TestSuite) TestGetMessageByIdNotFound(c *C) {
+func (s *TestSuite) TestGetMessageByIdDoesNotExist(c *C) {
 	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
 
 	sessionid := req.PostSessionGetSessionId("handleA", "password1")
@@ -116,6 +116,50 @@ func (s *TestSuite) TestGetMessageByIdNotFound(c *C) {
 		helper.Unmarshal(res, &message_response)
 		c.Check(message_response.Response, Equals, "No such message in any circle you can see")
 	}
+}
+
+func (s *TestSuite) TestGetMessageByIdUserBlocked(c *C) {
+	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
+	req.PostSignup("handleB", "testB@test.io", "password2", "password2")
+
+	sessionid_A := req.PostSessionGetSessionId("handleA", "password1")
+	sessionid_B := req.PostSessionGetSessionId("handleB", "password2")
+
+	req.PostBlock(sessionid_B, "handleA")
+	message_id := req.PostMessageGetMessageId("Go is going gophers!", sessionid_B)
+
+	// handleA attempts to retrieve
+	if res, _ := req.GetMessageById(message_id, sessionid_A); true {
+		c.Check(res.StatusCode, Equals, 404)
+		message_response := struct {
+			Response string
+			Object   string
+		}{}
+		helper.Unmarshal(res, &message_response)
+		c.Check(message_response.Response, Equals, "No such message in any circle you can see")
+	}
+}
+
+func (s *TestSuite) TestGetMessageByIdPrivateCircle(c *C) {
+	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
+	req.PostSignup("handleB", "testB@test.io", "password2", "password2")
+
+	sessionid_A := req.PostSessionGetSessionId("handleA", "password1")
+	sessionid_B := req.PostSessionGetSessionId("handleB", "password2")
+
+	message_id := req.PostMessageGetMessageId("Go is going gophers!", sessionid_B)
+	req.PostCircles(sessionid_B, "SomePrivateCircle", false)
+
+	if res, _ := req.GetMessageById(message_id, sessionid_A); true {
+		c.Check(res.StatusCode, Equals, 404)
+		message_response := struct {
+			Response string
+			Object   string
+		}{}
+		helper.Unmarshal(res, &message_response)
+		c.Check(message_response.Response, Equals, "No such message in any circle you can see")
+	}
+
 }
 
 // Successful retrieval by id

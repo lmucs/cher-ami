@@ -23,47 +23,36 @@ The API supports discovery of further endpoints, linking objects will absolute U
 
 
 ### Signup/create a new user [POST]
-Create a user given only a handle, name, email, and password. The service will create an initial status, reputation, and default circles, as well as record the creation timestamp. All other profile information is set in a different operations.
+Create a user given only a handle, email, and password. The service will create an initial status, reputation, and default circles, as well as record the creation timestamp. All other profile information is set using different operations.
 + Request
 
         {
             "handle": "pelé",
-            "name": "Edson Arantes do Nascimento",
             "email": "number10@brasil.example.com",
             "password": "Brasil Uber Alles"
         }
 + Response 201
 
         {
-            "url": "https://cher-ami.example.com/users/pelé",
+            "response": "Signed up a new user!",
             "handle": "pelé",
-            "name": "Edson Arantes do Nascimento",
-            "email": "number10@brasil.example.com",
-            "status": "new",
-            "reputation": 1,
-            "joined": "2011-10-20T08:15Z",
-            "circles": [
-                {"name": "public", "url": "https://cher-ami.example.com/circles/207"},
-                {"name": "gold", "url": "https://cher-ami.example.com/circles/208"}
-            ]
+            "email": "number10@brasil.example.com"
         }
 + Response 400
 
         {
-            "reason": ("malformed json"|"missing handle"|"missing name"|"missing email"|"missing password")
+            "reason": ("malformed json"|"Handle is a required field for signup"|"Email is a required field for signup")
         }
 + Response 403
 
         {
-            "reason": ("invalid handle"|"invalid name"|"invalid email"|"password too weak")
+            "reason": ("Passwords do not match"|"Passwords must be at least 8 characters long")
         }
 + Response 409
 
         {
-            "reason": ("handle already used"|"email already used")
+            "reason": "Sorry, handle or email is already taken"
         }
-
-
 
 ## Login and Logout [/sessions]
 
@@ -74,12 +63,13 @@ If the given username-password combination is valid, generate and return a token
 + Request
 
         {
-            "handle": "a string",
+            "handle": "pelé",
             "password": "a string"
         }
 + Response 201
 
         {
+           "Response":  "Logged in pelé. Note your session id.",
            "token": "hu876xvyft3ufib230ffn0spdfmwefna"
         }
 + Response 400
@@ -90,7 +80,7 @@ If the given username-password combination is valid, generate and return a token
 + Response 403
 
         {
-            "reason": "invalid handle-password combination"
+            "reason": "Invalid username or password, please try again."
         }
 
 
@@ -105,7 +95,7 @@ The token is passed in a header (not as a parameter in the URL) and, if it is va
 + Response 403
 
         {
-            "reason": "cannot invalidate token because it is missing"
+            "reason": "Cannot invalidate token because it is missing"
         }
 
 
@@ -463,7 +453,7 @@ Fetch the list of blocked users for the given user, paginated. The blocked users
 
 
 ### Create circle [POST]
-Create a circle given only a name, description, and visibility setting, setting the owner to the currently logged-in user. Members will be added to the circle using a different endpoint (whose url is part of the returned resource). Circles are private by default.
+Create a circle given only a name and visibility setting, setting the owner to the currently logged-in user. Members will be added to the circle using a different endpoint (whose url is part of the returned resource).
 + Request
     + Headers
 
@@ -477,23 +467,16 @@ Create a circle given only a name, description, and visibility setting, setting 
 + Response 201
 
         {
-            "name": "bffs",
-            "url": "https://cher-ami.example.com/circles/2997",
-            "description": "All my closest friends",
-            "owner": "wendy",
-            "visibility": "private",
-            "members": "https://cher-ami.example.com/circles/2997/members",
-            "creation": "2011-10-20T14:22:09Z"
+            "response": "Created new circle bffs for pelé"
         }
 + Response 400
 
-        {
-            "reason": ("malformed json"|"missing name"|"missing description")
-        }
+        Malformed JSON passed into API.
+
 + Response 403
 
         {
-            "reason": ("invalid name"|"invalid description")
+            "reason": "bffs is a reserved circle name"
         }
 + Response 409
 
@@ -798,8 +781,6 @@ Fetch the messages for the given circle or user, paginated. The messages will al
 
 ## Message [/messages/{id}]
 
-
-
 ### Get message by id [GET]
 Get the message with the given id.
 + Request
@@ -831,8 +812,6 @@ Get the message with the given id.
             "reason": "no such message in any circle you can see"
         }
 
-
-
 ### Delete message [DELETE]
 + Request
     + Headers
@@ -851,6 +830,53 @@ Get the message with the given id.
         }
 
 
+
+## Edit Message [/messages/{id}{&circles,content}]
+
+### Patch a message by id [PATCH]
+Edit an existing message by id. Is used to change properties like the message's content but will be more commonly used to publish a message. Patching a message will return a 200 and the newly-updated field values as well as the `published` field. At least one parameter must be supplied for a successful PATCH request.
+
++ Parameters
+    + circles (optional, []string, `["circleid_001", "circleid_075"]`) ... Target circle(s) that the message should be posted to
+    + content (optional, string, `some new content`) ... Set the new content of this message
++ Request
+    + Headers
+
+            Authorization: Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+    
+    + Body
+            
+            {
+                "circles": ["circleid_001", "circleid_075"],
+                "content": "Hello world ... again"
+            }
++ Response 200
+
+        {
+            "updated": "https://cher-ami.example.com/messages/802",
+            "circles": [
+                {"circleid": "circleid_001", "published_at": "2012-10-20T14:22:09Z"},
+                {"circleid": "circleid_075", "published_at": "2012-10-20T14:22:11Z"}
+            ],
+            "dateModified": "2012-10-20T14:22:09Z",
+            "published": true
+        }
++ Response 400
+
+        {
+            "response": "Failed to patch message",
+            "reason": ("No field to patch specified"|"Some specified circle did not exist, or could not be published to")
+        }
++ Response 401
+
+        {
+            "reason": "missing, illegal, or expired auth token"
+        }
++ Response 404
+
+        {
+            "reason": "you are not the author of any such message"
+        }
 
 ## Comment Creation [/messages/{id}/comments]
 

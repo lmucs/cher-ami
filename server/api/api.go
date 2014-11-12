@@ -104,10 +104,10 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 
 	// Password checks
 	if password != confirm_password {
-		a.Util.SimpleJsonResponse(w, 400, "Passwords do not match")
+		a.Util.SimpleJsonResponse(w, 403, "Passwords do not match")
 		return
 	} else if len(password) < MIN_PASS_LENGTH {
-		a.Util.SimpleJsonResponse(w, 400, "Passwords must be at least 8 characters long")
+		a.Util.SimpleJsonResponse(w, 403, "Passwords must be at least 8 characters long")
 		return
 	}
 
@@ -116,7 +116,7 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 		rest.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	} else if !unique {
-		a.Util.SimpleJsonResponse(w, 400, "Sorry, handle or email is already taken")
+		a.Util.SimpleJsonResponse(w, 409, "Sorry, handle or email is already taken")
 		return
 	}
 
@@ -125,7 +125,7 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 		rest.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	} else if !unique {
-		a.Util.SimpleJsonResponse(w, 400, "Sorry, handle or email is already taken")
+		a.Util.SimpleJsonResponse(w, 409, "Sorry, handle or email is already taken")
 		return
 	}
 
@@ -137,12 +137,12 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 		hashed_pass = string(hash)
 	}
 	if !a.Svc.CreateNewUser(handle, email, hashed_pass) {
-		a.Util.SimpleJsonResponse(w, 400, "Unexpected failure to create new user")
+		a.Util.SimpleJsonResponse(w, http.StatusInternalServerError, "Unexpected failure to create new user")
 		return
 	}
 
 	if !a.Svc.MakeDefaultCirclesFor(handle) {
-		a.Util.SimpleJsonResponse(w, 400, "Unexpected failure to make default circles")
+		a.Util.SimpleJsonResponse(w, http.StatusInternalServerError, "Unexpected failure to make default circles")
 		return
 	}
 
@@ -179,7 +179,7 @@ func (a Api) Login(w rest.ResponseWriter, r *rest.Request) {
 			// Create an authentication node and return it to client
 			sessionid := a.Svc.SetGetNewSessionId(handle)
 
-			w.WriteHeader(200)
+			w.WriteHeader(201)
 			w.WriteJson(json{
 				"Response":  "Logged in " + handle + ". Note your session id.",
 				"sessionid": sessionid,
@@ -452,7 +452,7 @@ func (a Api) NewCircle(w rest.ResponseWriter, r *rest.Request) {
 	}
 
 	if handle, success := a.Svc.GetHandleFromAuthorization(a.getSessionId(r)); !success {
-		w.WriteHeader(400)
+		w.WriteHeader(500)
 		w.WriteJson(json{
 			"Response":  "Unexpected failure to retrieve owner of session",
 			"Handle":    handle,
@@ -470,7 +470,7 @@ func (a Api) NewCircle(w rest.ResponseWriter, r *rest.Request) {
 		}
 
 		if !a.Svc.NewCircle(handle, circleName, isPublic) {
-			a.Util.SimpleJsonResponse(w, 400, "Unexpected failure to create circle")
+			a.Util.SimpleJsonResponse(w, http.StatusInternalServerError, "Unexpected failure to create circle")
 			return
 		}
 
@@ -645,7 +645,19 @@ func (a Api) GetMessageById(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	if message, success := a.Svc.GetMessageById(id); success {
+	handle, success := a.Svc.GetHandleFromAuthorization(a.getSessionId(r))
+	if !success {
+		w.WriteHeader(400)
+		w.WriteJson(json{
+			"Response":  "Unexpected failure to retrieve owner of session",
+			"Handle":    handle,
+			"Success":   success,
+			"SessionId": a.getSessionId(r),
+		})
+		return
+	}
+
+	if message, success := a.Svc.GetMessageById(handle, id); success {
 		data := MessageData{
 			message.Id,
 			"<url>:<port>/api/messages/" + message.Id, // hard-coded url/port...

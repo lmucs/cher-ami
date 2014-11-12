@@ -2,6 +2,7 @@ WEB_ROOT        = web
 WEB_SRC         = web/src
 API_SERVER      = server
 API_TEST_DIR    = server/test
+DOCS_DIR        = server/docs
 
 .PHONY: start
 start:
@@ -18,6 +19,14 @@ test:
 .PHONY: localtest
 localtest:
 	cd $(API_TEST_DIR); go test -check.v -local=true
+
+.PHONY: docs
+docs:
+	aglio -i $(DOCS_DIR)/api.md -o $(DOCS_DIR)/index.html
+	@echo '----------------------'
+	@echo 'API Docs updated.'
+	@echo 'Available at /api/docs'
+	@echo '----------------------'
 
 .PHONY: serve
 serve:
@@ -69,6 +78,7 @@ help:
 	@echo  '                    and start web project at root path'
 	@echo  '  test            - Start Go server testing using remote database'
 	@echo  '  localtest       - Start Go server testing using local database'
+	@echo  '  docs            - Build Aglio docs for the API'
 	@echo  '  serve           - Serve front-end web application locally to port 8000'
 	@echo  '  watch           - Start Compass watcher to keep CSS files up-to-date'
 	@echo  '  install-deps    - Install Go package dependencies'

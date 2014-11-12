@@ -36,7 +36,7 @@ func (s *TestSuite) TestSignupPasswordMismatch(c *C) {
 	}
 
 	c.Check(helper.GetJsonResponseMessage(response), Equals, "Passwords do not match")
-	c.Check(response.StatusCode, Equals, 400)
+	c.Check(response.StatusCode, Equals, 403)
 }
 
 func (s *TestSuite) TestSignupPasswordTooShort(c *C) {
@@ -50,7 +50,7 @@ func (s *TestSuite) TestSignupPasswordTooShort(c *C) {
 		}
 
 		c.Check(helper.GetJsonResponseMessage(response), Equals, "Passwords must be at least 8 characters long")
-		c.Check(response.StatusCode, Equals, 400, Commentf("Password length = %d.", len(entry)-i))
+		c.Check(response.StatusCode, Equals, 403, Commentf("Password length = %d.", len(entry)-i))
 	}
 }
 
@@ -63,7 +63,7 @@ func (s *TestSuite) TestSignupHandleTaken(c *C) {
 	}
 
 	c.Check(helper.GetJsonResponseMessage(response), Equals, "Sorry, handle or email is already taken")
-	c.Check(response.StatusCode, Equals, 400)
+	c.Check(response.StatusCode, Equals, 409)
 }
 
 func (s *TestSuite) TestSignupEmailTaken(c *C) {
@@ -75,7 +75,7 @@ func (s *TestSuite) TestSignupEmailTaken(c *C) {
 	}
 
 	c.Check(helper.GetJsonResponseMessage(response), Equals, "Sorry, handle or email is already taken")
-	c.Check(response.StatusCode, Equals, 400)
+	c.Check(response.StatusCode, Equals, 409)
 }
 
 func (s *TestSuite) TestSignupCreated(c *C) {
@@ -135,7 +135,7 @@ func (s *TestSuite) TestLoginOK(c *C) {
 	}
 
 	c.Check(helper.GetJsonResponseMessage(response), Equals, "Logged in handleA. Note your session id.")
-	c.Check(response.StatusCode, Equals, 200)
+	c.Check(response.StatusCode, Equals, 201)
 }
 
 //

@@ -32,7 +32,7 @@ type Svc struct {
 //
 type Message struct {
 	Id      string    `json:"m.id"`
-	Author  string    `json:"u.handle"`
+	Author  string    `json:"t.handle"`
 	Content string    `json:"m.content"`
 	Created time.Time `json:"m.created"`
 }
@@ -737,20 +737,20 @@ func (s Svc) GetCircleId(handle string, circle string) string {
 	}
 }
 
-func (s Svc) GetMessagesByHandle(handle string) []Message {
+func (s Svc) GetMessagesByHandle(target string) []Message {
 	messages := make([]Message, 0)
 	if err := s.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
-            MATCH     (u:User)-[:WROTE]->(m:Message)
-            WHERE     u.handle = {handle}
+            MATCH     (t:User)-[:WROTE]->(m:Message)
+            WHERE     t.handle = {target}
             RETURN    m.id
-                    , u.handle
+                    , t.handle
                     , m.content
                     , m.created
             ORDER BY  m.created
         `,
 		Parameters: neoism.Props{
-			"handle": handle,
+			"target": target,
 		},
 		Result: &messages,
 	}); err != nil {
@@ -760,14 +760,14 @@ func (s Svc) GetMessagesByHandle(handle string) []Message {
 	return messages
 }
 
-func (s Svc) GetMessageById(messageid string) (message *Message, found bool) {
+func (s Svc) GetMessageById(handle, messageid string) (message *Message, found bool) {
 	messages := make([]Message, 0)
 	if err := s.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
-			MATCH   (u:User)-[:WROTE]->(m:Message)
+			MATCH   (t:User)-[:WROTE]->(m:Message), (u:User)
 			WHERE   m.id = {messageid}
 			RETURN  m.id
-	              , u.handle
+	              , t.handle
 	              , m.content
 	              , m.created
 		`,
