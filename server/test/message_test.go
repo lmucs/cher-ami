@@ -1,8 +1,9 @@
 package api_test
 
 import (
+	"../types"
 	"./helper"
-	"encoding/json"
+	encoding "encoding/json"
 	. "gopkg.in/check.v1"
 	"time"
 )
@@ -45,7 +46,7 @@ func (s *TestSuite) TestGetAuthoredMessagesOK(c *C) {
 	helper.Unmarshal(res, &data)
 
 	objects := make([]MessageData, 0)
-	json.Unmarshal([]byte(data.Objects), &objects)
+	encoding.Unmarshal([]byte(data.Objects), &objects)
 
 	c.Check(data.Response, Equals, "Found messages for user handleA")
 	c.Check(res.StatusCode, Equals, 200)
@@ -180,7 +181,7 @@ func (s *TestSuite) TestGetMessageByIdOK(c *C) {
 		}{}
 		helper.Unmarshal(res, &message_response)
 		var msg MessageData
-		json.Unmarshal([]byte(message_response.Object), &msg)
+		encoding.Unmarshal([]byte(message_response.Object), &msg)
 		c.Check(message_response.Response, Equals, "Found message!")
 		c.Check(msg.Id, Equals, messageid_1)
 		c.Check(msg.Author, Equals, "handleA")
@@ -193,7 +194,20 @@ func (s *TestSuite) TestGetMessageByIdOK(c *C) {
 //
 
 func (s *TestSuite) TestEditMessageInvalidAuth(c *C) {
-
+	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
+	patchObj := types.Json{
+		"op":       "update",
+		"resource": "content",
+		"value":    "Hello, world! Again!",
+	}
+	patchObj2 := types.Json{
+		"op":       "update",
+		"resource": "content",
+		"value":    "Hello, world! Again!",
+	}
+	patch := []types.Json{patchObj, patchObj2}
+	res, _ := req.EditMessage(patch, "SomeMessageId", "SomeSessionId")
+	c.Check(res.StatusCode, Equals, 401)
 }
 
 func (s *TestSuite) TestEditMessageMissingParams(c *C) {
