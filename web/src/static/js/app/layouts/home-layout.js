@@ -37,7 +37,6 @@ define(function(require, exports, module) {
         initialize: function(options) {
         },
 
-
         onRender: function() {
             var messages = new Messages();
             var feed = new MessagesView({
@@ -53,7 +52,7 @@ define(function(require, exports, module) {
 
         showCreateCircle: function(options) {
             var createCircle = new CreateCircleView();
-            this.circle.show(createCircle);
+            this.profile.show(createCircle);
         },
 
         showEditProfile: function(options) {
