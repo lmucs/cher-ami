@@ -2,8 +2,10 @@ package api
 
 import (
 	"../service"
+	"../types"
 	apiutil "./api-util"
 	encoding "encoding/json"
+	"fmt"
 	"github.com/ChimeraCoder/go.crypto/bcrypt"
 	"github.com/ant0ine/go-json-rest/rest"
 	"github.com/jmcvetta/neoism"
@@ -632,10 +634,12 @@ func (a Api) EditMessage(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	payload := make([]json, 0)
+	payload := make(types.JsonArray, 0)
 	if err := r.DecodeJsonPayload(&payload); err != nil {
 		rest.Error(w, err.Error(), http.StatusBadRequest)
 		return
+	} else {
+		fmt.Printf("%+v", payload)
 	}
 
 	messageid := r.PathParam("id")

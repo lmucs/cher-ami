@@ -195,22 +195,62 @@ func (s *TestSuite) TestGetMessageByIdOK(c *C) {
 
 func (s *TestSuite) TestEditMessageInvalidAuth(c *C) {
 	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
+	sessionid := req.PostSessionGetSessionId("handleA", "password1")
+	messageid := req.PostMessageGetMessageId("Hello, world!", sessionid)
+	req.DeleteSessions(sessionid)
+
 	patchObj := types.Json{
 		"op":       "update",
 		"resource": "content",
 		"value":    "Hello, world! Again!",
 	}
-	patchObj2 := types.Json{
-		"op":       "update",
-		"resource": "content",
-		"value":    "Hello, world! Again!",
-	}
-	patch := []types.Json{patchObj, patchObj2}
-	res, _ := req.EditMessage(patch, "SomeMessageId", "SomeSessionId")
+	// patchObj2 := types.Json{
+	// 	"op":       "update",
+	// 	"resource": "content",
+	// 	"value":    "Hello, world! Again!",
+	// }
+	patch := []types.Json{patchObj}
+
+	res, _ := req.EditMessage(patch, messageid, sessionid)
 	c.Check(res.StatusCode, Equals, 401)
+	c.Check(helper.GetJsonResponseMessage(res), Equals, "Failed to authenticate user request")
 }
 
 func (s *TestSuite) TestEditMessageMissingParams(c *C) {
+	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
+	sessionid := req.PostSessionGetSessionId("handleA", "password1")
+	messageid := req.PostMessageGetMessageId("Hello, world!", sessionid)
+
+	onlyOp := types.Json{
+		"op": "update",
+	}
+
+	// onlyResource := types.Json{
+	// 	"resource": "content",
+	// }
+
+	// onlyValue := types.Json{
+	// 	"resource": "content",
+	// }
+
+	// onlyOpResource := types.Json{
+	// 	"op":       "update",
+	// 	"resource": "content",
+	// }
+
+	// onlyResourceValue := types.Json{
+	// 	"resource": "content",
+	// 	"value":    "Hello, world! Again!",
+	// }
+
+	// onlyOpValue := types.Json{
+	// 	"op":    "update",
+	// 	"value": "Hello, world! Again!",
+	// }
+
+	res, _ := req.EditMessage([]types.Json{onlyOp}, messageid, sessionid)
+	c.Check(res.StatusCode, Equals, 400)
+	c.Check(helper.GetJsonReasonMessage(res), Equals, "missing `resource` parameter in object 0")
 
 }
 

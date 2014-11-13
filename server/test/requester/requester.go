@@ -8,7 +8,6 @@ package requester
 import (
 	"../../types"
 	helper "../helper/"
-	"encoding/json"
 	"fmt"
 	"net/http"
 )
@@ -164,17 +163,8 @@ func (req Requester) PostMessageGetMessageId(content, sessionid string) string {
 	return helper.GetIdFromResponse(res)
 }
 
-func (req Requester) EditMessage(patch []types.Json, id string, sessionid string) (*http.Response, error) {
-	if bytes, err := json.Marshal(patch); err != nil {
-		panic(err)
-	} else {
-		payload := types.Json{
-			"patch":     string(bytes),
-			"sessionid": sessionid,
-		}
-		fmt.Printf("Payload: %+v", payload)
-		return helper.ExecutePatch(req.Routes.messagesURL+"/"+id, payload)
-	}
+func (req Requester) EditMessage(payload []types.Json, id string, sessionid string) (*http.Response, error) {
+	return helper.ExecutePatch(sessionid, req.Routes.messagesURL+"/"+id, payload)
 }
 
 func (req Requester) PostSessions(handle string, password string) (*http.Response, error) {
