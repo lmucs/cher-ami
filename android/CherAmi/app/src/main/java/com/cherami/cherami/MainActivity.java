@@ -27,7 +27,10 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -58,6 +61,7 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
      */
     ViewPager mViewPager;
     SharedPreferences prefs;
+    private Spinner spinner;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -110,7 +114,6 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
                         .setText(mSectionsPagerAdapter.getPageTitle(2))
                         .setTabListener(new TabListener<Profile>(
                                 this, "", Profile.class)));
-
 
     }
 
@@ -320,6 +323,14 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
         // When the given tab is selected, switch to the corresponding page in
         // the ViewPager.
         mViewPager.setCurrentItem(tab.getPosition());
+        Spinner spinner = (Spinner) findViewById(R.id.filter_spinner);
+        // Create an ArrayAdapter using the string array and a default spinner layout
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
+                R.array.filter_array, android.R.layout.simple_spinner_item);
+// Specify the layout to use when the list of choices appears
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+// Apply the adapter to the spinner
+        spinner.setAdapter(adapter);
     }
 
     @Override
