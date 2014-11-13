@@ -221,34 +221,55 @@ func (s *TestSuite) TestEditMessageMissingParams(c *C) {
 	sessionid := req.PostSessionGetSessionId("handleA", "password1")
 	messageid := req.PostMessageGetMessageId("Hello, world!", sessionid)
 
+	// Cases of missing parameters
 	onlyOp := types.Json{
 		"op": "update",
 	}
 
-	// onlyResource := types.Json{
-	// 	"resource": "content",
-	// }
+	onlyResource := types.Json{
+		"resource": "content",
+	}
 
-	// onlyValue := types.Json{
-	// 	"resource": "content",
-	// }
+	onlyValue := types.Json{
+		"resource": "content",
+	}
 
-	// onlyOpResource := types.Json{
-	// 	"op":       "update",
-	// 	"resource": "content",
-	// }
+	onlyOpResource := types.Json{
+		"op":       "update",
+		"resource": "content",
+	}
 
-	// onlyResourceValue := types.Json{
-	// 	"resource": "content",
-	// 	"value":    "Hello, world! Again!",
-	// }
+	onlyResourceValue := types.Json{
+		"resource": "content",
+		"value":    "Hello, world! Again!",
+	}
 
-	// onlyOpValue := types.Json{
-	// 	"op":    "update",
-	// 	"value": "Hello, world! Again!",
-	// }
+	onlyOpValue := types.Json{
+		"op":    "update",
+		"value": "Hello, world! Again!",
+	}
 
 	res, _ := req.EditMessage([]types.Json{onlyOp}, messageid, sessionid)
+	c.Check(res.StatusCode, Equals, 400)
+	c.Check(helper.GetJsonReasonMessage(res), Equals, "missing `resource` parameter in object 0")
+
+	res, _ = req.EditMessage([]types.Json{onlyResource}, messageid, sessionid)
+	c.Check(res.StatusCode, Equals, 400)
+	c.Check(helper.GetJsonReasonMessage(res), Equals, "missing `op` parameter in object 0")
+
+	res, _ = req.EditMessage([]types.Json{onlyValue}, messageid, sessionid)
+	c.Check(res.StatusCode, Equals, 400)
+	c.Check(helper.GetJsonReasonMessage(res), Equals, "missing `op` parameter in object 0")
+
+	res, _ = req.EditMessage([]types.Json{onlyOpResource}, messageid, sessionid)
+	c.Check(res.StatusCode, Equals, 400)
+	c.Check(helper.GetJsonReasonMessage(res), Equals, "missing `value` parameter in object 0")
+
+	res, _ = req.EditMessage([]types.Json{onlyResourceValue}, messageid, sessionid)
+	c.Check(res.StatusCode, Equals, 400)
+	c.Check(helper.GetJsonReasonMessage(res), Equals, "missing `op` parameter in object 0")
+
+	res, _ = req.EditMessage([]types.Json{onlyOpValue}, messageid, sessionid)
 	c.Check(res.StatusCode, Equals, 400)
 	c.Check(helper.GetJsonReasonMessage(res), Equals, "missing `resource` parameter in object 0")
 
