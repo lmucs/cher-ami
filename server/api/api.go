@@ -664,7 +664,7 @@ func (a Api) EditMessage(w rest.ResponseWriter, r *rest.Request) {
 		} else {
 			if op == "update" {
 				if resource != "content" && resource != "image" {
-					a.Util.SimpleJsonReason(w, 400, "Message only allows update to (content|image) at "+index)
+					a.Util.SimpleJsonReason(w, 400, "Message only allows update to (content|image) at object "+index)
 					return
 				} else if resource == "content" && value == "" {
 					a.Util.SimpleJsonReason(w, 400, "Cannot update message content to empty at "+index)
@@ -684,7 +684,7 @@ func (a Api) EditMessage(w rest.ResponseWriter, r *rest.Request) {
 					return
 				}
 			} else {
-				a.Util.SimpleJsonReason(w, 400, "Malformed patch request object at "+index)
+				a.Util.SimpleJsonReason(w, 400, "Malformed patch request at object "+index)
 				return
 			}
 		}

@@ -275,16 +275,60 @@ func (s *TestSuite) TestEditMessageMissingParams(c *C) {
 
 }
 
-func (s *TestSuite) TestEditMessageBadResource(c *C) {
+func (s *TestSuite) TestEditMessageBadOp(c *C) {
+	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
+	sessionid := req.PostSessionGetSessionId("handleA", "password1")
+	messageid := req.PostMessageGetMessageId("Hello, world!", sessionid)
 
+	patchObj := types.Json{
+		"op":       "change", // guess at op name
+		"resource": "content",
+		"value":    "Hello, world! Again!",
+	}
+
+	res, _ := req.EditMessage(types.JsonArray{patchObj}, messageid, sessionid)
+	c.Check(res.StatusCode, Equals, 400)
+	c.Check(helper.GetJsonReasonMessage(res), Equals, "Malformed patch request at object 0")
 }
 
-func (s *TestSuite) TestEditMessageBadValue(c *C) {
+func (s *TestSuite) TestEditMessageBadResource(c *C) {
+	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
+	sessionid := req.PostSessionGetSessionId("handleA", "password1")
+	messageid := req.PostMessageGetMessageId("Hello, world!", sessionid)
 
+	patchObj := types.Json{
+		"op":       "update",
+		"resource": "messageText", // guess at resource name
+		"value":    "Hello, world! Again!",
+	}
+
+	res, _ := req.EditMessage(types.JsonArray{patchObj}, messageid, sessionid)
+	c.Check(res.StatusCode, Equals, 400)
+	c.Check(helper.GetJsonReasonMessage(res), Equals, "Message only allows update to (content|image) at object 0")
 }
 
 func (s *TestSuite) TestEditMessageBadPatchObject(c *C) {
+	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
+	sessionid := req.PostSessionGetSessionId("handleA", "password1")
+	messageid := req.PostMessageGetMessageId("Hello, world!", sessionid)
 
+	publishContent := types.Json{
+		"op":       "publish",
+		"resource": "content",
+		"value":    "Hello, world! Again!",
+	}
+	res, _ := req.EditMessage(types.JsonArray{publishContent}, messageid, sessionid)
+	c.Check(res.StatusCode, Equals, 400)
+	c.Check(helper.GetJsonReasonMessage(res), Equals, "Malformed patch request at object 0")
+
+	unpublishContent := types.Json{
+		"op":       "unpublish",
+		"resource": "content",
+		"value":    "Hello, world! Again!",
+	}
+	res, _ = req.EditMessage(types.JsonArray{unpublishContent}, messageid, sessionid)
+	c.Check(res.StatusCode, Equals, 400)
+	c.Check(helper.GetJsonReasonMessage(res), Equals, "Malformed patch request at object 0")
 }
 
 func (s *TestSuite) TestEditMessageUnableToPublish(c *C) {
@@ -295,15 +339,15 @@ func (s *TestSuite) TestEditMessageUnableToUnpublish(c *C) {
 
 }
 
-func (s *TestSuite) TestEditMessageContentOK(c *C) {
+func (s *TestSuite) TestEditMessageUpdateContentOK(c *C) {
 
 }
 
-func (s *TestSuite) TestEditMessagePublishOK(c *C) {
+func (s *TestSuite) TestEditMessagePublishCircleOK(c *C) {
 
 }
 
-func (s *TestSuite) TestEditMessageUnpublishOK(c *C) {
+func (s *TestSuite) TestEditMessageUnpublishCircleOK(c *C) {
 
 }
 
