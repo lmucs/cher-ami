@@ -1,1 +1,18 @@
 @import "vendor/bourbon/bourbon"
+@import "vendor/neat/neat"
+@import "vendor/base/base"
+
+body
+	background-color: lightblue
+
+#signUpContainer 
+	+position(absolute, 100px auto auto 150px)
+	@include outer-container
+	@include span-columns(6)
+	@include shift(3)
+
+#loginContainer 
+	+position(absolute, 100px auto auto 150px)
+	@include outer-container
+	@include span-columns(6)
+	@include shift(3)
