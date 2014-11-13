@@ -7,7 +7,9 @@ import android.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.Spinner;
 
 
 /**
@@ -29,6 +31,7 @@ public class Feed extends Fragment {
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
+    private Spinner spinner;
 
     private OnFragmentInteractionListener mListener;
 
@@ -82,6 +85,21 @@ public class Feed extends Fragment {
         feedList = (ListView)rootView.findViewById(R.id.feedList);
 
         feedList.setAdapter(adapter);
+
+        // Get the filter value
+        spinner = (Spinner) rootView.findViewById(R.id.filter_spinner);
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            public void onItemSelected(AdapterView<?> parent, View view,
+                                       int position, long id) {
+                String value = spinner.getSelectedItem().toString();
+                System.out.println("Value: " + value);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
 
         // Inflate the layout for this fragment
         return rootView;
