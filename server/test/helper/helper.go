@@ -1,8 +1,11 @@
 package helper
 
 import (
+	"../../types"
 	b "bytes"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -31,6 +34,32 @@ func Execute(httpMethod string, url string, m map[string]interface{}) (*http.Res
 		}
 		request.Header.Add("Authorization", sessionid)
 		return http.DefaultClient.Do(request)
+	}
+}
+
+func ExecutePatch(url string, m types.Json) (*http.Response, error) {
+	sessionid := ""
+	if str, ok := m["sessionid"].(string); ok && str != "" {
+		sessionid = str
+		delete(m, "sessionid")
+	}
+
+	if patch, ok := m["patch"].(string); ok {
+		if bytes, err := json.Marshal(patch); err != nil {
+			log.Fatal(err)
+			return nil, err
+		} else {
+			fmt.Printf("%+v", string(bytes))
+			request, err := http.NewRequest("PATCH", url, b.NewReader(bytes))
+			if err != nil {
+				log.Fatal(err)
+			}
+			request.Header.Add("Authorization", sessionid)
+			return http.DefaultClient.Do(request)
+		}
+	} else {
+		fmt.Println("We are falling here.")
+		return nil, errors.New("No patch object found")
 	}
 }
 
@@ -63,9 +92,7 @@ func GetWithQueryParams(url string, m map[string]interface{}) (*http.Response, e
 		if err != nil {
 			log.Fatal(err)
 		}
-		if ok && str != "" {
-			request.Header.Add("Authorization", sessionid)
-		}
+		request.Header.Add("Authorization", sessionid)
 		return http.DefaultClient.Do(request)
 	}
 }
