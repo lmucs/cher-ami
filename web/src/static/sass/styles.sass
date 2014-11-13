@@ -1,25 +1,18 @@
-@import "vendor/bourbon/bourbon"
-@import "vendor/neat/neat"
-@import "vendor/base/base"
+@import "vendor/plugins-dir"
+@import "views/views-dir"
+@import "layouts/layouts-dir"
+
 
 body
 	background-color: lightblue
 
-// #signUpContainer 
-// 	+position(absolute, 150px auto auto 150px)
-// 	@include outer-container
-// 	@include span-columns(6)
-// 	@include shift(3)
-// 	@include border-color(grey grey grey grey)
-// 	@include border-style(solid solid solid solid)
-// 	@include border-width(1% 1% 1% 1%)
-
-// #loginContainer 
-// 	+position(absolute, 150px auto auto 150px)
-// 	@include outer-container
-// 	@include span-columns(6)
-// 	@include shift(3)
-
-// //make button shiny lighblue
+//make button shiny lighblue
+.container
+	.row
+		#main
+			@include display(flex)
+			@include flex-direction(column)
+			@include align-items(center)
+			@include justify-content(space-between)
 button
 	@include button(shiny, lightblue)

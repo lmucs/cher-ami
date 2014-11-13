@@ -3,7 +3,6 @@ define(function(require, exports, module) {
     var backbone = require('backbone');
     var marionette = require('marionette');
     var app = require('app/app');
-    var Session = require('app/models/session').Session;
     //var session = require('backbone/sessions');
     var $ = require('jquery');
 
@@ -23,6 +22,7 @@ define(function(require, exports, module) {
     var CreateCircleView = require('app/views/create-circle-view').CreateCircleView;
 
     /** Models **/
+    var Session = require('app/models/session').Session; //Session model.
     var Message = require('app/models/message').Message;
     var Comment = require('app/models/comment').Comment;
 
