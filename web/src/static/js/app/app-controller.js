@@ -17,6 +17,7 @@ define(function(require, exports, module) {
     var CommentView = require('app/views/comment-view').CommentView;
     var CircleView = require('app/views/circle-view').CircleView;
     var CreateCircleView = require('app/views/create-circle-view').CreateCircleView;
+    var SettingsView = require('app/views/settings-view').SettingsView;
 
     /** Models **/
     var Session = require('app/models/session').Session;
