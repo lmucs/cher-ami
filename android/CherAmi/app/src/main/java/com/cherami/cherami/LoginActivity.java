@@ -175,7 +175,7 @@ public class LoginActivity extends Activity {
 
                         String responseText = null;
                         try {
-                            responseText = new JSONObject(new String(errorResponse)).getString("Response");
+                            responseText = new JSONObject(new String(errorResponse)).getString("reason"); //What goes in here???
                         } catch (JSONException j) {
                             System.out.println("Dont like JSON");
                         }
