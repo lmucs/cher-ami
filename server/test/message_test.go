@@ -249,27 +249,27 @@ func (s *TestSuite) TestEditMessageMissingParams(c *C) {
 		"value": "Hello, world! Again!",
 	}
 
-	res, _ := req.EditMessage([]types.Json{onlyOp}, messageid, sessionid)
+	res, _ := req.EditMessage(types.JsonArray{onlyOp}, messageid, sessionid)
 	c.Check(res.StatusCode, Equals, 400)
 	c.Check(helper.GetJsonReasonMessage(res), Equals, "missing `resource` parameter in object 0")
 
-	res, _ = req.EditMessage([]types.Json{onlyResource}, messageid, sessionid)
+	res, _ = req.EditMessage(types.JsonArray{onlyResource}, messageid, sessionid)
 	c.Check(res.StatusCode, Equals, 400)
 	c.Check(helper.GetJsonReasonMessage(res), Equals, "missing `op` parameter in object 0")
 
-	res, _ = req.EditMessage([]types.Json{onlyValue}, messageid, sessionid)
+	res, _ = req.EditMessage(types.JsonArray{onlyValue}, messageid, sessionid)
 	c.Check(res.StatusCode, Equals, 400)
 	c.Check(helper.GetJsonReasonMessage(res), Equals, "missing `op` parameter in object 0")
 
-	res, _ = req.EditMessage([]types.Json{onlyOpResource}, messageid, sessionid)
+	res, _ = req.EditMessage(types.JsonArray{onlyOpResource}, messageid, sessionid)
 	c.Check(res.StatusCode, Equals, 400)
 	c.Check(helper.GetJsonReasonMessage(res), Equals, "missing `value` parameter in object 0")
 
-	res, _ = req.EditMessage([]types.Json{onlyResourceValue}, messageid, sessionid)
+	res, _ = req.EditMessage(types.JsonArray{onlyResourceValue}, messageid, sessionid)
 	c.Check(res.StatusCode, Equals, 400)
 	c.Check(helper.GetJsonReasonMessage(res), Equals, "missing `op` parameter in object 0")
 
-	res, _ = req.EditMessage([]types.Json{onlyOpValue}, messageid, sessionid)
+	res, _ = req.EditMessage(types.JsonArray{onlyOpValue}, messageid, sessionid)
 	c.Check(res.StatusCode, Equals, 400)
 	c.Check(helper.GetJsonReasonMessage(res), Equals, "missing `resource` parameter in object 0")
 
