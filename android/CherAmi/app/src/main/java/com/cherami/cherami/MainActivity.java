@@ -19,6 +19,7 @@ import android.net.Uri;
 import android.support.v13.app.FragmentPagerAdapter;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -300,15 +301,67 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
 //                startActivity(intent);
 //                return true;
             case R.id.action_logout:
-//                logoutUser();
-                System.out.println("IN LOGOUT SECTION");
-                Intent intent = new Intent(this, LoginActivity.class);
-                startActivity(intent);
-                finish();
+                logoutUser();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    public void logoutUser () {
+        AsyncHttpClient client = new AsyncHttpClient();
+        String sessionKey = "com.cherami.cherami.sessionid";
+        String sessionid = prefs.getString(sessionKey, null);
+        System.out.println("sessionid: " + sessionid);
+
+
+        client.addHeader("Authorization", sessionid);
+        client.delete(this.getApplicationContext(), "http://" + getLocalUrlForApi() + "/api/sessions",
+                new AsyncHttpResponseHandler() {
+
+                    @Override
+                    public void onStart() {
+                        // called before request is started
+                        System.out.println("STARTING DELETE SESSIONID REQUEST");
+
+                    }
+
+                    @Override
+                    public void onSuccess(int statusCode, Header[] headers, byte[] response) {
+
+                        Log.d("Status Code: ", Integer.toString(statusCode));
+                        System.out.println("IN LOGOUT SECTION");
+                        Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+                        startActivity(intent);
+                        finish();
+
+                        Toast toast = Toast.makeText(getApplicationContext(), "Goodbye.", Toast.LENGTH_LONG);
+                        toast.show();
+                    }
+
+                    @Override
+                    public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
+                        // called when response HTTP status is "4XX" (eg. 401, 403, 404)
+
+                        String responseText = null;
+                        try {
+                            responseText = new JSONObject(new String(errorResponse)).getString("Response");
+
+                        } catch (JSONException j) {
+                            System.out.println("Dont like JSON");
+                        }
+
+                        Toast toast = Toast.makeText(getApplicationContext(), responseText, Toast.LENGTH_LONG);
+                        toast.show();
+                        e.printStackTrace();
+                    }
+
+                    @Override
+                    public void onRetry(int retryNo) {
+                        // called when request is retried
+                        System.out.println("RETRYING?!?!");
+                    }
+                });
     }
 
     @Override
