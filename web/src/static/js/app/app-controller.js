@@ -1,11 +1,8 @@
 define(function(require, exports, module) {
-
     var backbone = require('backbone');
     var marionette = require('marionette');
     var app = require('app/app');
-    //var session = require('backbone/sessions');
     var $ = require('jquery');
-
 
     /** Views **/
     var HeaderView = require('app/views/header-view').HeaderView;
@@ -22,7 +19,7 @@ define(function(require, exports, module) {
     var CreateCircleView = require('app/views/create-circle-view').CreateCircleView;
 
     /** Models **/
-    var Session = require('app/models/session').Session; //Session model.
+    var Session = require('app/models/session').Session;
     var Message = require('app/models/message').Message;
     var Comment = require('app/models/comment').Comment;
 
@@ -37,16 +34,11 @@ define(function(require, exports, module) {
     var ProfileLayout = require('app/layouts/profile-layout').ProfileLayout;
 
     var AppController = marionette.Controller.extend({
-
         initialize: function(options) {
             this.app = app;
             this.app.session = new Session({}, {
                 remote: false
             });
-
-            // Initialize header view.
-            this.app.headerRegion.show(new HeaderView());
-
             // Logic for auth check.
             if (this.app.session.has('sessionid')) {
                 console.log("User logged in.");
@@ -57,20 +49,17 @@ define(function(require, exports, module) {
                 this.app.mainRegion.show(new HomeLayout({
                     session: this.app.session
                 }));
+                // Initialize header view after logged in
+                this.app.headerRegion.show(new HeaderView());
             } else {
                 this.app.mainRegion.show(new LandingLayout({
                     session: this.app.session
                 }));
             }
         },
-
         // Needed for AppRouter to initialize index route.
         index: function() {
-
         }
-
     });
-
     exports.AppController = AppController;
-
 });

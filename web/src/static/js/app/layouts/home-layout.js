@@ -1,5 +1,4 @@
 define(function(require, exports, module) {
-
     var marionette = require('marionette');
     var template = require('hbs!../templates/layouts/home-layout')
     var MessagesView = require('app/views/messages-view').MessagesView;
@@ -65,7 +64,6 @@ define(function(require, exports, module) {
             });
             this.profile.show(feed);
         },
-
     });
     exports.HomeLayout = HomeLayout;
 })
