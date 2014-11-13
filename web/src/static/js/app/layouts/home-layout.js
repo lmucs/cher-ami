@@ -32,17 +32,15 @@ define(function(require, exports, module) {
             'click #goToCreateCircle': 'showCreateCircle',
             'click #goToProfile': 'showProfile',
             'click #editProfile': 'showEditProfile',
+            'click #goToHome': 'showFeed',
+            'click #profileSaveButton': 'showProfile'
         },
 
         initialize: function(options) {
         },
 
         onRender: function() {
-            var messages = new Messages();
-            var feed = new MessagesView({
-                collection: messages
-            });
-            this.feed.show(feed);
+            this.showFeed();
         },
 
         showProfile: function(options) {
@@ -58,7 +56,15 @@ define(function(require, exports, module) {
         showEditProfile: function(options) {
             var editProfile = new EditProfileView();
             this.profile.show(editProfile);
-        }
+        },
+
+        showFeed: function(options) {
+            var messages = new Messages();
+            var feed = new MessagesView({
+                collection: messages
+            });
+            this.profile.show(feed);
+        },
 
     });
     exports.HomeLayout = HomeLayout;
