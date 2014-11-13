@@ -8,6 +8,7 @@ define(function(require, exports, module) {
     var Messages = require('app/collections/messages').Messages;
     var CreateCircleView = require('app/views/create-circle-view').CreateCircleView;
     var ProfileView = require('app/views/profile-view').ProfileView;
+    var EditProfileView = require('app/views/edit-profile-view').EditProfileView;
 
     var HomeLayout = marionette.LayoutView.extend({
         template: template,
@@ -15,19 +16,22 @@ define(function(require, exports, module) {
         regions: {
             feed: '#feed-container',
             circle: '#create-circle-view',
-            profile: '#profile-container'
+            profile: '#profile-container',
+            editProfile:'#edit-profile-container'
         },
 
         ui: {
             feedContainer: '#feed-container',
             showContent: '#showContent',
             createCircle: '#goToCreateCircle',
-            displayProfile: '#goToProfile'
+            displayProfile: '#goToProfile',
+            editProfile: '#editProfile'
         },
 
         events: {
             'click #goToCreateCircle': 'showCreateCircle',
-            'click #goToProfile': 'showProfile'
+            'click #goToProfile': 'showProfile',
+            'click #editProfile': 'showEditProfile',
         },
 
         initialize: function(options) {
@@ -50,6 +54,11 @@ define(function(require, exports, module) {
         showCreateCircle: function(options) {
             var createCircle = new CreateCircleView();
             this.circle.show(createCircle);
+        },
+
+        showEditProfile: function(options) {
+            var editProfile = new EditProfileView();
+            this.profile.show(editProfile);
         }
 
     });

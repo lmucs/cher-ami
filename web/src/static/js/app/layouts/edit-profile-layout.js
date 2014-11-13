@@ -2,27 +2,20 @@ define(function(require, exports, module) {
 
     var marionette = require('marionette');
     var template = require('hbs!../templates/layouts/profile-layout')
-    var ProfileView = require('app/views/profile-view').ProfileView
-    
+    var EditProfileView = require('app/views/edit-profile-view').EditProfileView
     
 
-    var ProfileLayout = marionette.LayoutView.extend({
+    var EditProfileLayout = marionette.LayoutView.extend({
         template: template,
 
         regions: {
-            profile: '#profile-container',
-            
+            editProfile: '#edit-profile-container'
         },
 
         ui: {
-            
-            profileSaveButton: '#profileSaveButton',
-            
         },
 
         events: {
-            
-            'click #profileSaveButton': 'onRender'
         },
 
         initialize: function(options) {
@@ -30,12 +23,9 @@ define(function(require, exports, module) {
         
         onRender: function() {
             var profile = new ProfileView();
-            this.profile.show(profile);
+            this.editProfile.show(editProfile);
         },
-
-        
-
     });
 
-    exports.ProfileLayout = ProfileLayout;
+    exports.EditProfileLayout = EditProfileLayout;
 })
