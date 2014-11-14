@@ -502,22 +502,22 @@ type MessageData struct {
  * Create a new, unpublished message
  */
 func (a Api) NewMessage(w rest.ResponseWriter, r *rest.Request) {
+	if !a.authenticate(r) {
+		a.Util.FailedToAuthenticate(w)
+		return
+	}
 	payload := struct {
 		Content string
+		Circles []string
 	}{}
 	if err := r.DecodeJsonPayload(&payload); err != nil {
 		rest.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	if !a.authenticate(r) {
-		a.Util.FailedToAuthenticate(w)
-		return
-	}
-
 	handle, ok := a.Svc.GetHandleFromAuthorization(a.getSessionId(r))
 	if !ok {
-		w.WriteHeader(400)
+		w.WriteHeader(500)
 		w.WriteJson(json{
 			"Response": "Unexpected failure to retrieve owner of session",
 		})
@@ -525,20 +525,30 @@ func (a Api) NewMessage(w rest.ResponseWriter, r *rest.Request) {
 	}
 
 	content := payload.Content
+	circles := payload.Circles
 
 	if payload.Content == "" {
 		a.Util.SimpleJsonResponse(w, 400, "Please enter some content for your message")
 		return
 	}
 
-	if id, success := a.Svc.NewMessage(handle, content); !success {
+	if messageid, success := a.Svc.NewMessage(handle, content); !success {
 		a.Util.SimpleJsonResponse(w, 400, "No message created")
+		return
 	} else {
+		if len(circles) > 0 {
+			for _, circleid := range circles {
+				if !a.Svc.PublishMessageToCircle(messageid, circleid) {
+					a.Util.SimpleJsonResponse(w, 400, "Failed to publish to one of circles provided")
+					return
+				}
+			}
+		}
 		w.WriteHeader(201)
 		w.WriteJson(json{
-			"Response":  "Successfully created message for " + handle,
-			"Id":        id,
-			"Published": false,
+			"Response":    "Successfully created message for " + handle,
+			"Id":          messageid,
+			"PublishedTo": circles,
 		})
 	}
 }
@@ -644,8 +654,6 @@ func (a Api) EditMessage(w rest.ResponseWriter, r *rest.Request) {
 	if err := r.DecodeJsonPayload(&payload); err != nil {
 		rest.Error(w, err.Error(), http.StatusBadRequest)
 		return
-	} else {
-		fmt.Printf("%+v", payload)
 	}
 
 	messageid := r.PathParam("id")
