@@ -158,7 +158,7 @@ func (s Svc) UserCanRetractPublication(handle, messageid, circleid string) bool 
 
 	if err := s.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
-            MATCH (u:User)-[:WROTE]->(m:Message)->[r:PUB_TO]->(c:Circle)
+            MATCH (u:User)-[:WROTE]->(m:Message)-[r:PUB_TO]->(c:Circle)
             WHERE u.handle = {handle}
             AND   m.id     = {messageid}
             AND   c.id     = {circleid}
@@ -306,7 +306,7 @@ func (s Svc) UserIsMemberOf(handle string, circleid string) bool {
 	}{}
 	if err := s.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
-			MATCH (u:User)-[:MEMBER_OF:CHIEF_OF]->(c:Circle)
+			MATCH (u:User)-[:MEMBER_OF|CHIEF_OF]->(c:Circle)
 			WHERE u.handle = {handle}
 			AND   c.id     = {circleid}
 			RETURN u.handle
@@ -651,27 +651,22 @@ func (s Svc) DeleteUser(handle string) bool {
 }
 
 func (s Svc) UnpublishMessageFromCircle(messageid, circleid string) bool {
-	deleted := []struct {
-		R *neoism.Relationship `json:"r"`
-	}{}
 	if err := s.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
             MATCH  (m:Message)-[r:PUB_TO]->(c:Circle)
             WHERE  m.id = {messageid}
             AND    c.id = {circleid}
             DELETE r
-            RETURN r
         `,
 		Parameters: neoism.Props{
 			"messageid": messageid,
 			"circleid":  circleid,
 		},
-		Result: &deleted,
 	}); err != nil {
 		panicErr(err)
 	}
 
-	return len(deleted) > 0
+	return true
 }
 
 //
