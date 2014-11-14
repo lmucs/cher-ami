@@ -2,6 +2,7 @@ package api
 
 import (
 	"../service"
+	"../types"
 	apiutil "./api-util"
 	encoding "encoding/json"
 	"github.com/ChimeraCoder/go.crypto/bcrypt"
@@ -469,12 +470,19 @@ func (a Api) NewCircle(w rest.ResponseWriter, r *rest.Request) {
 			return
 		}
 
-		if !a.Svc.NewCircle(handle, circleName, isPublic) {
-			a.Util.SimpleJsonResponse(w, http.StatusInternalServerError, "Unexpected failure to create circle")
+		if circleid, ok := a.Svc.NewCircle(handle, circleName, isPublic); !ok {
+			a.Util.SimpleJsonResponse(w, 400, "Unexpected failure to create circle")
 			return
+		} else {
+			w.WriteHeader(201)
+			w.WriteJson(json{
+				"response": "Created new circle!",
+				"chief":    handle,
+				"name":     circleName,
+				"public":   isPublic,
+				"id":       circleid,
+			})
 		}
-
-		a.Util.SimpleJsonResponse(w, 201, "Created new circle "+circleName+" for "+handle)
 	}
 }
 
@@ -494,22 +502,22 @@ type MessageData struct {
  * Create a new, unpublished message
  */
 func (a Api) NewMessage(w rest.ResponseWriter, r *rest.Request) {
+	if !a.authenticate(r) {
+		a.Util.FailedToAuthenticate(w)
+		return
+	}
 	payload := struct {
 		Content string
+		Circles []string
 	}{}
 	if err := r.DecodeJsonPayload(&payload); err != nil {
 		rest.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	if !a.authenticate(r) {
-		a.Util.FailedToAuthenticate(w)
-		return
-	}
-
 	handle, ok := a.Svc.GetHandleFromAuthorization(a.getSessionId(r))
 	if !ok {
-		w.WriteHeader(400)
+		w.WriteHeader(500)
 		w.WriteJson(json{
 			"Response": "Unexpected failure to retrieve owner of session",
 		})
@@ -517,77 +525,31 @@ func (a Api) NewMessage(w rest.ResponseWriter, r *rest.Request) {
 	}
 
 	content := payload.Content
+	circles := payload.Circles
 
 	if payload.Content == "" {
 		a.Util.SimpleJsonResponse(w, 400, "Please enter some content for your message")
 		return
 	}
 
-	if id, success := a.Svc.NewMessage(handle, content); !success {
+	if messageid, success := a.Svc.NewMessage(handle, content); !success {
 		a.Util.SimpleJsonResponse(w, 400, "No message created")
+		return
 	} else {
+		if len(circles) > 0 {
+			for _, circleid := range circles {
+				if !a.Svc.PublishMessageToCircle(messageid, circleid) {
+					a.Util.SimpleJsonResponse(w, 400, "Failed to publish to one of circles provided")
+					return
+				}
+			}
+		}
 		w.WriteHeader(201)
 		w.WriteJson(json{
-			"Response":  "Successfully created message for " + handle,
-			"Id":        id,
-			"Published": false,
+			"Response":    "Successfully created message for " + handle,
+			"Id":          messageid,
+			"PublishedTo": circles,
 		})
-	}
-}
-
-/**
- * Publishes a message identified by it's lastSaved time to a specific circle owned
- * by the user.
- */
-func (a Api) PublishMessage(w rest.ResponseWriter, r *rest.Request) {
-	if !a.authenticate(r) {
-		a.Util.FailedToAuthenticate(w)
-		return
-	}
-	payload := struct {
-		CircleId  string
-		MessageId string
-	}{}
-	if err := r.DecodeJsonPayload(&payload); err != nil {
-		rest.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	if author, success := a.Svc.GetHandleFromAuthorization(a.getSessionId(r)); !success {
-		w.WriteHeader(400)
-		w.WriteJson(json{
-			"Response":  "Unexpected failure to retrieve owner of session",
-			"Author":    author,
-			"Success":   success,
-			"SessionId": a.getSessionId(r),
-		})
-		return
-	} else {
-		circleid := payload.CircleId
-		messageid := payload.MessageId
-
-		if !a.Svc.UserIsMemberOf(author, circleid) {
-			w.WriteHeader(401)
-			w.WriteJson(json{
-				"Response": "Refusal to comply with request",
-				"Reason":   "You are not a member or owner of the specified circle",
-			})
-			return
-		}
-
-		if !a.Svc.CanSeeCircle(author, circleid) {
-			a.Util.SimpleJsonResponse(w, 400, "Could not find specified circle to publish to")
-			return
-		} else if !a.Svc.MessageExists(messageid) {
-			a.Util.SimpleJsonResponse(w, 400, "Could not find intended message for publishing")
-			return
-		}
-
-		if !a.Svc.PublishMessage(messageid, circleid) {
-			a.Util.SimpleJsonResponse(w, 400, "Bad request, no message published")
-		} else {
-			a.Util.SimpleJsonResponse(w, 201, "Success! Published message to "+circleid)
-		}
 	}
 }
 
@@ -601,13 +563,7 @@ func (a Api) GetAuthoredMessages(w rest.ResponseWriter, r *rest.Request) {
 	}
 
 	if author, success := a.Svc.GetHandleFromAuthorization(a.getSessionId(r)); !success {
-		w.WriteHeader(400)
-		w.WriteJson(json{
-			"Response":  "Unexpected failure to retrieve owner of session",
-			"Author":    author,
-			"Success":   success,
-			"SessionId": a.getSessionId(r),
-		})
+		a.Util.FailedToDetermineHandleFromSession(w)
 		return
 	} else {
 		messages := a.Svc.GetMessagesByHandle(author)
@@ -681,60 +637,99 @@ func (a Api) GetMessageById(w rest.ResponseWriter, r *rest.Request) {
 	}
 }
 
-/**
- * Get messages authored by a User that are visible to the authenticated
- * user. This means from all shared circles that the queried User has published to.
- */
-// func (a Api) GetMessagesByHandle(w rest.ResponseWriter, r *rest.Request) {
-// 	author := r.PathParam("author")
-// 	querymap := r.URL.Query()
+func (a Api) GetMessagesByHandle(w rest.ResponseWriter, r *rest.Request) {
+	w.WriteHeader(405)
+	w.WriteJson(json{
+		"Response": "Unimplemented",
+	})
+}
 
-// 	// check query parameters
-// 	if _, ok := querymap["handle"]; !ok {
-// 		w.WriteHeader(400)
-// 		w.WriteJson(json{
-// 			"Response": "Bad Request, not enough parameters to authenticate user",
-// 		})
-// 		return
-// 	}
+func (a Api) EditMessage(w rest.ResponseWriter, r *rest.Request) {
+	if !a.authenticate(r) {
+		a.Util.FailedToAuthenticate(w)
+		return
+	}
 
-// 	handle := querymap["handle"][0]
+	payload := make(types.JsonArray, 0)
+	if err := r.DecodeJsonPayload(&payload); err != nil {
+		rest.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
-// 	if !a.authenticate(r) {
-// 		a.Util.FailedToAuthenticate(w)
-// 		return
-// 	}
+	messageid := r.PathParam("id")
+	handle, ok := a.Svc.GetHandleFromAuthorization(a.getSessionId(r))
+	if !ok {
+		a.Util.FailedToDetermineHandleFromSession(w)
+		return
+	}
 
-// 	if !a.Svc.UserExists(author) {
-// 		w.WriteHeader(400)
-// 		w.WriteJson(json{
-// 			"Response": "Bad request, user doesn't exist",
-// 		})
-// 		return
-// 	}
+	// Validate input of patch objects
+	for i, obj := range payload {
+		index := strconv.Itoa(i)
+		if op, ok := obj["op"].(string); !ok {
+			a.Util.SimpleJsonReason(w, 400, "missing `op` parameter in object "+index)
+			return
+		} else if resource, ok := obj["resource"].(string); !ok {
+			a.Util.SimpleJsonReason(w, 400, "missing `resource` parameter in object "+index)
+			return
+		} else if value, ok := obj["value"].(string); !ok {
+			a.Util.SimpleJsonReason(w, 400, "missing `value` parameter in object "+index)
+			return
+		} else {
+			if op == "update" {
+				if resource != "content" && resource != "image" {
+					a.Util.SimpleJsonReason(w, 400, "Message only allows update to (content|image) at object "+index)
+					return
+				} else if resource == "content" && value == "" {
+					a.Util.SimpleJsonReason(w, 400, "Cannot update message content to empty at "+index)
+					return
+				} else if resource == "image" {
+					a.Util.SimpleJsonResponse(w, 405, "Edit message image value has yet to be implemented")
+					return
+				}
+			} else if op == "publish" && resource == "circle" {
+				if !a.Svc.UserCanPublishTo(handle, value) {
+					a.Util.SimpleJsonReason(w, 400, "Could not publish message to circle "+value)
+					return
+				}
+			} else if op == "unpublish" && resource == "circle" {
+				if !a.Svc.UserCanRetractPublication(handle, messageid, value) {
+					a.Util.SimpleJsonReason(w, 400, "Cannot unpublish message, specified published relation not found")
+					return
+				}
+			} else {
+				a.Util.SimpleJsonReason(w, 400, "Malformed patch request at object "+index)
+				return
+			}
+		}
+	}
 
-// 	messages := []struct {
-// 		Content   string    `json:"message.content"`
-// 		Published time.Time `json:"message.published"`
-// 	}{}
-// 	err := a.Svc.Db.Cypher(&neoism.CypherQuery{
-// 		Statement: `
-//             MATCH (author:User {handle: {author}}), (user:User {handle: {handle}})
-//             OPTIONAL MATCH (user)-[r:MEMBER_OF]->(circle:Circle)
-//             OPTIONAL MATCH (author)-[w:WROTE]-(visible:Message)-[p:PUB_TO]->(circle)
-//             RETURN visible.content, visible.published_at
-//         `,
-// 		Parameters: neoism.Props{
-// 			"author": author,
-// 			"handle": handle,
-// 		},
-// 		Result: &messages,
-// 	})
-// 	panicErr(err)
+	// Service requests
+	for i, obj := range payload {
+		op, _ := obj["op"].(string)
+		resource, _ := obj["resource"].(string)
+		value, _ := obj["value"].(string)
 
-// 	w.WriteHeader(200)
-// 	w.WriteJson(messages)
-// }
+		if op == "update" {
+			if resource == "content" {
+				a.Svc.UpdateContentOfMessage(messageid, value)
+			}
+		} else if op == "publish" {
+			a.Svc.PublishMessageToCircle(messageid, value)
+		} else if op == "unpublish" {
+			a.Svc.UnpublishMessageFromCircle(messageid, value)
+		} else {
+			a.Util.SimpleJsonResponse(w, 500, "Unexpected failure to fulfill service request at "+strconv.Itoa(i))
+			return
+		}
+	}
+
+	w.WriteHeader(200)
+	w.WriteJson(json{
+		"response": "Successfully patched message " + messageid,
+		"changes":  len(payload),
+	})
+}
 
 /**
  * Deletes an unpublished message
@@ -801,13 +796,7 @@ func (a Api) BlockUser(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 	if handle, success := a.Svc.GetHandleFromAuthorization(a.getSessionId(r)); !success {
-		w.WriteHeader(400)
-		w.WriteJson(json{
-			"Response":  "Unexpected failure to retrieve owner of session",
-			"Handle":    handle,
-			"Success":   success,
-			"SessionId": a.getSessionId(r),
-		})
+		a.Util.FailedToDetermineHandleFromSession(w)
 		return
 	} else {
 		target := payload.Target

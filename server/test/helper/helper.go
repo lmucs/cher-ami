@@ -1,6 +1,7 @@
 package helper
 
 import (
+	"../../types"
 	b "bytes"
 	"encoding/json"
 	"io/ioutil"
@@ -26,6 +27,20 @@ func Execute(httpMethod string, url string, m map[string]interface{}) (*http.Res
 		return nil, err
 	} else {
 		request, err := http.NewRequest(httpMethod, url, b.NewReader(bytes))
+		if err != nil {
+			log.Fatal(err)
+		}
+		request.Header.Add("Authorization", sessionid)
+		return http.DefaultClient.Do(request)
+	}
+}
+
+func ExecutePatch(sessionid string, url string, m types.JsonArray) (*http.Response, error) {
+	if bytes, err := json.Marshal(m); err != nil {
+		log.Fatal(err)
+		return nil, err
+	} else {
+		request, err := http.NewRequest("PATCH", url, b.NewReader(bytes))
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -63,9 +78,7 @@ func GetWithQueryParams(url string, m map[string]interface{}) (*http.Response, e
 		if err != nil {
 			log.Fatal(err)
 		}
-		if ok && str != "" {
-			request.Header.Add("Authorization", sessionid)
-		}
+		request.Header.Add("Authorization", sessionid)
 		return http.DefaultClient.Do(request)
 	}
 }
@@ -88,6 +101,22 @@ func GetJsonResponseMessage(response *http.Response) string {
 	}
 
 	return message.Response
+}
+
+func GetJsonReasonMessage(response *http.Response) string {
+	type Json struct {
+		Reason string
+	}
+
+	var message Json
+
+	if body, err := ioutil.ReadAll(response.Body); err != nil {
+		log.Fatal(err)
+	} else if err := json.Unmarshal(body, &message); err != nil {
+		log.Fatal(err)
+	}
+
+	return message.Reason
 }
 
 func GetJsonUserData(response *http.Response) string {

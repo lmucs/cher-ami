@@ -5,29 +5,29 @@ import (
 	"github.com/ant0ine/go-json-rest/rest"
 )
 
-func MakeHandler(a cheramiapi.Api, disableLogs bool) (rest.ResourceHandler, error) {
+func MakeHandler(api cheramiapi.Api, disableLogs bool) (rest.ResourceHandler, error) {
 	handler := rest.ResourceHandler{
 		EnableRelaxedContentType: true,
 		DisableLogger:            disableLogs,
 	}
 
 	err := handler.SetRoutes(
-		&rest.Route{"POST", "/signup", a.Signup},
-		&rest.Route{"POST", "/changepassword", a.ChangePassword},
-		&rest.Route{"POST", "/sessions", a.Login},
-		&rest.Route{"DELETE", "/sessions", a.Logout},
-		//&rest.Route{"GET", "/users/:handle", a.GetUser},
-		&rest.Route{"GET", "/users", a.SearchForUsers},
-		&rest.Route{"DELETE", "/users/:handle", a.DeleteUser},
-		&rest.Route{"GET", "/messages", a.GetAuthoredMessages},
-		&rest.Route{"GET", "/messages/:id", a.GetMessageById},
-		&rest.Route{"POST", "/messages", a.NewMessage},
-		&rest.Route{"DELETE", "/messages", a.DeleteMessage},
-		&rest.Route{"POST", "/publish", a.PublishMessage},
-		&rest.Route{"POST", "/joindefault", a.JoinDefault},
-		&rest.Route{"POST", "/join", a.Join},
-		&rest.Route{"POST", "/block", a.BlockUser},
-		&rest.Route{"POST", "/circles", a.NewCircle},
+		&rest.Route{"POST", "/signup", api.Signup},
+		&rest.Route{"POST", "/changepassword", api.ChangePassword},
+		&rest.Route{"POST", "/sessions", api.Login},
+		&rest.Route{"DELETE", "/sessions", api.Logout},
+		//&rest.Route{"GET", "/users/:handle", api.GetUser},
+		&rest.Route{"GET", "/users", api.SearchForUsers},
+		&rest.Route{"DELETE", "/users/:handle", api.DeleteUser},
+		&rest.Route{"GET", "/messages", api.GetAuthoredMessages},
+		&rest.Route{"GET", "/messages/:id", api.GetMessageById},
+		&rest.Route{"POST", "/messages", api.NewMessage},
+		&rest.Route{"PATCH", "/messages/:id", api.EditMessage},
+		&rest.Route{"DELETE", "/messages", api.DeleteMessage},
+		&rest.Route{"POST", "/joindefault", api.JoinDefault},
+		&rest.Route{"POST", "/join", api.Join},
+		&rest.Route{"POST", "/block", api.BlockUser},
+		&rest.Route{"POST", "/circles", api.NewCircle},
 	)
 
 	return handler, err
