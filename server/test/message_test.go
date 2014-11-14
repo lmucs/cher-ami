@@ -23,6 +23,52 @@ type MessageResponse struct {
 }
 
 //
+// Post Message Tests
+//
+
+func (s *TestSuite) TestPostMessageInvalidAuth(c *C) {
+	res, _ := req.PostMessage("Go is going gophers!", "SomeSessionId")
+	c.Check(res.StatusCode, Equals, 401)
+	c.Check(helper.GetJsonResponseMessage(res), Equals, "Failed to authenticate user request")
+}
+
+func (s *TestSuite) TestPostMessageEmptyContent(c *C) {
+	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
+	sessionid := req.PostSessionGetSessionId("handleA", "password1")
+
+	res, _ := req.PostMessage("", sessionid)
+
+	c.Check(res.StatusCode, Equals, 400)
+	c.Check(helper.GetJsonResponseMessage(res), Equals, "Please enter some content for your message")
+}
+
+func (s *TestSuite) TestPostMessageContentOnlyOK(c *C) {
+	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
+	sessionid := req.PostSessionGetSessionId("handleA", "password1")
+
+	res, _ := req.PostMessage("Go is going gophers!", sessionid)
+
+	c.Check(res.StatusCode, Equals, 201)
+	c.Check(helper.GetJsonResponseMessage(res), Equals, "Successfully created message for handleA")
+}
+
+func (s *TestSuite) TestPostMessageContentCirclesOK(c *C) {
+	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
+
+	sessionid := req.PostSessionGetSessionId("handleA", "password1")
+
+	circleid := req.PostCircleGetCircleId(sessionid, "MyPublicCircle", true)
+	circleid2 := req.PostCircleGetCircleId(sessionid, "MyPublicCircle2", true)
+
+	circles := []string{circleid, circleid2}
+
+	res, _ := req.PostMessageWithCircles("Go is going gophers!", sessionid, circles)
+
+	c.Check(res.StatusCode, Equals, 201)
+	c.Check(helper.GetJsonResponseMessage(res), Equals, "Successfully created message for handleA")
+}
+
+//
 // Get Authored Messages Tests
 //
 func (s *TestSuite) TestGetAuthoredMessagesInvalidAuth(c *C) {
