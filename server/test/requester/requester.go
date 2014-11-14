@@ -130,6 +130,21 @@ func (req Requester) PostCircles(sessionid string, circleName string, public boo
 	return helper.Execute("POST", req.Routes.circlesURL, payload)
 }
 
+func (req Requester) PostCircleGetCircleId(sessionid string, circleName string, public bool) string {
+	payload := types.Json{
+		"sessionid":  sessionid,
+		"circlename": circleName,
+		"public":     public,
+	}
+	res, err := helper.Execute("POST", req.Routes.circlesURL, payload)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return helper.GetIdFromResponse(res)
+}
+
 func (req Requester) PostJoin(sessionid string, target string, circle string) (*http.Response, error) {
 	payload := types.Json{
 		"sessionid": sessionid,
@@ -140,10 +155,20 @@ func (req Requester) PostJoin(sessionid string, target string, circle string) (*
 	return helper.Execute("POST", req.Routes.joinURL, payload)
 }
 
-func (req Requester) PostMessages(content string, sessionid string) (*http.Response, error) {
+func (req Requester) PostMessage(content string, sessionid string) (*http.Response, error) {
 	payload := types.Json{
 		"content":   content,
 		"sessionid": sessionid,
+	}
+
+	return helper.Execute("POST", req.Routes.messagesURL, payload)
+}
+
+func (req Requester) PostMessageWithCircles(content string, sessionid string, circles []string) (*http.Response, error) {
+	payload := types.Json{
+		"content":   content,
+		"sessionid": sessionid,
+		"circles":   circles,
 	}
 
 	return helper.Execute("POST", req.Routes.messagesURL, payload)
@@ -154,6 +179,22 @@ func (req Requester) PostMessageGetMessageId(content, sessionid string) string {
 		"content":   content,
 		"sessionid": sessionid,
 	}
+	res, err := helper.Execute("POST", req.Routes.messagesURL, payload)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return helper.GetIdFromResponse(res)
+}
+
+func (req Requester) PostMessageWithCirclesGetMessageId(content string, sessionid string, circles []string) string {
+	payload := types.Json{
+		"content":   content,
+		"sessionid": sessionid,
+		"circles":   circles,
+	}
+
 	res, err := helper.Execute("POST", req.Routes.messagesURL, payload)
 
 	if err != nil {
