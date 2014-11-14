@@ -82,10 +82,10 @@ func (s *TestSuite) TestGetAuthoredMessagesOK(c *C) {
 
 	sessionid := req.PostSessionGetSessionId("handleA", "password1")
 
-	req.PostMessages("Go is going gophers!", sessionid)
-	req.PostMessages("Hypothesize about stuff", sessionid)
-	req.PostMessages("The nearest exit may be behind you", sessionid)
-	req.PostMessages("I make soap.", sessionid)
+	req.PostMessage("Go is going gophers!", sessionid)
+	req.PostMessage("Hypothesize about stuff", sessionid)
+	req.PostMessage("The nearest exit may be behind you", sessionid)
+	req.PostMessage("I make soap.", sessionid)
 
 	res, _ := req.GetAuthoredMessages(sessionid)
 
@@ -134,10 +134,10 @@ func (s *TestSuite) TestGetMessageByIdDoesNotExist(c *C) {
 
 	sessionid := req.PostSessionGetSessionId("handleA", "password1")
 
-	req.PostMessages("Go is going gophers!", sessionid)
-	req.PostMessages("Hypothesize about stuff", sessionid)
-	req.PostMessages("The nearest exit may be behind you", sessionid)
-	req.PostMessages("I make soap.", sessionid)
+	req.PostMessage("Go is going gophers!", sessionid)
+	req.PostMessage("Hypothesize about stuff", sessionid)
+	req.PostMessage("The nearest exit may be behind you", sessionid)
+	req.PostMessage("I make soap.", sessionid)
 
 	if res, _ := req.GetMessageById("some_id", sessionid); true {
 		c.Check(res.StatusCode, Equals, 404)
@@ -222,7 +222,9 @@ func (s *TestSuite) TestGetMessageByIdOK(c *C) {
 	sessionid_A := req.PostSessionGetSessionId("handleA", "password1")
 	sessionid_B := req.PostSessionGetSessionId("handleB", "password2")
 
-	messageid_1 := req.PostMessageGetMessageId("Go is going gophers!", sessionid_A)
+	circleid_1 := req.PostCircleGetCircleId(sessionid_A, "MyPublicCircle", true)
+	req.PostJoin(sessionid_B, "handleA", "MyPublicCircle")
+	messageid_1 := req.PostMessageWithCirclesGetMessageId("Go is going gophers!", sessionid_A, []string{circleid_1})
 
 	if res, _ := req.GetMessageById(messageid_1, sessionid_B); true {
 		c.Check(res.StatusCode, Equals, 200)

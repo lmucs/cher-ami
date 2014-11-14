@@ -823,7 +823,7 @@ func (s Svc) GetMessageById(handle, messageid string) (message *Message, found b
 	messages := make([]Message, 0)
 	if err := s.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
-			MATCH   (t:User)-[:WROTE]->(m:Message)-[:PUB_TO]->(c:Circle)<-[:MEMBER_OF | CHIEF_OF]-(u:User)
+			MATCH   (t:User)-[:WROTE]->(m:Message)-[:PUB_TO]->(c:Circle)<-[:MEMBER_OF|CHIEF_OF]-(u:User)
 			WHERE   u.handle = {handle}
             AND     m.id     = {messageid}
 			RETURN  m.id

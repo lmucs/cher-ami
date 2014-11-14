@@ -4,7 +4,6 @@ import (
 	"../../types"
 	b "bytes"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -41,7 +40,6 @@ func ExecutePatch(sessionid string, url string, m types.JsonArray) (*http.Respon
 		log.Fatal(err)
 		return nil, err
 	} else {
-		fmt.Printf("Encoded: %+v \n", string(bytes))
 		request, err := http.NewRequest("PATCH", url, b.NewReader(bytes))
 		if err != nil {
 			log.Fatal(err)
@@ -116,8 +114,6 @@ func GetJsonReasonMessage(response *http.Response) string {
 		log.Fatal(err)
 	} else if err := json.Unmarshal(body, &message); err != nil {
 		log.Fatal(err)
-	} else {
-		fmt.Printf("Reason Message: %+v \n", message)
 	}
 
 	return message.Reason
