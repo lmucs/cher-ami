@@ -404,13 +404,66 @@ func (s *TestSuite) TestEditMessageUpdateContentOK(c *C) {
 }
 
 func (s *TestSuite) TestEditMessagePublishCircleOK(c *C) {
+	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
+	sessionid := req.PostSessionGetSessionId("handleA", "password1")
+	messageid := req.PostMessageGetMessageId("Hello, world!", sessionid)
+	circleid := req.PostCircleGetCircleId(sessionid, "MyPublicCircle", true)
 
+	patchObj := types.Json{
+		"op":       "publish",
+		"resource": "circle",
+		"value":    circleid,
+	}
+
+	res, _ := req.EditMessage(types.JsonArray{patchObj}, messageid, sessionid)
+	c.Check(res.StatusCode, Equals, 200)
+	c.Check(helper.GetJsonResponseMessage(res), Equals, "Successfully patched message "+messageid)
 }
 
 func (s *TestSuite) TestEditMessageUnpublishCircleOK(c *C) {
+	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
+	sessionid := req.PostSessionGetSessionId("handleA", "password1")
+	circleid := req.PostCircleGetCircleId(sessionid, "MyPublicCircle", true)
+	messageid := req.PostMessageWithCirclesGetMessageId("Hello, world!", sessionid, []string{circleid})
 
+	patchObj := types.Json{
+		"op":       "unpublish",
+		"resource": "circle",
+		"value":    circleid,
+	}
+
+	res, _ := req.EditMessage(types.JsonArray{patchObj}, messageid, sessionid)
+	c.Check(res.StatusCode, Equals, 200)
+	c.Check(helper.GetJsonResponseMessage(res), Equals, "Successfully patched message "+messageid)
 }
 
 func (s *TestSuite) TestEditMessageAllOK(c *C) {
+	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
+	sessionid := req.PostSessionGetSessionId("handleA", "password1")
+	circleid1 := req.PostCircleGetCircleId(sessionid, "MyPublicCircle", true)
+	messageid := req.PostMessageWithCirclesGetMessageId("Hello, world!", sessionid, []string{circleid1})
 
+	patchObj1 := types.Json{
+		"op":       "update",
+		"resource": "content",
+		"value":    "Hello, world! Again!",
+	}
+
+	circleid2 := req.PostCircleGetCircleId(sessionid, "MyPublicCircle2", true)
+
+	patchObj2 := types.Json{
+		"op":       "publish",
+		"resource": "circle",
+		"value":    circleid2,
+	}
+
+	patchObj3 := types.Json{
+		"op":       "unpublish",
+		"resource": "circle",
+		"value":    circleid1,
+	}
+
+	res, _ := req.EditMessage(types.JsonArray{patchObj1, patchObj2, patchObj3}, messageid, sessionid)
+	c.Check(res.StatusCode, Equals, 200)
+	c.Check(helper.GetJsonResponseMessage(res), Equals, "Successfully patched message "+messageid)
 }
