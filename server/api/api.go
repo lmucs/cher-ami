@@ -5,7 +5,6 @@ import (
 	"../types"
 	apiutil "./api-util"
 	encoding "encoding/json"
-	"fmt"
 	"github.com/ChimeraCoder/go.crypto/bcrypt"
 	"github.com/ant0ine/go-json-rest/rest"
 	"github.com/jmcvetta/neoism"
@@ -471,12 +470,19 @@ func (a Api) NewCircle(w rest.ResponseWriter, r *rest.Request) {
 			return
 		}
 
-		if !a.Svc.NewCircle(handle, circleName, isPublic) {
+		if circleid, ok := a.Svc.NewCircle(handle, circleName, isPublic); !ok {
 			a.Util.SimpleJsonResponse(w, 400, "Unexpected failure to create circle")
 			return
+		} else {
+			w.WriteHeader(201)
+			w.WriteJson(json{
+				"response": "Created new circle!",
+				"chief":    handle,
+				"name":     circleName,
+				"public":   isPublic,
+				"id":       circleid,
+			})
 		}
-
-		a.Util.SimpleJsonResponse(w, 201, "Created new circle "+circleName+" for "+handle)
 	}
 }
 

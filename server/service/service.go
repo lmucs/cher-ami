@@ -390,7 +390,7 @@ func (s Svc) MakeDefaultCirclesFor(handle string) bool {
 	return len(created) > 0
 }
 
-func (s Svc) NewCircle(handle string, circle_name string, isPublic bool) bool {
+func (s Svc) NewCircle(handle string, circle_name string, isPublic bool) (circleid string, success bool) {
 	query := `
         MATCH   (u:User)
         WHERE   u.handle = {handle}
@@ -407,11 +407,12 @@ func (s Svc) NewCircle(handle string, circle_name string, isPublic bool) bool {
         `
 	}
 	query = query + `
-        RETURN c.name
+        RETURN c.name, c.id
     `
 
 	created := []struct {
 		CircleName string `json:"c.name"`
+		CircleId   string `json:"c.id"`
 	}{}
 	if err := s.Db.Cypher(&neoism.CypherQuery{
 		Statement: query,
@@ -425,7 +426,11 @@ func (s Svc) NewCircle(handle string, circle_name string, isPublic bool) bool {
 		panicErr(err)
 	}
 
-	return len(created) > 0
+	if success = len(created) > 0; success {
+		return created[0].CircleId, success
+	} else {
+		return "", success
+	}
 }
 
 func (s Svc) NewMessage(handle string, content string) (messageid string, success bool) {
