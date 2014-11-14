@@ -36,7 +36,7 @@ func Execute(httpMethod string, url string, m map[string]interface{}) (*http.Res
 	}
 }
 
-func ExecutePatch(sessionid string, url string, m []types.Json) (*http.Response, error) {
+func ExecutePatch(sessionid string, url string, m types.JsonArray) (*http.Response, error) {
 	if bytes, err := json.Marshal(m); err != nil {
 		log.Fatal(err)
 		return nil, err

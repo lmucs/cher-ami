@@ -17,6 +17,11 @@ type MessageData struct {
 	Created time.Time
 }
 
+type MessageResponse struct {
+	Response string
+	Object   string
+}
+
 //
 // Get Authored Messages Tests
 //
@@ -175,12 +180,11 @@ func (s *TestSuite) TestGetMessageByIdOK(c *C) {
 
 	if res, _ := req.GetMessageById(messageid_1, sessionid_B); true {
 		c.Check(res.StatusCode, Equals, 200)
-		message_response := struct {
-			Response string
-			Object   string
-		}{}
+		var (
+			message_response MessageResponse
+			msg              MessageData
+		)
 		helper.Unmarshal(res, &message_response)
-		var msg MessageData
 		encoding.Unmarshal([]byte(message_response.Object), &msg)
 		c.Check(message_response.Response, Equals, "Found message!")
 		c.Check(msg.Id, Equals, messageid_1)
@@ -204,11 +208,7 @@ func (s *TestSuite) TestEditMessageInvalidAuth(c *C) {
 		"resource": "content",
 		"value":    "Hello, world! Again!",
 	}
-	// patchObj2 := types.Json{
-	// 	"op":       "update",
-	// 	"resource": "content",
-	// 	"value":    "Hello, world! Again!",
-	// }
+
 	patch := []types.Json{patchObj}
 
 	res, _ := req.EditMessage(patch, messageid, sessionid)
