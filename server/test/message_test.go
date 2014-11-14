@@ -340,7 +340,19 @@ func (s *TestSuite) TestEditMessageUnableToUnpublish(c *C) {
 }
 
 func (s *TestSuite) TestEditMessageUpdateContentOK(c *C) {
+	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
+	sessionid := req.PostSessionGetSessionId("handleA", "password1")
+	messageid := req.PostMessageGetMessageId("Hello, world!", sessionid)
 
+	patchObj := types.Json{
+		"op":       "update",
+		"resource": "content",
+		"value":    "Hello, world! Again!",
+	}
+
+	res, _ := req.EditMessage(types.JsonArray{patchObj}, messageid, sessionid)
+	c.Check(res.StatusCode, Equals, 200)
+	c.Check(helper.GetJsonResponseMessage(res), Equals, "Successfully patched message "+messageid)
 }
 
 func (s *TestSuite) TestEditMessagePublishCircleOK(c *C) {
