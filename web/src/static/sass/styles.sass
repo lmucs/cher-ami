@@ -1,1 +1,11 @@
-@import "vendor/bourbon/bourbon"
+@import "vendor/plugins-dir"
+@import "views/views-dir"
+@import "layouts/layouts-dir"
+
+
+body
+	background-color: lightblue
+
+//make button shiny lighblue
+button
+	@include button(steelblue)

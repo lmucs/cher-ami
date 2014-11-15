@@ -6,6 +6,7 @@ package requester
 //
 
 import (
+	"../../types"
 	helper "../helper/"
 	"fmt"
 	"net/http"
@@ -29,8 +30,6 @@ type Routes struct {
 type Requester struct {
 	Routes *Routes
 }
-
-type json map[string]interface{}
 
 //
 // Constructor --- Use this!
@@ -60,7 +59,7 @@ func NewRequester(apiURL string) *Requester {
 //
 
 func (req Requester) DeleteUser(handle string, password string, sessionid string) (*http.Response, error) {
-	payload := json{
+	payload := types.Json{
 		"handle":    handle,
 		"password":  password,
 		"sessionid": sessionid,
@@ -70,7 +69,7 @@ func (req Requester) DeleteUser(handle string, password string, sessionid string
 }
 
 func (req Requester) DeleteSessions(sessionid string) (*http.Response, error) {
-	payload := json{
+	payload := types.Json{
 		"sessionid": sessionid,
 	}
 
@@ -78,7 +77,7 @@ func (req Requester) DeleteSessions(sessionid string) (*http.Response, error) {
 }
 
 func (req Requester) GetAuthoredMessages(sessionid string) (*http.Response, error) {
-	payload := json{
+	payload := types.Json{
 		"sessionid": sessionid,
 	}
 
@@ -86,7 +85,7 @@ func (req Requester) GetAuthoredMessages(sessionid string) (*http.Response, erro
 }
 
 func (req Requester) GetMessageById(id, sessionid string) (*http.Response, error) {
-	payload := json{
+	payload := types.Json{
 		"sessionid": sessionid,
 	}
 
@@ -94,7 +93,7 @@ func (req Requester) GetMessageById(id, sessionid string) (*http.Response, error
 }
 
 func (req Requester) GetUser(handle string) (*http.Response, error) {
-	payload := json{
+	payload := types.Json{
 		"handle": handle,
 	}
 
@@ -102,7 +101,7 @@ func (req Requester) GetUser(handle string) (*http.Response, error) {
 }
 
 func (req Requester) PostBlock(sessionid string, target string) (*http.Response, error) {
-	payload := json{
+	payload := types.Json{
 		"sessionid": sessionid,
 		"target":    target,
 	}
@@ -111,7 +110,7 @@ func (req Requester) PostBlock(sessionid string, target string) (*http.Response,
 }
 
 func (req Requester) PostChangePassword(sessionid string, password string, newPassword string, confirmNewPassword string) (*http.Response, error) {
-	payload := json{
+	payload := types.Json{
 		"sessionid":          sessionid,
 		"password":           password,
 		"newpassword":        newPassword,
@@ -122,7 +121,7 @@ func (req Requester) PostChangePassword(sessionid string, password string, newPa
 }
 
 func (req Requester) PostCircles(sessionid string, circleName string, public bool) (*http.Response, error) {
-	payload := json{
+	payload := types.Json{
 		"sessionid":  sessionid,
 		"circlename": circleName,
 		"public":     public,
@@ -131,8 +130,23 @@ func (req Requester) PostCircles(sessionid string, circleName string, public boo
 	return helper.Execute("POST", req.Routes.circlesURL, payload)
 }
 
+func (req Requester) PostCircleGetCircleId(sessionid string, circleName string, public bool) string {
+	payload := types.Json{
+		"sessionid":  sessionid,
+		"circlename": circleName,
+		"public":     public,
+	}
+	res, err := helper.Execute("POST", req.Routes.circlesURL, payload)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return helper.GetIdFromResponse(res)
+}
+
 func (req Requester) PostJoin(sessionid string, target string, circle string) (*http.Response, error) {
-	payload := json{
+	payload := types.Json{
 		"sessionid": sessionid,
 		"target":    target,
 		"circle":    circle,
@@ -141,8 +155,8 @@ func (req Requester) PostJoin(sessionid string, target string, circle string) (*
 	return helper.Execute("POST", req.Routes.joinURL, payload)
 }
 
-func (req Requester) PostMessages(content string, sessionid string) (*http.Response, error) {
-	payload := json{
+func (req Requester) PostMessage(content string, sessionid string) (*http.Response, error) {
+	payload := types.Json{
 		"content":   content,
 		"sessionid": sessionid,
 	}
@@ -150,8 +164,18 @@ func (req Requester) PostMessages(content string, sessionid string) (*http.Respo
 	return helper.Execute("POST", req.Routes.messagesURL, payload)
 }
 
+func (req Requester) PostMessageWithCircles(content string, sessionid string, circles []string) (*http.Response, error) {
+	payload := types.Json{
+		"content":   content,
+		"sessionid": sessionid,
+		"circles":   circles,
+	}
+
+	return helper.Execute("POST", req.Routes.messagesURL, payload)
+}
+
 func (req Requester) PostMessageGetMessageId(content, sessionid string) string {
-	payload := json{
+	payload := types.Json{
 		"content":   content,
 		"sessionid": sessionid,
 	}
@@ -164,8 +188,28 @@ func (req Requester) PostMessageGetMessageId(content, sessionid string) string {
 	return helper.GetIdFromResponse(res)
 }
 
+func (req Requester) PostMessageWithCirclesGetMessageId(content string, sessionid string, circles []string) string {
+	payload := types.Json{
+		"content":   content,
+		"sessionid": sessionid,
+		"circles":   circles,
+	}
+
+	res, err := helper.Execute("POST", req.Routes.messagesURL, payload)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return helper.GetIdFromResponse(res)
+}
+
+func (req Requester) EditMessage(payload []types.Json, id string, sessionid string) (*http.Response, error) {
+	return helper.ExecutePatch(sessionid, req.Routes.messagesURL+"/"+id, payload)
+}
+
 func (req Requester) PostSessions(handle string, password string) (*http.Response, error) {
-	payload := json{
+	payload := types.Json{
 		"handle":   handle,
 		"password": password,
 	}
@@ -182,7 +226,7 @@ func (req Requester) PostSessionGetSessionId(handle string, password string) (se
 }
 
 func (req Requester) PostSignup(handle string, email string, password string, confirmPassword string) (*http.Response, error) {
-	proposal := json{
+	proposal := types.Json{
 		"handle":          handle,
 		"email":           email,
 		"password":        password,
@@ -193,7 +237,7 @@ func (req Requester) PostSignup(handle string, email string, password string, co
 }
 
 func (req Requester) PostJoinDefault(sessionid string, target string) (*http.Response, error) {
-	payload := json{
+	payload := types.Json{
 		"sessionid": sessionid,
 		"target":    target,
 	}
@@ -202,7 +246,7 @@ func (req Requester) PostJoinDefault(sessionid string, target string) (*http.Res
 }
 
 func (req Requester) SearchForUsers(circle, nameprefix string, skip, limit int, sort string) (*http.Response, error) {
-	payload := json{
+	payload := types.Json{
 		"circle":     circle,
 		"nameprefix": nameprefix,
 		"skip":       skip,

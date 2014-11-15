@@ -67,11 +67,13 @@ func (s Svc) databaseInit() {
 	err = publicdomain.AddLabel("PublicDomain")
 	panicErr(err)
 
-	if publicdomain != nil {
-		fmt.Println("Public Domain available")
-	} else {
+	if publicdomain == nil {
 		fmt.Println("Unexpected database state, possible lack of PublicDomain")
 	}
+}
+
+func cypherOrPanic(s Svc, query *neoism.CypherQuery) {
+	panicErr(s.Db.Cypher(query))
 }
 
 //
@@ -82,7 +84,7 @@ func (s Svc) UserExists(handle string) bool {
 	found := []struct {
 		Handle string `json:"u.handle"`
 	}{}
-	if err := s.Db.Cypher(&neoism.CypherQuery{
+	cypherOrPanic(s, &neoism.CypherQuery{
 		Statement: `
             MATCH (u:User)
             WHERE u.handle = {handle}
@@ -92,10 +94,7 @@ func (s Svc) UserExists(handle string) bool {
 			"handle": handle,
 		},
 		Result: &found,
-	}); err != nil {
-		panicErr(err)
-	}
-
+	})
 	return len(found) > 0
 }
 
@@ -103,7 +102,7 @@ func (s Svc) CircleExistsInPublicDomain(circleid string) bool {
 	found := []struct {
 		Id string `json:"c.id"`
 	}{}
-	if err := s.Db.Cypher(&neoism.CypherQuery{
+	cypherOrPanic(s, &neoism.CypherQuery{
 		Statement: `
             MATCH (c:Circle)-[:PART_OF]->(p:PublicDomain)
             WHERE c.id = {id}
@@ -113,10 +112,7 @@ func (s Svc) CircleExistsInPublicDomain(circleid string) bool {
 			"id": circleid,
 		},
 		Result: &found,
-	}); err != nil {
-		panicErr(err)
-	}
-
+	})
 	return len(found) > 0
 }
 
@@ -128,7 +124,7 @@ func (s Svc) CanSeeCircle(fromPerspectiveOf string, circleid string) bool {
 	found := []struct {
 		Id string `json:"c.id"`
 	}{}
-	if err := s.Db.Cypher(&neoism.CypherQuery{
+	cypherOrPanic(s, &neoism.CypherQuery{
 		Statement: `
 			MATCH   (u:User)-[:MEMBER_OF|CHIEF_OF]->(c:Circle)
 			WHERE   u.handle = {handle}
@@ -140,10 +136,34 @@ func (s Svc) CanSeeCircle(fromPerspectiveOf string, circleid string) bool {
 			"id":     circleid,
 		},
 		Result: &found,
-	}); err != nil {
-		panicErr(err)
-	}
+	})
+	return len(found) > 0
+}
 
+func (s Svc) UserCanPublishTo(handle, circleid string) bool {
+	return s.UserIsMemberOf(handle, circleid)
+}
+
+func (s Svc) UserCanRetractPublication(handle, messageid, circleid string) bool {
+	found := []struct {
+		R *neoism.Relationship `json:"r"`
+	}{}
+
+	cypherOrPanic(s, &neoism.CypherQuery{
+		Statement: `
+            MATCH (u:User)-[:WROTE]->(m:Message)-[r:PUB_TO]->(c:Circle)
+            WHERE u.handle = {handle}
+            AND   m.id     = {messageid}
+            AND   c.id     = {circleid}
+            RETURN r
+        `,
+		Parameters: neoism.Props{
+			"handle":    handle,
+			"messageid": messageid,
+			"circleid":  circleid,
+		},
+		Result: &found,
+	})
 	return len(found) > 0
 }
 
@@ -151,7 +171,7 @@ func (s Svc) MessageExists(messageid string) bool {
 	found := []struct {
 		Id int `json:"m.id"`
 	}{}
-	if err := s.Db.Cypher(&neoism.CypherQuery{
+	cypherOrPanic(s, &neoism.CypherQuery{
 		Statement: `
             MATCH (m:Message)
             WHERE m.id = {id}
@@ -161,10 +181,7 @@ func (s Svc) MessageExists(messageid string) bool {
 			"id": messageid,
 		},
 		Result: &found,
-	}); err != nil {
-		panicErr(err)
-	}
-
+	})
 	return len(found) > 0
 }
 
@@ -208,7 +225,7 @@ func (s Svc) VerifySession(sessionid string) bool {
 	found := []struct {
 		Handle string `json:"u.handle"`
 	}{}
-	if err := s.Db.Cypher(&neoism.CypherQuery{
+	cypherOrPanic(s, &neoism.CypherQuery{
 		Statement: `
             MATCH  (u:User)<-[:SESSION_OF]-(a:AuthToken)
             WHERE  a.sessionid = {sessionid}
@@ -220,10 +237,7 @@ func (s Svc) VerifySession(sessionid string) bool {
 			"now":       time.Now().Local(),
 		},
 		Result: &found,
-	}); err != nil {
-		panicErr(err)
-	}
-
+	})
 	return len(found) > 0
 }
 
@@ -250,7 +264,7 @@ func (s Svc) BlockExistsFromTo(handle string, target string) bool {
 	found := []struct {
 		Relation int `json:"r"`
 	}{}
-	if err := s.Db.Cypher(&neoism.CypherQuery{
+	cypherOrPanic(s, &neoism.CypherQuery{
 		Statement: `
             MATCH (u:User), (t:User)
             WHERE u.handle = {handle}
@@ -263,10 +277,7 @@ func (s Svc) BlockExistsFromTo(handle string, target string) bool {
 			"target": target,
 		},
 		Result: &found,
-	}); err != nil {
-		panicErr(err)
-	}
-
+	})
 	return len(found) > 0
 }
 
@@ -274,9 +285,9 @@ func (s Svc) UserIsMemberOf(handle string, circleid string) bool {
 	found := []struct {
 		Handle string `json:"u.handle"`
 	}{}
-	if err := s.Db.Cypher(&neoism.CypherQuery{
+	cypherOrPanic(s, &neoism.CypherQuery{
 		Statement: `
-			MATCH (u:User)-[:MEMBER_OF:CHIEF_OF]->(c:Circle)
+			MATCH (u:User)-[:MEMBER_OF|CHIEF_OF]->(c:Circle)
 			WHERE u.handle = {handle}
 			AND   c.id     = {circleid}
 			RETURN u.handle
@@ -286,10 +297,7 @@ func (s Svc) UserIsMemberOf(handle string, circleid string) bool {
 			"circleid": circleid,
 		},
 		Result: &found,
-	}); err != nil {
-		panicErr(err)
-	}
-
+	})
 	return len(found) > 0
 }
 
@@ -303,7 +311,7 @@ func (s Svc) CreateNewUser(handle string, email string, password string) bool {
 		Email  string    `json:"user.email"`
 		Joined time.Time `json:"user.joined"`
 	}{}
-	if err := s.Db.Cypher(&neoism.CypherQuery{
+	cypherOrPanic(s, &neoism.CypherQuery{
 		Statement: `
             CREATE (user:User {
                 handle:   {handle},
@@ -321,10 +329,7 @@ func (s Svc) CreateNewUser(handle string, email string, password string) bool {
 			"joined":   time.Now().Local(),
 		},
 		Result: &newUser,
-	}); err != nil {
-		panicErr(err)
-	}
-
+	})
 	return len(newUser) > 0
 }
 
@@ -334,7 +339,7 @@ func (s Svc) MakeDefaultCirclesFor(handle string) bool {
 		Gold      string `json:"g.name"`
 		Broadcast string `json:"br.name"`
 	}{}
-	if err := s.Db.Cypher(&neoism.CypherQuery{
+	cypherOrPanic(s, &neoism.CypherQuery{
 		Statement: `
             MATCH (p:PublicDomain)
             WHERE p.iam = "PublicDomain"
@@ -353,14 +358,11 @@ func (s Svc) MakeDefaultCirclesFor(handle string) bool {
 			"broadcast": BROADCAST,
 		},
 		Result: &created,
-	}); err != nil {
-		panicErr(err)
-	}
-
+	})
 	return len(created) > 0
 }
 
-func (s Svc) NewCircle(handle string, circle_name string, isPublic bool) bool {
+func (s Svc) NewCircle(handle string, circle_name string, isPublic bool) (circleid string, success bool) {
 	query := `
         MATCH   (u:User)
         WHERE   u.handle = {handle}
@@ -377,11 +379,12 @@ func (s Svc) NewCircle(handle string, circle_name string, isPublic bool) bool {
         `
 	}
 	query = query + `
-        RETURN c.name
+        RETURN c.name, c.id
     `
 
 	created := []struct {
 		CircleName string `json:"c.name"`
+		CircleId   string `json:"c.id"`
 	}{}
 	if err := s.Db.Cypher(&neoism.CypherQuery{
 		Statement: query,
@@ -395,7 +398,11 @@ func (s Svc) NewCircle(handle string, circle_name string, isPublic bool) bool {
 		panicErr(err)
 	}
 
-	return len(created) > 0
+	if success = len(created) > 0; success {
+		return created[0].CircleId, success
+	} else {
+		return "", success
+	}
 }
 
 func (s Svc) NewMessage(handle string, content string) (messageid string, success bool) {
@@ -435,19 +442,18 @@ func (s Svc) NewMessage(handle string, content string) (messageid string, succes
 	}
 }
 
-func (s Svc) PublishMessage(messageid, circleid string) bool {
+func (s Svc) PublishMessageToCircle(messageid, circleid string) bool {
 	created := []struct {
 		R *neoism.Relationship `json:"r"`
 	}{}
 	if err := s.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
-            MATCH (m:Message)
-            WHERE m.id={messageid}
-            MATCH (c:Circle)
-            WHERE c.id={circleid}
-            CREATE (m)-[r:PUB_TO]->(c)
-            SET r.published_at={now}
-            RETURN r
+            MATCH   (m:Message), (c:Circle)
+            WHERE   m.id = {messageid}
+            AND     c.id = {circleid}
+            CREATE  (m)-[r:PUB_TO]->(c)
+            SET     r.published_at = {now}
+            RETURN  r
         `,
 		Parameters: neoism.Props{
 			"messageid": messageid,
@@ -458,6 +464,7 @@ func (s Svc) PublishMessage(messageid, circleid string) bool {
 	}); err != nil {
 		panicErr(err)
 	}
+
 	return len(created) > 0
 }
 
@@ -615,6 +622,25 @@ func (s Svc) DeleteUser(handle string) bool {
 	return true
 }
 
+func (s Svc) UnpublishMessageFromCircle(messageid, circleid string) bool {
+	if err := s.Db.Cypher(&neoism.CypherQuery{
+		Statement: `
+            MATCH  (m:Message)-[r:PUB_TO]->(c:Circle)
+            WHERE  m.id = {messageid}
+            AND    c.id = {circleid}
+            DELETE r
+        `,
+		Parameters: neoism.Props{
+			"messageid": messageid,
+			"circleid":  circleid,
+		},
+	}); err != nil {
+		panicErr(err)
+	}
+
+	return true
+}
+
 //
 // Get
 //
@@ -764,14 +790,16 @@ func (s Svc) GetMessageById(handle, messageid string) (message *Message, found b
 	messages := make([]Message, 0)
 	if err := s.Db.Cypher(&neoism.CypherQuery{
 		Statement: `
-			MATCH   (t:User)-[:WROTE]->(m:Message), (u:User)
-			WHERE   m.id = {messageid}
+			MATCH   (t:User)-[:WROTE]->(m:Message)-[:PUB_TO]->(c:Circle)<-[:MEMBER_OF|CHIEF_OF]-(u:User)
+			WHERE   u.handle = {handle}
+            AND     m.id     = {messageid}
 			RETURN  m.id
 	              , t.handle
 	              , m.content
 	              , m.created
 		`,
 		Parameters: neoism.Props{
+			"handle":    handle,
 			"messageid": messageid,
 		},
 		Result: &messages,
@@ -779,10 +807,10 @@ func (s Svc) GetMessageById(handle, messageid string) (message *Message, found b
 		panicErr(err)
 	}
 
-	if success := len(messages) > 0; success {
-		return &messages[0], success
+	if ok := len(messages) > 0; ok {
+		return &messages[0], ok
 	} else {
-		return nil, success
+		return nil, ok
 	}
 }
 
@@ -842,7 +870,7 @@ func (s Svc) SetGetNewSessionId(handle string) string {
             `,
 		Parameters: neoism.Props{
 			"handle":    handle,
-			"sessionid": uniuri.NewLen(uniuri.UUIDLen),
+			"sessionid": "Token " + uniuri.NewLen(uniuri.UUIDLen),
 			"time":      now.Add(sessionDuration),
 			"now":       now,
 		},
@@ -926,6 +954,28 @@ func (s Svc) SetGetName(handle string, name string) string {
 	}
 
 	return user[0].Name
+}
+
+func (s Svc) UpdateContentOfMessage(messageid, content string) bool {
+	updated := []struct {
+		Content string
+	}{}
+	cypherOrPanic(s, &neoism.CypherQuery{
+		Statement: `
+            MATCH  (m:Message)
+            WHERE  m.id        = {messageid}
+            SET    m.content   = {content}
+            SET    m.lastsaved = {now}
+            RETURN m.content
+        `,
+		Parameters: neoism.Props{
+			"messageid": messageid,
+			"content":   content,
+			"now":       time.Now().Local(),
+		},
+		Result: &updated,
+	})
+	return len(updated) > 0
 }
 
 //

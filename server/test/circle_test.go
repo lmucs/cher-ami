@@ -84,9 +84,21 @@ func (s *TestSuite) TestPostPublicCircleOK(c *C) {
 	if err != nil {
 		c.Error(err)
 	}
-
-	c.Check(helper.GetJsonResponseMessage(res), Equals, "Created new circle MyPublicCircle for handleA")
 	c.Check(res.StatusCode, Equals, 201)
+
+	data := struct {
+		Response string
+		Chief    string
+		Name     string
+		Public   bool
+		Id       string
+	}{}
+
+	helper.Unmarshal(res, &data)
+	c.Check(data.Response, Equals, "Created new circle!")
+	c.Check(data.Chief, Equals, "handleA")
+	c.Check(data.Name, Equals, "MyPublicCircle")
+	c.Check(data.Public, Equals, true)
 }
 
 func (s *TestSuite) TestPostPrivateCircleOK(c *C) {
@@ -94,13 +106,25 @@ func (s *TestSuite) TestPostPrivateCircleOK(c *C) {
 
 	sessionid := req.PostSessionGetSessionId("handleA", "password1")
 
-	res, err := req.PostCircles(sessionid, "MyPrivateCircle", true)
+	res, err := req.PostCircles(sessionid, "MyPrivateCircle", false)
 	if err != nil {
 		c.Error(err)
 	}
-
-	c.Check(helper.GetJsonResponseMessage(res), Equals, "Created new circle MyPrivateCircle for handleA")
 	c.Check(res.StatusCode, Equals, 201)
+
+	data := struct {
+		Response string
+		Chief    string
+		Name     string
+		Public   bool
+		Id       string
+	}{}
+
+	helper.Unmarshal(res, &data)
+	c.Check(data.Response, Equals, "Created new circle!")
+	c.Check(data.Chief, Equals, "handleA")
+	c.Check(data.Name, Equals, "MyPrivateCircle")
+	c.Check(data.Public, Equals, false)
 }
 
 //

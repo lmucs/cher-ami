@@ -27,7 +27,7 @@ define(function(require, exports, module) {
 
         events: {
             'click #remember-me': 'onRememberConfirm',
-            'keyup #handle': 'inputValidate',
+            // 'keyup #handle': 'inputValidate',
             'click #signup': 'onFormConfirm'
         },
 
@@ -49,10 +49,6 @@ define(function(require, exports, module) {
             });
             console.log(req)
             req.save();
-        },
-
-        passwordMatch: function(event) {
-            passCheck(this.ui.pass, this.ui.confirmPass, this.ui.warning)
         },
 
         inputValidate: function(event) {

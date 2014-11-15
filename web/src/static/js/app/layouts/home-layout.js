@@ -1,5 +1,4 @@
 define(function(require, exports, module) {
-
     var marionette = require('marionette');
     var template = require('hbs!../templates/layouts/home-layout')
     var MessagesView = require('app/views/messages-view').MessagesView;
@@ -8,6 +7,8 @@ define(function(require, exports, module) {
     var Messages = require('app/collections/messages').Messages;
     var CreateCircleView = require('app/views/create-circle-view').CreateCircleView;
     var ProfileView = require('app/views/profile-view').ProfileView;
+    var EditProfileView = require('app/views/edit-profile-view').EditProfileView;
+    var SettingsView = require('app/views/settings-view').SettingsView;
 
     var HomeLayout = marionette.LayoutView.extend({
         template: template,
@@ -15,31 +16,34 @@ define(function(require, exports, module) {
         regions: {
             feed: '#feed-container',
             circle: '#create-circle-view',
-            profile: '#profile-container'
+            profile: '#profile-container',
+            editProfile:'#edit-profile-container',
+            settings: '#settings-container'
         },
 
         ui: {
             feedContainer: '#feed-container',
             showContent: '#showContent',
             createCircle: '#goToCreateCircle',
-            displayProfile: '#goToProfile'
+            displayProfile: '#goToProfile',
+            editProfile: '#editProfile',
+            displaySettings: '#goToSettings'
         },
 
         events: {
             'click #goToCreateCircle': 'showCreateCircle',
-            'click #goToProfile': 'showProfile'
+            'click #goToProfile': 'showProfile',
+            'click #editProfile': 'showEditProfile',
+            'click #goToHome': 'showFeed',
+            'click #profileSaveButton': 'showProfile',
+            'click #goToSettings': 'showSettings'
         },
 
         initialize: function(options) {
         },
 
-
         onRender: function() {
-            var messages = new Messages();
-            var feed = new MessagesView({
-                collection: messages
-            });
-            this.feed.show(feed);
+            this.showFeed();
         },
 
         showProfile: function(options) {
@@ -49,9 +53,26 @@ define(function(require, exports, module) {
 
         showCreateCircle: function(options) {
             var createCircle = new CreateCircleView();
-            this.circle.show(createCircle);
-        }
+            this.profile.show(createCircle);
+        },
 
+        showEditProfile: function(options) {
+            var editProfile = new EditProfileView();
+            this.profile.show(editProfile);
+        },
+
+        showFeed: function(options) {
+            var messages = new Messages();
+            var feed = new MessagesView({
+                collection: messages
+            });
+            this.profile.show(feed);
+        },
+
+        showSettings: function(options) {
+            var showSettings = new SettingsView();
+            this.profile.show(showSettings);
+        },
     });
     exports.HomeLayout = HomeLayout;
 })

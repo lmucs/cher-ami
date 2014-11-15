@@ -1,11 +1,9 @@
 define(function(require, exports, module) {
-
     var marionette = require('marionette');
     var template = require('hbs!../templates/layouts/landing-layout')
     var SignupView = require('app/views/signup-view').SignupView;
     var LoginView = require('app/views/login-view').LoginView;
     var Login = require('app/models/login').Login;
-
     var LandingLayout = marionette.LayoutView.extend({
         template: template,
 
@@ -39,8 +37,6 @@ define(function(require, exports, module) {
         initialize: function(options) {
             this.session = options.session;
         }
-
     });
-
     exports.LandingLayout = LandingLayout;
 })
