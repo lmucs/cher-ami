@@ -22,12 +22,12 @@ func NewQuery(uri string) *Query {
 		panicIfErr(err)
 	}
 	query := Query{neo4jdb}
-	query.databaseInit()
+	query.DatabaseInit()
 	return &query
 }
 
 // Initializes the Neo4j Database
-func (q Query) databaseInit() {
+func (q Query) DatabaseInit() {
 	if publicDomain := q.CreateUniquePublicDomain(); publicDomain == nil {
 		fmt.Println("Unexpected database state, possible lack of PublicDomain")
 	}
@@ -77,7 +77,7 @@ func (q Query) CreateUniquePublicDomain() *neoism.Node {
 	}
 }
 
-func (q Query) NewUser(handle, email, passwordHash string) bool {
+func (q Query) CreateUser(handle, email, passwordHash string) bool {
 	newUser := []struct {
 		Handle string    `json:"user.handle"`
 		Email  string    `json:"user.email"`
@@ -488,3 +488,79 @@ func (q Query) BlockExistsFromTo(handle, target string) bool {
 //
 // Delete
 //
+
+func (q Query) DeleteAllNodesAndRelations() {
+	q.cypherOrPanic(&neoism.CypherQuery{
+		Statement: `
+            MATCH (n)
+            OPTIONAL MATCH (n)-[r]-()
+            DELETE n, r
+        `,
+	})
+}
+
+func (q Query) DisconnectTargetFromAllHeldCircles(handle, target string) {
+	q.cypherOrPanic(&neoism.CypherQuery{
+		Statement: `
+            MATCH (u:User)
+            WHERE u.handle={handle}
+            MATCH (t:User)
+            WHERE t.handle={target}
+            OPTIONAL MATCH (u)-[:CHIEF_OF]->(c:Circle)
+            OPTIONAL MATCH (t)-[r:MEMBER_OF]->(c)
+            DELETE r
+        `,
+		Parameters: neoism.Props{
+			"handle": handle,
+			"target": target,
+		},
+	})
+}
+
+func (q Query) DeleteUser(handle string) bool {
+	panic("DeleteUser is antiquated and should be improved before usage")
+	q.cypherOrPanic(&neoism.CypherQuery{
+		Statement: `
+                MATCH (u:User)
+                WHERE u.handle = {handle}
+                WITH  u
+                OPTIONAL MATCH (a:AuthToken)-[r:SESSION_OF]->(u)
+                DELETE a, r
+                WITH u
+                MATCH (u)-[wr:WROTE]->(m:Message)-[pt:PUB_TO]->(:Circle)
+                DELETE pt, m, wr
+                WITH u
+                MATCH (u)-[mo:MEMBER_OF]->(:Circle)
+                DELETE mo
+                WITH u
+                MATCH (u)-[b:BLOCKED]->(:User)
+                DELETE b
+                WITH u
+                MATCH (u)-[co:CHIEF_OF]->(c:Circle)-[po:PART_OF]->(:PublicDomain)
+                MATCH (c)<-[mo:MEMBER_OF]-(:User)
+                MATCH (c)<-[pt:PUB_TO]-(:Message)
+                DELETE pt, mo, co, po, c, u
+            `,
+		Parameters: neoism.Props{
+			"handle": handle,
+		},
+	})
+	return true
+}
+
+func (q Query) DeletePublishedRelation(messageid, circleid string) bool {
+	panic("DeletePublishedRelation is antiquated and should be improved before usage")
+	q.cypherOrPanic(&neoism.CypherQuery{
+		Statement: `
+            MATCH  (m:Message)-[r:PUB_TO]->(c:Circle)
+            WHERE  m.id = {messageid}
+            AND    c.id = {circleid}
+            DELETE r
+        `,
+		Parameters: neoism.Props{
+			"messageid": messageid,
+			"circleid":  circleid,
+		},
+	})
+	return true
+}

@@ -798,7 +798,7 @@ func (a Api) BlockUser(w rest.ResponseWriter, r *rest.Request) {
 			return
 		}
 
-		a.Svc.RevokeMembershipBetween(handle, target)
+		a.Svc.KickTargetFromCircles(handle, target)
 
 		if !a.Svc.CreateBlockFromTo(handle, target) {
 			a.Util.SimpleJsonResponse(w, 400, "Unexpected failure to block user")
