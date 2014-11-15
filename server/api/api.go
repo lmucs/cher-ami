@@ -1,8 +1,8 @@
 package api
 
 import (
-	"../service"
 	"../types"
+	"./service"
 	apiutil "./util"
 	encoding "encoding/json"
 	"github.com/ChimeraCoder/go.crypto/bcrypt"

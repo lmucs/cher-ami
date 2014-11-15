@@ -1,11 +1,11 @@
 package service
 
 import (
+	"./query"
 	"encoding/json"
 	"fmt"
 	"github.com/dchest/uniuri"
 	"github.com/jmcvetta/neoism"
-	"log"
 	"time"
 )
 
@@ -24,7 +24,7 @@ const (
 //
 
 type Svc struct {
-	Db *neoism.Database
+	Query *query.Query
 }
 
 //

@@ -32,5 +32,5 @@ func main() {
 	http.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("../web/src/"))))
 
 	fmt.Printf("The CherAmi server is listening on port %s\n", port)
-	log.Fatal(http.ListenAndServe(":" + port, nil))
+	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
