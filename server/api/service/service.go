@@ -2,7 +2,6 @@ package service
 
 import (
 	"./query"
-	"encoding/json"
 	"fmt"
 	"github.com/dchest/uniuri"
 	"github.com/jmcvetta/neoism"
@@ -25,16 +24,6 @@ const (
 
 type Svc struct {
 	Query *query.Query
-}
-
-//
-// Return types
-//
-type Message struct {
-	Id      string    `json:"m.id"`
-	Author  string    `json:"t.handle"`
-	Content string    `json:"m.content"`
-	Created time.Time `json:"m.created"`
 }
 
 //
@@ -112,7 +101,8 @@ func (s Svc) MakeDefaultCirclesFor(handle string) bool {
 	return s.Query.CreateDefaultCirclesForUser(handle)
 }
 
-func (s Svc) NewCircle(handle, circleName string, isPublic bool) (circleid string, ok bool) {
+func (s Svc) NewCircle(handle, circleName string, isPublic bool,
+) (circleid string, ok bool) {
 	return s.Query.CreateCircle(handle, circleName, isPublic)
 }
 
@@ -162,200 +152,30 @@ func (s Svc) UnpublishMessageFromCircle(messageid, circleid string) bool {
 // Get
 //
 
-func (s Svc) SearchForUsers(
-	circle string,
-	nameprefix string,
-	skip int,
-	limit int,
-	sort string,
+func (s Svc) SearchForUsers(circle, nameprefix string, skip, limit int, sort string,
 ) (results string, count int) {
-	res := []struct {
-		Handle string `json:"u.handle"`
-		Name   string `json:"u.name"`
-		Id     int    `json:"id(u)"`
-	}{}
-
-	var statement string
-	props := neoism.Props{}
-
-	regex := "(?i)" + nameprefix + ".*"
-
-	if circle != "" {
-		statement = `
-			MATCH (u:User)-[]->(c:Circle)
-			WHERE c.name = {circle}
-			AND   u.handle =~ {regex}
-		`
-		props = neoism.Props{
-			"circle": circle,
-			"regex":  regex,
-			"skip":   skip,
-			"limit":  limit,
-			"sort":   sort,
-		}
-	} else {
-		statement = `
-			MATCH  (u:User)
-			WHERE  u.handle =~ {regex}
-		`
-		props = neoism.Props{
-			"regex": regex,
-			"skip":  skip,
-			"limit": limit,
-			"sort":  sort,
-		}
-	}
-
-	statement = statement + `
-        RETURN u.handle, u.name, id(u)
-        SKIP   {skip}
-        LIMIT  {limit}
-	`
-
-	if err := s.Db.Cypher(&neoism.CypherQuery{
-		Statement:  statement,
-		Parameters: props,
-		Result:     &res,
-	}); err != nil {
-		panicErr(err)
-	} else if len(res) == 0 {
-		return "", 0
-	}
-
-	bytes, err := json.Marshal(res)
-	if err != nil {
-		panicErr(err)
-	}
-
-	return string(bytes), len(res)
+	return s.Query.SearchForUsers(circle, nameprefix, skip, limit, sort)
 }
 
-func (s Svc) GetPasswordHash(user string) (password_hash []byte, found bool) {
-	res := []struct {
-		PasswordHash string `json:"u.password"`
-	}{}
-	if err := s.Db.Cypher(&neoism.CypherQuery{
-		Statement: `
-            MATCH (u:User)
-            WHERE u.handle = {handle}
-            RETURN u.password
-        `,
-		Parameters: neoism.Props{
-			"handle": user,
-		},
-		Result: &res,
-	}); err != nil {
-		panicErr(err)
-	} else if len(res) != 1 {
-		return []byte{}, len(res) > 0
-	}
-
-	return []byte(res[0].PasswordHash), len(res) > 0
+func (s Svc) GetPasswordHash(handle string) (passwordHash []byte, ok bool) {
+	return s.Query.GetPasswordHash(handle)
 }
 
-func (s Svc) GetCircleId(handle string, circle string) string {
-	found := []struct {
-		Id string `json:"c.id"`
-	}{}
-	if err := s.Db.Cypher(&neoism.CypherQuery{
-		Statement: `
-			MATCH  (u:User)-[:CHIEF_OF]->(c:Circle)
-			WHERE  u.handle = {handle}
-			AND    c.name   = {circle}
-			RETURN c.id
-		`,
-		Parameters: neoism.Props{
-			"handle": handle,
-			"circle": circle,
-		},
-		Result: &found,
-	}); err != nil {
-		panicErr(err)
-	}
-
-	if len(found) > 0 {
-		return found[0].Id
-	} else {
-		return ""
-	}
+func (s Svc) GetCircleId(handle, circleName string) (circleid string) {
+	return s.Query.GetCircleIdByName(handle, circleName)
 }
 
-func (s Svc) GetMessagesByHandle(target string) []Message {
-	messages := make([]Message, 0)
-	if err := s.Db.Cypher(&neoism.CypherQuery{
-		Statement: `
-            MATCH     (t:User)-[:WROTE]->(m:Message)
-            WHERE     t.handle = {target}
-            RETURN    m.id
-                    , t.handle
-                    , m.content
-                    , m.created
-            ORDER BY  m.created
-        `,
-		Parameters: neoism.Props{
-			"target": target,
-		},
-		Result: &messages,
-	}); err != nil {
-		panicErr(err)
-	}
-
-	return messages
+func (s Svc) GetMessagesByHandle(target string) []query.Message {
+	return s.Query.GetAllMessagesByHandle(target)
 }
 
-func (s Svc) GetMessageById(handle, messageid string) (message *Message, found bool) {
-	messages := make([]Message, 0)
-	if err := s.Db.Cypher(&neoism.CypherQuery{
-		Statement: `
-			MATCH   (t:User)-[:WROTE]->(m:Message)-[:PUB_TO]->(c:Circle)<-[:MEMBER_OF|CHIEF_OF]-(u:User)
-			WHERE   u.handle = {handle}
-            AND     m.id     = {messageid}
-			RETURN  m.id
-	              , t.handle
-	              , m.content
-	              , m.created
-		`,
-		Parameters: neoism.Props{
-			"handle":    handle,
-			"messageid": messageid,
-		},
-		Result: &messages,
-	}); err != nil {
-		panicErr(err)
-	}
-
-	if ok := len(messages) > 0; ok {
-		return &messages[0], ok
-	} else {
-		return nil, ok
-	}
+func (s Svc) GetVisibleMessageById(handle, messageid string,
+) (message *query.Message, ok bool) {
+	return s.Query.GetVisibleMessageById(handle, messageid)
 }
 
-func (s Svc) GetHandleFromAuthorization(token string) (string, bool) {
-	found := []struct {
-		Handle string `json:"u.handle"`
-	}{}
-	if err := s.Db.Cypher(&neoism.CypherQuery{
-		Statement: `
-			MATCH   (u:User)<-[:SESSION_OF]-(a:AuthToken)
-			WHERE   a.sessionid = {sessionid}
-			AND     {now} < a.expires
-			RETURN  u.handle
-		`,
-		Parameters: neoism.Props{
-			"sessionid": token,
-			"now":       time.Now().Local(),
-		},
-		Result: &found,
-	}); err != nil {
-		panicErr(err)
-	}
-
-	if success := len(found) > 0; success {
-		return found[0].Handle, success
-	} else {
-		return "", success
-	}
+func (s Svc) GetHandleFromAuthorization(token string) (handle string, ok bool) {
+	return s.Query.DeriveHandleFromAuthToken(token)
 }
 
 //

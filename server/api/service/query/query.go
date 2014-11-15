@@ -1,6 +1,7 @@
 package query
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/dchest/uniuri"
 	"github.com/jmcvetta/neoism"
@@ -51,12 +52,21 @@ func panicIfErr(err error) {
 	}
 }
 
-// Constants
+// Constants //
 const (
 	// Reserved Circles
 	GOLD      = "Gold"
 	BROADCAST = "Broadcast"
 )
+
+// Return types //
+
+type Message struct {
+	Id      string    `json:"m.id"`
+	Author  string    `json:"t.handle"`
+	Content string    `json:"m.content"`
+	Created time.Time `json:"m.created"`
+}
 
 //
 // Create
@@ -310,6 +320,8 @@ func (q Query) CreateBlockRelationFromTo(handle, target string) bool {
 // Read
 //
 
+// Checks //
+
 func (q Query) UserExistsByHandle(handle string) bool {
 	found := []struct {
 		Handle string `json:"u.handle"`
@@ -479,6 +491,182 @@ func (q Query) BlockExistsFromTo(handle, target string) bool {
 		Result: &found,
 	})
 	return len(found) > 0
+}
+
+// Get Data //
+
+func (q Query) SearchForUsers(circle, namePrefix string, skip, limit int, sortBy string,
+) (results string, count int) {
+	res := []struct {
+		Handle string `json:"u.handle"`
+		Name   string `json:"u.name"`
+		Id     int    `json:"id(u)"`
+	}{}
+
+	var query string
+	props := neoism.Props{}
+	regex := "(?i)" + namePrefix + ".*"
+
+	if circle != "" {
+		query = `
+			MATCH (u:User)-[]->(c:Circle)
+			WHERE c.name = {circle}
+			AND   u.handle =~ {regex}
+		`
+		props = neoism.Props{
+			"circle": circle,
+			"regex":  regex,
+			"skip":   skip,
+			"limit":  limit,
+			"sort":   sortBy,
+		}
+	} else {
+		query = `
+			MATCH  (u:User)
+			WHERE  u.handle =~ {regex}
+		`
+		props = neoism.Props{
+			"regex": regex,
+			"skip":  skip,
+			"limit": limit,
+			"sort":  sortBy,
+		}
+	}
+	query = query + `
+        RETURN u.handle, u.name, id(u)
+        SKIP   {skip}
+        LIMIT  {limit}
+	`
+
+	q.cypherOrPanic(&neoism.CypherQuery{
+		Statement:  query,
+		Parameters: props,
+		Result:     &res,
+	})
+
+	if len(res) == 0 {
+		return "", 0
+	} else {
+		bytes, err := json.Marshal(res)
+		panicIfErr(err)
+		return string(bytes), len(res)
+	}
+}
+
+func (q Query) GetPasswordHash(handle string) (passwordHash []byte, ok bool) {
+	found := []struct {
+		PasswordHash string `json:"u.password"`
+	}{}
+	q.cypherOrPanic(&neoism.CypherQuery{
+		Statement: `
+            MATCH (u:User)
+            WHERE u.handle = {handle}
+            RETURN u.password
+        `,
+		Parameters: neoism.Props{
+			"handle": handle,
+		},
+		Result: &found,
+	})
+
+	if ok := len(found) > 0; !ok {
+		return []byte{}, ok
+	} else {
+		return []byte(found[0].PasswordHash), ok
+	}
+}
+
+func (q Query) GetCircleIdByName(handle, circleName string) (circleid string) {
+	found := []struct {
+		Id string `json:"c.id"`
+	}{}
+	q.cypherOrPanic(&neoism.CypherQuery{
+		Statement: `
+			MATCH  (u:User)-[:CHIEF_OF]->(c:Circle)
+			WHERE  u.handle = {handle}
+			AND    c.name   = {circle}
+			RETURN c.id
+		`,
+		Parameters: neoism.Props{
+			"handle": handle,
+			"circle": circleName,
+		},
+		Result: &found,
+	})
+	if len(found) > 0 {
+		return found[0].Id
+	} else {
+		return ""
+	}
+}
+
+func (q Query) GetAllMessagesByHandle(target string) []Message {
+	messages := make([]Message, 0)
+	q.cypherOrPanic(&neoism.CypherQuery{
+		Statement: `
+            MATCH     (t:User)-[:WROTE]->(m:Message)
+            WHERE     t.handle = {target}
+            RETURN    m.id
+                    , t.handle
+                    , m.content
+                    , m.created
+            ORDER BY  m.created
+        `,
+		Parameters: neoism.Props{
+			"target": target,
+		},
+		Result: &messages,
+	})
+	return messages
+}
+
+func (q Query) GetVisibleMessageById(handle, messageid string) (message *Message, found bool) {
+	messages := make([]Message, 0)
+	q.cypherOrPanic(&neoism.CypherQuery{
+		Statement: `
+			MATCH   (t:User)-[:WROTE]->(m:Message)-[:PUB_TO]->(c:Circle)<-[:MEMBER_OF|CHIEF_OF]-(u:User)
+			WHERE   u.handle = {handle}
+            AND     m.id     = {messageid}
+			RETURN  m.id
+	              , t.handle
+	              , m.content
+	              , m.created
+		`,
+		Parameters: neoism.Props{
+			"handle":    handle,
+			"messageid": messageid,
+		},
+		Result: &messages,
+	})
+	if ok := len(messages) > 0; ok {
+		return &messages[0], ok
+	} else {
+		return nil, ok
+	}
+}
+
+func (q Query) DeriveHandleFromAuthToken(token string) (handle string, ok bool) {
+	found := []struct {
+		Handle string `json:"u.handle"`
+	}{}
+	q.cypherOrPanic(&neoism.CypherQuery{
+		Statement: `
+			MATCH   (u:User)<-[:SESSION_OF]-(a:AuthToken)
+			WHERE   a.sessionid = {sessionid}
+			AND     {now} < a.expires
+			RETURN  u.handle
+		`,
+		Parameters: neoism.Props{
+			"sessionid": token,
+			"now":       time.Now().Local(),
+		},
+		Result: &found,
+	})
+	if ok = len(found) > 0; ok {
+		return found[0].Handle, ok
+	} else {
+		return "", ok
+	}
 }
 
 //
