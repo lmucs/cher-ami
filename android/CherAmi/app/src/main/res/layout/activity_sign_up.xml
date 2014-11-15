@@ -58,7 +58,7 @@
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:text="Already Have an Account?"
-        android:id="@+id/textView"
+        android:id="@+id/filter"
         android:singleLine="false"
         android:gravity="center"
         android:layout_marginBottom="10dp"

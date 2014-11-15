@@ -14,7 +14,7 @@
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="THIS IS AN IMAGE"
-        android:id="@+id/textView"
+        android:id="@+id/filter"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="56dp" />
@@ -25,9 +25,9 @@
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:text="ThatHalfKorean"
         android:id="@+id/textView2"
-        android:layout_below="@+id/textView"
-        android:layout_alignRight="@+id/textView"
-        android:layout_alignEnd="@+id/textView"
+        android:layout_below="@+id/filter"
+        android:layout_alignRight="@+id/filter"
+        android:layout_alignEnd="@+id/filter"
         android:onClick="showProfile"
         android:clickable="true"/>
 </RelativeLayout>

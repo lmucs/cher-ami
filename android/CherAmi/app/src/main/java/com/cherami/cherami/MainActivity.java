@@ -140,8 +140,7 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
     public JSONObject getMessageObjectRequestAsJson () {
         JSONObject jsonParams = new JSONObject();
         try {
-            jsonParams.put("Circle", "irY8AAwt3MICe89uYjDl");
-            jsonParams.put("Content", "WE'RE BOYS AGAIN!!!");
+            jsonParams.put("Content", "WE'RE ALSO BOYS AGAIN!!!");
         } catch (JSONException j) {
             System.out.println("DONT LIKE JSON!");
         }
