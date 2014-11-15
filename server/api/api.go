@@ -628,10 +628,7 @@ func (a Api) GetMessageById(w rest.ResponseWriter, r *rest.Request) {
 }
 
 func (a Api) GetMessagesByHandle(w rest.ResponseWriter, r *rest.Request) {
-	w.WriteHeader(405)
-	w.WriteJson(types.Json{
-		"Response": "Unimplemented",
-	})
+	a.Util.SimpleJsonResponse(w, 405, "Unimplemented")
 }
 
 func (a Api) EditMessage(w rest.ResponseWriter, r *rest.Request) {
@@ -725,47 +722,7 @@ func (a Api) EditMessage(w rest.ResponseWriter, r *rest.Request) {
  * Deletes an unpublished message
  */
 func (a Api) DeleteMessage(w rest.ResponseWriter, r *rest.Request) {
-	payload := struct {
-		Handle    string
-		LastSaved time.Time
-	}{}
-	if err := r.DecodeJsonPayload(&payload); err != nil {
-		rest.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	handle := payload.Handle
-	lastsaved := payload.LastSaved
-
-	if !a.authenticate(r) {
-		a.Util.FailedToAuthenticate(w)
-		return
-	}
-
-	deleted := []struct {
-		Count int `json:"count(m)"`
-	}{}
-	if err := a.Svc.Db.Cypher(&neoism.CypherQuery{
-		Statement: `
-        MATCH (user:User {handle: {handle}})
-        OPTIONAL MATCH (user)-[r:WROTE]->(m:Message {lastsaved: {lastsaved}})
-        DELETE r, m
-        RETURN count(m)
-        `,
-		Parameters: neoism.Props{
-			"handle":    handle,
-			"lastsaved": lastsaved,
-		},
-		Result: &deleted,
-	}); err != nil {
-		panicErr(err)
-	}
-
-	w.WriteHeader(200)
-	w.WriteJson(types.Json{
-		"Response": "Success!",
-		"Deleted":  deleted[0].Count,
-	})
+	a.Util.SimpleJsonResponse(w, 405, "Unimplemented")
 }
 
 //
