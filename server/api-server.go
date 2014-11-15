@@ -11,16 +11,13 @@ import (
 )
 
 func main() {
-	c, err := goconfig.ReadConfigFile("../config.cfg")
-	port, err := c.GetString("default", "server-port")
+	config, err := goconfig.ReadConfigFile("../config.cfg")
+	port, err := config.GetString("default", "server-port")
 	var uri string
-	if len(os.Args) > 1 {
-		if os.Args[1] == "local" {
-			fmt.Println("Local session requested.")
-			uri, err = c.GetString("local-test", "url")
-		}
+	if len(os.Args) > 1 && os.Args[1] == "local" {
+		uri, err = config.GetString("local-test", "url")
 	} else {
-		uri, err = c.GetString("gen-test", "url")
+		uri, err = config.GetString("gen-test", "url")
 	}
 	api := a.NewApi(uri)
 	handler, err := routes.MakeHandler(*api, false)
@@ -34,6 +31,6 @@ func main() {
 
 	http.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("../web/src/"))))
 
-	fmt.Printf("Listening on port %s\n", port)
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	fmt.Printf("The CherAmi server is listening on port %s\n", port)
+	log.Fatal(http.ListenAndServe(":" + port, nil))
 }
