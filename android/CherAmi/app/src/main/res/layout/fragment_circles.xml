@@ -30,7 +30,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:text="Create Circle"
-        android:onClick="attemptCreateCircle"
+        android:onClick="displayCreateCircleModal"
         android:id="@+id/newCircle"
         android:layout_below="@+id/filter_spinner"/>
 

@@ -1,7 +1,9 @@
 package com.cherami.cherami;
 
+import java.io.FileDescriptor;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.Locale;
 import java.util.Properties;
@@ -16,6 +18,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.net.Uri;
+import android.support.annotation.NonNull;
 import android.support.v13.app.FragmentPagerAdapter;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
@@ -58,6 +61,8 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
      */
     ViewPager mViewPager;
     SharedPreferences prefs;
+    Button newCirlce;
+    FragmentManager fm = getFragmentManager();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -228,6 +233,12 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
                 });
     }
 
+    public void displayCreateCircleModal (View view) {
+        // Create and show the dialog.
+        CreateCircleModal newFragment = new CreateCircleModal();
+        newFragment.show(getFragmentManager(), "dialog");
+    }
+
     public void attemptCreateCircle(View view) {
         AsyncHttpClient client = new AsyncHttpClient();
         String sessionKey = "com.cherami.cherami.sessionid";
@@ -258,7 +269,7 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
                         } catch (JSONException j) {
                             System.out.println("Dont like JSON");
                         }
-
+                        System.out.println("SUCCESSFUL CIRCLE POST");
                         Toast toast = Toast.makeText(getApplicationContext(), responseText, Toast.LENGTH_LONG);
                         toast.show();
                     }
@@ -270,7 +281,6 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
                         String responseText = null;
                         try {
                             responseText = new JSONObject(new String(errorResponse)).getString("Reason");
-
                         } catch (JSONException j) {
                             System.out.println("Dont like JSON");
                         }
