@@ -55,8 +55,9 @@ func panicIfErr(err error) {
 // Constants //
 const (
 	// Reserved Circles
-	GOLD      = "Gold"
-	BROADCAST = "Broadcast"
+	GOLD             = "Gold"
+	BROADCAST        = "Broadcast"
+	SESSION_DURATION = time.Hour
 )
 
 // Return types //
@@ -673,6 +674,107 @@ func (q Query) DeriveHandleFromAuthToken(token string) (handle string, ok bool) 
 // Update
 //
 
+func (q Query) SetGetNewSessionIdForUser(handle string) string {
+	created := []struct {
+		SessionId string `json:"a.sessionid"`
+	}{}
+	sessionDuration := SESSION_DURATION
+	now := time.Now().Local()
+	q.cypherOrPanic(&neoism.CypherQuery{
+		Statement: `
+                MATCH  (u:User)
+                WHERE  u.handle = {handle}
+                WITH   u
+                OPTIONAL MATCH (u)<-[s:SESSION_OF]-(a:AuthToken)
+                DELETE s, a
+                WITH   u
+                CREATE (u)<-[r:SESSION_OF]-(a:AuthToken)
+                SET    r.created_at = {now}
+                SET    a.sessionid  = {sessionid}
+                SET    a.expires    = {time}
+                RETURN a.sessionid
+            `,
+		Parameters: neoism.Props{
+			"handle":    handle,
+			"sessionid": "Token " + uniuri.NewLen(uniuri.UUIDLen),
+			"time":      now.Add(sessionDuration),
+			"now":       now,
+		},
+		Result: &created,
+	})
+	if len(created) > 0 {
+		return created[0].SessionId
+	} else {
+		return ""
+	}
+}
+
+func (q Query) UpdatePassword(handle, newPasswordHash string) bool {
+	updated := []struct {
+		Password string `json:"u.password"`
+	}{}
+	q.cypherOrPanic(&neoism.CypherQuery{
+		Statement: `
+            MATCH (u:User)
+            WHERE u.handle = {handle}
+            SET u.password = {new_pass}
+            RETURN u.password
+        `,
+		Parameters: neoism.Props{
+			"handle":   handle,
+			"new_pass": newPasswordHash,
+		},
+		Result: &updated,
+	})
+	return len(updated) > 0
+}
+
+func (q Query) SetGetUserName(handle, newName string) (string, bool) {
+	updated := []struct {
+		Name string `json:"u.name"`
+	}{}
+	q.cypherOrPanic(&neoism.CypherQuery{
+		Statement: `
+            MATCH (u:User)
+            WHERE u.handle = {handle}
+            SET u.name = {name}
+            RETURN u.name
+        `,
+		Parameters: neoism.Props{
+			"handle": handle,
+			"name":   newName,
+		},
+		Result: &updated,
+	})
+	if ok := len(updated) > 0; ok {
+		return updated[0].Name, ok
+	} else {
+		return "", ok
+	}
+}
+
+func (q Query) UpdateMessageContent(messageid, newContent string) bool {
+	updated := []struct {
+		Content string
+	}{}
+	q.cypherOrPanic(&neoism.CypherQuery{
+		Statement: `
+            MATCH  (m:Message)
+            WHERE  m.id        = {messageid}
+            SET    m.content   = {content}
+            SET    m.lastsaved = {now}
+            RETURN m.content
+        `,
+		Parameters: neoism.Props{
+			"messageid": messageid,
+			"content":   newContent,
+			"now":       time.Now().Local(),
+		},
+		Result: &updated,
+	})
+	return len(updated) > 0
+}
+
 //
 // Delete
 //
@@ -751,4 +853,23 @@ func (q Query) DeletePublishedRelation(messageid, circleid string) bool {
 		},
 	})
 	return true
+}
+
+func (q Query) DestroyAuthToken(sessionid string) bool {
+	deleted := []struct {
+		Handle string `json:"u.handle"`
+	}{}
+	q.cypherOrPanic(&neoism.CypherQuery{
+		Statement: `
+            MATCH   (u:User)<-[so:SESSION_OF]-(a:AuthToken)
+            WHERE   a.sessionid = {sessionid}
+            DELETE  so, a
+            RETURN  u.handle
+        `,
+		Parameters: neoism.Props{
+			"sessionid": sessionid,
+		},
+		Result: &deleted,
+	})
+	return len(deleted) > 0
 }

@@ -2,10 +2,6 @@ package service
 
 import (
 	"./query"
-	"fmt"
-	"github.com/dchest/uniuri"
-	"github.com/jmcvetta/neoism"
-	"time"
 )
 
 //
@@ -183,134 +179,23 @@ func (s Svc) GetHandleFromAuthorization(token string) (handle string, ok bool) {
 //
 
 // Sets a session id on an AuthToken node that points to a particular user
+// [TODO] this should return string, bool
 func (s Svc) SetGetNewSessionId(handle string) string {
-	created := []struct {
-		SessionId string `json:"a.sessionid"`
-	}{}
-
-	sessionDuration := time.Hour
-	now := time.Now().Local()
-
-	if err := s.Db.Cypher(&neoism.CypherQuery{
-		Statement: `
-                MATCH  (u:User)
-                WHERE  u.handle = {handle}
-                WITH   u
-                OPTIONAL MATCH (u)<-[s:SESSION_OF]-(a:AuthToken)
-                DELETE s, a
-                WITH   u
-                CREATE (u)<-[r:SESSION_OF]-(a:AuthToken)
-                SET    r.created_at = {now}
-                SET    a.sessionid  = {sessionid}
-                SET    a.expires    = {time}
-                RETURN a.sessionid
-            `,
-		Parameters: neoism.Props{
-			"handle":    handle,
-			"sessionid": "Token " + uniuri.NewLen(uniuri.UUIDLen),
-			"time":      now.Add(sessionDuration),
-			"now":       now,
-		},
-		Result: &created,
-	}); err != nil {
-		panicErr(err)
-	}
-	if len(created) != 1 {
-		panic(fmt.Sprintf("Incorrect results len in query1()\n\tgot %d, expected 1\n", len(created)))
-	}
-
-	return created[0].SessionId
+	return s.Query.SetGetNewSessionIdForUser(handle)
 }
 
-func (s Svc) SetNewPassword(handle string, password string) bool {
-	user := []struct {
-		Password string
-	}{}
-	if err := s.Db.Cypher(&neoism.CypherQuery{
-		Statement: `
-            MATCH (u:User)
-            WHERE u.handle = {handle}
-            SET u.password = {password}
-            RETURN u.password
-        `,
-		Parameters: neoism.Props{
-			"handle":   handle,
-			"password": password,
-		},
-		Result: &user,
-	}); err != nil {
-		panicErr(err)
-	} else if len(user) != 1 {
-		panic(fmt.Sprintf("Incorrect results len in query1()\n\tgot %d, expected 1\n", len(user)))
-	}
-
-	return len(user) > 0
+func (s Svc) SetNewPassword(handle, newPasswordHash string) bool {
+	return s.Query.UpdatePassword(handle, newPasswordHash)
 }
 
 func (s Svc) UnsetSessionId(sessionid string) bool {
-	unset := []struct {
-		Handle string `json:"u.handle"`
-	}{}
-	if err := s.Db.Cypher(&neoism.CypherQuery{
-		Statement: `
-            MATCH   (u:User)<-[so:SESSION_OF]-(a:AuthToken)
-            WHERE   a.sessionid = {sessionid}
-            DELETE  so, a
-            RETURN  u.handle
-        `,
-		Parameters: neoism.Props{
-			"sessionid": sessionid,
-		},
-		Result: &unset,
-	}); err != nil {
-		panicErr(err)
-	}
-	return len(unset) > 0
+	return s.Query.DestroyAuthToken(sessionid)
 }
 
-func (s Svc) SetGetName(handle string, name string) string {
-	user := []struct {
-		Name string
-	}{}
-	if err := s.Db.Cypher(&neoism.CypherQuery{
-		Statement: `
-            MATCH (u:User)
-            WHERE u.handle = {handle}
-            SET u.name = {name}
-            RETURN u.name
-        `,
-		Parameters: neoism.Props{
-			"handle": handle,
-			"name":   name,
-		},
-		Result: &user,
-	}); err != nil {
-		panicErr(err)
-	} else if len(user) != 1 {
-		panic(fmt.Sprintf("Incorrect results len in query1()\n\tgot %d, expected 1\n", len(user)))
-	}
-
-	return user[0].Name
+func (s Svc) SetGetName(handle, newName string) (string, bool) {
+	return s.Query.SetGetUserName(handle, newName)
 }
 
 func (s Svc) UpdateContentOfMessage(messageid, content string) bool {
-	updated := []struct {
-		Content string
-	}{}
-	cypherOrPanic(s, &neoism.CypherQuery{
-		Statement: `
-            MATCH  (m:Message)
-            WHERE  m.id        = {messageid}
-            SET    m.content   = {content}
-            SET    m.lastsaved = {now}
-            RETURN m.content
-        `,
-		Parameters: neoism.Props{
-			"messageid": messageid,
-			"content":   content,
-			"now":       time.Now().Local(),
-		},
-		Result: &updated,
-	})
-	return len(updated) > 0
+	return s.Query.UpdateMessageContent(messageid, content)
 }

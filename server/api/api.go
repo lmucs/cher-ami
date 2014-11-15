@@ -603,7 +603,7 @@ func (a Api) GetMessageById(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	if message, ok := a.Svc.GetMessageById(handle, id); ok {
+	if message, ok := a.Svc.GetVisibleMessageById(handle, id); ok {
 		data := MessageData{
 			message.Id,
 			"<url>:<port>/api/messages/" + message.Id, // hard-coded url/port...
