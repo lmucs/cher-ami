@@ -7,7 +7,6 @@ import (
 	encoding "encoding/json"
 	"github.com/ChimeraCoder/go.crypto/bcrypt"
 	"github.com/ant0ine/go-json-rest/rest"
-	"github.com/jmcvetta/neoism"
 	"net/http"
 	"strconv"
 	"time"

@@ -296,9 +296,9 @@ func (q Query) JoinBroadcastCircleOfUser(handle, target string) bool {
 
 func (q Query) CreateBlockRelationFromTo(handle, target string) bool {
 	res := []struct {
-		Handle string      `json:"u.handle"`
-		Target string      `json:"t.handle"`
-		R      neoism.Node `json:"r"`
+		Handle string              `json:"u.handle"`
+		Target string              `json:"t.handle"`
+		R      neoism.Relationship `json:"r"`
 	}{}
 	q.cypherOrPanic(&neoism.CypherQuery{
 		Statement: `
@@ -839,20 +839,24 @@ func (q Query) DeleteUser(handle string) bool {
 }
 
 func (q Query) DeletePublishedRelation(messageid, circleid string) bool {
-	panic("DeletePublishedRelation is antiquated and should be improved before usage")
+	deleted := []struct {
+		Count int `json:"count(r)"`
+	}{}
 	q.cypherOrPanic(&neoism.CypherQuery{
 		Statement: `
             MATCH  (m:Message)-[r:PUB_TO]->(c:Circle)
             WHERE  m.id = {messageid}
             AND    c.id = {circleid}
             DELETE r
+            RETURN count(r)
         `,
 		Parameters: neoism.Props{
 			"messageid": messageid,
 			"circleid":  circleid,
 		},
+		Result: &deleted,
 	})
-	return true
+	return len(deleted) > 0 && deleted[0].Count > 0
 }
 
 func (q Query) DestroyAuthToken(sessionid string) bool {
