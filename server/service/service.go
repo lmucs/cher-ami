@@ -73,7 +73,7 @@ func (s Svc) databaseInit() {
 }
 
 func cypherOrPanic(s Svc, query *neoism.CypherQuery) {
-    panicErr(s.Db.Cypher(query))
+	panicErr(s.Db.Cypher(query))
 }
 
 //
@@ -870,7 +870,7 @@ func (s Svc) SetGetNewSessionId(handle string) string {
             `,
 		Parameters: neoism.Props{
 			"handle":    handle,
-			"sessionid": uniuri.NewLen(uniuri.UUIDLen),
+			"sessionid": "Token " + uniuri.NewLen(uniuri.UUIDLen),
 			"time":      now.Add(sessionDuration),
 			"now":       now,
 		},
