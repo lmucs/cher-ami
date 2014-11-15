@@ -57,224 +57,47 @@ func NewService(uri string) *Svc {
 //
 
 func (s Svc) UserExists(handle string) bool {
-	found := []struct {
-		Handle string `json:"u.handle"`
-	}{}
-	cypherOrPanic(s, &neoism.CypherQuery{
-		Statement: `
-            MATCH (u:User)
-            WHERE u.handle = {handle}
-            RETURN u.handle
-        `,
-		Parameters: neoism.Props{
-			"handle": handle,
-		},
-		Result: &found,
-	})
-	return len(found) > 0
+	return s.Query.UserExistsByHandle(handle)
 }
 
 func (s Svc) CircleExistsInPublicDomain(circleid string) bool {
-	found := []struct {
-		Id string `json:"c.id"`
-	}{}
-	cypherOrPanic(s, &neoism.CypherQuery{
-		Statement: `
-            MATCH (c:Circle)-[:PART_OF]->(p:PublicDomain)
-            WHERE c.id = {id}
-            RETURN c.id
-        `,
-		Parameters: neoism.Props{
-			"id": circleid,
-		},
-		Result: &found,
-	})
-	return len(found) > 0
+	return s.Query.CircleLinkedToPublicDomain(circleid)
 }
 
 func (s Svc) CanSeeCircle(fromPerspectiveOf string, circleid string) bool {
-	if s.CircleExistsInPublicDomain(circleid) {
+	if s.Query.CircleLinkedToPublicDomain(circleid) ||
+		s.Query.UserPartOfCircle(fromPerspectiveOf, circleid) {
 		return true
 	}
-
-	found := []struct {
-		Id string `json:"c.id"`
-	}{}
-	cypherOrPanic(s, &neoism.CypherQuery{
-		Statement: `
-			MATCH   (u:User)-[:MEMBER_OF|CHIEF_OF]->(c:Circle)
-			WHERE   u.handle = {handle}
-			AND     c.id     = {id}
-			RETURN  c.id
-		`,
-		Parameters: neoism.Props{
-			"handle": fromPerspectiveOf,
-			"id":     circleid,
-		},
-		Result: &found,
-	})
-	return len(found) > 0
+	return false
 }
 
 func (s Svc) UserCanPublishTo(handle, circleid string) bool {
-	return s.UserIsMemberOf(handle, circleid)
+	return s.Query.UserPartOfCircle(handle, circleid)
 }
 
 func (s Svc) UserCanRetractPublication(handle, messageid, circleid string) bool {
-	found := []struct {
-		R *neoism.Relationship `json:"r"`
-	}{}
-
-	cypherOrPanic(s, &neoism.CypherQuery{
-		Statement: `
-            MATCH (u:User)-[:WROTE]->(m:Message)-[r:PUB_TO]->(c:Circle)
-            WHERE u.handle = {handle}
-            AND   m.id     = {messageid}
-            AND   c.id     = {circleid}
-            RETURN r
-        `,
-		Parameters: neoism.Props{
-			"handle":    handle,
-			"messageid": messageid,
-			"circleid":  circleid,
-		},
-		Result: &found,
-	})
-	return len(found) > 0
+	return s.Query.MessageIsPublished(handle, messageid, circleid)
 }
 
 func (s Svc) MessageExists(messageid string) bool {
-	found := []struct {
-		Id int `json:"m.id"`
-	}{}
-	cypherOrPanic(s, &neoism.CypherQuery{
-		Statement: `
-            MATCH (m:Message)
-            WHERE m.id = {id}
-            RETURN m.id
-        `,
-		Parameters: neoism.Props{
-			"id": messageid,
-		},
-		Result: &found,
-	})
-	return len(found) > 0
+	return s.Query.GetMessageById(messageid)
 }
 
-func (s Svc) HandleIsUnique(handle string) (bool, error) {
-	found := []struct {
-		Handle string `json:"u.handle"`
-	}{}
-	err := s.Db.Cypher(&neoism.CypherQuery{
-		Statement: `
-            MATCH (u:User {handle: {handle}})
-            RETURN u.handle
-        `,
-		Parameters: neoism.Props{
-			"handle": handle,
-		},
-		Result: &found,
-	})
-
-	return len(found) == 0, err
+func (s Svc) HandleIsUnique(handle string) bool {
+	return !s.Query.HandleExists(handle)
 }
 
-func (s Svc) EmailIsUnique(email string) (bool, error) {
-	found := []struct {
-		Email string `json:"u.email"`
-	}{}
-	err := s.Db.Cypher(&neoism.CypherQuery{
-		Statement: `
-            MATCH (u:User {email: {email}})
-            RETURN u.email
-        `,
-		Parameters: neoism.Props{
-			"email": email,
-		},
-		Result: &found,
-	})
-
-	return len(found) == 0, err
+func (s Svc) EmailIsUnique(email string) bool {
+	return !s.Query.EmailExists(email)
 }
 
 func (s Svc) VerifySession(sessionid string) bool {
-	found := []struct {
-		Handle string `json:"u.handle"`
-	}{}
-	cypherOrPanic(s, &neoism.CypherQuery{
-		Statement: `
-            MATCH  (u:User)<-[:SESSION_OF]-(a:AuthToken)
-            WHERE  a.sessionid = {sessionid}
-            AND    a.expires > {now}
-            RETURN u.handle
-        `,
-		Parameters: neoism.Props{
-			"sessionid": sessionid,
-			"now":       time.Now().Local(),
-		},
-		Result: &found,
-	})
-	return len(found) > 0
+	return s.Query.SessionBelongsToSomeUser(sessionid)
 }
 
-func (s Svc) GoodLoginCredentials(handle string, password string) (bool, error) {
-	found := []struct {
-		Handle string `json:"user.handle"`
-	}{}
-	err := s.Db.Cypher(&neoism.CypherQuery{
-		Statement: `
-            MATCH (user:User {handle:{handle}, password:{password}})
-            RETURN user.handle
-        `,
-		Parameters: neoism.Props{
-			"handle":   handle,
-			"password": password,
-		},
-		Result: &found,
-	})
-
-	return len(found) == 1, err
-}
-
-func (s Svc) BlockExistsFromTo(handle string, target string) bool {
-	found := []struct {
-		Relation int `json:"r"`
-	}{}
-	cypherOrPanic(s, &neoism.CypherQuery{
-		Statement: `
-            MATCH (u:User), (t:User)
-            WHERE u.handle = {handle}
-            AND   t.handle = {target}
-            MATCH (u)-[r:BLOCKED]->(t)
-            RETURN r
-        `,
-		Parameters: neoism.Props{
-			"handle": handle,
-			"target": target,
-		},
-		Result: &found,
-	})
-	return len(found) > 0
-}
-
-func (s Svc) UserIsMemberOf(handle string, circleid string) bool {
-	found := []struct {
-		Handle string `json:"u.handle"`
-	}{}
-	cypherOrPanic(s, &neoism.CypherQuery{
-		Statement: `
-			MATCH (u:User)-[:MEMBER_OF|CHIEF_OF]->(c:Circle)
-			WHERE u.handle = {handle}
-			AND   c.id     = {circleid}
-			RETURN u.handle
-		`,
-		Parameters: neoism.Props{
-			"handle":   handle,
-			"circleid": circleid,
-		},
-		Result: &found,
-	})
-	return len(found) > 0
+func (s Svc) BlockExistsFromTo(handle, target string) bool {
+	return s.Query.BlockExistsFromTo(handle, target)
 }
 
 //

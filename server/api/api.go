@@ -111,19 +111,13 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 	}
 
 	// Ensure unique handle
-	if unique, err := a.Svc.HandleIsUnique(handle); err != nil {
-		rest.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	} else if !unique {
+	if unique := a.Svc.HandleIsUnique(handle); !unique {
 		a.Util.SimpleJsonResponse(w, 409, "Sorry, handle or email is already taken")
 		return
 	}
 
 	// Ensure unique email
-	if unique, err := a.Svc.EmailIsUnique(email); err != nil {
-		rest.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	} else if !unique {
+	if unique := a.Svc.EmailIsUnique(email); !unique {
 		a.Util.SimpleJsonResponse(w, 409, "Sorry, handle or email is already taken")
 		return
 	}
