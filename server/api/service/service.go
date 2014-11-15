@@ -46,34 +46,10 @@ type Message struct {
  * order to ensure data integrity. Do not instantiate Svc directly.
  */
 func NewService(uri string) *Svc {
-	neo4jdb, err := neoism.Connect(uri)
-	if err != nil {
-		log.Fatal(err)
+	s := &Svc{
+		query.NewQuery(uri),
 	}
-	s := &Svc{neo4jdb}
-	s.databaseInit()
 	return s
-}
-
-func (s Svc) databaseInit() {
-	var publicdomain *neoism.Node
-	// Initialize PublicDomain node
-	// Nodes must have at least one property to allow unique creation
-	publicdomain, _, err := s.Db.GetOrCreateNode("PublicDomain", "iam", neoism.Props{
-		"iam": "PublicDomain",
-	})
-	panicErr(err)
-	// Label (has to be) added separately
-	err = publicdomain.AddLabel("PublicDomain")
-	panicErr(err)
-
-	if publicdomain == nil {
-		fmt.Println("Unexpected database state, possible lack of PublicDomain")
-	}
-}
-
-func cypherOrPanic(s Svc, query *neoism.CypherQuery) {
-	panicErr(s.Db.Cypher(query))
 }
 
 //
@@ -976,15 +952,4 @@ func (s Svc) UpdateContentOfMessage(messageid, content string) bool {
 		Result: &updated,
 	})
 	return len(updated) > 0
-}
-
-//
-// Errors
-//
-
-func panicErr(err error) {
-	if err != nil {
-		panic(err)
-		return
-	}
 }
