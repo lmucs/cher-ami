@@ -164,7 +164,7 @@ public class SignUpActivity extends Activity {
 
                         String responseText = null;
                         try {
-                            responseText = new JSONObject(new String(errorResponse)).getString("Response");
+                            responseText = new JSONObject(new String(errorResponse)).getString("Reason");
                         } catch (JSONException j) {
                             System.out.println("Dont like JSON");
                         }
@@ -221,7 +221,7 @@ public class SignUpActivity extends Activity {
 
                 String responseText = null;
                 try {
-                    responseText = new JSONObject(new String(errorResponse)).getString("Response");
+                    responseText = new JSONObject(new String(errorResponse)).getString("Reason");
                 } catch (JSONException j) {
                     System.out.println("Dont like JSON");
                 }

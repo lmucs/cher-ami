@@ -210,7 +210,7 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
 
                         String responseText = null;
                         try {
-                            responseText = new JSONObject(new String(errorResponse)).getString("Response");
+                            responseText = new JSONObject(new String(errorResponse)).getString("Reason");
 
                         } catch (JSONException j) {
                             System.out.println("Dont like JSON");
@@ -270,7 +270,7 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
 
                         String responseText = null;
                         try {
-                            responseText = new JSONObject(new String(errorResponse)).getString("Response");
+                            responseText = new JSONObject(new String(errorResponse)).getString("Reason");
 
                         } catch (JSONException j) {
                             System.out.println("Dont like JSON");
@@ -345,7 +345,7 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
 
                         String responseText = null;
                         try {
-                            responseText = new JSONObject(new String(errorResponse)).getString("Response");
+                            responseText = new JSONObject(new String(errorResponse)).getString("Reason");
 
                         } catch (JSONException j) {
                             System.out.println("Dont like JSON");

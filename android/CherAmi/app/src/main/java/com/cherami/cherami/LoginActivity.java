@@ -175,7 +175,7 @@ public class LoginActivity extends Activity {
 
                         String responseText = null;
                         try {
-                            responseText = new JSONObject(new String(errorResponse)).getString("Response"); //What goes in here???
+                            responseText = new JSONObject(new String(errorResponse)).getString("Reason"); //What goes in here???
                         } catch (JSONException j) {
                             System.out.println("Dont like JSON");
                         }
@@ -193,6 +193,12 @@ public class LoginActivity extends Activity {
                         System.out.println("RETRYING?!?!");
                     }
                 });
+    }
+
+    public void goBackToSignUp (View view){
+        Intent intent = new Intent(this, SignUpActivity.class);
+        startActivity(intent);
+        finish();
     }
 
     public void loginClicked(View view) {
