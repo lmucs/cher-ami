@@ -4,7 +4,7 @@ define(function(require, exports, module) {
 
     var CreateCircle = Backbone.Model.extend({
 
-        url: '/api/signup',
+        url: '/api/circles',
         defaults: {
             name: null,
             description: null,

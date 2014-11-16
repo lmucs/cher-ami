@@ -11,26 +11,23 @@ define(function(require, exports, module) {
             name: "#circle-name",
             description: "#description",
             visibility: "#visibilitySelector",
-            dropdown: "#visibility"
+            dropdown: "#visibility",
             submitCircle: "#circleAddMemberButton"
         },
 
         events: {
-            'click #visibility': 'onDropdownClick',
             'click #circleAddMemberButton': 'onSubmitCircle'
         },
+
         onSubmitCircle: function(options) {
-
-        },
-        
-        onDropdownClick: function (e) {
-            console.log("I got clicked!!");
-            console.log("this: ", document.getElementById("dropdown-menu-form"));
-
-            if(document.getElementById("dropdown-menu-form")) {
-                console.log("I got here");
-                e.stopPropagation();
-            }
+            event.preventDefault();
+            var req = new CreateCircle({
+                name: this.ui.name.val(),
+                description: this.ui.description.val(),
+                visibility: this.ui.visibility.val(),
+            });
+            console.log(req)
+            req.save();
         }
         
 
