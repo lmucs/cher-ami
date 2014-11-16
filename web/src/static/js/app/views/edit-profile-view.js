@@ -8,8 +8,14 @@ define(function(require, exports, module) {
         template: template,
 
         ui: {
-            // Search box
-            // Profile button
+            firstname: '#first-name',
+            lastname: '#last-name',
+            gender: '#gender-selector',
+            birthday: '#birthday',
+            location: '#location',
+            bio: '#bio',
+            interests: '#interests',
+            languages: '#languages'
         },
 
         events: {
