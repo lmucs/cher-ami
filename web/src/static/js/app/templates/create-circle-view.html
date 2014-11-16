@@ -3,29 +3,26 @@
     <div id="profileFieldsContainer">
 		<div id="profileForm" class="row">
 		
-		  <div class="form-group 1">
-		    <label class="col-xs-3 control-label">Name</label>
+		  <div>
+		    <label>Name</label>
 		    <div class="circleCreateInput">
-		        <input id="circle-name" type="text" name="Location" class="form-control"
+		        <input id="circle-name" type="text" name="Location"
 		           placeholder="Circle Name" data-role="tagsinput"/>
 		    </div>
 		  </div>
 
-		  <div class="form-group 2">
-		    <label class="col-xs-3 control-label">Description</label>
+		  <div>
+		    <label >Description</label>
 		    <div class="circleCreateInput">
-		        <textarea class="form-control" 
-		        		rows="5" 
-		        		placeholder="Whats this circle for?"
-		        		style="overflow:auto;resize:none">
+		        <textarea rows="5" placeholder="Whats this circle for?" style="overflow:auto;resize:none">
 		        </textarea>
 		    </div>
 		  </div>
 
-		  <div  class="form-group 3" id="visibility">
-		      <label for="visibilitySelector" class="col-xs-3 control-label">Visibility</label>
+		  <div id="visibility">
+		      <label for="visibilitySelector" >Visibility</label>
 			  <div class="circleCreateInput">
-				<select id="visibilitySelector" class="form-control">
+				<select id="visibilitySelector">
 				  <option>Private</option>
 				  <option>Public</option>
 				</select>
@@ -36,17 +33,17 @@
 		    <h3>Members</h3>
 		  </div>
 		 
-		  <div  class="form-group 3" id="admin">
-		      <label for="adminSelector" class="col-xs-3 control-label">Admin</label>
+		  <div id="admin">
+		      <label for="adminSelector">Admin</label>
 			  <div class="circleCreateInput">
-				<select id="adminSelector" class="form-control">
+				<select id="adminSelector">
 				  <option>Me</option>
 				  <option>Other Friend</option>
 				</select>
 			  </div>
 	      </div>
 
-  		  <button id="circleAddMemberButton" type="submit" class="btn btn-default">Add Members</button>
+  		  <button id="circleAddMemberButton" type="submit">Add Members</button>
 		</div>
     </div>
 </div>
