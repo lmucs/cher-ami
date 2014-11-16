@@ -33,9 +33,6 @@ define(function(require, exports, module) {
                     },
                     email: "Please enter a valid email address",
                 },
-                submitHandler: function(form) {
-                    form.submit();
-                }
             });
         }
 
