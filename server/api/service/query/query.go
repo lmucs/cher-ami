@@ -90,20 +90,20 @@ func (q Query) CreateUniquePublicDomain() *neoism.Node {
 
 func (q Query) CreateUser(handle, email, passwordHash string) bool {
 	newUser := []struct {
-		Handle string    `json:"user.handle"`
-		Email  string    `json:"user.email"`
-		Joined time.Time `json:"user.joined"`
+		Handle string    `json:"u.handle"`
+		Email  string    `json:"u.email"`
+		Joined time.Time `json:"u.joined"`
 	}{}
 	q.cypherOrPanic(&neoism.CypherQuery{
 		Statement: `
-            CREATE (user:User {
+            CREATE (u:User {
                 handle:   {handle},
-                name:     "I AM A NAME!!!!!!",
+                name:     "",
                 email:    {email},
                 password: {password},
                 joined:   {joined}
             })
-            RETURN user.handle, user.email, user.joined
+            RETURN u.handle, u.email, u.joined
         `,
 		Parameters: neoism.Props{
 			"handle":   handle,
@@ -124,16 +124,16 @@ func (q Query) CreateDefaultCirclesForUser(handle string) bool {
 	}{}
 	q.cypherOrPanic(&neoism.CypherQuery{
 		Statement: `
-            MATCH (p:PublicDomain)
-            WHERE p.iam = "PublicDomain"
-            MATCH (u:User)
-            WHERE u.handle = {handle}
-            CREATE (g:Circle {name: {gold}})
-            CREATE (br:Circle {name: {broadcast}})
-            CREATE (u)-[:CHIEF_OF]->(g)
-            CREATE (u)-[:CHIEF_OF]->(br)
+            MATCH         (p:PublicDomain)
+            WHERE         p.iam    = "PublicDomain"
+            MATCH         (u:User)
+            WHERE         u.handle = {handle}
+            CREATE        (g:Circle  {name: {gold}})
+            CREATE        (br:Circle {name: {broadcast}})
+            CREATE 	      (u)-[:CHIEF_OF]->(g)
+            CREATE        (u)-[:CHIEF_OF]->(br)
             CREATE UNIQUE (br)-[:PART_OF]->(p)
-            RETURN u.handle, g.name, br.name
+            RETURN        u.handle, g.name, br.name
         `,
 		Parameters: neoism.Props{
 			"handle":    handle,
@@ -156,15 +156,15 @@ func (q Query) CreateCircle(handle, circleName string, isPublic bool,
         MATCH   (u:User)
         WHERE   u.handle = {handle}
         CREATE  (u)-[:CHIEF_OF]->(c:Circle)
-        SET     c.name = {name}
-        SET     c.id = {id}
+        SET     c.name   = {name}
+        SET     c.id     = {id}
     `
 	if isPublic {
 		query = query + `
-            WITH u, c
-            MATCH (p:PublicDomain)
-            WHERE p.iam = "PublicDomain"
-            CREATE (c)-[:PART_OF]->(p)
+            WITH    u, c
+            MATCH   (p:PublicDomain)
+            WHERE   p.iam = "PublicDomain"
+            CREATE  (c)-[:PART_OF]->(p)
         `
 	}
 	query = query + `
@@ -195,16 +195,16 @@ func (q Query) CreateMessage(handle, content string) (messageid string, ok bool)
 	}{}
 	q.cypherOrPanic(&neoism.CypherQuery{
 		Statement: `
-            MATCH  (u:User)
-            WHERE  u.handle = {handle}
-            CREATE (m:Message {
+            MATCH   (u:User)
+            WHERE   u.handle = {handle}
+            CREATE  (m:Message {
                 content:   {content}
               , created:   {now}
               , lastsaved: {now}
               , id:        {id}
             })
-            CREATE (u)-[r:WROTE]->(m)
-            RETURN m.content, m.id
+            CREATE  (u)-[r:WROTE]->(m)
+            RETURN  m.content, m.id
         `,
 		Parameters: neoism.Props{
 			"handle":  handle,
@@ -224,13 +224,13 @@ func (q Query) CreateMessage(handle, content string) (messageid string, ok bool)
 
 func (q Query) CreatePublishedRelation(messageid, circleid string) bool {
 	created := []struct {
-		R *neoism.Relationship `json:"r"`
+		R neoism.Relationship `json:"r"`
 	}{}
 	q.cypherOrPanic(&neoism.CypherQuery{
 		Statement: `
             MATCH   (m:Message), (c:Circle)
-            WHERE   m.id = {messageid}
-            AND     c.id = {circleid}
+            WHERE   m.id           = {messageid}
+            AND     c.id           = {circleid}
             CREATE  (m)-[r:PUB_TO]->(c)
             SET     r.published_at = {now}
             RETURN  r
@@ -278,9 +278,9 @@ func (q Query) JoinBroadcastCircleOfUser(handle, target string) bool {
             WHERE          u.handle = {handle}
             MATCH          (t:User)-[:CHIEF_OF]->(c:Circle)
             WHERE          t.handle = {target}
-            AND            c.name = {broadcast}
+            AND            c.name   = {broadcast}
             CREATE UNIQUE  (u)-[r:MEMBER_OF]->(c)
-            SET            r.at = {now}
+            SET            r.at     = {now}
             RETURN         r.at
         `,
 		Parameters: neoism.Props{
@@ -303,10 +303,10 @@ func (q Query) CreateBlockRelationFromTo(handle, target string) bool {
 	q.cypherOrPanic(&neoism.CypherQuery{
 		Statement: `
             MATCH (u:User), (t:User)
-            WHERE u.handle = {handle}
-            AND   t.handle = {target}
+            WHERE         u.handle = {handle}
+            AND           t.handle = {target}
             CREATE UNIQUE (u)-[r:BLOCKED]->(t)
-            RETURN u.handle, t.handle, r
+            RETURN        u.handle, t.handle, r
         `,
 		Parameters: neoism.Props{
 			"handle": handle,
@@ -407,9 +407,9 @@ func (q Query) GetMessageById(messageid string) bool {
 	}{}
 	q.cypherOrPanic(&neoism.CypherQuery{
 		Statement: `
-            MATCH (m:Message)
-            WHERE m.id = {id}
-            RETURN m.id
+            MATCH   (m:Message)
+            WHERE   m.id = {id}
+            RETURN  m.id
         `,
 		Parameters: neoism.Props{
 			"id": messageid,
@@ -425,8 +425,9 @@ func (q Query) HandleExists(handle string) bool {
 	}{}
 	q.cypherOrPanic(&neoism.CypherQuery{
 		Statement: `
-            MATCH (u:User {handle: {handle}})
-            RETURN u.handle
+            MATCH   (u:User)
+            WHERE   u.handle = {handle}
+            RETURN  u.handle
         `,
 		Parameters: neoism.Props{
 			"handle": handle,
@@ -442,8 +443,9 @@ func (q Query) EmailExists(email string) bool {
 	}{}
 	q.cypherOrPanic(&neoism.CypherQuery{
 		Statement: `
-            MATCH (u:User {email: {email}})
-            RETURN u.email
+            MATCH   (u:User)
+            WHERE   u.email = {email}
+            RETURN  u.email
         `,
 		Parameters: neoism.Props{
 			"email": email,
@@ -459,10 +461,10 @@ func (q Query) SessionBelongsToSomeUser(sessionid string) bool {
 	}{}
 	q.cypherOrPanic(&neoism.CypherQuery{
 		Statement: `
-            MATCH  (u:User)<-[:SESSION_OF]-(a:AuthToken)
-            WHERE  a.sessionid = {sessionid}
-            AND    a.expires > {now}
-            RETURN u.handle
+            MATCH   (u:User)<-[:SESSION_OF]-(a:AuthToken)
+            WHERE   a.sessionid = {sessionid}
+            AND     a.expires   > {now}
+            RETURN  u.handle
         `,
 		Parameters: neoism.Props{
 			"sessionid": sessionid,
@@ -479,11 +481,11 @@ func (q Query) BlockExistsFromTo(handle, target string) bool {
 	}{}
 	q.cypherOrPanic(&neoism.CypherQuery{
 		Statement: `
-            MATCH (u:User), (t:User)
-            WHERE u.handle = {handle}
-            AND   t.handle = {target}
-            MATCH (u)-[r:BLOCKED]->(t)
-            RETURN r
+            MATCH   (u:User), (t:User)
+            WHERE   u.handle = {handle}
+            AND     t.handle = {target}
+            MATCH   (u)-[r:BLOCKED]->(t)
+            RETURN  r
         `,
 		Parameters: neoism.Props{
 			"handle": handle,
@@ -510,9 +512,9 @@ func (q Query) SearchForUsers(circle, namePrefix string, skip, limit int, sortBy
 
 	if circle != "" {
 		query = `
-			MATCH (u:User)-[]->(c:Circle)
-			WHERE c.name = {circle}
-			AND   u.handle =~ {regex}
+			MATCH  (u:User)-[]->(c:Circle)
+			WHERE  c.name   =  {circle}
+			AND    u.handle =~ {regex}
 		`
 		props = neoism.Props{
 			"circle": circle,
@@ -534,9 +536,9 @@ func (q Query) SearchForUsers(circle, namePrefix string, skip, limit int, sortBy
 		}
 	}
 	query = query + `
-        RETURN u.handle, u.name, id(u)
-        SKIP   {skip}
-        LIMIT  {limit}
+        RETURN  u.handle, u.name, id(u)
+        SKIP    {skip}
+        LIMIT   {limit}
 	`
 
 	q.cypherOrPanic(&neoism.CypherQuery{
@@ -560,9 +562,9 @@ func (q Query) GetPasswordHash(handle string) (passwordHash []byte, ok bool) {
 	}{}
 	q.cypherOrPanic(&neoism.CypherQuery{
 		Statement: `
-            MATCH (u:User)
-            WHERE u.handle = {handle}
-            RETURN u.password
+            MATCH   (u:User)
+            WHERE   u.handle = {handle}
+            RETURN  u.password
         `,
 		Parameters: neoism.Props{
 			"handle": handle,
@@ -583,10 +585,10 @@ func (q Query) GetCircleIdByName(handle, circleName string) (circleid string) {
 	}{}
 	q.cypherOrPanic(&neoism.CypherQuery{
 		Statement: `
-			MATCH  (u:User)-[:CHIEF_OF]->(c:Circle)
-			WHERE  u.handle = {handle}
-			AND    c.name   = {circle}
-			RETURN c.id
+			MATCH   (u:User)-[:CHIEF_OF]->(c:Circle)
+			WHERE   u.handle = {handle}
+			AND     c.name   = {circle}
+			RETURN  c.id
 		`,
 		Parameters: neoism.Props{
 			"handle": handle,
@@ -607,10 +609,7 @@ func (q Query) GetAllMessagesByHandle(target string) []Message {
 		Statement: `
             MATCH     (t:User)-[:WROTE]->(m:Message)
             WHERE     t.handle = {target}
-            RETURN    m.id
-                    , t.handle
-                    , m.content
-                    , m.created
+            RETURN    m.id, t.handle, m.content, m.created
             ORDER BY  m.created
         `,
 		Parameters: neoism.Props{
@@ -628,10 +627,7 @@ func (q Query) GetVisibleMessageById(handle, messageid string) (message *Message
 			MATCH   (t:User)-[:WROTE]->(m:Message)-[:PUB_TO]->(c:Circle)<-[:MEMBER_OF|CHIEF_OF]-(u:User)
 			WHERE   u.handle = {handle}
             AND     m.id     = {messageid}
-			RETURN  m.id
-	              , t.handle
-	              , m.content
-	              , m.created
+			RETURN  m.id, t.handle, m.content, m.created
 		`,
 		Parameters: neoism.Props{
 			"handle":    handle,
@@ -654,7 +650,7 @@ func (q Query) DeriveHandleFromAuthToken(token string) (handle string, ok bool) 
 		Statement: `
 			MATCH   (u:User)<-[:SESSION_OF]-(a:AuthToken)
 			WHERE   a.sessionid = {sessionid}
-			AND     {now} < a.expires
+			AND     {now}       < a.expires
 			RETURN  u.handle
 		`,
 		Parameters: neoism.Props{
@@ -682,17 +678,17 @@ func (q Query) SetGetNewSessionIdForUser(handle string) string {
 	now := time.Now().Local()
 	q.cypherOrPanic(&neoism.CypherQuery{
 		Statement: `
-                MATCH  (u:User)
-                WHERE  u.handle = {handle}
-                WITH   u
-                OPTIONAL MATCH (u)<-[s:SESSION_OF]-(a:AuthToken)
-                DELETE s, a
-                WITH   u
-                CREATE (u)<-[r:SESSION_OF]-(a:AuthToken)
-                SET    r.created_at = {now}
-                SET    a.sessionid  = {sessionid}
-                SET    a.expires    = {time}
-                RETURN a.sessionid
+                MATCH   (u:User)
+                WHERE   u.handle = {handle}
+                WITH    u
+                OPTIONAL MATCH (u)<-[old_r:SESSION_OF]-(old_a:AuthToken)
+                DELETE  old_r, old_a
+                WITH    u
+                CREATE  (u)<-[r:SESSION_OF]-(a:AuthToken)
+                SET     r.created_at = {now}
+                SET     a.sessionid  = {sessionid}
+                SET     a.expires    = {time}
+                RETURN  a.sessionid
             `,
 		Parameters: neoism.Props{
 			"handle":    handle,
@@ -715,10 +711,10 @@ func (q Query) UpdatePassword(handle, newPasswordHash string) bool {
 	}{}
 	q.cypherOrPanic(&neoism.CypherQuery{
 		Statement: `
-            MATCH (u:User)
-            WHERE u.handle = {handle}
-            SET u.password = {new_pass}
-            RETURN u.password
+            MATCH   (u:User)
+            WHERE   u.handle = {handle}
+            SET     u.password = {new_pass}
+            RETURN  u.password
         `,
 		Parameters: neoism.Props{
 			"handle":   handle,
@@ -735,10 +731,10 @@ func (q Query) SetGetUserName(handle, newName string) (string, bool) {
 	}{}
 	q.cypherOrPanic(&neoism.CypherQuery{
 		Statement: `
-            MATCH (u:User)
-            WHERE u.handle = {handle}
-            SET u.name = {name}
-            RETURN u.name
+            MATCH   (u:User)
+            WHERE   u.handle = {handle}
+            SET     u.name = {name}
+            RETURN  u.name
         `,
 		Parameters: neoism.Props{
 			"handle": handle,
@@ -759,11 +755,11 @@ func (q Query) UpdateMessageContent(messageid, newContent string) bool {
 	}{}
 	q.cypherOrPanic(&neoism.CypherQuery{
 		Statement: `
-            MATCH  (m:Message)
-            WHERE  m.id        = {messageid}
-            SET    m.content   = {content}
-            SET    m.lastsaved = {now}
-            RETURN m.content
+            MATCH   (m:Message)
+            WHERE   m.id        = {messageid}
+            SET     m.content   = {content}
+            SET     m.lastsaved = {now}
+            RETURN  m.content
         `,
 		Parameters: neoism.Props{
 			"messageid": messageid,
@@ -782,9 +778,9 @@ func (q Query) UpdateMessageContent(messageid, newContent string) bool {
 func (q Query) DeleteAllNodesAndRelations() {
 	q.cypherOrPanic(&neoism.CypherQuery{
 		Statement: `
-            MATCH (n)
-            OPTIONAL MATCH (n)-[r]-()
-            DELETE n, r
+            MATCH           (n)
+            OPTIONAL MATCH  (n)-[r]-()
+            DELETE          n, r
         `,
 	})
 }
@@ -792,13 +788,13 @@ func (q Query) DeleteAllNodesAndRelations() {
 func (q Query) DisconnectTargetFromAllHeldCircles(handle, target string) {
 	q.cypherOrPanic(&neoism.CypherQuery{
 		Statement: `
-            MATCH (u:User)
-            WHERE u.handle={handle}
-            MATCH (t:User)
-            WHERE t.handle={target}
+            MATCH   (u:User)
+            WHERE   u.handle = {handle}
+            MATCH   (t:User)
+            WHERE   t.handle = {target}
             OPTIONAL MATCH (u)-[:CHIEF_OF]->(c:Circle)
             OPTIONAL MATCH (t)-[r:MEMBER_OF]->(c)
-            DELETE r
+            DELETE  r
         `,
 		Parameters: neoism.Props{
 			"handle": handle,
@@ -813,26 +809,26 @@ func (q Query) DeleteUser(handle string) bool {
 	}{}
 	q.cypherOrPanic(&neoism.CypherQuery{
 		Statement: `
-                MATCH (u:User)
-                WHERE u.handle = {handle}
-                WITH  u
+                MATCH   (u:User)
+                WHERE   u.handle = {handle}
+                WITH    u
                 OPTIONAL MATCH (a:AuthToken)-[r:SESSION_OF]->(u)
-                DELETE a, r
-                WITH u
-                MATCH (u)-[wr:WROTE]->(m:Message)-[pt:PUB_TO]->(:Circle)
-                DELETE pt, m, wr
-                WITH u
-                MATCH (u)-[mo:MEMBER_OF]->(:Circle)
-                DELETE mo
-                WITH u
-                MATCH (u)-[b:BLOCKED]->(:User)
-                DELETE b
-                WITH u
-                MATCH (u)-[co_my:CHIEF_OF]->(c:Circle)-[po_my:PART_OF]->(:PublicDomain)
-                MATCH (c)<-[mo_my:MEMBER_OF]-(:User)
-                MATCH (c)<-[pt_my:PUB_TO]-(:Message)
-                DELETE pt_my, mo_my, co_my, po_my, c, u
-                RETURN count(u)
+                DELETE  a, r
+                WITH    u
+                MATCH   (u)-[wr:WROTE]->(m:Message)-[pt:PUB_TO]->(:Circle)
+                DELETE  pt, m, wr
+                WITH    u
+                MATCH   (u)-[mo:MEMBER_OF]->(:Circle)
+                DELETE  mo
+                WITH    u
+                MATCH   (u)-[b:BLOCKED]->(:User)
+                DELETE  b
+                WITH    u
+                MATCH   (u)-[co_my:CHIEF_OF]->(c:Circle)-[po_my:PART_OF]->(:PublicDomain)
+                MATCH   (c)<-[mo_my:MEMBER_OF]-(:User)
+                MATCH   (c)<-[pt_my:PUB_TO]-(:Message)
+                DELETE  pt_my, mo_my, co_my, po_my, c, u
+                RETURN  count(u)
             `,
 		Parameters: neoism.Props{
 			"handle": handle,
@@ -848,11 +844,11 @@ func (q Query) DeletePublishedRelation(messageid, circleid string) bool {
 	}{}
 	q.cypherOrPanic(&neoism.CypherQuery{
 		Statement: `
-            MATCH  (m:Message)-[r:PUB_TO]->(c:Circle)
-            WHERE  m.id = {messageid}
-            AND    c.id = {circleid}
-            DELETE r
-            RETURN count(r)
+            MATCH   (m:Message)-[r:PUB_TO]->(c:Circle)
+            WHERE   m.id = {messageid}
+            AND     c.id = {circleid}
+            DELETE  r
+            RETURN  count(r)
         `,
 		Parameters: neoism.Props{
 			"messageid": messageid,
