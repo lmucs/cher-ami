@@ -8,13 +8,21 @@ define(function(require, exports, module) {
         template: template,
 
         ui: {
+            name: "#circle-name",
+            description: "#description",
+            visibility: "#visibilitySelector",
             dropdown: "#visibility"
+            submitCircle: "#circleAddMemberButton"
         },
 
         events: {
-            'click #visibility': 'onDropdownClick'
+            'click #visibility': 'onDropdownClick',
+            'click #circleAddMemberButton': 'onSubmitCircle'
         },
+        onSubmitCircle: function(options) {
 
+        },
+        
         onDropdownClick: function (e) {
             console.log("I got clicked!!");
             console.log("this: ", document.getElementById("dropdown-menu-form"));

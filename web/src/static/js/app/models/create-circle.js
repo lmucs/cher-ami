@@ -6,10 +6,9 @@ define(function(require, exports, module) {
 
         url: '/api/signup',
         defaults: {
-            handle: null,
-            email: null,
-            password: null,
-            confirmpassword: null
+            name: null,
+            description: null,
+            visibility: null,
         },
 
         initialize: function() {
