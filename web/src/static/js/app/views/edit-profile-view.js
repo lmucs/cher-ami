@@ -24,10 +24,6 @@ define(function(require, exports, module) {
             'click #submitChanges': 'onFormSubmit',
         },
 
-        initialize: function(options) {
-
-        },
-
         onFormSubmit: function() {
             event.preventDefault();
             var req = new EditProfile({
@@ -42,8 +38,12 @@ define(function(require, exports, module) {
             });
             console.log(req);
             req.save();
-        }
+        },
 
+        initialize: function(options) {
+            this.session = options.session;
+        },
+        
     });
 
     exports.EditProfileView = EditProfileView;
