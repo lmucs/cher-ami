@@ -477,6 +477,83 @@ func (a Api) NewCircle(w rest.ResponseWriter, r *rest.Request) {
 	}
 }
 
+func (a Api) SearchCircles(w rest.ResponseWriter, r *rest.Request) {
+
+	//
+	//
+	// TODO: USING SKIP AND LIMIT FOR NOW.  SHOULD BE BEFORE AND LIMIT.
+	// BUT I DON'T KNOW DATES IN GO YET.
+	//
+	//
+
+	querymap := r.URL.Query()
+
+	var user string
+	var skip int
+	var limit int
+
+	if val, ok := querymap["limit"]; !ok {
+		limit = 20
+	} else {
+		if intval, err := strconv.Atoi(val[0]); err != nil {
+			w.WriteHeader(400)
+			w.WriteJson(types.Json{
+				"Results":  nil,
+				"Response": "Search failed",
+				"Reason":   "Malformed limit",
+				"Count":    0,
+			})
+			return
+
+		} else {
+			if intval > 100 || intval < 1 {
+				w.WriteHeader(400)
+				w.WriteJson(types.Json{
+					"Results":  nil,
+					"Response": "Search failed",
+					"Reason":   "Limit out of range",
+					"Count":    0,
+				})
+			} else {
+				limit = intval
+			}
+		}
+	}
+
+	if val, ok := querymap["user"]; !ok {
+		user, _ = a.Svc.GetHandleFromAuthorization(a.getSessionId(r));
+	} else {
+		user = val[0]
+	}
+
+	if val, ok := querymap["skip"]; !ok {
+		skip = 0
+	} else {
+		if intval, err := strconv.Atoi(val[0]); err != nil {
+			w.WriteHeader(400)
+			w.WriteJson(types.Json{
+				"Results":  nil,
+				"Response": "Search failed",
+				"Reason":   "Malformed skip",
+				"Count":    0,
+			})
+			return
+		} else {
+			skip = intval
+		}
+	}
+
+	results, count := a.Svc.SearchCircles(user, skip, limit)
+
+	w.WriteHeader(200)
+	w.WriteJson(types.Json{
+		"Results":  results,
+		"Response": "Search complete",
+		"Count":    count,
+	})
+}
+
+
 //
 // Messages
 //

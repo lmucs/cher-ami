@@ -556,6 +556,44 @@ func (q Query) SearchForUsers(circle, namePrefix string, skip, limit int, sortBy
 	}
 }
 
+func (q Query) SearchCircles(user string, skip, limit int) (results string, count int) {
+    res := []struct {
+        //
+        //
+        // TODO JUST NAME AND ID FOR NOW.  THIS HAS TO BE FIXED TO BE LIKE API SPEC
+        //
+        //
+        Name   string `json:"c.name"`
+        Id     int    `json:"id(c)"`
+    }{}
+
+    query := `
+        MATCH   (u:User)-[]->(c:Circle)
+        WHERE   u.handle = {user}
+        RETURN  c.name, id(c)
+        SKIP    {skip}
+        LIMIT   {limit}
+    `
+    props := neoism.Props{
+        "user":   user,
+        "skip":   skip,
+        "limit":  limit,
+    }
+    q.cypherOrPanic(&neoism.CypherQuery{
+        Statement:  query,
+        Parameters: props,
+        Result:     &res,
+    })
+
+    if len(res) == 0 {
+        return "", 0
+    } else {
+        bytes, err := json.Marshal(res)
+        panicIfErr(err)
+        return string(bytes), len(res)
+    }
+}
+
 func (q Query) GetPasswordHash(handle string) (passwordHash []byte, ok bool) {
 	found := []struct {
 		PasswordHash string `json:"u.password"`

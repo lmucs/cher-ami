@@ -153,6 +153,10 @@ func (s Svc) SearchForUsers(circle, nameprefix string, skip, limit int, sort str
 	return s.Query.SearchForUsers(circle, nameprefix, skip, limit, sort)
 }
 
+func (s Svc) SearchCircles(user string, skip, limit int) (results string, count int) {
+    return s.Query.SearchCircles(user, skip, limit)
+}
+
 func (s Svc) GetPasswordHash(handle string) (passwordHash []byte, ok bool) {
 	return s.Query.GetPasswordHash(handle)
 }
