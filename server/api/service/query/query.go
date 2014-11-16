@@ -808,7 +808,9 @@ func (q Query) DisconnectTargetFromAllHeldCircles(handle, target string) {
 }
 
 func (q Query) DeleteUser(handle string) bool {
-	panic("DeleteUser is antiquated and should be improved before usage")
+	deleted := []struct {
+		Count int `json:"count(u)"`
+	}{}
 	q.cypherOrPanic(&neoism.CypherQuery{
 		Statement: `
                 MATCH (u:User)
@@ -826,16 +828,18 @@ func (q Query) DeleteUser(handle string) bool {
                 MATCH (u)-[b:BLOCKED]->(:User)
                 DELETE b
                 WITH u
-                MATCH (u)-[co:CHIEF_OF]->(c:Circle)-[po:PART_OF]->(:PublicDomain)
-                MATCH (c)<-[mo:MEMBER_OF]-(:User)
-                MATCH (c)<-[pt:PUB_TO]-(:Message)
-                DELETE pt, mo, co, po, c, u
+                MATCH (u)-[co_my:CHIEF_OF]->(c:Circle)-[po_my:PART_OF]->(:PublicDomain)
+                MATCH (c)<-[mo_my:MEMBER_OF]-(:User)
+                MATCH (c)<-[pt_my:PUB_TO]-(:Message)
+                DELETE pt_my, mo_my, co_my, po_my, c, u
+                RETURN count(u)
             `,
 		Parameters: neoism.Props{
 			"handle": handle,
 		},
+		Result: &deleted,
 	})
-	return true
+	return len(deleted) > 0 && deleted[0].Count > 0
 }
 
 func (q Query) DeletePublishedRelation(messageid, circleid string) bool {
