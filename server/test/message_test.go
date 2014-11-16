@@ -1,9 +1,9 @@
 package api_test
 
 import (
-	"../types"
-	"./helper"
 	encoding "encoding/json"
+	"github.com/rtoal/cher-ami/server/test/helper"
+	"github.com/rtoal/cher-ami/server/types"
 	. "gopkg.in/check.v1"
 	"time"
 )

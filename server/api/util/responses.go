@@ -1,8 +1,8 @@
 package util
 
 import (
-	"../../types"
 	"github.com/ant0ine/go-json-rest/rest"
+	"github.com/rtoal/cher-ami/server/types"
 )
 
 //

@@ -1,11 +1,11 @@
 package api_test
 
 import (
-	"../api"
-	"../routes"
-	"./requester"
 	"flag"
 	"github.com/jadengore/goconfig"
+	"github.com/rtoal/cher-ami/server/api"
+	"github.com/rtoal/cher-ami/server/routes"
+	"github.com/rtoal/cher-ami/server/test/requester"
 	. "gopkg.in/check.v1"
 	"log"
 	"net/http/httptest"

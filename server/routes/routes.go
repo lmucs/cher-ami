@@ -1,8 +1,8 @@
 package routes
 
 import (
-	cheramiapi "../api"
 	"github.com/ant0ine/go-json-rest/rest"
+	cheramiapi "github.com/rtoal/cher-ami/server/api"
 )
 
 func MakeHandler(api cheramiapi.Api, disableLogs bool) (rest.ResourceHandler, error) {

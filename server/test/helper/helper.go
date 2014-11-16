@@ -1,9 +1,9 @@
 package helper
 
 import (
-	"../../types"
 	b "bytes"
 	"encoding/json"
+	"github.com/rtoal/cher-ami/server/types"
 	"io/ioutil"
 	"log"
 	"net/http"

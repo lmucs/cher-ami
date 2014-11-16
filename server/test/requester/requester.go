@@ -6,9 +6,9 @@ package requester
 //
 
 import (
-	"../../types"
-	helper "../helper/"
 	"fmt"
+	helper "github.com/rtoal/cher-ami/server/test/helper"
+	"github.com/rtoal/cher-ami/server/types"
 	"net/http"
 )
 

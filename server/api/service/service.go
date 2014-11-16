@@ -1,7 +1,7 @@
 package service
 
 import (
-	"./query"
+	"github.com/rtoal/cher-ami/server/api/service/query"
 )
 
 //

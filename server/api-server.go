@@ -1,10 +1,10 @@
 package main
 
 import (
-	a "./api"
-	routes "./routes"
 	"fmt"
 	"github.com/jadengore/goconfig"
+	a "github.com/rtoal/cher-ami/server/api"
+	"github.com/rtoal/cher-ami/server/routes"
 	"log"
 	"net/http"
 	"os"

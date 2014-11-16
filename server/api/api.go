@@ -1,12 +1,12 @@
 package api
 
 import (
-	"../types"
-	"./service"
-	apiutil "./util"
 	encoding "encoding/json"
 	"github.com/ChimeraCoder/go.crypto/bcrypt"
 	"github.com/ant0ine/go-json-rest/rest"
+	"github.com/rtoal/cher-ami/server/api/service"
+	apiutil "github.com/rtoal/cher-ami/server/api/util"
+	"github.com/rtoal/cher-ami/server/types"
 	"net/http"
 	"strconv"
 	"time"

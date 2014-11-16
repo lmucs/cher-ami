@@ -1,8 +1,8 @@
 package api_test
 
 import (
-	"./helper"
 	"encoding/json"
+	"github.com/rtoal/cher-ami/server/test/helper"
 	. "gopkg.in/check.v1"
 )
 

@@ -1,7 +1,7 @@
 package api_test
 
 import (
-	"./helper"
+	"github.com/rtoal/cher-ami/server/test/helper"
 	. "gopkg.in/check.v1"
 )
 
