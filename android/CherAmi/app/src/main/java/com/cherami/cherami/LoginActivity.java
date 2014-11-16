@@ -156,6 +156,7 @@ public class LoginActivity extends Activity {
 
                         String responseText = null;
                         try {
+
                             responseText = new JSONObject(new String(response)).getString("Response");
                         } catch (JSONException j) {
                             System.out.println("Dont like JSON");
