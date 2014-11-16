@@ -2,6 +2,7 @@ define(function(require, exports, module) {
 
     var marionette = require('marionette');
     var template = require('hbs!../templates/edit-profile-view')
+    var EditProfile = require('app/models/edit-profile').EditProfile
 
     var EditProfileView = marionette.ItemView.extend({
 
@@ -15,15 +16,32 @@ define(function(require, exports, module) {
             location: '#location',
             bio: '#bio',
             interests: '#interests',
-            languages: '#languages'
+            languages: '#languages',
+            submitchanges: '#submitChanges'
         },
 
         events: {
-            // Search event
+            'click #submitChanges': 'onFormSubmit',
         },
 
         initialize: function(options) {
 
+        },
+
+        onFormSubmit: function() {
+            event.preventDefault();
+            var req = new EditProfile({
+                firstname: this.ui.firstname.val(),
+                lastname: this.ui.lastname.val(),
+                gender: this.ui.gender.val(),
+                birthday: this.ui.birthday.val(),
+                location: this.ui.location.val(),
+                bio: this.ui.bio.val(),
+                interests: this.ui.interests.val(),
+                languages: this.ui.languages.val()
+            });
+            console.log(req);
+            req.save();
         }
 
     });
