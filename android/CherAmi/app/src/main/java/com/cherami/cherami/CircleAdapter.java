@@ -12,7 +12,7 @@ public class CircleAdapter extends ArrayAdapter<Circle> {
 
     Context context;
     int layoutResourceId;
-    Circle data[] = null;
+    Circle[] data = null;
 
     public CircleAdapter(Context context, int layoutResourceId, Circle[] data) {
         super(context, layoutResourceId, data);
