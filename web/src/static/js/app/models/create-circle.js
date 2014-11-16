@@ -8,7 +8,7 @@ define(function(require, exports, module) {
         defaults: {
             name: null,
             description: null,
-            visibility: null,
+            visibility: null
         },
 
         initialize: function() {
