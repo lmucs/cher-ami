@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Array;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Properties;
 
@@ -37,10 +39,13 @@ import android.widget.Toast;
 
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
+import com.loopj.android.http.JsonHttpResponseHandler;
+import com.loopj.android.http.RequestParams;
 
 import org.apache.http.Header;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.auth.BasicScheme;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 

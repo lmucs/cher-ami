@@ -147,7 +147,10 @@ public class LoginActivity extends Activity {
                         }
                         try {
                             String sessionKey = "com.cherami.cherami.sessionid";
+                            String userKey = "com.cherami.cherami.username";
+
                             prefs.edit().putString(sessionKey, returnVal.getString("sessionid")).apply();
+                            prefs.edit().putString(userKey, mUsername.getText().toString()).apply();
                             System.out.println("Session Id " + prefs.getString(sessionKey, null));
                         } catch (JSONException e) {
                             e.printStackTrace();
