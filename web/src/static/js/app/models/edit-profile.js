@@ -4,7 +4,7 @@ define(function(require, exports, module) {
 
     var EditProfile = Backbone.Model.extend({
 
-        url: 'api/profile',
+        url: 'api/users',
         defaults: {
             firstname: null,
             lastname: null,

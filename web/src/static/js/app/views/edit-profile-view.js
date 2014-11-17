@@ -37,7 +37,7 @@ define(function(require, exports, module) {
                 languages: this.ui.languages.val()
             });
             console.log(req);
-            req.save();
+            req.save({patch: true});
         },
 
         initialize: function(options) {
