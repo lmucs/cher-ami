@@ -4,7 +4,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android">
 
     <EditText
-        android:id="@+id/editText"
+        android:id="@+id/circleName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Enter Circle Name"
@@ -12,21 +12,52 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
 
-    <RadioButton
+    <RadioGroup
+        android:layout_width="fill_parent"
+        android:layout_height="90px"
+        android:layout_below="@+id/circleName"
+        android:orientation="horizontal"
+        android:id="@+id/createCircleRadioGroup">
+
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Private"
+            android:id="@+id/privateRadioButton"
+            android:layout_marginEnd="100px"/>
+
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Public"
+            android:id="@+id/publicRadioButton"
+            android:layout_gravity="right" />
+    </RadioGroup>
+
+    <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Public"
-        android:id="@+id/publicRadioButton"
-        android:layout_toStartOf="@+id/privateRadioButton"
+        android:text="Create Circle"
+        android:id="@+id/createCircleButton"
+        android:layout_below="@+id/createCircleRadioGroup"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:layout_below="@+id/editText" />
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:onClick="attemptCreateCircle"
+        android:clickable="true" />
 
-    <RadioButton
+    <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Private"
-        android:id="@+id/privateRadioButton"
-        android:layout_below="@+id/editText"
-        android:layout_centerHorizontal="true" />
+        android:text="Cancel"
+        android:id="@+id/dismissModalButton"
+        android:layout_below="@+id/createCircleButton"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:singleLine="false"
+        android:onClick="dismissCreateCircleModal"/>
+
 </RelativeLayout>
