@@ -33,6 +33,8 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -157,17 +159,6 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
         return jsonParams;
     }
 
-    public JSONObject getUserObjectRequestAsJson () {
-        JSONObject jsonParams = new JSONObject();
-        try {
-            jsonParams.put("CircleName", "TestCircle1");
-            jsonParams.put("Public", true);
-        } catch (JSONException j) {
-            System.out.println("DONT LIKE JSON!");
-        }
-        return jsonParams;
-    }
-
     public StringEntity convertJsonUserToStringEntity (JSONObject jsonParams) {
         StringEntity entity = null;
         try {
@@ -183,7 +174,6 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
         String sessionKey = "com.cherami.cherami.sessionid";
         String sessionid = prefs.getString(sessionKey, null);
         System.out.println("sessionid: " + sessionid);
-
 
         client.addHeader("Authorization", sessionid);
         client.post(this.getApplicationContext(), "http://" + getLocalUrlForApi() + "/api/messages",
@@ -243,66 +233,6 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
         CreateCircleModal newFragment = new CreateCircleModal();
         newFragment.show(getFragmentManager(), "dialog");
     }
-
-    public void attemptCreateCircle(View view) {
-        AsyncHttpClient client = new AsyncHttpClient();
-        String sessionKey = "com.cherami.cherami.sessionid";
-        String sessionid = prefs.getString(sessionKey, null);
-        System.out.println("sessionid: " + sessionid);
-
-
-        client.addHeader("Authorization", sessionid);
-        client.post(this.getApplicationContext(), "http://" + getLocalUrlForApi() + "/api/circles",
-                convertJsonUserToStringEntity(getUserObjectRequestAsJson()), "application/json",
-                new AsyncHttpResponseHandler() {
-
-                    @Override
-                    public void onStart() {
-                        // called before request is started
-                        System.out.println("STARTING POST REQUEST");
-
-                    }
-
-                    @Override
-                    public void onSuccess(int statusCode, Header[] headers, byte[] response) {
-                        String s = new String(response);
-                        // called when response HTTP status is "200 OK"
-
-                        String responseText = null;
-                        try {
-                            responseText = new JSONObject(new String(response)).getString("Response");
-                        } catch (JSONException j) {
-                            System.out.println("Dont like JSON");
-                        }
-                        System.out.println("SUCCESSFUL CIRCLE POST");
-                        Toast toast = Toast.makeText(getApplicationContext(), responseText, Toast.LENGTH_LONG);
-                        toast.show();
-                    }
-
-                    @Override
-                    public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
-                        // called when response HTTP status is "4XX" (eg. 401, 403, 404)
-
-                        String responseText = null;
-                        try {
-                            responseText = new JSONObject(new String(errorResponse)).getString("Reason");
-                        } catch (JSONException j) {
-                            System.out.println("Dont like JSON");
-                        }
-
-                        Toast toast = Toast.makeText(getApplicationContext(), responseText, Toast.LENGTH_LONG);
-                        toast.show();
-                        e.printStackTrace();
-                    }
-
-                    @Override
-                    public void onRetry(int retryNo) {
-                        // called when request is retried
-                        System.out.println("RETRYING?!?!");
-                    }
-                });
-    }
-
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {

@@ -56,7 +56,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Share Settings"
-        android:id="@+id/button6"
+        android:id="@+id/createCircleButton"
         android:layout_weight="0.02"
         android:layout_gravity="center_horizontal"
         android:gravity="fill_vertical" />
