@@ -179,12 +179,11 @@ public class LoginActivity extends Activity {
 
                         String responseText = null;
                         try {
-                            responseText = new JSONObject(new String(errorResponse)).getString("Reason"); //What goes in here???
+                            responseText = new JSONObject(new String(errorResponse)).getString("response"); //What goes in here???
                         } catch (JSONException j) {
                             System.out.println("Dont like JSON");
                         }
                         System.out.println(responseText.toString());
-
 
                         Toast toast = Toast.makeText(getApplicationContext(), responseText, Toast.LENGTH_LONG);
                         toast.show();
