@@ -49,9 +49,9 @@ func (s *TestSuite) TestPostCirclesNameReservedGold(c *C) {
 		c.Error(err)
 	}
 
-	c.Check(helper.GetJsonResponseMessage(res1), Equals, "Gold is a reserved circle name")
+	c.Check(helper.GetJsonReasonMessage(res1), Equals, "Gold is a reserved circle name")
 	c.Check(res1.StatusCode, Equals, 403)
-	c.Check(helper.GetJsonResponseMessage(res2), Equals, "Gold is a reserved circle name")
+	c.Check(helper.GetJsonReasonMessage(res2), Equals, "Gold is a reserved circle name")
 	c.Check(res2.StatusCode, Equals, 403)
 }
 
@@ -69,9 +69,9 @@ func (s *TestSuite) TestPostCirclesNameReservedBroadcast(c *C) {
 		c.Error(err)
 	}
 
-	c.Check(helper.GetJsonResponseMessage(res1), Equals, "Broadcast is a reserved circle name")
+	c.Check(helper.GetJsonReasonMessage(res1), Equals, "Broadcast is a reserved circle name")
 	c.Check(res1.StatusCode, Equals, 403)
-	c.Check(helper.GetJsonResponseMessage(res2), Equals, "Broadcast is a reserved circle name")
+	c.Check(helper.GetJsonReasonMessage(res2), Equals, "Broadcast is a reserved circle name")
 	c.Check(res2.StatusCode, Equals, 403)
 }
 
@@ -158,7 +158,7 @@ func (s *TestSuite) TestPostBlockTargetNoExist(c *C) {
 		c.Error(err)
 	}
 
-	c.Check(helper.GetJsonResponseMessage(response), Equals, "Bad request, user handleB wasn't found")
+	c.Check(helper.GetJsonReasonMessage(response), Equals, "Bad request, user handleB wasn't found")
 	c.Check(response.StatusCode, Equals, 400)
 }
 
@@ -226,7 +226,7 @@ func (s *TestSuite) TestPostJoinDefaultTargetNoExist(c *C) {
 		c.Error(err)
 	}
 
-	c.Check(helper.GetJsonResponseMessage(response), Equals, "Bad request, user handleB wasn't found")
+	c.Check(helper.GetJsonReasonMessage(response), Equals, "Bad request, user handleB wasn't found")
 	c.Check(response.StatusCode, Equals, 400)
 }
 
@@ -245,7 +245,7 @@ func (s *TestSuite) TestPostJoinDefaultUserBlocked(c *C) {
 		c.Error(err)
 	}
 
-	c.Check(helper.GetJsonResponseMessage(response), Equals, "Server refusal to comply with join request")
+	c.Check(helper.GetJsonReasonMessage(response), Equals, "Server refusal to comply with join request")
 	c.Check(response.StatusCode, Equals, 403)
 }
 
@@ -304,7 +304,7 @@ func (s *TestSuite) TestPostJoinUserNoExist(c *C) {
 		c.Error(err)
 	}
 
-	c.Check(helper.GetJsonResponseMessage(response), Equals, "Bad request, user handleC wasn't found")
+	c.Check(helper.GetJsonReasonMessage(response), Equals, "Bad request, user handleC wasn't found")
 	c.Check(response.StatusCode, Equals, 400)
 }
 
@@ -324,7 +324,7 @@ func (s *TestSuite) TestPostJoinUserBlocked(c *C) {
 		c.Error(err)
 	}
 
-	c.Check(helper.GetJsonResponseMessage(response), Equals, "Server refusal to comply with join request")
+	c.Check(helper.GetJsonReasonMessage(response), Equals, "Server refusal to comply with join request")
 	c.Check(response.StatusCode, Equals, 403)
 }
 
@@ -339,7 +339,7 @@ func (s *TestSuite) TestPostJoinCircleNoExist(c *C) {
 		c.Error(err)
 	}
 
-	c.Check(helper.GetJsonResponseMessage(response), Equals, "Could not find target circle, join failed")
+	c.Check(helper.GetJsonReasonMessage(response), Equals, "Could not find target circle, join failed")
 	c.Check(response.StatusCode, Equals, 404)
 }
 

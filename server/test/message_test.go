@@ -19,6 +19,7 @@ type MessageData struct {
 
 type MessageResponse struct {
 	Response string
+	Reason   string
 	Object   string
 }
 
@@ -39,7 +40,7 @@ func (s *TestSuite) TestPostMessageEmptyContent(c *C) {
 	res, _ := req.PostMessage("", sessionid)
 
 	c.Check(res.StatusCode, Equals, 400)
-	c.Check(helper.GetJsonResponseMessage(res), Equals, "Please enter some content for your message")
+	c.Check(helper.GetJsonReasonMessage(res), Equals, "Please enter some content for your message")
 }
 
 func (s *TestSuite) TestPostMessageContentOnlyOK(c *C) {
@@ -141,32 +142,23 @@ func (s *TestSuite) TestGetMessageByIdDoesNotExist(c *C) {
 
 	if res, _ := req.GetMessageById("some_id", sessionid); true {
 		c.Check(res.StatusCode, Equals, 404)
-		message_response := struct {
-			Response string
-			Object   string
-		}{}
+		message_response := MessageResponse{}
 		helper.Unmarshal(res, &message_response)
-		c.Check(message_response.Response, Equals, "No such message in any circle you can see")
+		c.Check(message_response.Reason, Equals, "No such message with id some_id could be found")
 	}
 
 	if res, _ := req.GetMessageById("another-wrong-id", sessionid); true {
 		c.Check(res.StatusCode, Equals, 404)
-		message_response := struct {
-			Response string
-			Object   string
-		}{}
+		message_response := MessageResponse{}
 		helper.Unmarshal(res, &message_response)
-		c.Check(message_response.Response, Equals, "No such message in any circle you can see")
+		c.Check(message_response.Reason, Equals, "No such message with id another-wrong-id could be found")
 	}
 
 	if res, _ := req.GetMessageById("2", sessionid); true {
 		c.Check(res.StatusCode, Equals, 404)
-		message_response := struct {
-			Response string
-			Object   string
-		}{}
+		message_response := MessageResponse{}
 		helper.Unmarshal(res, &message_response)
-		c.Check(message_response.Response, Equals, "No such message in any circle you can see")
+		c.Check(message_response.Reason, Equals, "No such message with id 2 could be found")
 	}
 }
 
@@ -183,12 +175,9 @@ func (s *TestSuite) TestGetMessageByIdUserBlocked(c *C) {
 	// handleA attempts to retrieve
 	if res, _ := req.GetMessageById(message_id, sessionid_A); true {
 		c.Check(res.StatusCode, Equals, 404)
-		message_response := struct {
-			Response string
-			Object   string
-		}{}
+		message_response := MessageResponse{}
 		helper.Unmarshal(res, &message_response)
-		c.Check(message_response.Response, Equals, "No such message in any circle you can see")
+		c.Check(message_response.Reason, Equals, "No such message with id "+message_id+" could be found")
 	}
 }
 
@@ -204,12 +193,9 @@ func (s *TestSuite) TestGetMessageByIdPrivateCircle(c *C) {
 
 	if res, _ := req.GetMessageById(message_id, sessionid_A); true {
 		c.Check(res.StatusCode, Equals, 404)
-		message_response := struct {
-			Response string
-			Object   string
-		}{}
+		message_response := MessageResponse{}
 		helper.Unmarshal(res, &message_response)
-		c.Check(message_response.Response, Equals, "No such message in any circle you can see")
+		c.Check(message_response.Reason, Equals, "No such message with id "+message_id+" could be found")
 	}
 
 }

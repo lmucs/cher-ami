@@ -189,7 +189,7 @@ func (s *TestSuite) TestChangePasswordSamePassword(c *C) {
 		c.Error(err)
 	}
 
-	c.Check(helper.GetJsonResponseMessage(response), Equals, "Current/new password are same, please provide a new password.")
+	c.Check(helper.GetJsonReasonMessage(response), Equals, "Current/new password are same, please provide a new password.")
 	c.Check(response.StatusCode, Equals, 400)
 }
 
