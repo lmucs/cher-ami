@@ -1,17 +1,13 @@
-<div class = "row">
-	<div id="CircleTitleContainer">
-	<h3 id="CircleHeader"> Circle</h3>
-		
-	</div>
-</div>
-<div class = "row">
-	<div id="CircleContainer">
-	  <form method="post" action="/signup" id="signupform" role="form">
-		<div class="main-circle-area">
-			<div id="circles"></div>
-			<textarea id="circleDescription" style="overflow:auto;resize:none"></textarea>
-			<button id="submitButton" type="submit">Post</button>
-		</div>
-	  </form>
-	</div>
-</div>
+<ul class="bullets">
+  <li class="bullet three-col-bullet">
+    <div class="bullet-icon bullet-icon-1">
+      <img src="https://raw.githubusercontent.com/thoughtbot/refills/master/source/images/placeholder_logo_2.png
+" alt="">
+    </div>
+    <div class="bullet-content" circleid="{{Id}}">
+      <h2>{{Content}}</h2>
+      <p>Lorem dolor sit amet consectetur adipisicing elit. Doloremque, minus, blanditiis, voluptatibus nulla quia ipsam sequi quos iusto aliquam iste magnam accusamus molestias quo illum impedit. Odit officia autem.</p>
+      <td><button>Post to Circle</button><button>Edit</button></td>
+      </div>
+  </li>  
+</ul>

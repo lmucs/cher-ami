@@ -28,6 +28,7 @@ func MakeHandler(api cheramiapi.Api, disableLogs bool) (rest.ResourceHandler, er
 		&rest.Route{"POST", "/join", api.Join},
 		&rest.Route{"POST", "/block", api.BlockUser},
 		&rest.Route{"POST", "/circles", api.NewCircle},
+		&rest.Route{"GET", "/circles", api.SearchCircles},
 	)
 
 	return handler, err

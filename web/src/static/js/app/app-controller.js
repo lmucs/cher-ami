@@ -23,6 +23,7 @@ define(function(require, exports, module) {
     var Session = require('app/models/session').Session;
     var Message = require('app/models/message').Message;
     var Comment = require('app/models/comment').Comment;
+    var EditProfile = require('app/models/edit-profile').EditProfile;
 
     /** Collections **/
     var Messages = require('app/collections/messages').Messages;

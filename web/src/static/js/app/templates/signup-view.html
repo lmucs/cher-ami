@@ -1,41 +1,55 @@
 <div id="signUpContainer">
-  <form method="post" action="/signup" id="signupform" role="form">
+  <form method="post" action="/signup" id="signupform" role="form" novalidate="novalidate">
     <h3 id="containerHeader">Sign up</h3>
-    <div class="form-group">
-      <label for="Username">Choose a handle</label>
+
+    <div class="fieldgroup">
+      <label for="handle">Choose a handle</label>
       <div>
         <input type="text" name="handle" id="handle" placeholder="@handle">
       </div>
     </div>
-    <div>
-      <label for="input-email">Email address</label>
+
+    <div class="fieldgroup">
+      <label for="email">Email address</label>
       <div>
           <input type="email" name = "email" id="input-email" placeholder="Enter email">
       </div>
     </div>
-    <div class="form-group">
+
+    <div class="fieldgroup">
       <label>Password</label>
-      <div class="col-md-8">
+      <div>
         <input type="password" id="pass1" name="password" placeholder="Choose a password more than 8 characters">
       </div>
+          <div class="password-meter">
+      <div class="password-meter-message"> </div>
+      <div class="password-meter-bg">
+        <div class="password-meter-bar"></div>
+      </div>
     </div>
-    <div>
+    </div>
+
+    <div class="fieldgroup">
       <label>Confirm password</label>
       <div>
         <input type="password" id ="pass2" name="confirmPassword" placeholder="Re-enter your password" >
         <span id="confirmMessage" class="confirmMessage"></span>
       </div>
     </div>
+
     <div>
       <div>
         <div class="checkbox">
-          <label>
-            <input type="checkbox" id="remember-me"> Remember me
-            <button type="submit" id="signup">Sign up</button>
-          </label>
+          <div class="fieldgroup">
+            <label>
+              <input type="checkbox" id="remember-me"> Remember me
+              <button type="submit" id="signup">Sign up</button>
+            </label>
+          </div>
         </div>
       </div>
     </div>
+
     <div>
       <div>       
         <p id="existingUserForm"><strong>Already have an account? </strong>
@@ -43,5 +57,6 @@
         </p>
       </div>
     </div>
+
   </form>
 </div>

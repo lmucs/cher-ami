@@ -1,13 +1,12 @@
 package api
 
 import (
-	"../service"
 	"../types"
-	apiutil "./api-util"
+	"./service"
+	apiutil "./util"
 	encoding "encoding/json"
 	"github.com/ChimeraCoder/go.crypto/bcrypt"
 	"github.com/ant0ine/go-json-rest/rest"
-	"github.com/jmcvetta/neoism"
 	"net/http"
 	"strconv"
 	"time"
@@ -50,8 +49,6 @@ const (
 //
 // API util
 //
-
-type json map[string]interface{}
 
 func (a Api) authenticate(r *rest.Request) (success bool) {
 	if sessionid := r.Header.Get("Authorization"); sessionid != "" {
@@ -113,19 +110,13 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 	}
 
 	// Ensure unique handle
-	if unique, err := a.Svc.HandleIsUnique(handle); err != nil {
-		rest.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	} else if !unique {
+	if unique := a.Svc.HandleIsUnique(handle); !unique {
 		a.Util.SimpleJsonResponse(w, 409, "Sorry, handle or email is already taken")
 		return
 	}
 
 	// Ensure unique email
-	if unique, err := a.Svc.EmailIsUnique(email); err != nil {
-		rest.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	} else if !unique {
+	if unique := a.Svc.EmailIsUnique(email); !unique {
 		a.Util.SimpleJsonResponse(w, 409, "Sorry, handle or email is already taken")
 		return
 	}
@@ -148,7 +139,7 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 	}
 
 	w.WriteHeader(201)
-	w.WriteJson(json{
+	w.WriteJson(types.Json{
 		"Response": "Signed up a new user!",
 		"Handle":   handle,
 		"Email":    email,
@@ -181,7 +172,7 @@ func (a Api) Login(w rest.ResponseWriter, r *rest.Request) {
 			sessionid := a.Svc.SetGetNewSessionId(handle)
 
 			w.WriteHeader(201)
-			w.WriteJson(json{
+			w.WriteJson(types.Json{
 				"Response":  "Logged in " + handle + ". Note your session id.",
 				"sessionid": sessionid,
 			})
@@ -221,7 +212,7 @@ func (a Api) ChangePassword(w rest.ResponseWriter, r *rest.Request) {
 
 	if handle, success := a.Svc.GetHandleFromAuthorization(a.getSessionId(r)); !success {
 		w.WriteHeader(400)
-		w.WriteJson(json{
+		w.WriteJson(types.Json{
 			"Response":  "Unexpected failure to retrieve owner of session",
 			"Handle":    handle,
 			"Success":   success,
@@ -236,7 +227,7 @@ func (a Api) ChangePassword(w rest.ResponseWriter, r *rest.Request) {
 		// Password checks
 		if newPassword != confirmNewPassword {
 			w.WriteHeader(400)
-			w.WriteJson(json{
+			w.WriteJson(types.Json{
 				"Response": "Passwords do not match",
 			})
 			return
@@ -252,7 +243,7 @@ func (a Api) ChangePassword(w rest.ResponseWriter, r *rest.Request) {
 			// err is nil if successful, error
 			if err := bcrypt.CompareHashAndPassword(passwordHash, password); err != nil {
 				w.WriteHeader(400)
-				w.WriteJson(json{
+				w.WriteJson(types.Json{
 					"Response": "Invalid username or password, please try again.",
 				})
 				return
@@ -298,7 +289,7 @@ func (a Api) SearchForUsers(w rest.ResponseWriter, r *rest.Request) {
 	} else {
 		if intval, err := strconv.Atoi(val[0]); err != nil {
 			w.WriteHeader(400)
-			w.WriteJson(json{
+			w.WriteJson(types.Json{
 				"Results":  nil,
 				"Response": "Search failed",
 				"Reason":   "Malformed limit",
@@ -309,7 +300,7 @@ func (a Api) SearchForUsers(w rest.ResponseWriter, r *rest.Request) {
 		} else {
 			if intval > 100 || intval < 1 {
 				w.WriteHeader(400)
-				w.WriteJson(json{
+				w.WriteJson(types.Json{
 					"Results":  nil,
 					"Response": "Search failed",
 					"Reason":   "Limit out of range",
@@ -338,7 +329,7 @@ func (a Api) SearchForUsers(w rest.ResponseWriter, r *rest.Request) {
 	} else {
 		if intval, err := strconv.Atoi(val[0]); err != nil {
 			w.WriteHeader(400)
-			w.WriteJson(json{
+			w.WriteJson(types.Json{
 				"Results":  nil,
 				"Response": "Search failed",
 				"Reason":   "Malformed skip",
@@ -352,7 +343,7 @@ func (a Api) SearchForUsers(w rest.ResponseWriter, r *rest.Request) {
 
 	if sortType, ok := querymap["sort"]; !ok {
 		w.WriteHeader(400)
-		w.WriteJson(json{
+		w.WriteJson(types.Json{
 			"Results":  nil,
 			"Response": "Search failed",
 			"Reason":   "Missing required sort parameter",
@@ -361,7 +352,7 @@ func (a Api) SearchForUsers(w rest.ResponseWriter, r *rest.Request) {
 		return
 	} else if sortType[0] != "handle" && sortType[0] != "joined" {
 		w.WriteHeader(200)
-		w.WriteJson(json{
+		w.WriteJson(types.Json{
 			"Results":  nil,
 			"Response": "Search failed",
 			"Reason":   "No such sort " + sortType[0],
@@ -373,7 +364,7 @@ func (a Api) SearchForUsers(w rest.ResponseWriter, r *rest.Request) {
 	results, count := a.Svc.SearchForUsers(circle, nameprefix, skip, limit, sort)
 
 	w.WriteHeader(200)
-	w.WriteJson(json{
+	w.WriteJson(types.Json{
 		"Results":  results,
 		"Response": "Search complete",
 		"Count":    count,
@@ -395,7 +386,7 @@ func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
 
 	if handle, success := a.Svc.GetHandleFromAuthorization(a.getSessionId(r)); !success {
 		w.WriteHeader(400)
-		w.WriteJson(json{
+		w.WriteJson(types.Json{
 			"Response":  "Unexpected failure to retrieve owner of session",
 			"Handle":    handle,
 			"Success":   success,
@@ -407,7 +398,7 @@ func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
 
 		if passwordHash, ok := a.Svc.GetPasswordHash(handle); !ok {
 			w.WriteHeader(400)
-			w.WriteJson(json{
+			w.WriteJson(types.Json{
 				"Response": "Invalid username or password, please try again.",
 			})
 			return
@@ -415,14 +406,14 @@ func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
 			// err is nil if successful, error
 			if err := bcrypt.CompareHashAndPassword(passwordHash, password); err != nil {
 				w.WriteHeader(400)
-				w.WriteJson(json{
+				w.WriteJson(types.Json{
 					"Response": "Invalid username or password, please try again.",
 				})
 				return
 			} else {
 				if deleted := a.Svc.DeleteUser(handle); !deleted {
 					w.WriteHeader(400)
-					w.WriteJson(json{
+					w.WriteJson(types.Json{
 						"Response": "Unexpected failure to delete user",
 					})
 					return
@@ -454,7 +445,7 @@ func (a Api) NewCircle(w rest.ResponseWriter, r *rest.Request) {
 
 	if handle, success := a.Svc.GetHandleFromAuthorization(a.getSessionId(r)); !success {
 		w.WriteHeader(500)
-		w.WriteJson(json{
+		w.WriteJson(types.Json{
 			"Response":  "Unexpected failure to retrieve owner of session",
 			"Handle":    handle,
 			"Success":   success,
@@ -475,7 +466,7 @@ func (a Api) NewCircle(w rest.ResponseWriter, r *rest.Request) {
 			return
 		} else {
 			w.WriteHeader(201)
-			w.WriteJson(json{
+			w.WriteJson(types.Json{
 				"response": "Created new circle!",
 				"chief":    handle,
 				"name":     circleName,
@@ -485,6 +476,83 @@ func (a Api) NewCircle(w rest.ResponseWriter, r *rest.Request) {
 		}
 	}
 }
+
+func (a Api) SearchCircles(w rest.ResponseWriter, r *rest.Request) {
+
+	//
+	//
+	// TODO: USING SKIP AND LIMIT FOR NOW.  SHOULD BE BEFORE AND LIMIT.
+	// BUT I DON'T KNOW DATES IN GO YET.
+	//
+	//
+
+	querymap := r.URL.Query()
+
+	var user string
+	var skip int
+	var limit int
+
+	if val, ok := querymap["limit"]; !ok {
+		limit = 20
+	} else {
+		if intval, err := strconv.Atoi(val[0]); err != nil {
+			w.WriteHeader(400)
+			w.WriteJson(types.Json{
+				"Results":  nil,
+				"Response": "Search failed",
+				"Reason":   "Malformed limit",
+				"Count":    0,
+			})
+			return
+
+		} else {
+			if intval > 100 || intval < 1 {
+				w.WriteHeader(400)
+				w.WriteJson(types.Json{
+					"Results":  nil,
+					"Response": "Search failed",
+					"Reason":   "Limit out of range",
+					"Count":    0,
+				})
+			} else {
+				limit = intval
+			}
+		}
+	}
+
+	if val, ok := querymap["user"]; !ok {
+		user, _ = a.Svc.GetHandleFromAuthorization(a.getSessionId(r));
+	} else {
+		user = val[0]
+	}
+
+	if val, ok := querymap["skip"]; !ok {
+		skip = 0
+	} else {
+		if intval, err := strconv.Atoi(val[0]); err != nil {
+			w.WriteHeader(400)
+			w.WriteJson(types.Json{
+				"Results":  nil,
+				"Response": "Search failed",
+				"Reason":   "Malformed skip",
+				"Count":    0,
+			})
+			return
+		} else {
+			skip = intval
+		}
+	}
+
+	results, count := a.Svc.SearchCircles(user, skip, limit)
+
+	w.WriteHeader(200)
+	w.WriteJson(types.Json{
+		"Results":  results,
+		"Response": "Search complete",
+		"Count":    count,
+	})
+}
+
 
 //
 // Messages
@@ -518,7 +586,7 @@ func (a Api) NewMessage(w rest.ResponseWriter, r *rest.Request) {
 	handle, ok := a.Svc.GetHandleFromAuthorization(a.getSessionId(r))
 	if !ok {
 		w.WriteHeader(500)
-		w.WriteJson(json{
+		w.WriteJson(types.Json{
 			"Response": "Unexpected failure to retrieve owner of session",
 		})
 		return
@@ -545,7 +613,7 @@ func (a Api) NewMessage(w rest.ResponseWriter, r *rest.Request) {
 			}
 		}
 		w.WriteHeader(201)
-		w.WriteJson(json{
+		w.WriteJson(types.Json{
 			"Response":    "Successfully created message for " + handle,
 			"Id":          messageid,
 			"PublishedTo": circles,
@@ -585,7 +653,7 @@ func (a Api) GetAuthoredMessages(w rest.ResponseWriter, r *rest.Request) {
 		}
 
 		w.WriteHeader(200)
-		w.WriteJson(json{
+		w.WriteJson(types.Json{
 			"Response": "Found messages for user " + author,
 			"Objects":  string(b),
 			"Count":    len(messageData),
@@ -601,19 +669,17 @@ func (a Api) GetMessageById(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	handle, success := a.Svc.GetHandleFromAuthorization(a.getSessionId(r))
-	if !success {
+	handle, ok := a.Svc.GetHandleFromAuthorization(a.getSessionId(r))
+	if !ok {
 		w.WriteHeader(400)
-		w.WriteJson(json{
+		w.WriteJson(types.Json{
 			"Response":  "Unexpected failure to retrieve owner of session",
-			"Handle":    handle,
-			"Success":   success,
 			"SessionId": a.getSessionId(r),
 		})
 		return
 	}
 
-	if message, success := a.Svc.GetMessageById(handle, id); success {
+	if message, ok := a.Svc.GetVisibleMessageById(handle, id); ok {
 		data := MessageData{
 			message.Id,
 			"<url>:<port>/api/messages/" + message.Id, // hard-coded url/port...
@@ -626,7 +692,7 @@ func (a Api) GetMessageById(w rest.ResponseWriter, r *rest.Request) {
 			panicErr(err)
 		} else {
 			w.WriteHeader(200)
-			w.WriteJson(json{
+			w.WriteJson(types.Json{
 				"Response": "Found message!",
 				"Object":   string(b),
 			})
@@ -638,10 +704,7 @@ func (a Api) GetMessageById(w rest.ResponseWriter, r *rest.Request) {
 }
 
 func (a Api) GetMessagesByHandle(w rest.ResponseWriter, r *rest.Request) {
-	w.WriteHeader(405)
-	w.WriteJson(json{
-		"Response": "Unimplemented",
-	})
+	a.Util.SimpleJsonResponse(w, 405, "Unimplemented")
 }
 
 func (a Api) EditMessage(w rest.ResponseWriter, r *rest.Request) {
@@ -725,7 +788,7 @@ func (a Api) EditMessage(w rest.ResponseWriter, r *rest.Request) {
 	}
 
 	w.WriteHeader(200)
-	w.WriteJson(json{
+	w.WriteJson(types.Json{
 		"response": "Successfully patched message " + messageid,
 		"changes":  len(payload),
 	})
@@ -735,47 +798,7 @@ func (a Api) EditMessage(w rest.ResponseWriter, r *rest.Request) {
  * Deletes an unpublished message
  */
 func (a Api) DeleteMessage(w rest.ResponseWriter, r *rest.Request) {
-	payload := struct {
-		Handle    string
-		LastSaved time.Time
-	}{}
-	if err := r.DecodeJsonPayload(&payload); err != nil {
-		rest.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	handle := payload.Handle
-	lastsaved := payload.LastSaved
-
-	if !a.authenticate(r) {
-		a.Util.FailedToAuthenticate(w)
-		return
-	}
-
-	deleted := []struct {
-		Count int `json:"count(m)"`
-	}{}
-	if err := a.Svc.Db.Cypher(&neoism.CypherQuery{
-		Statement: `
-        MATCH (user:User {handle: {handle}})
-        OPTIONAL MATCH (user)-[r:WROTE]->(m:Message {lastsaved: {lastsaved}})
-        DELETE r, m
-        RETURN count(m)
-        `,
-		Parameters: neoism.Props{
-			"handle":    handle,
-			"lastsaved": lastsaved,
-		},
-		Result: &deleted,
-	}); err != nil {
-		panicErr(err)
-	}
-
-	w.WriteHeader(200)
-	w.WriteJson(json{
-		"Response": "Success!",
-		"Deleted":  deleted[0].Count,
-	})
+	a.Util.SimpleJsonResponse(w, 405, "Unimplemented")
 }
 
 //
@@ -806,7 +829,7 @@ func (a Api) BlockUser(w rest.ResponseWriter, r *rest.Request) {
 			return
 		}
 
-		a.Svc.RevokeMembershipBetween(handle, target)
+		a.Svc.KickTargetFromCircles(handle, target)
 
 		if !a.Svc.CreateBlockFromTo(handle, target) {
 			a.Util.SimpleJsonResponse(w, 400, "Unexpected failure to block user")
@@ -832,7 +855,7 @@ func (a Api) JoinDefault(w rest.ResponseWriter, r *rest.Request) {
 
 	if handle, success := a.Svc.GetHandleFromAuthorization(a.getSessionId(r)); !success {
 		w.WriteHeader(400)
-		w.WriteJson(json{
+		w.WriteJson(types.Json{
 			"Response":  "Unexpected failure to retrieve owner of session",
 			"Handle":    handle,
 			"Success":   success,
@@ -881,7 +904,7 @@ func (a Api) Join(w rest.ResponseWriter, r *rest.Request) {
 
 	if handle, success := a.Svc.GetHandleFromAuthorization(a.getSessionId(r)); !success {
 		w.WriteHeader(400)
-		w.WriteJson(json{
+		w.WriteJson(types.Json{
 			"Response":  "Unexpected failure to retrieve owner of session",
 			"Handle":    handle,
 			"Success":   success,
