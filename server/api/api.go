@@ -140,9 +140,9 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 
 	w.WriteHeader(201)
 	w.WriteJson(types.Json{
-		"Response": "Signed up a new user!",
-		"Handle":   handle,
-		"Email":    email,
+		"response": "Signed up a new user!",
+		"handle":   handle,
+		"email":    email,
 	})
 }
 
@@ -173,7 +173,7 @@ func (a Api) Login(w rest.ResponseWriter, r *rest.Request) {
 
 			w.WriteHeader(201)
 			w.WriteJson(types.Json{
-				"Response": "Logged in " + handle + ". Note your Authorization token.",
+				"response": "Logged in " + handle + ". Note your Authorization token.",
 				"token":    token,
 			})
 			return
@@ -222,27 +222,24 @@ func (a Api) ChangePassword(w rest.ResponseWriter, r *rest.Request) {
 		if newPassword != confirmNewPassword {
 			w.WriteHeader(400)
 			w.WriteJson(types.Json{
-				"Response": "Passwords do not match",
+				"response": "Passwords do not match",
 			})
 			return
 		} else if len(newPassword) < MIN_PASS_LENGTH {
-			a.Util.SimpleJsonResponse(w, 400, "Passwords must be at least 8 characters long")
+			a.Util.SimpleJsonReason(w, 400, "Passwords must be at least 8 characters long")
 			return
 		}
 
 		if passwordHash, ok := a.Svc.GetPasswordHash(handle); !ok {
-			a.Util.SimpleJsonResponse(w, 400, "Invalid username or password, please try again.")
+			a.Util.SimpleJsonReason(w, 400, "Invalid username or password, please try again.")
 			return
 		} else {
 			// err is nil if successful, error
 			if err := bcrypt.CompareHashAndPassword(passwordHash, password); err != nil {
-				w.WriteHeader(400)
-				w.WriteJson(types.Json{
-					"Response": "Invalid username or password, please try again.",
-				})
+				a.Util.SimpleJsonReason(w, 400, "Invalid username or password, please try again.")
 				return
 			} else if err := bcrypt.CompareHashAndPassword(passwordHash, []byte(newPassword)); err == nil {
-				a.Util.SimpleJsonResponse(w, 400, "Current/new password are same, please provide a new password.")
+				a.Util.SimpleJsonReason(w, 400, "Current/new password are same, please provide a new password.")
 				return
 			} else {
 				if hash, err := bcrypt.GenerateFromPassword([]byte(newPassword), 10); err != nil {
@@ -252,7 +249,7 @@ func (a Api) ChangePassword(w rest.ResponseWriter, r *rest.Request) {
 					hashed_new_pass := string(hash)
 					// Now set the new password
 					if !a.Svc.SetNewPassword(handle, hashed_new_pass) {
-						a.Util.SimpleJsonResponse(w, 400, "Password change unsuccessful")
+						a.Util.SimpleJsonReason(w, 400, "Password change unsuccessful")
 						return
 					} else {
 						// No JSON is written.
@@ -284,10 +281,10 @@ func (a Api) SearchForUsers(w rest.ResponseWriter, r *rest.Request) {
 		if intval, err := strconv.Atoi(val[0]); err != nil {
 			w.WriteHeader(400)
 			w.WriteJson(types.Json{
-				"Results":  nil,
-				"Response": "Search failed",
-				"Reason":   "Malformed limit",
-				"Count":    0,
+				"results":  nil,
+				"response": "Search failed",
+				"reason":   "Malformed limit",
+				"count":    0,
 			})
 			return
 
@@ -295,10 +292,10 @@ func (a Api) SearchForUsers(w rest.ResponseWriter, r *rest.Request) {
 			if intval > 100 || intval < 1 {
 				w.WriteHeader(400)
 				w.WriteJson(types.Json{
-					"Results":  nil,
-					"Response": "Search failed",
-					"Reason":   "Limit out of range",
-					"Count":    0,
+					"results":  nil,
+					"response": "Search failed",
+					"reason":   "Limit out of range",
+					"count":    0,
 				})
 			} else {
 				limit = intval
@@ -324,10 +321,10 @@ func (a Api) SearchForUsers(w rest.ResponseWriter, r *rest.Request) {
 		if intval, err := strconv.Atoi(val[0]); err != nil {
 			w.WriteHeader(400)
 			w.WriteJson(types.Json{
-				"Results":  nil,
-				"Response": "Search failed",
-				"Reason":   "Malformed skip",
-				"Count":    0,
+				"results":  nil,
+				"response": "Search failed",
+				"reason":   "Malformed skip",
+				"count":    0,
 			})
 			return
 		} else {
@@ -338,19 +335,19 @@ func (a Api) SearchForUsers(w rest.ResponseWriter, r *rest.Request) {
 	if sortType, ok := querymap["sort"]; !ok {
 		w.WriteHeader(400)
 		w.WriteJson(types.Json{
-			"Results":  nil,
-			"Response": "Search failed",
-			"Reason":   "Missing required sort parameter",
-			"Count":    0,
+			"results":  nil,
+			"response": "Search failed",
+			"reason":   "Missing required sort parameter",
+			"count":    0,
 		})
 		return
 	} else if sortType[0] != "handle" && sortType[0] != "joined" {
 		w.WriteHeader(200)
 		w.WriteJson(types.Json{
-			"Results":  nil,
-			"Response": "Search failed",
-			"Reason":   "No such sort " + sortType[0],
-			"Count":    0,
+			"results":  nil,
+			"response": "Search failed",
+			"reason":   "No such sort " + sortType[0],
+			"count":    0,
 		})
 		return
 	}
@@ -359,9 +356,9 @@ func (a Api) SearchForUsers(w rest.ResponseWriter, r *rest.Request) {
 
 	w.WriteHeader(200)
 	w.WriteJson(types.Json{
-		"Results":  results,
-		"Response": "Search complete",
-		"Count":    count,
+		"results":  results,
+		"response": "Search complete",
+		"count":    count,
 	})
 }
 
@@ -385,25 +382,17 @@ func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
 		password := []byte(credentials.Password)
 
 		if passwordHash, ok := a.Svc.GetPasswordHash(handle); !ok {
-			w.WriteHeader(400)
-			w.WriteJson(types.Json{
-				"Response": "Invalid username or password, please try again.",
-			})
+			// handle was bad
+			a.Util.SimpleJsonReason(w, 400, "Invalid username or password, please try again.")
 			return
 		} else {
 			// err is nil if successful, error
 			if err := bcrypt.CompareHashAndPassword(passwordHash, password); err != nil {
-				w.WriteHeader(400)
-				w.WriteJson(types.Json{
-					"Response": "Invalid username or password, please try again.",
-				})
+				a.Util.SimpleJsonReason(w, 400, "Invalid username or password, please try again.")
 				return
 			} else {
 				if deleted := a.Svc.DeleteUser(handle); !deleted {
-					w.WriteHeader(400)
-					w.WriteJson(types.Json{
-						"Response": "Unexpected failure to delete user",
-					})
+					a.Util.SimpleJsonReason(w, 500, "Unexpected failure to delete user")
 					return
 				} else {
 					w.WriteHeader(204)
@@ -439,12 +428,12 @@ func (a Api) NewCircle(w rest.ResponseWriter, r *rest.Request) {
 		isPublic := payload.Public
 
 		if circleName == GOLD || circleName == BROADCAST {
-			a.Util.SimpleJsonResponse(w, 403, circleName+" is a reserved circle name")
+			a.Util.SimpleJsonReason(w, 403, circleName+" is a reserved circle name")
 			return
 		}
 
 		if circleid, ok := a.Svc.NewCircle(handle, circleName, isPublic); !ok {
-			a.Util.SimpleJsonResponse(w, 400, "Unexpected failure to create circle")
+			a.Util.SimpleJsonReason(w, 400, "Unexpected failure to create circle")
 			return
 		} else {
 			w.WriteHeader(201)
@@ -480,10 +469,10 @@ func (a Api) SearchCircles(w rest.ResponseWriter, r *rest.Request) {
 		if intval, err := strconv.Atoi(val[0]); err != nil {
 			w.WriteHeader(400)
 			w.WriteJson(types.Json{
-				"Results":  nil,
-				"Response": "Search failed",
-				"Reason":   "Malformed limit",
-				"Count":    0,
+				"results":  nil,
+				"response": "Search failed",
+				"reason":   "Malformed limit",
+				"count":    0,
 			})
 			return
 
@@ -491,10 +480,10 @@ func (a Api) SearchCircles(w rest.ResponseWriter, r *rest.Request) {
 			if intval > 100 || intval < 1 {
 				w.WriteHeader(400)
 				w.WriteJson(types.Json{
-					"Results":  nil,
-					"Response": "Search failed",
-					"Reason":   "Limit out of range",
-					"Count":    0,
+					"results":  nil,
+					"response": "Search failed",
+					"reason":   "Limit out of range",
+					"count":    0,
 				})
 			} else {
 				limit = intval
@@ -514,10 +503,10 @@ func (a Api) SearchCircles(w rest.ResponseWriter, r *rest.Request) {
 		if intval, err := strconv.Atoi(val[0]); err != nil {
 			w.WriteHeader(400)
 			w.WriteJson(types.Json{
-				"Results":  nil,
-				"Response": "Search failed",
-				"Reason":   "Malformed skip",
-				"Count":    0,
+				"results":  nil,
+				"response": "Search failed",
+				"reason":   "Malformed skip",
+				"count":    0,
 			})
 			return
 		} else {
@@ -529,9 +518,9 @@ func (a Api) SearchCircles(w rest.ResponseWriter, r *rest.Request) {
 
 	w.WriteHeader(200)
 	w.WriteJson(types.Json{
-		"Results":  results,
-		"Response": "Search complete",
-		"Count":    count,
+		"results":  results,
+		"response": "Search complete",
+		"count":    count,
 	})
 }
 
@@ -574,27 +563,27 @@ func (a Api) NewMessage(w rest.ResponseWriter, r *rest.Request) {
 	circles := payload.Circles
 
 	if payload.Content == "" {
-		a.Util.SimpleJsonResponse(w, 400, "Please enter some content for your message")
+		a.Util.SimpleJsonReason(w, 400, "Please enter some content for your message")
 		return
 	}
 
 	if messageid, success := a.Svc.NewMessage(handle, content); !success {
-		a.Util.SimpleJsonResponse(w, 400, "No message created")
+		a.Util.SimpleJsonReason(w, 500, "Unexpected failure to create message")
 		return
 	} else {
 		if len(circles) > 0 {
 			for _, circleid := range circles {
 				if !a.Svc.PublishMessageToCircle(messageid, circleid) {
-					a.Util.SimpleJsonResponse(w, 400, "Failed to publish to one of circles provided")
+					a.Util.SimpleJsonReason(w, 400, "Failed to publish to one of circles provided")
 					return
 				}
 			}
 		}
 		w.WriteHeader(201)
 		w.WriteJson(types.Json{
-			"Response":    "Successfully created message for " + handle,
-			"Id":          messageid,
-			"PublishedTo": circles,
+			"response":     "Successfully created message for " + handle,
+			"id":           messageid,
+			"published_to": circles,
 		})
 	}
 }
@@ -632,20 +621,20 @@ func (a Api) GetAuthoredMessages(w rest.ResponseWriter, r *rest.Request) {
 
 		w.WriteHeader(200)
 		w.WriteJson(types.Json{
-			"Response": "Found messages for user " + author,
-			"Objects":  string(b),
-			"Count":    len(messageData),
+			"response": "Found messages for user " + author,
+			"objects":  string(b),
+			"count":    len(messageData),
 		})
 	}
 }
 
 func (a Api) GetMessageById(w rest.ResponseWriter, r *rest.Request) {
-	id := r.PathParam("id")
-
 	if !a.authenticate(r) {
 		a.Util.FailedToAuthenticate(w)
 		return
 	}
+
+	id := r.PathParam("id")
 
 	handle, ok := a.Svc.GetHandleFromAuthorization(a.getTokenFromHeader(r))
 	if !ok {
@@ -667,18 +656,18 @@ func (a Api) GetMessageById(w rest.ResponseWriter, r *rest.Request) {
 		} else {
 			w.WriteHeader(200)
 			w.WriteJson(types.Json{
-				"Response": "Found message!",
-				"Object":   string(b),
+				"response": "Found message!",
+				"object":   string(b),
 			})
 		}
 	} else {
-		a.Util.SimpleJsonResponse(w, 404, "No such message in any circle you can see")
+		a.Util.SimpleJsonReason(w, 404, "No such message with id "+id+" could be found")
 		return
 	}
 }
 
 func (a Api) GetMessagesByHandle(w rest.ResponseWriter, r *rest.Request) {
-	a.Util.SimpleJsonResponse(w, 405, "Unimplemented")
+	a.Util.SimpleJsonReason(w, 405, "Unimplemented")
 }
 
 func (a Api) EditMessage(w rest.ResponseWriter, r *rest.Request) {
@@ -721,7 +710,7 @@ func (a Api) EditMessage(w rest.ResponseWriter, r *rest.Request) {
 					a.Util.SimpleJsonReason(w, 400, "Cannot update message content to empty at "+index)
 					return
 				} else if resource == "image" {
-					a.Util.SimpleJsonResponse(w, 405, "Edit message image value has yet to be implemented")
+					a.Util.SimpleJsonReason(w, 405, "Edit message image value has yet to be implemented")
 					return
 				}
 			} else if op == "publish" && resource == "circle" {
@@ -756,7 +745,7 @@ func (a Api) EditMessage(w rest.ResponseWriter, r *rest.Request) {
 		} else if op == "unpublish" {
 			a.Svc.UnpublishMessageFromCircle(messageid, value)
 		} else {
-			a.Util.SimpleJsonResponse(w, 500, "Unexpected failure to fulfill service request at "+strconv.Itoa(i))
+			a.Util.SimpleJsonReason(w, 500, "Unexpected failure to fulfill service request at "+strconv.Itoa(i))
 			return
 		}
 	}
@@ -772,7 +761,7 @@ func (a Api) EditMessage(w rest.ResponseWriter, r *rest.Request) {
  * Deletes an unpublished message
  */
 func (a Api) DeleteMessage(w rest.ResponseWriter, r *rest.Request) {
-	a.Util.SimpleJsonResponse(w, 405, "Unimplemented")
+	a.Util.SimpleJsonReason(w, 405, "Unimplemented")
 }
 
 //
@@ -799,14 +788,14 @@ func (a Api) BlockUser(w rest.ResponseWriter, r *rest.Request) {
 		target := payload.Target
 
 		if !a.Svc.UserExists(target) {
-			a.Util.SimpleJsonResponse(w, 400, "Bad request, user "+target+" wasn't found")
+			a.Util.SimpleJsonReason(w, 400, "Bad request, user "+target+" wasn't found")
 			return
 		}
 
 		a.Svc.KickTargetFromCircles(handle, target)
 
 		if !a.Svc.CreateBlockFromTo(handle, target) {
-			a.Util.SimpleJsonResponse(w, 400, "Unexpected failure to block user")
+			a.Util.SimpleJsonReason(w, 400, "Unexpected failure to block user")
 		} else {
 			a.Util.SimpleJsonResponse(w, 200, "User "+target+" has been blocked")
 		}
@@ -834,17 +823,17 @@ func (a Api) JoinDefault(w rest.ResponseWriter, r *rest.Request) {
 		target := payload.Target
 
 		if !a.Svc.UserExists(target) {
-			a.Util.SimpleJsonResponse(w, 400, "Bad request, user "+target+" wasn't found")
+			a.Util.SimpleJsonReason(w, 400, "Bad request, user "+target+" wasn't found")
 			return
 		}
 
 		if a.Svc.BlockExistsFromTo(target, handle) {
-			a.Util.SimpleJsonResponse(w, 403, "Server refusal to comply with join request")
+			a.Util.SimpleJsonReason(w, 403, "Server refusal to comply with join request")
 			return
 		}
 
 		if !a.Svc.JoinBroadcast(handle, target) {
-			a.Util.SimpleJsonResponse(w, 400, "Unexpected failure to join Broadcast")
+			a.Util.SimpleJsonReason(w, 400, "Unexpected failure to join Broadcast")
 		} else {
 			a.Util.SimpleJsonResponse(w, 201, "JoinDefault request successful!")
 		}
@@ -879,18 +868,18 @@ func (a Api) Join(w rest.ResponseWriter, r *rest.Request) {
 		circleid := payload.CircleId
 
 		if !a.Svc.UserExists(target) {
-			a.Util.SimpleJsonResponse(w, 400, "Bad request, user "+target+" wasn't found")
+			a.Util.SimpleJsonReason(w, 400, "Bad request, user "+target+" wasn't found")
 			return
 		}
 
 		if a.Svc.BlockExistsFromTo(target, handle) {
-			a.Util.SimpleJsonResponse(w, 403, "Server refusal to comply with join request")
+			a.Util.SimpleJsonReason(w, 403, "Server refusal to comply with join request")
 			return
 		}
 
 		if circleid == "" {
 			if id := a.Svc.GetCircleId(target, circle); id == "" {
-				a.Util.SimpleJsonResponse(w, 404, "Could not find target circle, join failed")
+				a.Util.SimpleJsonReason(w, 404, "Could not find target circle, join failed")
 				return
 			} else {
 				circleid = id
@@ -898,14 +887,14 @@ func (a Api) Join(w rest.ResponseWriter, r *rest.Request) {
 		}
 
 		if !a.Svc.CanSeeCircle(handle, circleid) {
-			a.Util.SimpleJsonResponse(w, 404, "Could not find target circle, join failed")
+			a.Util.SimpleJsonReason(w, 404, "Could not find target circle, join failed")
 			return
 		}
 
 		if a.Svc.JoinCircle(handle, circleid) {
 			a.Util.SimpleJsonResponse(w, 201, "Join request successful!")
 		} else {
-			a.Util.SimpleJsonResponse(w, 400, "Unexpected failure to join circle, join failed")
+			a.Util.SimpleJsonReason(w, 400, "Unexpected failure to join circle, join failed")
 		}
 	}
 }
