@@ -142,7 +142,6 @@ public class Circles extends Fragment {
         final String[] circleArray = new String[100];
         final View view2 = view;
 
-
         client.addHeader("Authorization", sessionid);
         client.get(getActivity().getApplicationContext(), "http://" + getLocalUrlForApi() + "/api/circles", params, new AsyncHttpResponseHandler() {
 
@@ -179,7 +178,6 @@ public class Circles extends Fragment {
                 } catch (JSONException j) {
                     System.out.println("Dont like JSON");
                 }
-
 
             }
 

@@ -40,7 +40,7 @@ public class CircleAdapter extends ArrayAdapter<Circle> {
         }
 
         Circle circle = data[position];
-        holder.txtTitle.setText(circle.title);
+        holder.txtTitle.setText(circle.circleName);
 
         return row;
     }

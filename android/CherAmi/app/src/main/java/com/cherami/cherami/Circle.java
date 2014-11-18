@@ -1,13 +1,13 @@
 package com.cherami.cherami;
 
 public class Circle {
-    public String title;
+    public String circleName;
 
     public Circle() {
         this("Give this circle a name please");
     }
 
-    public Circle(String title) {
-        this.title = title;
+    public Circle(String circleName) {
+        this.circleName = circleName;
     }
 }

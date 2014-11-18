@@ -14,6 +14,7 @@ import android.preference.PreferenceManager;
 import android.support.v13.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -179,7 +180,12 @@ public class LoginActivity extends Activity {
 
                         String responseText = null;
                         try {
-                            responseText = new JSONObject(new String(errorResponse)).getString("response"); //What goes in here???
+
+                            responseText = new JSONObject(new String(errorResponse)).getString("reason");
+                            if (responseText == null) {
+                                // Alert dialogue saying "Cannot connect to network"
+                                Log.e("Network", "Cannot connect to network");
+                            }
                         } catch (JSONException j) {
                             System.out.println("Dont like JSON");
                         }
