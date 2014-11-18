@@ -4,6 +4,7 @@ define(function(require, exports, module) {
     var MessagesView = require('app/views/messages-view').MessagesView;
     var MessageView = require('app/views/message-view').MessageView;
     var Message = require('app/models/message').Message;
+    var circle = require('app/models/circle').Circle;
     var Messages = require('app/collections/messages').Messages;
     var CircleView = require('app/views/circle-view').CircleView;
     var CreateCircleView = require('app/views/create-circle-view').CreateCircleView;

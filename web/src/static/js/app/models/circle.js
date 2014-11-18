@@ -5,8 +5,9 @@ define(function(require, exports, module) {
     var Circle = Backbone.Model.extend({
         url: 'api/circles',
         defaults: {
-            Content: null,
-            Id: null
+            name: null,
+            description: null,
+            visibility: null
         },
 
         initialize: function() {
