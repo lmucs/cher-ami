@@ -24,6 +24,7 @@ define(function(require, exports, module) {
             var req = new CreateCircle({
                 circleName: this.ui.name.val(),
                 description: this.ui.description.val(),
+                public: this.ui.visibility.val() === 'public',
                 visibility: this.ui.visibility.val(),
             });
             console.log(this.ui.name.val()),

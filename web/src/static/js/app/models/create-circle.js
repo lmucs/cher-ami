@@ -8,7 +8,8 @@ define(function(require, exports, module) {
         defaults: {
             circleName: null,
             description: null,
-            visibility: null
+            visibility: null,
+            public: null
         },
 
         initialize: function() {
