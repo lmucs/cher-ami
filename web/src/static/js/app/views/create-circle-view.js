@@ -22,10 +22,11 @@ define(function(require, exports, module) {
         onSubmitCircle: function(options) {
             event.preventDefault();
             var req = new CreateCircle({
-                name: this.ui.name.val(),
+                circleName: this.ui.name.val(),
                 description: this.ui.description.val(),
                 visibility: this.ui.visibility.val(),
             });
+            console.log(this.ui.name.val()),
             console.log(req)
             req.save();
         }

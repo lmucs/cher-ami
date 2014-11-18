@@ -6,7 +6,7 @@ define(function(require, exports, module) {
 
         url: '/api/circles',
         defaults: {
-            name: null,
+            circleName: null,
             description: null,
             visibility: null
         },
