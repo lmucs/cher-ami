@@ -34,7 +34,7 @@ func (s *TestSuite) TestPostMessageInvalidAuth(c *C) {
 
 func (s *TestSuite) TestPostMessageEmptyContent(c *C) {
 	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
-	sessionid := req.PostSessionGetSessionId("handleA", "password1")
+	sessionid := req.PostSessionGetAuthToken("handleA", "password1")
 
 	res, _ := req.PostMessage("", sessionid)
 
@@ -44,7 +44,7 @@ func (s *TestSuite) TestPostMessageEmptyContent(c *C) {
 
 func (s *TestSuite) TestPostMessageContentOnlyOK(c *C) {
 	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
-	sessionid := req.PostSessionGetSessionId("handleA", "password1")
+	sessionid := req.PostSessionGetAuthToken("handleA", "password1")
 
 	res, _ := req.PostMessage("Go is going gophers!", sessionid)
 
@@ -55,7 +55,7 @@ func (s *TestSuite) TestPostMessageContentOnlyOK(c *C) {
 func (s *TestSuite) TestPostMessageContentCirclesOK(c *C) {
 	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
 
-	sessionid := req.PostSessionGetSessionId("handleA", "password1")
+	sessionid := req.PostSessionGetAuthToken("handleA", "password1")
 
 	circleid := req.PostCircleGetCircleId(sessionid, "MyPublicCircle", true)
 	circleid2 := req.PostCircleGetCircleId(sessionid, "MyPublicCircle2", true)
@@ -80,7 +80,7 @@ func (s *TestSuite) TestGetAuthoredMessagesInvalidAuth(c *C) {
 func (s *TestSuite) TestGetAuthoredMessagesOK(c *C) {
 	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
 
-	sessionid := req.PostSessionGetSessionId("handleA", "password1")
+	sessionid := req.PostSessionGetAuthToken("handleA", "password1")
 
 	req.PostMessage("Go is going gophers!", sessionid)
 	req.PostMessage("Hypothesize about stuff", sessionid)
@@ -132,7 +132,7 @@ func (s *TestSuite) TestGetMessageByIdInvalidAuth(c *C) {
 func (s *TestSuite) TestGetMessageByIdDoesNotExist(c *C) {
 	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
 
-	sessionid := req.PostSessionGetSessionId("handleA", "password1")
+	sessionid := req.PostSessionGetAuthToken("handleA", "password1")
 
 	req.PostMessage("Go is going gophers!", sessionid)
 	req.PostMessage("Hypothesize about stuff", sessionid)
@@ -174,8 +174,8 @@ func (s *TestSuite) TestGetMessageByIdUserBlocked(c *C) {
 	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
 	req.PostSignup("handleB", "testB@test.io", "password2", "password2")
 
-	sessionid_A := req.PostSessionGetSessionId("handleA", "password1")
-	sessionid_B := req.PostSessionGetSessionId("handleB", "password2")
+	sessionid_A := req.PostSessionGetAuthToken("handleA", "password1")
+	sessionid_B := req.PostSessionGetAuthToken("handleB", "password2")
 
 	req.PostBlock(sessionid_B, "handleA")
 	message_id := req.PostMessageGetMessageId("Go is going gophers!", sessionid_B)
@@ -196,8 +196,8 @@ func (s *TestSuite) TestGetMessageByIdPrivateCircle(c *C) {
 	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
 	req.PostSignup("handleB", "testB@test.io", "password2", "password2")
 
-	sessionid_A := req.PostSessionGetSessionId("handleA", "password1")
-	sessionid_B := req.PostSessionGetSessionId("handleB", "password2")
+	sessionid_A := req.PostSessionGetAuthToken("handleA", "password1")
+	sessionid_B := req.PostSessionGetAuthToken("handleB", "password2")
 
 	message_id := req.PostMessageGetMessageId("Go is going gophers!", sessionid_B)
 	req.PostCircles(sessionid_B, "SomePrivateCircle", false)
@@ -219,8 +219,8 @@ func (s *TestSuite) TestGetMessageByIdOK(c *C) {
 	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
 	req.PostSignup("handleB", "testB@test.io", "password2", "password2")
 
-	sessionid_A := req.PostSessionGetSessionId("handleA", "password1")
-	sessionid_B := req.PostSessionGetSessionId("handleB", "password2")
+	sessionid_A := req.PostSessionGetAuthToken("handleA", "password1")
+	sessionid_B := req.PostSessionGetAuthToken("handleB", "password2")
 
 	circleid_1 := req.PostCircleGetCircleId(sessionid_A, "MyPublicCircle", true)
 	req.PostJoin(sessionid_B, "handleA", "MyPublicCircle")
@@ -247,7 +247,7 @@ func (s *TestSuite) TestGetMessageByIdOK(c *C) {
 
 func (s *TestSuite) TestEditMessageInvalidAuth(c *C) {
 	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
-	sessionid := req.PostSessionGetSessionId("handleA", "password1")
+	sessionid := req.PostSessionGetAuthToken("handleA", "password1")
 	messageid := req.PostMessageGetMessageId("Hello, world!", sessionid)
 	req.DeleteSessions(sessionid)
 
@@ -266,7 +266,7 @@ func (s *TestSuite) TestEditMessageInvalidAuth(c *C) {
 
 func (s *TestSuite) TestEditMessageMissingParams(c *C) {
 	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
-	sessionid := req.PostSessionGetSessionId("handleA", "password1")
+	sessionid := req.PostSessionGetAuthToken("handleA", "password1")
 	messageid := req.PostMessageGetMessageId("Hello, world!", sessionid)
 
 	// Cases of missing parameters
@@ -325,7 +325,7 @@ func (s *TestSuite) TestEditMessageMissingParams(c *C) {
 
 func (s *TestSuite) TestEditMessageBadOp(c *C) {
 	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
-	sessionid := req.PostSessionGetSessionId("handleA", "password1")
+	sessionid := req.PostSessionGetAuthToken("handleA", "password1")
 	messageid := req.PostMessageGetMessageId("Hello, world!", sessionid)
 
 	patchObj := types.Json{
@@ -341,7 +341,7 @@ func (s *TestSuite) TestEditMessageBadOp(c *C) {
 
 func (s *TestSuite) TestEditMessageBadResource(c *C) {
 	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
-	sessionid := req.PostSessionGetSessionId("handleA", "password1")
+	sessionid := req.PostSessionGetAuthToken("handleA", "password1")
 	messageid := req.PostMessageGetMessageId("Hello, world!", sessionid)
 
 	patchObj := types.Json{
@@ -357,7 +357,7 @@ func (s *TestSuite) TestEditMessageBadResource(c *C) {
 
 func (s *TestSuite) TestEditMessageBadPatchObject(c *C) {
 	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
-	sessionid := req.PostSessionGetSessionId("handleA", "password1")
+	sessionid := req.PostSessionGetAuthToken("handleA", "password1")
 	messageid := req.PostMessageGetMessageId("Hello, world!", sessionid)
 
 	publishContent := types.Json{
@@ -389,7 +389,7 @@ func (s *TestSuite) TestEditMessageUnableToUnpublish(c *C) {
 
 func (s *TestSuite) TestEditMessageUpdateContentOK(c *C) {
 	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
-	sessionid := req.PostSessionGetSessionId("handleA", "password1")
+	sessionid := req.PostSessionGetAuthToken("handleA", "password1")
 	messageid := req.PostMessageGetMessageId("Hello, world!", sessionid)
 
 	patchObj := types.Json{
@@ -405,7 +405,7 @@ func (s *TestSuite) TestEditMessageUpdateContentOK(c *C) {
 
 func (s *TestSuite) TestEditMessagePublishCircleOK(c *C) {
 	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
-	sessionid := req.PostSessionGetSessionId("handleA", "password1")
+	sessionid := req.PostSessionGetAuthToken("handleA", "password1")
 	messageid := req.PostMessageGetMessageId("Hello, world!", sessionid)
 	circleid := req.PostCircleGetCircleId(sessionid, "MyPublicCircle", true)
 
@@ -422,7 +422,7 @@ func (s *TestSuite) TestEditMessagePublishCircleOK(c *C) {
 
 func (s *TestSuite) TestEditMessageUnpublishCircleOK(c *C) {
 	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
-	sessionid := req.PostSessionGetSessionId("handleA", "password1")
+	sessionid := req.PostSessionGetAuthToken("handleA", "password1")
 	circleid := req.PostCircleGetCircleId(sessionid, "MyPublicCircle", true)
 	messageid := req.PostMessageWithCirclesGetMessageId("Hello, world!", sessionid, []string{circleid})
 
@@ -439,7 +439,7 @@ func (s *TestSuite) TestEditMessageUnpublishCircleOK(c *C) {
 
 func (s *TestSuite) TestEditMessageAllOK(c *C) {
 	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
-	sessionid := req.PostSessionGetSessionId("handleA", "password1")
+	sessionid := req.PostSessionGetAuthToken("handleA", "password1")
 	circleid1 := req.PostCircleGetCircleId(sessionid, "MyPublicCircle", true)
 	messageid := req.PostMessageWithCirclesGetMessageId("Hello, world!", sessionid, []string{circleid1})
 

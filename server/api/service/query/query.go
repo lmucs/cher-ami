@@ -55,9 +55,9 @@ func panicIfErr(err error) {
 // Constants //
 const (
 	// Reserved Circles
-	GOLD             = "Gold"
-	BROADCAST        = "Broadcast"
-	SESSION_DURATION = time.Hour
+	GOLD                = "Gold"
+	BROADCAST           = "Broadcast"
+	AUTH_TOKEN_DURATION = time.Hour
 )
 
 // Return types //
@@ -455,20 +455,20 @@ func (q Query) EmailExists(email string) bool {
 	return len(found) > 0
 }
 
-func (q Query) SessionBelongsToSomeUser(sessionid string) bool {
+func (q Query) AuthTokenBelongsToSomeUser(token string) bool {
 	found := []struct {
 		Handle string `json:"u.handle"`
 	}{}
 	q.cypherOrPanic(&neoism.CypherQuery{
 		Statement: `
             MATCH   (u:User)<-[:SESSION_OF]-(a:AuthToken)
-            WHERE   a.sessionid = {sessionid}
-            AND     a.expires   > {now}
+            WHERE   a.value   = {token}
+            AND     a.expires > {now}
             RETURN  u.handle
         `,
 		Parameters: neoism.Props{
-			"sessionid": sessionid,
-			"now":       time.Now().Local(),
+			"token": token,
+			"now":   time.Now().Local(),
 		},
 		Result: &found,
 	})
@@ -557,41 +557,41 @@ func (q Query) SearchForUsers(circle, namePrefix string, skip, limit int, sortBy
 }
 
 func (q Query) SearchCircles(user string, skip, limit int) (results string, count int) {
-    res := []struct {
-        //
-        //
-        // TODO JUST NAME AND ID FOR NOW.  THIS HAS TO BE FIXED TO BE LIKE API SPEC
-        //
-        //
-        Name   string `json:"c.name"`
-        Id     int    `json:"id(c)"`
-    }{}
+	res := []struct {
+		//
+		//
+		// TODO JUST NAME AND ID FOR NOW.  THIS HAS TO BE FIXED TO BE LIKE API SPEC
+		//
+		//
+		Name string `json:"c.name"`
+		Id   int    `json:"id(c)"`
+	}{}
 
-    query := `
+	query := `
         MATCH   (u:User)-[]->(c:Circle)
         WHERE   u.handle = {user}
         RETURN  c.name, id(c)
         SKIP    {skip}
         LIMIT   {limit}
     `
-    props := neoism.Props{
-        "user":   user,
-        "skip":   skip,
-        "limit":  limit,
-    }
-    q.cypherOrPanic(&neoism.CypherQuery{
-        Statement:  query,
-        Parameters: props,
-        Result:     &res,
-    })
+	props := neoism.Props{
+		"user":  user,
+		"skip":  skip,
+		"limit": limit,
+	}
+	q.cypherOrPanic(&neoism.CypherQuery{
+		Statement:  query,
+		Parameters: props,
+		Result:     &res,
+	})
 
-    if len(res) == 0 {
-        return "", 0
-    } else {
-        bytes, err := json.Marshal(res)
-        panicIfErr(err)
-        return string(bytes), len(res)
-    }
+	if len(res) == 0 {
+		return "", 0
+	} else {
+		bytes, err := json.Marshal(res)
+		panicIfErr(err)
+		return string(bytes), len(res)
+	}
 }
 
 func (q Query) GetPasswordHash(handle string) (passwordHash []byte, ok bool) {
@@ -687,13 +687,13 @@ func (q Query) DeriveHandleFromAuthToken(token string) (handle string, ok bool) 
 	q.cypherOrPanic(&neoism.CypherQuery{
 		Statement: `
 			MATCH   (u:User)<-[:SESSION_OF]-(a:AuthToken)
-			WHERE   a.sessionid = {sessionid}
-			AND     {now}       < a.expires
+			WHERE   a.value  = {token}
+			AND     {now}    < a.expires
 			RETURN  u.handle
 		`,
 		Parameters: neoism.Props{
-			"sessionid": token,
-			"now":       time.Now().Local(),
+			"token": token,
+			"now":   time.Now().Local(),
 		},
 		Result: &found,
 	})
@@ -708,36 +708,35 @@ func (q Query) DeriveHandleFromAuthToken(token string) (handle string, ok bool) 
 // Update
 //
 
-func (q Query) SetGetNewSessionIdForUser(handle string) string {
+func (q Query) SetGetNewAuthTokenForUser(handle string) string {
 	created := []struct {
-		SessionId string `json:"a.sessionid"`
+		Token string `json:"a.value"`
 	}{}
-	sessionDuration := SESSION_DURATION
 	now := time.Now().Local()
 	q.cypherOrPanic(&neoism.CypherQuery{
 		Statement: `
                 MATCH   (u:User)
-                WHERE   u.handle = {handle}
+                WHERE   u.handle     = {handle}
                 WITH    u
                 OPTIONAL MATCH (u)<-[old_r:SESSION_OF]-(old_a:AuthToken)
                 DELETE  old_r, old_a
                 WITH    u
                 CREATE  (u)<-[r:SESSION_OF]-(a:AuthToken)
                 SET     r.created_at = {now}
-                SET     a.sessionid  = {sessionid}
+                SET     a.value      = {token}
                 SET     a.expires    = {time}
-                RETURN  a.sessionid
+                RETURN  a.value
             `,
 		Parameters: neoism.Props{
-			"handle":    handle,
-			"sessionid": "Token " + uniuri.NewLen(uniuri.UUIDLen),
-			"time":      now.Add(sessionDuration),
-			"now":       now,
+			"handle": handle,
+			"token":  "Token " + uniuri.NewLen(uniuri.UUIDLen),
+			"time":   now.Add(AUTH_TOKEN_DURATION),
+			"now":    now,
 		},
 		Result: &created,
 	})
 	if len(created) > 0 {
-		return created[0].SessionId
+		return created[0].Token
 	} else {
 		return ""
 	}
@@ -897,19 +896,19 @@ func (q Query) DeletePublishedRelation(messageid, circleid string) bool {
 	return len(deleted) > 0 && deleted[0].Count > 0
 }
 
-func (q Query) DestroyAuthToken(sessionid string) bool {
+func (q Query) DestroyAuthToken(token string) bool {
 	deleted := []struct {
 		Handle string `json:"u.handle"`
 	}{}
 	q.cypherOrPanic(&neoism.CypherQuery{
 		Statement: `
             MATCH   (u:User)<-[so:SESSION_OF]-(a:AuthToken)
-            WHERE   a.sessionid = {sessionid}
+            WHERE   a.value = {token}
             DELETE  so, a
             RETURN  u.handle
         `,
 		Parameters: neoism.Props{
-			"sessionid": sessionid,
+			"token": token,
 		},
 		Result: &deleted,
 	})

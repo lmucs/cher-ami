@@ -79,7 +79,7 @@ func (s *TestSuite) TestSearchUsersOK(c *C) {
 func (s *TestSuite) TestDeleteUserInvalidPassword(c *C) {
 	req.PostSignup("handleA", "test@test.io", "password1", "password1")
 
-	sessionid := req.PostSessionGetSessionId("handleA", "password1")
+	sessionid := req.PostSessionGetAuthToken("handleA", "password1")
 
 	response, err := req.DeleteUser("handleA", "notpassword1", sessionid)
 	if err != nil {
@@ -93,7 +93,7 @@ func (s *TestSuite) TestDeleteUserInvalidPassword(c *C) {
 // func (s *TestSuite) TestDeleteUserOK(c *C) {
 // 	req.PostSignup("handleA", "test@test.io", "password1", "password1")
 
-// 	sessionid := req.PostSessionGetSessionId("handleA", "password1")
+// 	sessionid := req.PostSessionGetAuthToken("handleA", "password1")
 
 // 	deleteUserResponse, err := req.DeleteUser("handleA", "password1", sessionid)
 // 	if err != nil {

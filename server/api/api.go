@@ -51,14 +51,14 @@ const (
 //
 
 func (a Api) authenticate(r *rest.Request) (success bool) {
-	if sessionid := r.Header.Get("Authorization"); sessionid != "" {
-		return a.Svc.VerifySession(sessionid)
+	if token := a.getTokenFromHeader(r); token != "" {
+		return a.Svc.VerifyAuthToken(token)
 	} else {
 		return false
 	}
 }
 
-func (a Api) getSessionId(r *rest.Request) string {
+func (a Api) getTokenFromHeader(r *rest.Request) string {
 	return r.Header.Get("Authorization")
 }
 
@@ -169,12 +169,12 @@ func (a Api) Login(w rest.ResponseWriter, r *rest.Request) {
 			return
 		} else {
 			// Create an authentication node and return it to client
-			sessionid := a.Svc.SetGetNewSessionId(handle)
+			token := a.Svc.SetGetNewAuthToken(handle)
 
 			w.WriteHeader(201)
 			w.WriteJson(types.Json{
-				"Response":  "Logged in " + handle + ". Note your session id.",
-				"sessionid": sessionid,
+				"Response": "Logged in " + handle + ". Note your Authorization token.",
+				"token":    token,
 			})
 			return
 		}
@@ -185,7 +185,7 @@ func (a Api) Login(w rest.ResponseWriter, r *rest.Request) {
  * Expects a json post with "handle"
  */
 func (a Api) Logout(w rest.ResponseWriter, r *rest.Request) {
-	if a.Svc.UnsetSessionId(a.getSessionId(r)) {
+	if a.Svc.DestroyAuthToken(a.getTokenFromHeader(r)) {
 		w.WriteHeader(204)
 		return
 	} else {
@@ -210,14 +210,8 @@ func (a Api) ChangePassword(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	if handle, success := a.Svc.GetHandleFromAuthorization(a.getSessionId(r)); !success {
-		w.WriteHeader(400)
-		w.WriteJson(types.Json{
-			"Response":  "Unexpected failure to retrieve owner of session",
-			"Handle":    handle,
-			"Success":   success,
-			"SessionId": a.getSessionId(r),
-		})
+	if handle, success := a.Svc.GetHandleFromAuthorization(a.getTokenFromHeader(r)); !success {
+		a.Util.FailedToDetermineHandleFromAuthToken(w)
 		return
 	} else {
 		password := []byte(user.Password)
@@ -384,14 +378,8 @@ func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	if handle, success := a.Svc.GetHandleFromAuthorization(a.getSessionId(r)); !success {
-		w.WriteHeader(400)
-		w.WriteJson(types.Json{
-			"Response":  "Unexpected failure to retrieve owner of session",
-			"Handle":    handle,
-			"Success":   success,
-			"SessionId": a.getSessionId(r),
-		})
+	if handle, success := a.Svc.GetHandleFromAuthorization(a.getTokenFromHeader(r)); !success {
+		a.Util.FailedToDetermineHandleFromAuthToken(w)
 		return
 	} else {
 		password := []byte(credentials.Password)
@@ -443,14 +431,8 @@ func (a Api) NewCircle(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	if handle, success := a.Svc.GetHandleFromAuthorization(a.getSessionId(r)); !success {
-		w.WriteHeader(500)
-		w.WriteJson(types.Json{
-			"Response":  "Unexpected failure to retrieve owner of session",
-			"Handle":    handle,
-			"Success":   success,
-			"SessionId": a.getSessionId(r),
-		})
+	if handle, success := a.Svc.GetHandleFromAuthorization(a.getTokenFromHeader(r)); !success {
+		a.Util.FailedToDetermineHandleFromAuthToken(w)
 		return
 	} else {
 		circleName := payload.CircleName
@@ -521,7 +503,7 @@ func (a Api) SearchCircles(w rest.ResponseWriter, r *rest.Request) {
 	}
 
 	if val, ok := querymap["user"]; !ok {
-		user, _ = a.Svc.GetHandleFromAuthorization(a.getSessionId(r));
+		user, _ = a.Svc.GetHandleFromAuthorization(a.getTokenFromHeader(r))
 	} else {
 		user = val[0]
 	}
@@ -553,7 +535,6 @@ func (a Api) SearchCircles(w rest.ResponseWriter, r *rest.Request) {
 	})
 }
 
-
 //
 // Messages
 //
@@ -583,12 +564,9 @@ func (a Api) NewMessage(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	handle, ok := a.Svc.GetHandleFromAuthorization(a.getSessionId(r))
+	handle, ok := a.Svc.GetHandleFromAuthorization(a.getTokenFromHeader(r))
 	if !ok {
-		w.WriteHeader(500)
-		w.WriteJson(types.Json{
-			"Response": "Unexpected failure to retrieve owner of session",
-		})
+		a.Util.FailedToDetermineHandleFromAuthToken(w)
 		return
 	}
 
@@ -630,8 +608,8 @@ func (a Api) GetAuthoredMessages(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	if author, success := a.Svc.GetHandleFromAuthorization(a.getSessionId(r)); !success {
-		a.Util.FailedToDetermineHandleFromSession(w)
+	if author, success := a.Svc.GetHandleFromAuthorization(a.getTokenFromHeader(r)); !success {
+		a.Util.FailedToDetermineHandleFromAuthToken(w)
 		return
 	} else {
 		messages := a.Svc.GetMessagesByHandle(author)
@@ -669,13 +647,9 @@ func (a Api) GetMessageById(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	handle, ok := a.Svc.GetHandleFromAuthorization(a.getSessionId(r))
+	handle, ok := a.Svc.GetHandleFromAuthorization(a.getTokenFromHeader(r))
 	if !ok {
-		w.WriteHeader(400)
-		w.WriteJson(types.Json{
-			"Response":  "Unexpected failure to retrieve owner of session",
-			"SessionId": a.getSessionId(r),
-		})
+		a.Util.FailedToDetermineHandleFromAuthToken(w)
 		return
 	}
 
@@ -720,9 +694,9 @@ func (a Api) EditMessage(w rest.ResponseWriter, r *rest.Request) {
 	}
 
 	messageid := r.PathParam("id")
-	handle, ok := a.Svc.GetHandleFromAuthorization(a.getSessionId(r))
+	handle, ok := a.Svc.GetHandleFromAuthorization(a.getTokenFromHeader(r))
 	if !ok {
-		a.Util.FailedToDetermineHandleFromSession(w)
+		a.Util.FailedToDetermineHandleFromAuthToken(w)
 		return
 	}
 
@@ -818,8 +792,8 @@ func (a Api) BlockUser(w rest.ResponseWriter, r *rest.Request) {
 		rest.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	if handle, success := a.Svc.GetHandleFromAuthorization(a.getSessionId(r)); !success {
-		a.Util.FailedToDetermineHandleFromSession(w)
+	if handle, success := a.Svc.GetHandleFromAuthorization(a.getTokenFromHeader(r)); !success {
+		a.Util.FailedToDetermineHandleFromAuthToken(w)
 		return
 	} else {
 		target := payload.Target
@@ -853,14 +827,8 @@ func (a Api) JoinDefault(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	if handle, success := a.Svc.GetHandleFromAuthorization(a.getSessionId(r)); !success {
-		w.WriteHeader(400)
-		w.WriteJson(types.Json{
-			"Response":  "Unexpected failure to retrieve owner of session",
-			"Handle":    handle,
-			"Success":   success,
-			"SessionId": a.getSessionId(r),
-		})
+	if handle, success := a.Svc.GetHandleFromAuthorization(a.getTokenFromHeader(r)); !success {
+		a.Util.FailedToDetermineHandleFromAuthToken(w)
 		return
 	} else {
 		target := payload.Target
@@ -902,14 +870,8 @@ func (a Api) Join(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	if handle, success := a.Svc.GetHandleFromAuthorization(a.getSessionId(r)); !success {
-		w.WriteHeader(400)
-		w.WriteJson(types.Json{
-			"Response":  "Unexpected failure to retrieve owner of session",
-			"Handle":    handle,
-			"Success":   success,
-			"SessionId": a.getSessionId(r),
-		})
+	if handle, success := a.Svc.GetHandleFromAuthorization(a.getTokenFromHeader(r)); !success {
+		a.Util.FailedToDetermineHandleFromAuthToken(w)
 		return
 	} else {
 		target := payload.Target
