@@ -5,6 +5,7 @@ define(function(require, exports, module) {
     var MessageView = require('app/views/message-view').MessageView;
     var Message = require('app/models/message').Message;
     var Messages = require('app/collections/messages').Messages;
+    var CircleView = require('app/views/circle-view').CircleView;
     var CreateCircleView = require('app/views/create-circle-view').CreateCircleView;
     var ProfileView = require('app/views/profile-view').ProfileView;
     var EditProfileView = require('app/views/edit-profile-view').EditProfileView;
@@ -24,6 +25,7 @@ define(function(require, exports, module) {
         ui: {
             feedContainer: '#feed-container',
             showContent: '#showContent',
+            showCircles: '#goToCircles',
             createCircle: '#goToCreateCircle',
             displayProfile: '#goToProfile',
             editProfile: '#editProfile',
@@ -31,6 +33,7 @@ define(function(require, exports, module) {
         },
 
         events: {
+            'click #goToCircles': 'showCircles',
             'click #goToCreateCircle': 'showCreateCircle',
             'click #goToProfile': 'showProfile',
             'click #editProfile': 'showEditProfile',
@@ -44,6 +47,11 @@ define(function(require, exports, module) {
 
         onRender: function() {
             this.showFeed();
+        },
+
+        showCircles: function(options) {
+            var showCircles = new CircleView();
+            this.profile.show(showCircles);
         },
 
         showProfile: function(options) {
