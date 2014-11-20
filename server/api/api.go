@@ -74,13 +74,7 @@ func (a Api) getTokenFromHeader(r *rest.Request) string {
  * Expects a json POST with "username", "email", "password", "confirmpassword"
  */
 func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
-	type Proposal struct {
-		Handle          string
-		Email           string
-		Password        string
-		ConfirmPassword string
-	}
-	proposal := Proposal{}
+	proposal := types.SignupProposal{}
 	if err := r.DecodeJsonPayload(&proposal); err != nil {
 		rest.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -265,6 +259,38 @@ func (a Api) ChangePassword(w rest.ResponseWriter, r *rest.Request) {
 //
 // User
 //
+func (a Api) GetUser(w rest.ResponseWriter, r *rest.Request) {
+	// if !a.authenticate(r) {
+	// 	a.Util.FailedToAuthenticate(w)
+	// 	return
+	// }
+
+	// handle := r.PathParam("handle")
+
+}
+
+func (a Api) SetUser(w rest.ResponseWriter, r *rest.Request) {
+	// if !a.authenticate(r) {
+	// 	a.Util.FailedToAuthenticate(w)
+	// 	return
+	// }
+
+	// handle := r.PathParam("handle")
+	// if h, ok := a.Svc.GetHandleFromAuthorization(a.getTokenFromHeader(r)); !ok {
+	// 	a.Util.FailedToDetermineHandleFromAuthToken(w)
+	// 	return
+	// } else if h != handle {
+	// 	a.Util.SimpleJsonReason(w, 401, "You are not authorized to modify user "+handle)
+	// 	return
+	// }
+
+	// attributes := types.UserAttributes{}
+	// if err := r.DecodeJsonPayload(&user); err != nil {
+	// 	rest.Error(w, err.Error(), http.StatusBadRequest)
+	// 	return
+	// }
+
+}
 
 func (a Api) SearchForUsers(w rest.ResponseWriter, r *rest.Request) {
 	querymap := r.URL.Query()
