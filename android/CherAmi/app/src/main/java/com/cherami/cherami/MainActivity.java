@@ -20,15 +20,19 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.v13.app.FragmentPagerAdapter;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
+import android.view.ActionProvider;
+import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.SubMenu;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
@@ -174,7 +178,7 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
         return entity;
     }
 
-    public void attemptCreateMessage() {
+    public boolean attemptCreateMessage(MenuItem menuItem) {
         AsyncHttpClient client = new AsyncHttpClient();
         String sessionKey = "com.cherami.cherami.token";
         String token = prefs.getString(sessionKey, null);
@@ -231,6 +235,7 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
                         System.out.println("RETRYING?!?!");
                     }
                 });
+        return true;
     }
 
     public void displayCreateCircleModal (View view) {
@@ -250,7 +255,7 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
 //                startActivity(intent);
 //                return true;
             case R.id.action_message:
-                attemptCreateMessage();
+                attemptCreateMessage(item);
                 return true;
             case R.id.action_logout:
                 logoutUser();

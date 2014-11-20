@@ -4,6 +4,7 @@
     xmlns:cherami="http://schemas.android.com/apk/res-auto" >
     <item android:id="@+id/action_message"
         android:icon="@drawable/ic_action_edit"
+        android:onClick="attemptCreateMessage"
         android:title="@string/action_edit"
         cherami:showAsAction="always" />
 
