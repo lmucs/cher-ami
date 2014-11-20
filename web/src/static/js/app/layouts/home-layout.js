@@ -10,7 +10,7 @@ define(function(require, exports, module) {
     
     //circles requirements
     var CircleView = require('app/views/circle-view').CircleView;
-    var CircleView = require('app/views/circles-view').CirclesView;
+    var CirclesView = require('app/views/circles-view').CirclesView;
     var CreateCircleView = require('app/views/create-circle-view').CreateCircleView;
     var Circle = require('app/models/circle').Circle;
     var Circles = require('app/collections/circles').Circles;

@@ -15,12 +15,10 @@ define(function(require, exports, module) {
             postArea: '#postArea',
             messageArea: '#messages',
             messageBox: '#message-box',
-            // postContainer: '#postContainer'
         },
 
         events: {
             'click #submitButton': 'onSubmit',
-            // 'keyup #postContainer': 'PostValidat'
         },
 
         onSubmit: function() {
