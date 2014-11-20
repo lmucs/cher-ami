@@ -14,7 +14,7 @@ const (
 
 // Regexes
 var (
-	handleRegex = regexp.MustCompile(`^\p{L}[\d\p{L}]*`)
+	handleRegex = regexp.MustCompile(`^[\p{L}\p{M}][\d\p{L}\p{M}]*$`)
 )
 
 func NewValidator() *validate.V {
