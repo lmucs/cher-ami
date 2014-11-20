@@ -34,10 +34,9 @@ func (u Util) FailedToAuthenticate(w rest.ResponseWriter) {
 	})
 }
 
-func (u Util) FailedToDetermineHandleFromSession(w rest.ResponseWriter) {
-	w.WriteHeader(400)
+func (u Util) FailedToDetermineHandleFromAuthToken(w rest.ResponseWriter) {
+	w.WriteHeader(500)
 	w.WriteJson(types.Json{
-		"response": "Unexpected failure to retrieve owner of session",
+		"reason": "Unexpected failure to retrieve owner of Authentication token",
 	})
-	return
 }

@@ -4,7 +4,6 @@ define(function(require, exports, module) {
     var template = require('hbs!../templates/messages-view')
     var MessageView = require('app/views/message-view').MessageView;
     var Message = require('app/models/message').Message;
-    // var postValidator = require('app/utils/post-validator').PostValidator;
 
     var MessagesView = marionette.CompositeView.extend({
         childView: MessageView,
@@ -40,10 +39,6 @@ define(function(require, exports, module) {
             }
 
         },
-
-        // PostValidat: function(event) {
-        //     postValidator(this.ui.postArea)
-        // },
 
         initialize: function(options) {
             this.collection = options.collection;

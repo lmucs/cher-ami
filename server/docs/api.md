@@ -10,9 +10,7 @@ All endpoints except signup (`POST /users`) and login (`POST /sessions`) require
 
 If the authorization header is missing, or the token is invalid or expired, an HTTP 401 response is returned. After receiving a 401, a client should try to login (`POST /sessions`) again to obtain a new token.
 
-The API supports discovery of further endpoints, linking objects will absolute URIs.
-
-
+The API supports discovery of further endpoints, linking objects with absolute URIs.
 
 # Group Users
 
@@ -69,8 +67,8 @@ If the given username-password combination is valid, generate and return a token
 + Response 201
 
         {
-           "Response":  "Logged in pelé. Note your session id.",
-           "token": "hu876xvyft3ufib230ffn0spdfmwefna"
+           "response": "Logged in pelé. Note your Authorization token.",
+           "token": "Token hu876xvyft3ufib230ffn0spdfmwefna"
         }
 + Response 400
 
@@ -124,6 +122,7 @@ Fetch a desired set of users. You may filter by circle or leading characters of 
     + Headers
 
             Authorization: Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
 + Response 200
 
         [
@@ -144,7 +143,8 @@ Fetch a desired set of users. You may filter by circle or leading characters of 
 + Response 401
 
         {
-            "reason": "missing, illegal, or expired token"
+            "response": "Failed to authenticate user request",
+            "reason":   "Missing, illegal or expired token",
         }
 + Response 403
 
@@ -184,8 +184,10 @@ Get _complete_ user data, including all profile information as well as blocked u
 + Response 401
 
         {
-            "reason": "missing, illegal, or expired token"
+            "response": "Failed to authenticate user request",
+            "reason":   "Missing, illegal or expired token",
         }
+
 + Response 404
 
         {
@@ -211,8 +213,10 @@ Change only basic user information here such as display name, email, and status.
 + Response 401
 
         {
-            "reason": "missing, illegal, or expired token"
+            "response": "Failed to authenticate user request",
+            "reason":   "Missing, illegal or expired token",
         }
+
 + Response 403
 
         {
@@ -227,15 +231,22 @@ Change only basic user information here such as display name, email, and status.
     + Body
 
             {
-                "handle": "pelé",
                 "password": "Brasil Uber Alles"
             }
 + Response 204
 + Response 401
+        
+        {
+            "response": "Failed to authenticate user request",
+            "reason":   "Missing, illegal or expired token",
+        }
+
+        or
 
         {
-            "reason": "missing, illegal, or expired token"
+            "reason": "Invalid password, please try again"
         }
+
 + Response 403
 
         {

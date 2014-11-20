@@ -143,7 +143,7 @@ a.list-group-item.heading:hover {
 <p>All endpoints except signup (<code>POST /users</code>) and login (<code>POST /sessions</code>) require an <code>Authorization</code> header in which you pass in the token that you previously received from a successful login request. For example:</p>
 <pre><code><span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Token 8dsfg87ef23dkos9r9wjr32232re</span>
 </code></pre><p>If the authorization header is missing, or the token is invalid or expired, an HTTP 401 response is returned. After receiving a 401, a client should try to login (<code>POST /sessions</code>) again to obtain a new token.</p>
-<p>The API supports discovery of further endpoints, linking objects will absolute URIs.</p>
+<p>The API supports discovery of further endpoints, linking objects with absolute URIs.</p>
 </div></div><div><div class="panel panel-default"><div class="panel-heading"><h3 id="users">Users&nbsp;<a href="#users"><i class="fa fa-link"></i></a></h3></div><div class="panel-body"><h4 id="users-signup">Signup&nbsp;<a href="#users-signup"><i class="fa fa-link"></i></a></h4><section id="users-signup-post" class="panel panel-success"><div class="panel-heading"><div style="float:right"><span style="text-transform: lowercase">Signup/create a new user</span></div><div style="float:left"><a href="#users-signup-post" class="btn btn-xs btn-success">POST</a></div><div style="overflow:hidden"><code>/users</code></div></div><div class="panel-body"><p>Create a user given only a handle, email, and password. The service will create an initial status, reputation, and default circles, as well as record the creation timestamp. All other profile information is set using different operations.</p>
 </div><ul class="list-group"><li class="list-group-item"><strong>Request</strong><a data-toggle="collapse" data-target="#5e4bd7ddfd051bea7f40abfffbd9b0bb" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="5e4bd7ddfd051bea7f40abfffbd9b0bb" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
     "<span class="hljs-attribute">handle</span>": <span class="hljs-value"><span class="hljs-string">"pelé"</span></span>,
@@ -169,9 +169,9 @@ a.list-group-item.heading:hover {
     "<span class="hljs-attribute">handle</span>": <span class="hljs-value"><span class="hljs-string">"pelé"</span></span>,
     "<span class="hljs-attribute">password</span>": <span class="hljs-value"><span class="hljs-string">"a string"</span>
 </span>}
-</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>201</code></strong><a data-toggle="collapse" data-target="#569eced478dc520fe3910fa482a651d0" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="569eced478dc520fe3910fa482a651d0" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
-   "<span class="hljs-attribute">Response</span>":  <span class="hljs-value"><span class="hljs-string">"Logged in pelé. Note your session id."</span></span>,
-   "<span class="hljs-attribute">token</span>": <span class="hljs-value"><span class="hljs-string">"hu876xvyft3ufib230ffn0spdfmwefna"</span>
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>201</code></strong><a data-toggle="collapse" data-target="#b6743d2fc8d410d66f1bd36340adfb5c" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="b6743d2fc8d410d66f1bd36340adfb5c" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+   "<span class="hljs-attribute">response</span>": <span class="hljs-value"><span class="hljs-string">"Logged in pelé. Note your Authorization token."</span></span>,
+   "<span class="hljs-attribute">token</span>": <span class="hljs-value"><span class="hljs-string">"Token hu876xvyft3ufib230ffn0spdfmwefna"</span>
 </span>}
 </code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>400</code></strong><a data-toggle="collapse" data-target="#a8378b449ef0e0406eb28cb05c06b0e3" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="a8378b449ef0e0406eb28cb05c06b0e3" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
     "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"malformed json"</span>
@@ -202,9 +202,10 @@ a.list-group-item.heading:hover {
 </code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>400</code></strong><a data-toggle="collapse" data-target="#fbbc14d16e783937cfc1e2d72fb952f2" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="fbbc14d16e783937cfc1e2d72fb952f2" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
     "<span class="hljs-attribute">reason</span>": <span class="hljs-value">(<span class="hljs-string">"malformed json"</span>|<span class="hljs-string">"missing sort"</span>|<span class="hljs-string">"no such sort"</span>|<span class="hljs-string">"malformed skip"</span>|<span class="hljs-string">"malformed limit"</span>)
 </span>}
-</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>401</code></strong><a data-toggle="collapse" data-target="#2364528bcf9f8b3adfda809e19221c35" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="2364528bcf9f8b3adfda809e19221c35" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
-    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"missing, illegal, or expired token"</span>
-</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>401</code></strong><a data-toggle="collapse" data-target="#201bce82fad797e139b2ec1b896af6d7" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="201bce82fad797e139b2ec1b896af6d7" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">response</span>": <span class="hljs-value"><span class="hljs-string">"Failed to authenticate user request"</span></span>,
+    "<span class="hljs-attribute">reason</span>":   <span class="hljs-value"><span class="hljs-string">"Missing, illegal or expired token"</span></span>,
+}
 </code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>403</code></strong><a data-toggle="collapse" data-target="#a2d4c852a0cebcccd698151e80584142" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="a2d4c852a0cebcccd698151e80584142" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
     "reason": ("you <span class="hljs-operator"><span class="hljs-keyword">do</span> <span class="hljs-keyword">not</span> own <span class="hljs-keyword">or</span> belong <span class="hljs-keyword">to</span> this circle<span class="hljs-string">"|"</span>skip out <span class="hljs-keyword">of</span> range<span class="hljs-string">"|"</span><span class="hljs-keyword">limit</span> out <span class="hljs-keyword">of</span> range<span class="hljs-string">")
 }
@@ -224,9 +225,10 @@ a.list-group-item.heading:hover {
         {"<span class="hljs-attribute">name</span>": <span class="hljs-value"><span class="hljs-string">"coaches"</span></span>, "<span class="hljs-attribute">url</span>": <span class="hljs-value"><span class="hljs-string">"https://cher-ami.example.com/circles/5922"</span></span>}
     ]
 </span>}
-</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>401</code></strong><a data-toggle="collapse" data-target="#c0727ee0e840204734f7fbc1924579d3" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="c0727ee0e840204734f7fbc1924579d3" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
-    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"missing, illegal, or expired token"</span>
-</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>401</code></strong><a data-toggle="collapse" data-target="#4e9dc0d2579735b714532234ee8d0c73" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="4e9dc0d2579735b714532234ee8d0c73" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">response</span>": <span class="hljs-value"><span class="hljs-string">"Failed to authenticate user request"</span></span>,
+    "<span class="hljs-attribute">reason</span>":   <span class="hljs-value"><span class="hljs-string">"Missing, illegal or expired token"</span></span>,
+}
 </code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>404</code></strong><a data-toggle="collapse" data-target="#4b7d333b856618bb4d06397d4f109832" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="4b7d333b856618bb4d06397d4f109832" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
     "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"no such user"</span>
 </span>}
@@ -236,19 +238,26 @@ a.list-group-item.heading:hover {
     "<span class="hljs-attribute">email</span>": <span class="hljs-value"><span class="hljs-string">"New email (optional)"</span></span>,
     "<span class="hljs-attribute">status</span>": <span class="hljs-value"><span class="hljs-string">"New status (optional)"</span></span>,
 }
-</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>204</code></strong></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>401</code></strong><a data-toggle="collapse" data-target="#86cf74e8c6079eff1e719445802d0ba2" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="86cf74e8c6079eff1e719445802d0ba2" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
-    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"missing, illegal, or expired token"</span>
-</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>204</code></strong></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>401</code></strong><a data-toggle="collapse" data-target="#df59b28e932bdaf06012fd196ac2247c" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="df59b28e932bdaf06012fd196ac2247c" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">response</span>": <span class="hljs-value"><span class="hljs-string">"Failed to authenticate user request"</span></span>,
+    "<span class="hljs-attribute">reason</span>":   <span class="hljs-value"><span class="hljs-string">"Missing, illegal or expired token"</span></span>,
+}
 </code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>403</code></strong><a data-toggle="collapse" data-target="#d74d8e64c26ab86c2d7204e6c3370840" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="d74d8e64c26ab86c2d7204e6c3370840" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
     "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"you can only edit yourself unless you are an admin"</span>
 </span>}
-</code></pre></li></ul></section><section id="users-user-delete" class="panel panel-danger"><div class="panel-heading"><div style="float:right"><span style="text-transform: lowercase">Delete user</span></div><div style="float:left"><a href="#users-user-delete" class="btn btn-xs btn-danger">DELETE</a></div><div style="overflow:hidden"><code>/users/{handle}</code></div></div><ul class="list-group"><li class="list-group-item"><strong>Request</strong><a data-toggle="collapse" data-target="#cb500ea7ac6e82fa9db48f297cd00f24" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="cb500ea7ac6e82fa9db48f297cd00f24" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</span><br></code></pre><h5>Body</h5><pre><code>{
-    "<span class="hljs-attribute">handle</span>": <span class="hljs-value"><span class="hljs-string">"pelé"</span></span>,
+</code></pre></li></ul></section><section id="users-user-delete" class="panel panel-danger"><div class="panel-heading"><div style="float:right"><span style="text-transform: lowercase">Delete user</span></div><div style="float:left"><a href="#users-user-delete" class="btn btn-xs btn-danger">DELETE</a></div><div style="overflow:hidden"><code>/users/{handle}</code></div></div><ul class="list-group"><li class="list-group-item"><strong>Request</strong><a data-toggle="collapse" data-target="#1d117a33eb7ffcb43d856bbc50d63416" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="1d117a33eb7ffcb43d856bbc50d63416" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</span><br></code></pre><h5>Body</h5><pre><code>{
     "<span class="hljs-attribute">password</span>": <span class="hljs-value"><span class="hljs-string">"Brasil Uber Alles"</span>
 </span>}
-</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>204</code></strong></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>401</code></strong><a data-toggle="collapse" data-target="#5040d6e750eec21d17c3d61b05b3b3f1" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="5040d6e750eec21d17c3d61b05b3b3f1" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
-    "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"missing, illegal, or expired token"</span>
-</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>204</code></strong></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>401</code></strong><a data-toggle="collapse" data-target="#c9ac28860e2ba28deeaaaaf51a34bfa5" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="c9ac28860e2ba28deeaaaaf51a34bfa5" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
+    <span class="hljs-string">"response"</span>: <span class="hljs-string">"Failed to authenticate user request"</span>,
+    <span class="hljs-string">"reason"</span>:   <span class="hljs-string">"Missing, illegal or expired token"</span>,
+}
+
+<span class="hljs-keyword">or</span>
+
+{
+    <span class="hljs-string">"reason"</span>: <span class="hljs-string">"Invalid password, please try again"</span>
+}
 </code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>403</code></strong><a data-toggle="collapse" data-target="#713a91bea192b302b854eeb9fb92c87d" class="pull-right collapsed"><span class="closed">Show</span><span class="open">Hide</span></a></li><li id="713a91bea192b302b854eeb9fb92c87d" class="list-group-item panel-collapse collapse"><h5>Body</h5><pre><code>{
     "<span class="hljs-attribute">reason</span>": <span class="hljs-value"><span class="hljs-string">"you can only delete yourself unless you are an admin"</span>
 </span>}
@@ -615,7 +624,7 @@ a.list-group-item.heading:hover {
     "<span class="hljs-attribute">message_id</span>": <span class="hljs-value"><span class="hljs-number">20</span></span>,
     "<span class="hljs-attribute">comment_id</span>": <span class="hljs-value"><span class="hljs-number">7</span>
 </span>}
-</code></pre></li></ul></section></div></div></div></div></div></div><p style="text-align: center;" class="text-muted">Generated by&nbsp;<a href="https://github.com/danielgtaylor/aglio" class="aglio">aglio</a>&nbsp;on 11 Nov 2014</p><div id="localFile" style="display: none; position: absolute; top: 0; left: 0; width: 100%; color: white; background: red; font-size: 150%; text-align: center; padding: 1em;">This page may not display correctly when opened as a local file. Instead, view it from a web server.
+</code></pre></li></ul></section></div></div></div></div></div></div><p style="text-align: center;" class="text-muted">Generated by&nbsp;<a href="https://github.com/danielgtaylor/aglio" class="aglio">aglio</a>&nbsp;on 18 Nov 2014</p><div id="localFile" style="display: none; position: absolute; top: 0; left: 0; width: 100%; color: white; background: red; font-size: 150%; text-align: center; padding: 1em;">This page may not display correctly when opened as a local file. Instead, view it from a web server.
 
 </div></body><script src="//code.jquery.com/jquery-1.11.0.min.js"></script><script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script><script>(function() {
   if (location.protocol === 'file:') {

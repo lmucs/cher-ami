@@ -77,8 +77,8 @@ func (s Svc) EmailIsUnique(email string) bool {
 	return !s.Query.EmailExists(email)
 }
 
-func (s Svc) VerifySession(sessionid string) bool {
-	return s.Query.SessionBelongsToSomeUser(sessionid)
+func (s Svc) VerifyAuthToken(token string) bool {
+	return s.Query.AuthTokenBelongsToSomeUser(token)
 }
 
 func (s Svc) BlockExistsFromTo(handle, target string) bool {
@@ -154,7 +154,7 @@ func (s Svc) SearchForUsers(circle, nameprefix string, skip, limit int, sort str
 }
 
 func (s Svc) SearchCircles(user string, skip, limit int) (results string, count int) {
-    return s.Query.SearchCircles(user, skip, limit)
+	return s.Query.SearchCircles(user, skip, limit)
 }
 
 func (s Svc) GetPasswordHash(handle string) (passwordHash []byte, ok bool) {
@@ -182,18 +182,19 @@ func (s Svc) GetHandleFromAuthorization(token string) (handle string, ok bool) {
 // Node Attributes
 //
 
-// Sets a session id on an AuthToken node that points to a particular user
+// Creates a new AuthToken node that points to a particular user
+// returning the value of the token created
 // [TODO] this should return string, bool
-func (s Svc) SetGetNewSessionId(handle string) string {
-	return s.Query.SetGetNewSessionIdForUser(handle)
+func (s Svc) SetGetNewAuthToken(handle string) string {
+	return s.Query.SetGetNewAuthTokenForUser(handle)
 }
 
 func (s Svc) SetNewPassword(handle, newPasswordHash string) bool {
 	return s.Query.UpdatePassword(handle, newPasswordHash)
 }
 
-func (s Svc) UnsetSessionId(sessionid string) bool {
-	return s.Query.DestroyAuthToken(sessionid)
+func (s Svc) DestroyAuthToken(token string) bool {
+	return s.Query.DestroyAuthToken(token)
 }
 
 func (s Svc) SetGetName(handle, newName string) (string, bool) {

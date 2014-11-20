@@ -16,10 +16,10 @@ import (
 //
 
 func Execute(httpMethod string, url string, m map[string]interface{}) (*http.Response, error) {
-	sessionid := ""
-	if str, ok := m["sessionid"].(string); ok && str != "" {
-		sessionid = str
-		delete(m, "sessionid")
+	token := ""
+	if str, ok := m["token"].(string); ok && str != "" {
+		token = str
+		delete(m, "token")
 	}
 
 	if bytes, err := json.Marshal(m); err != nil {
@@ -30,12 +30,12 @@ func Execute(httpMethod string, url string, m map[string]interface{}) (*http.Res
 		if err != nil {
 			log.Fatal(err)
 		}
-		request.Header.Add("Authorization", sessionid)
+		request.Header.Add("Authorization", token)
 		return http.DefaultClient.Do(request)
 	}
 }
 
-func ExecutePatch(sessionid string, url string, m types.JsonArray) (*http.Response, error) {
+func ExecutePatch(token string, url string, m types.JsonArray) (*http.Response, error) {
 	if bytes, err := json.Marshal(m); err != nil {
 		log.Fatal(err)
 		return nil, err
@@ -44,17 +44,17 @@ func ExecutePatch(sessionid string, url string, m types.JsonArray) (*http.Respon
 		if err != nil {
 			log.Fatal(err)
 		}
-		request.Header.Add("Authorization", sessionid)
+		request.Header.Add("Authorization", token)
 		return http.DefaultClient.Do(request)
 	}
 }
 
 func GetWithQueryParams(url string, m map[string]interface{}) (*http.Response, error) {
-	sessionid := ""
-	str, ok := m["sessionid"].(string)
+	token := ""
+	str, ok := m["token"].(string)
 	if ok && str != "" {
-		sessionid = str
-		delete(m, "sessionid")
+		token = str
+		delete(m, "token")
 	}
 
 	if baseUrl, err := u.Parse(url); err != nil {
@@ -78,7 +78,7 @@ func GetWithQueryParams(url string, m map[string]interface{}) (*http.Response, e
 		if err != nil {
 			log.Fatal(err)
 		}
-		request.Header.Add("Authorization", sessionid)
+		request.Header.Add("Authorization", token)
 		return http.DefaultClient.Do(request)
 	}
 }
@@ -152,10 +152,10 @@ func Unmarshal(response *http.Response, v interface{}) {
 // Read info from headers:
 //
 
-func GetSessionFromResponse(response *http.Response) string {
+func GetAuthTokenFromResponse(response *http.Response) string {
 	authentication := struct {
-		Response  string
-		Sessionid string
+		Response string
+		Token    string
 	}{}
 	var (
 		body []byte
@@ -169,7 +169,7 @@ func GetSessionFromResponse(response *http.Response) string {
 		log.Fatal(err)
 	}
 
-	return authentication.Sessionid
+	return authentication.Token
 }
 
 func GetIdFromResponse(response *http.Response) string {

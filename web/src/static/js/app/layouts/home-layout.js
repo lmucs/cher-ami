@@ -1,11 +1,21 @@
 define(function(require, exports, module) {
     var marionette = require('marionette');
     var template = require('hbs!../templates/layouts/home-layout')
+
+    //messages requirements
     var MessagesView = require('app/views/messages-view').MessagesView;
     var MessageView = require('app/views/message-view').MessageView;
     var Message = require('app/models/message').Message;
     var Messages = require('app/collections/messages').Messages;
+    
+    //circles requirements
+    var CircleView = require('app/views/circle-view').CircleView;
+    var CircleView = require('app/views/circles-view').CirclesView;
     var CreateCircleView = require('app/views/create-circle-view').CreateCircleView;
+    var Circle = require('app/models/circle').Circle;
+    var Circles = require('app/collections/circles').Circles;
+
+    //profile requirements
     var ProfileView = require('app/views/profile-view').ProfileView;
     var EditProfileView = require('app/views/edit-profile-view').EditProfileView;
     var SettingsView = require('app/views/settings-view').SettingsView;
@@ -24,6 +34,7 @@ define(function(require, exports, module) {
         ui: {
             feedContainer: '#feed-container',
             showContent: '#showContent',
+            showCircles: '#goToCircles',
             createCircle: '#goToCreateCircle',
             displayProfile: '#goToProfile',
             editProfile: '#editProfile',
@@ -31,6 +42,7 @@ define(function(require, exports, module) {
         },
 
         events: {
+            'click #goToCircles': 'showCircles',
             'click #goToCreateCircle': 'showCreateCircle',
             'click #goToProfile': 'showProfile',
             'click #editProfile': 'showEditProfile',
@@ -44,6 +56,11 @@ define(function(require, exports, module) {
 
         onRender: function() {
             this.showFeed();
+        },
+
+        showCircles: function(options) {
+            var showCircles = new CircleView();
+            this.profile.show(showCircles);
         },
 
         showProfile: function(options) {

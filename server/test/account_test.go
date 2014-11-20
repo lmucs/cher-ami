@@ -134,7 +134,7 @@ func (s *TestSuite) TestLoginOK(c *C) {
 		c.Error(err)
 	}
 
-	c.Check(helper.GetJsonResponseMessage(response), Equals, "Logged in handleA. Note your session id.")
+	c.Check(helper.GetJsonResponseMessage(response), Equals, "Logged in handleA. Note your Authorization token.")
 	c.Check(response.StatusCode, Equals, 201)
 }
 
@@ -143,7 +143,7 @@ func (s *TestSuite) TestLoginOK(c *C) {
 //
 
 func (s *TestSuite) TestLogoutUserNoExist(c *C) {
-	response, err := req.DeleteSessions("session-id-of-noone")
+	response, err := req.DeleteSessions("token-of-noone")
 	if err != nil {
 		c.Error(err)
 		c.Error(response)
@@ -156,7 +156,7 @@ func (s *TestSuite) TestLogoutUserNoExist(c *C) {
 func (s *TestSuite) TestLogoutOK(c *C) {
 	req.PostSignup("handleA", "handleA@test.io", "password1", "password1")
 
-	sessionid_A := req.PostSessionGetSessionId("handleA", "password1")
+	sessionid_A := req.PostSessionGetAuthToken("handleA", "password1")
 
 	response, err := req.DeleteSessions(sessionid_A)
 	if err != nil {
@@ -183,20 +183,20 @@ func (s *TestSuite) TestChangePasswordUserNoExist(c *C) {
 func (s *TestSuite) TestChangePasswordSamePassword(c *C) {
 	req.PostSignup("handleA", "handleA@test.io", "password1", "password1")
 
-	sessionid := req.PostSessionGetSessionId("handleA", "password1")
+	sessionid := req.PostSessionGetAuthToken("handleA", "password1")
 	response, err := req.PostChangePassword(sessionid, "password1", "password1", "password1")
 	if err != nil {
 		c.Error(err)
 	}
 
-	c.Check(helper.GetJsonResponseMessage(response), Equals, "Current/new password are same, please provide a new password.")
+	c.Check(helper.GetJsonReasonMessage(response), Equals, "Current/new password are same, please provide a new password.")
 	c.Check(response.StatusCode, Equals, 400)
 }
 
 func (s *TestSuite) TestChangePasswordOK(c *C) {
 	req.PostSignup("handleA", "handleA@test.io", "password1", "password1")
 
-	sessionid := req.PostSessionGetSessionId("handleA", "password1")
+	sessionid := req.PostSessionGetAuthToken("handleA", "password1")
 	response, err := req.PostChangePassword(sessionid, "password1", "password2", "password2")
 	if err != nil {
 		c.Error(err)

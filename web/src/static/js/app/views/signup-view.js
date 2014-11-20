@@ -4,8 +4,6 @@ define(function(require, exports, module) {
 
     var Signup = require('app/models/signup').Signup;
 
-    var passCheck = require('app/utils/pass-check').PassCheck;
-
     var inputValidator = require('app/utils/input-validator').InputValidator;
 
     var SignupView = marionette.ItemView.extend({

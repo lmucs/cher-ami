@@ -21,6 +21,6 @@ define(function(require, exports, module) {
         }
     });
 
-exports.Signup = Signup;
+    exports.Signup = Signup;
 
 });

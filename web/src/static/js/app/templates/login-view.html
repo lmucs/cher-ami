@@ -1,32 +1,32 @@
-<div class="col-sm-6" id="loginContainer">
-  <form method="post" action="/signup" id="signupform" class="form-horizontal" role="form">
+<div id="loginContainer">
+  <form method="post" action="/signup" id="signupform" role="form">
     <h3 id="containerHeader">Log in</h3>
-    <div class="form-group">
-      <label for="handle" class="col-md-4 control-label">Handle</label>
-      <div class="col-md-8">
-          <input type="text" class="form-control" id="handle" placeholder="Enter handle">
+    <div>
+      <label for="handle">Handle</label>
+      <div>
+          <input type="text" id="handle" placeholder="Enter handle">
       </div>
     </div>
-    <div class="form-group">
-      <label for="inputName" class="col-md-4 control-label">Password</label>
-      <div class="col-md-8">
+    <div>
+      <label for="inputName">Password</label>
+      <div>
         <input type="password" id="pass1" class="form-control" name="Password" placeholder="Choose a password more than 8 characters">
       </div>
     </div>
-    <div class="form-group">
-      <div class="col-sm-offset-4 col-sm-10">
+    <div>
+      <div>
         <div class="checkbox">
           <label>
             <input type="checkbox" id="remember-me"> Remember me
-            <button type="submit" id="login" class="btn btn-default">Log in</button>
+            <button type="submit" id="login">Log in</button>
           </label>
         </div>
       </div>
     </div>
-    <div class="form-group">
-      <div class="col-sm-offset-4 col-sm-10">  
+    <div>
+      <div>  
         <p id="existingUserForm"><strong>New to cherAmi? </strong>
-          <button type="button" id="goToSignup" class="btn btn-default">Sign up</button>
+          <button type="button" id="goToSignup">Sign up</button>
         </p>
       </div>
     </div>

@@ -19,6 +19,6 @@ define(function(require, exports, module) {
         }
     });
 
-exports.Session = Session;
+    exports.Session = Session;
 
 });
