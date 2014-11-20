@@ -14,6 +14,10 @@ type emailProposal struct {
 	Email string `validate:"email"`
 }
 
+type passwordProposal struct {
+	Password string `validate:"password"`
+}
+
 func (s *TestSuite) TestValidateBadHandle(c *C) {
 	v := types.NewValidator()
 	badHandles := []handleProposal{
@@ -94,6 +98,32 @@ func (s *TestSuite) TestValidateGoodEmail(c *C) {
 		{Email: "4213@4uandme.com"},
 	}
 	for i, proposal := range goodEmails {
+		result := v.Validate(proposal)
+		c.Check(result, IsNil, Commentf("Index %d: %s", i, result))
+	}
+}
+
+func (s *TestSuite) TestValidateBadPassword(c *C) {
+	v := types.NewValidator()
+	badPasswords := []passwordProposal{
+		{Password: ""},
+		{Password: "aaaaaaa"},
+		{Password: "VLeHkciByWBXNnaExhMA6QKwioybgEZCkEj9YzyhwvbofKTejj1"},
+	}
+	for i, proposal := range badPasswords {
+		result := v.Validate(proposal)
+		c.Check(result, NotNil, Commentf("Index %d has no error", i))
+	}
+}
+
+func (s *TestSuite) TestValidateGoodPassword(c *C) {
+	v := types.NewValidator()
+	goodPasswords := []passwordProposal{
+		{Password: "6FxDW9ws"},
+		{Password: "(y/&63N79;,6{36bp^7x=(7>8CZi"},
+		{Password: "iMpbnuVZadZKCYbTwoDbgmLfTNUvQDzRpdBxfWrbZCUHXkzEBx"},
+	}
+	for i, proposal := range goodPasswords {
 		result := v.Validate(proposal)
 		c.Check(result, IsNil, Commentf("Index %d: %s", i, result))
 	}

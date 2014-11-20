@@ -9,6 +9,7 @@ import (
 
 const (
 	MIN_PASS_LENGTH   = 8
+	MAX_PASS_LENGTH   = 50
 	MAX_HANDLE_LENGTH = 16
 )
 
@@ -20,8 +21,9 @@ var (
 
 func NewValidator() *validate.V {
 	vd := validate.V{
-		"handle": validateHandle,
-		"email":  validateEmail,
+		"handle":   validateHandle,
+		"email":    validateEmail,
+		"password": validatePassword,
 	}
 	return &vd
 }
@@ -45,6 +47,20 @@ func validateEmail(i interface{}) error {
 		return fmt.Errorf("Email is a required field for signup")
 	} else if !emailRegex.MatchString(email) {
 		return fmt.Errorf(email + " is an invalid email.")
+	} else {
+		return nil
+	}
+}
+
+func validatePassword(i interface{}) error {
+	password := i.(string)
+	passwordLen := utf8.RuneCountInString(password)
+	if password == "" {
+		return fmt.Errorf("Password is a required field for signup")
+	} else if passwordLen < MIN_PASS_LENGTH {
+		return fmt.Errorf("Password is too short, minimum length is %d", MIN_PASS_LENGTH)
+	} else if passwordLen > MAX_PASS_LENGTH {
+		return fmt.Errorf("Password is too long, maximum length is %d", MAX_PASS_LENGTH)
 	} else {
 		return nil
 	}
