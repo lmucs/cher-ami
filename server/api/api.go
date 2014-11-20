@@ -196,74 +196,6 @@ func (a Api) Logout(w rest.ResponseWriter, r *rest.Request) {
 	}
 }
 
-func (a Api) ChangePassword(w rest.ResponseWriter, r *rest.Request) {
-	if !a.authenticate(r) {
-		a.Util.FailedToAuthenticate(w)
-		return
-	}
-	user := struct {
-		Password           string
-		NewPassword        string
-		ConfirmNewPassword string
-	}{}
-
-	if err := r.DecodeJsonPayload(&user); err != nil {
-		rest.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	if handle, success := a.Svc.GetHandleFromAuthorization(a.getTokenFromHeader(r)); !success {
-		a.Util.FailedToDetermineHandleFromAuthToken(w)
-		return
-	} else {
-		password := []byte(user.Password)
-		newPassword := user.NewPassword
-		confirmNewPassword := user.ConfirmNewPassword
-
-		// Password checks
-		if newPassword != confirmNewPassword {
-			w.WriteHeader(400)
-			w.WriteJson(types.Json{
-				"response": "Passwords do not match",
-			})
-			return
-		} else if len(newPassword) < MIN_PASS_LENGTH {
-			a.Util.SimpleJsonReason(w, 400, "Passwords must be at least 8 characters long")
-			return
-		}
-
-		if passwordHash, ok := a.Svc.GetPasswordHash(handle); !ok {
-			a.Util.SimpleJsonReason(w, 400, "Invalid username or password, please try again.")
-			return
-		} else {
-			// err is nil if successful, error
-			if err := bcrypt.CompareHashAndPassword(passwordHash, password); err != nil {
-				a.Util.SimpleJsonReason(w, 400, "Invalid username or password, please try again.")
-				return
-			} else if err := bcrypt.CompareHashAndPassword(passwordHash, []byte(newPassword)); err == nil {
-				a.Util.SimpleJsonReason(w, 400, "Current/new password are same, please provide a new password.")
-				return
-			} else {
-				if hash, err := bcrypt.GenerateFromPassword([]byte(newPassword), 10); err != nil {
-					rest.Error(w, err.Error(), http.StatusInternalServerError)
-					return
-				} else {
-					hashed_new_pass := string(hash)
-					// Now set the new password
-					if !a.Svc.SetNewPassword(handle, hashed_new_pass) {
-						a.Util.SimpleJsonReason(w, 400, "Password change unsuccessful")
-						return
-					} else {
-						// No JSON is written.
-						w.WriteHeader(204)
-						return
-					}
-				}
-			}
-		}
-	}
-}
-
 //
 // User
 //
@@ -362,46 +294,6 @@ func (a Api) SearchForUsers(w rest.ResponseWriter, r *rest.Request) {
 		"response": "Search complete",
 		"count":    count,
 	})
-}
-
-func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
-	if !a.authenticate(r) {
-		a.Util.FailedToAuthenticate(w)
-		return
-	}
-	credentials := struct {
-		Password string
-	}{}
-	if err := r.DecodeJsonPayload(&credentials); err != nil {
-		rest.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	if handle, success := a.Svc.GetHandleFromAuthorization(a.getTokenFromHeader(r)); !success {
-		a.Util.FailedToDetermineHandleFromAuthToken(w)
-		return
-	} else {
-		password := []byte(credentials.Password)
-
-		if passwordHash, ok := a.Svc.GetPasswordHash(handle); !ok {
-			// handle was bad
-			a.Util.SimpleJsonReason(w, 400, "Invalid username or password, please try again.")
-			return
-		} else {
-			// err is nil if successful, error
-			if err := bcrypt.CompareHashAndPassword(passwordHash, password); err != nil {
-				a.Util.SimpleJsonReason(w, 400, "Invalid username or password, please try again.")
-				return
-			} else {
-				if deleted := a.Svc.DeleteUser(handle); !deleted {
-					a.Util.SimpleJsonReason(w, 500, "Unexpected failure to delete user")
-					return
-				} else {
-					w.WriteHeader(204)
-				}
-			}
-		}
-	}
 }
 
 //
