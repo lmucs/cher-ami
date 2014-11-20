@@ -180,7 +180,7 @@ public class LoginActivity extends Activity {
                         String responseText = null;
                         try {
 
-                            responseText = new JSONObject(new String(errorResponse)).getString("reason");
+                            responseText = new JSONObject(new String(errorResponse)).getString("response");
                             if (responseText == null) {
                                 // Alert dialogue saying "Cannot connect to network"
                                 Log.e("Network", "Cannot connect to network");
