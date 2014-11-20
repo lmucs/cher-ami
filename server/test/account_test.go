@@ -15,7 +15,7 @@ func (s *TestSuite) TestSignupEmptyHandle(c *C) {
 		c.Error(err)
 	}
 
-	c.Check(helper.GetJsonResponseMessage(response), Equals, "Handle is a required field for signup")
+	c.Check(helper.GetJsonReasonMessage(response), Equals, "Handle is a required field for signup")
 	c.Check(response.StatusCode, Equals, 400)
 }
 
@@ -25,7 +25,7 @@ func (s *TestSuite) TestSignupEmptyEmail(c *C) {
 		c.Error(err)
 	}
 
-	c.Check(helper.GetJsonResponseMessage(response), Equals, "Email is a required field for signup")
+	c.Check(helper.GetJsonReasonMessage(response), Equals, "Email is a required field for signup")
 	c.Check(response.StatusCode, Equals, 400)
 }
 
@@ -35,7 +35,7 @@ func (s *TestSuite) TestSignupPasswordMismatch(c *C) {
 		c.Error(err)
 	}
 
-	c.Check(helper.GetJsonResponseMessage(response), Equals, "Passwords do not match")
+	c.Check(helper.GetJsonReasonMessage(response), Equals, "Passwords do not match")
 	c.Check(response.StatusCode, Equals, 403)
 }
 
@@ -49,7 +49,7 @@ func (s *TestSuite) TestSignupPasswordTooShort(c *C) {
 			c.Error(err)
 		}
 
-		c.Check(helper.GetJsonResponseMessage(response), Equals, "Passwords must be at least 8 characters long")
+		c.Check(helper.GetJsonReasonMessage(response), Equals, "Passwords must be at least 8 characters long")
 		c.Check(response.StatusCode, Equals, 403, Commentf("Password length = %d.", len(entry)-i))
 	}
 }
@@ -62,7 +62,7 @@ func (s *TestSuite) TestSignupHandleTaken(c *C) {
 		c.Error(err)
 	}
 
-	c.Check(helper.GetJsonResponseMessage(response), Equals, "Sorry, handle or email is already taken")
+	c.Check(helper.GetJsonReasonMessage(response), Equals, "Sorry, handle or email is already taken")
 	c.Check(response.StatusCode, Equals, 409)
 }
 
@@ -74,7 +74,7 @@ func (s *TestSuite) TestSignupEmailTaken(c *C) {
 		c.Error(err)
 	}
 
-	c.Check(helper.GetJsonResponseMessage(response), Equals, "Sorry, handle or email is already taken")
+	c.Check(helper.GetJsonReasonMessage(response), Equals, "Sorry, handle or email is already taken")
 	c.Check(response.StatusCode, Equals, 409)
 }
 
@@ -98,7 +98,7 @@ func (s *TestSuite) TestLoginUserNoExist(c *C) {
 		c.Error(err)
 	}
 
-	c.Check(helper.GetJsonResponseMessage(response), Equals, "Invalid username or password, please try again.")
+	c.Check(helper.GetJsonReasonMessage(response), Equals, "Invalid username or password, please try again.")
 	c.Check(response.StatusCode, Equals, 403)
 }
 
@@ -110,7 +110,7 @@ func (s *TestSuite) TestLoginInvalidUsername(c *C) {
 		c.Error(err)
 	}
 
-	c.Check(helper.GetJsonResponseMessage(response), Equals, "Invalid username or password, please try again.")
+	c.Check(helper.GetJsonReasonMessage(response), Equals, "Invalid username or password, please try again.")
 	c.Check(response.StatusCode, Equals, 403)
 }
 
@@ -122,7 +122,7 @@ func (s *TestSuite) TestLoginInvalidPassword(c *C) {
 		c.Error(err)
 	}
 
-	c.Check(helper.GetJsonResponseMessage(response), Equals, "Invalid username or password, please try again.")
+	c.Check(helper.GetJsonReasonMessage(response), Equals, "Invalid username or password, please try again.")
 	c.Check(response.StatusCode, Equals, 403)
 }
 
@@ -150,7 +150,7 @@ func (s *TestSuite) TestLogoutUserNoExist(c *C) {
 	}
 
 	c.Check(response.StatusCode, Equals, 403)
-	c.Check(helper.GetJsonResponseMessage(response), Equals, "Cannot invalidate token because it is missing")
+	c.Check(helper.GetJsonReasonMessage(response), Equals, "Cannot invalidate token because it is missing")
 }
 
 func (s *TestSuite) TestLogoutOK(c *C) {

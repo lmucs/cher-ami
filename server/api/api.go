@@ -93,31 +93,31 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 
 	// Handle and Email checks
 	if handle == "" {
-		a.Util.SimpleJsonResponse(w, 400, "Handle is a required field for signup")
+		a.Util.SimpleJsonReason(w, 400, "Handle is a required field for signup")
 		return
 	} else if email == "" {
-		a.Util.SimpleJsonResponse(w, 400, "Email is a required field for signup")
+		a.Util.SimpleJsonReason(w, 400, "Email is a required field for signup")
 		return
 	}
 
 	// Password checks
 	if password != confirm_password {
-		a.Util.SimpleJsonResponse(w, 403, "Passwords do not match")
+		a.Util.SimpleJsonReason(w, 403, "Passwords do not match")
 		return
 	} else if len(password) < MIN_PASS_LENGTH {
-		a.Util.SimpleJsonResponse(w, 403, "Passwords must be at least 8 characters long")
+		a.Util.SimpleJsonReason(w, 403, "Passwords must be at least 8 characters long")
 		return
 	}
 
 	// Ensure unique handle
 	if unique := a.Svc.HandleIsUnique(handle); !unique {
-		a.Util.SimpleJsonResponse(w, 409, "Sorry, handle or email is already taken")
+		a.Util.SimpleJsonReason(w, 409, "Sorry, handle or email is already taken")
 		return
 	}
 
 	// Ensure unique email
 	if unique := a.Svc.EmailIsUnique(email); !unique {
-		a.Util.SimpleJsonResponse(w, 409, "Sorry, handle or email is already taken")
+		a.Util.SimpleJsonReason(w, 409, "Sorry, handle or email is already taken")
 		return
 	}
 
@@ -129,12 +129,12 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 		hashed_pass = string(hash)
 	}
 	if !a.Svc.CreateNewUser(handle, email, hashed_pass) {
-		a.Util.SimpleJsonResponse(w, http.StatusInternalServerError, "Unexpected failure to create new user")
+		a.Util.SimpleJsonReason(w, http.StatusInternalServerError, "Unexpected failure to create new user")
 		return
 	}
 
 	if !a.Svc.MakeDefaultCirclesFor(handle) {
-		a.Util.SimpleJsonResponse(w, http.StatusInternalServerError, "Unexpected failure to make default circles")
+		a.Util.SimpleJsonReason(w, http.StatusInternalServerError, "Unexpected failure to make default circles")
 		return
 	}
 
@@ -160,12 +160,12 @@ func (a Api) Login(w rest.ResponseWriter, r *rest.Request) {
 	password := []byte(credentials.Password)
 
 	if passwordHash, ok := a.Svc.GetPasswordHash(handle); !ok {
-		a.Util.SimpleJsonResponse(w, 403, "Invalid username or password, please try again.")
+		a.Util.SimpleJsonReason(w, 403, "Invalid username or password, please try again.")
 		return
 	} else {
 		// err is nil if successful, error if comparison failed
 		if err := bcrypt.CompareHashAndPassword(passwordHash, password); err != nil {
-			a.Util.SimpleJsonResponse(w, 403, "Invalid username or password, please try again.")
+			a.Util.SimpleJsonReason(w, 403, "Invalid username or password, please try again.")
 			return
 		} else {
 			// Create an Authentication token and return it to client
@@ -191,7 +191,7 @@ func (a Api) Logout(w rest.ResponseWriter, r *rest.Request) {
 		w.WriteHeader(204)
 		return
 	} else {
-		a.Util.SimpleJsonResponse(w, 403, "Cannot invalidate token because it is missing")
+		a.Util.SimpleJsonReason(w, 403, "Cannot invalidate token because it is missing")
 		return
 	}
 }
