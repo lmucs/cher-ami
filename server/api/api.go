@@ -168,15 +168,17 @@ func (a Api) Login(w rest.ResponseWriter, r *rest.Request) {
 			a.Util.SimpleJsonResponse(w, 403, "Invalid username or password, please try again.")
 			return
 		} else {
-			// Create an authentication node and return it to client
-			token := a.Svc.SetGetNewAuthToken(handle)
-
-			w.WriteHeader(201)
-			w.WriteJson(types.Json{
-				"response": "Logged in " + handle + ". Note your Authorization token.",
-				"token":    token,
-			})
-			return
+			// Create an Authentication token and return it to client
+			if token, ok := a.Svc.SetGetNewAuthToken(handle); !ok {
+				a.Util.SimpleJsonReason(w, 500, "Unexpected failure to produce new Authorization token")
+			} else {
+				w.WriteHeader(201)
+				w.WriteJson(types.Json{
+					"response": "Logged in " + handle + ". Note your Authorization token.",
+					"token":    token,
+				})
+				return
+			}
 		}
 	}
 }

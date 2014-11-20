@@ -184,8 +184,7 @@ func (s Svc) GetHandleFromAuthorization(token string) (handle string, ok bool) {
 
 // Creates a new AuthToken node that points to a particular user
 // returning the value of the token created
-// [TODO] this should return string, bool
-func (s Svc) SetGetNewAuthToken(handle string) string {
+func (s Svc) SetGetNewAuthToken(handle string) (string, bool) {
 	return s.Query.SetGetNewAuthTokenForUser(handle)
 }
 
