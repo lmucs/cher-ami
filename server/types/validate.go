@@ -15,11 +15,14 @@ const (
 // Regexes
 var (
 	handleRegex = regexp.MustCompile(`^[\p{L}\p{M}][\d\p{L}\p{M}]*$`)
+	emailRegex  = regexp.MustCompile(`^\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$`)
 )
 
 func NewValidator() *validate.V {
-	vd := make(validate.V)
-	vd["handle"] = validateHandle
+	vd := validate.V{
+		"handle": validateHandle,
+		"email":  validateEmail,
+	}
 	return &vd
 }
 
@@ -31,6 +34,17 @@ func validateHandle(i interface{}) error {
 		return fmt.Errorf("Handle is too long, max length is %d", MAX_HANDLE_LENGTH)
 	} else if !handleRegex.MatchString(handle) {
 		return fmt.Errorf(handle + " contains illegal characters")
+	} else {
+		return nil
+	}
+}
+
+func validateEmail(i interface{}) error {
+	email := i.(string)
+	if email == "" {
+		return fmt.Errorf("Email is a required field for signup")
+	} else if !emailRegex.MatchString(email) {
+		return fmt.Errorf(email + " is an invalid email.")
 	} else {
 		return nil
 	}

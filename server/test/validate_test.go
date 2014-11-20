@@ -5,9 +5,39 @@ import (
 	. "gopkg.in/check.v1"
 )
 
+// Types specific for testing validation
+type handleProposal struct {
+	Handle string `validate:"handle"`
+}
+
+type emailProposal struct {
+	Email string `validate:"email"`
+}
+
+func (s *TestSuite) TestValidateBadHandle(c *C) {
+	v := types.NewValidator()
+	badHandles := []handleProposal{
+		{Handle: ""},
+		{Handle: "400John"},
+		{Handle: "タロウタウタウタウウタウタウタウタウタロウ"},
+		{Handle: "山田κλειαയാള상आकाङ्GGQQ"},
+		{Handle: "山田:山田"},
+		{Handle: "#ыхаыл"},
+		{Handle: "@#$%^&*(****%^&*("},
+		{Handle: "&"},
+		{Handle: "2g"},
+		{Handle: "や##ま$だ"},
+	}
+
+	for i, proposal := range badHandles {
+		result := v.Validate(proposal)
+		c.Check(result, NotNil, Commentf("Index %d has no error", i))
+	}
+}
+
 func (s *TestSuite) TestValidateGoodHandle(c *C) {
 	v := types.NewValidator()
-	goodHandles := []types.SignupProposal{
+	goodHandles := []handleProposal{
 		{Handle: "John400"},
 		{Handle: "タロウ"},
 		{Handle: "やまだ"},
@@ -27,23 +57,44 @@ func (s *TestSuite) TestValidateGoodHandle(c *C) {
 	}
 }
 
-func (s *TestSuite) TestValidateBadHandle(c *C) {
+func (s *TestSuite) TestValidateBadEmail(c *C) {
 	v := types.NewValidator()
-	badHandles := []types.SignupProposal{
-		{Handle: ""},
-		{Handle: "400John"},
-		{Handle: "タロウタウタウタウウタウタウタウタウタロウ"},
-		{Handle: "山田κλειαയാള상आकाङ्GGQQ"},
-		{Handle: "山田:山田"},
-		{Handle: "#ыхаыл"},
-		{Handle: "@#$%^&*(****%^&*("},
-		{Handle: "&"},
-		{Handle: "2g"},
-		{Handle: "や##ま$だ"},
+	badEmails := []emailProposal{
+		{Email: "joe@usa"},
+		{Email: "sonin@.com"},
+		{Email: "samurai@@gmail.com"},
+		{Email: "mocha@latte@io.com"},
+		{Email: "@microsoft@tech.it"},
+		{Email: "treehouse"},
+		{Email: "football@nfl..com"},
+		{Email: "toolbar@api.microsoft..com"},
+		{Email: "email@password.io@email.com"},
+		{Email: "erin@apple,com"},
 	}
 
-	for i, proposal := range badHandles {
+	for i, proposal := range badEmails {
 		result := v.Validate(proposal)
 		c.Check(result, NotNil, Commentf("Index %d has no error", i))
+	}
+}
+
+func (s *TestSuite) TestValidateGoodEmail(c *C) {
+	v := types.NewValidator()
+	goodEmails := []emailProposal{
+		{Email: "edward@cherami.io"},
+		{Email: "tester@microsoft.com"},
+		{Email: "t234342@gmail.com"},
+		{Email: "uncle-bob@biz.info"},
+		{Email: "mkdir@derp.museum"},
+		{Email: "go-lang@static.tk"},
+		{Email: "gopher@golang.google.co"},
+		{Email: "zqk@test.merra.is"},
+		{Email: "bigballer@swag.gov"},
+		{Email: "tek421@sub.domain.biz"},
+		{Email: "4213@4uandme.com"},
+	}
+	for i, proposal := range goodEmails {
+		result := v.Validate(proposal)
+		c.Check(result, IsNil, Commentf("Index %d: %s", i, result))
 	}
 }
