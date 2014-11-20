@@ -34,11 +34,16 @@ define(function(require, exports, module) {
         },
 
         onLogin: function(event) {
+            console.log("Logging in");
             event.preventDefault();
             this.model.set("handle", this.ui.handle.val());
             this.model.set("password", this.ui.pass.val());
             this.model.authenticate();
             this.model.clear();
+            //
+            // PURE EVIL: FIX THIS AWFUL AWFUL THING.
+            //
+            setTimeout(function () {window.location.reload()}, 3000)
         }
 
     });

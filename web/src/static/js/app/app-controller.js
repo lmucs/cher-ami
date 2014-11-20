@@ -42,8 +42,11 @@ define(function(require, exports, module) {
                 remote: false
             });
             // Logic for auth check.
+            this.app.headerRegion.show(new HeaderView({
+                session: this.app.session
+            }));
             if (this.app.session.has('token')) {
-                console.log("User logged in.");
+                console.log("User logged in");
                 $.ajaxSetup({
                     headers: {'Authorization' : this.app.session.get('token')}
                 })
@@ -52,7 +55,6 @@ define(function(require, exports, module) {
                     session: this.app.session
                 }));
                 // Initialize header view after logged in
-                this.app.headerRegion.show(new HeaderView());
             } else {
                 this.app.mainRegion.show(new LandingLayout({
                     session: this.app.session
