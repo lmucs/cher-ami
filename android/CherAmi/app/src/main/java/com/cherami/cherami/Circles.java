@@ -161,7 +161,7 @@ public class Circles extends Fragment {
                     for(int x = 0; x < y.length(); x++){
                         circleArray[x] = y.get(x).toString();
                     }
-                    Circle circle_data[] = new Circle[100];
+                    Circle circle_data[] = new Circle[circleArray.length];
                     for (int x = 0; x < circleArray.length; x++){
                         circle_data[x] = new Circle(circleArray[x]);
                     }
