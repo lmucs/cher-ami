@@ -139,7 +139,6 @@ public class Circles extends Fragment {
         String username = prefs.getString(userKey, null);
         RequestParams params = new RequestParams();
         params.put("user", username);
-        final String[] circleArray = new String[100];
         final View view2 = view;
 
         client.addHeader("Authorization", token);

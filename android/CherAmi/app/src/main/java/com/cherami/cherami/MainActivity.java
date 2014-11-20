@@ -157,7 +157,7 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
     public JSONObject getMessageObjectRequestAsJson () {
         JSONObject jsonParams = new JSONObject();
         try {
-            jsonParams.put("Content", "WE'RE ALSO BOYS AGAIN!!!");
+            jsonParams.put("Content", "Dare I say margarita night?");
         } catch (JSONException j) {
             System.out.println("DONT LIKE JSON!");
         }
@@ -174,7 +174,7 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
         return entity;
     }
 
-    public void attemptCreateMessage(View view) {
+    public void attemptCreateMessage() {
         AsyncHttpClient client = new AsyncHttpClient();
         String sessionKey = "com.cherami.cherami.token";
         String token = prefs.getString(sessionKey, null);
@@ -199,9 +199,9 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
 
                         String responseText = null;
                         try {
-                            responseText = new JSONObject(new String(response)).getString("Response");
+                            responseText = new JSONObject(new String(response)).getString("response");
                         } catch (JSONException j) {
-                            System.out.println("Dont like JSON");
+                            System.out.println(j);
                         }
 
                         Toast toast = Toast.makeText(getApplicationContext(), responseText, Toast.LENGTH_LONG);
@@ -217,7 +217,7 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
                             responseText = new JSONObject(new String(errorResponse)).getString("Reason");
 
                         } catch (JSONException j) {
-                            System.out.println("Dont like JSON");
+                            System.out.println(j);
                         }
 
                         Toast toast = Toast.makeText(getApplicationContext(), responseText, Toast.LENGTH_LONG);
@@ -249,6 +249,9 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
 //                Intent intent = new Intent(this, SettingsActivity.class);
 //                startActivity(intent);
 //                return true;
+            case R.id.action_message:
+                attemptCreateMessage();
+                return true;
             case R.id.action_logout:
                 logoutUser();
                 return true;

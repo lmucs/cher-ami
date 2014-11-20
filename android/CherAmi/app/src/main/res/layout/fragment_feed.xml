@@ -25,21 +25,12 @@
         android:layout_alignParentRight="true"
         android:entries="@array/filter_array"/>
 
-    <Button
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:text="Create Message"
-        android:id="@+id/messageButton"
-        android:onClick="attemptCreateMessage"/>
-
     <ListView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/feedList"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
-        android:layout_above="@+id/messageButton"
         android:layout_below="@id/filter_spinner"/>
 
 </RelativeLayout>
