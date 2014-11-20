@@ -85,8 +85,9 @@ public class SignUpActivity extends Activity {
             jsonParams.put("password", mPassword.getText().toString());
             jsonParams.put("confirmpassword", mConfirmPassword.getText().toString());
         } catch (JSONException j) {
-            System.out.println("DONT LIKE JSON!");
+            System.out.println(j);
         }
+        System.out.println(jsonParams);
         return jsonParams;
     }
     public JSONObject getLoginObjectRequestAsJson () {
@@ -95,7 +96,7 @@ public class SignUpActivity extends Activity {
             jsonParams.put("handle", mUsername.getText().toString());
             jsonParams.put("password", mPassword.getText().toString());
         } catch (JSONException j) {
-            System.out.println("DONT LIKE JSON!");
+            System.out.println(j);
         }
         return jsonParams;
     }
@@ -114,7 +115,7 @@ public class SignUpActivity extends Activity {
         AsyncHttpClient client = new AsyncHttpClient();
 
         client.post(this.getApplicationContext(), "http://" + getLocalUrlForApi() + "/api/sessions",
-                convertJsonUserToStringEntity(getUserObjectRequestAsJson()), "application/json",
+                convertJsonUserToStringEntity(getLoginObjectRequestAsJson()), "application/json",
                 new AsyncHttpResponseHandler() {
 
                     @Override
@@ -127,6 +128,7 @@ public class SignUpActivity extends Activity {
                     @Override
                     public void onSuccess(int statusCode, Header[] headers, byte[] response) {
                         String s = new String(response);
+                        System.out.println("HERES " + s);
                         JSONObject returnVal = new JSONObject();
                         try {
                             returnVal = new JSONObject(s);
@@ -143,9 +145,9 @@ public class SignUpActivity extends Activity {
 
                         String responseText = null;
                         try {
-                            responseText = new JSONObject(new String(response)).getString("Response");
+                            responseText = new JSONObject(new String(response)).getString("response");
                         } catch (JSONException j) {
-                            System.out.println("Dont like JSON");
+                            System.out.println(j);
                         }
 
                         Toast toast = Toast.makeText(getApplicationContext(), responseText, Toast.LENGTH_LONG);
@@ -163,9 +165,9 @@ public class SignUpActivity extends Activity {
 
                         String responseText = null;
                         try {
-                            responseText = new JSONObject(new String(errorResponse)).getString("Reason");
+                            responseText = new JSONObject(new String(errorResponse)).getString("reason");
                         } catch (JSONException j) {
-                            System.out.println("Dont like JSON");
+                            System.out.println(j);
                         }
 
                         Toast toast = Toast.makeText(getApplicationContext(), responseText, Toast.LENGTH_LONG);
@@ -203,9 +205,9 @@ public class SignUpActivity extends Activity {
 
                 String responseText = null;
                 try {
-                    responseText = new JSONObject(new String(response)).getString("Response");
+                    responseText = new JSONObject(new String(response)).getString("response");
                 } catch (JSONException j) {
-                    System.out.println("Dont like JSON");
+                    System.out.println(j);
                 }
 
                 Toast toast = Toast.makeText(getApplicationContext(), responseText, Toast.LENGTH_LONG);
@@ -220,9 +222,9 @@ public class SignUpActivity extends Activity {
 
                 String responseText = null;
                 try {
-                    responseText = new JSONObject(new String(errorResponse)).getString("Reason");
+                    responseText = new JSONObject(new String(errorResponse)).getString("reason");
                 } catch (JSONException j) {
-                    System.out.println("Dont like JSON");
+                    System.out.println(j);
                 }
 
                 Toast toast = Toast.makeText(getApplicationContext(), responseText, Toast.LENGTH_LONG);

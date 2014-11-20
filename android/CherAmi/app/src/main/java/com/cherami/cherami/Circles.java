@@ -156,14 +156,11 @@ public class Circles extends Fragment {
             public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
                 String responseText = null;
                 try {
-                    responseText = new JSONObject(new String(responseBody)).getString("Results");
+                    responseText = new JSONObject(new String(responseBody)).getString("results");
                     JSONArray y = new JSONArray(responseText);
-                    for(int x = 0; x < y.length(); x++){
-                        circleArray[x] = y.get(x).toString();
-                    }
-                    Circle circle_data[] = new Circle[circleArray.length];
-                    for (int x = 0; x < circleArray.length; x++){
-                        circle_data[x] = new Circle(circleArray[x]);
+                    Circle circle_data[] = new Circle[y.length()];
+                    for (int x = 0; x < y.length(); x++){
+                        circle_data[x] = new Circle(y.get(x).toString());
                     }
 
                     CircleAdapter adapter = new CircleAdapter(getActivity(),
@@ -176,7 +173,7 @@ public class Circles extends Fragment {
                     String s = new JSONObject(new JSONArray(responseText).get(0).toString()).getString("c.name");
                     System.out.println(s);
                 } catch (JSONException j) {
-                    System.out.println("Dont like JSON");
+                    System.out.println(j);
                 }
 
             }
@@ -187,7 +184,7 @@ public class Circles extends Fragment {
 
                 String responseText = null;
                 try {
-                    responseText = new JSONObject(new String(errorResponse)).getString("Reason");
+                    responseText = new JSONObject(new String(errorResponse)).getString("reason");
 
                 } catch (JSONException j) {
                     System.out.println(j);
