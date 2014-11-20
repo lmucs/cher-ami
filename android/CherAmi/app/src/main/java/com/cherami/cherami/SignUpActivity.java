@@ -134,9 +134,8 @@ public class SignUpActivity extends Activity {
                             e.printStackTrace();
                         }
                         try {
-                            String sessionKey = "com.cherami.cherami.sessionid";
-                            prefs.edit().putString(sessionKey, returnVal.getString("sessionid")).apply();
-                            System.out.println("we are hurrr dog " + prefs.getString(sessionKey, null));
+                            String sessionKey = "com.cherami.cherami.token";
+                            prefs.edit().putString(sessionKey, returnVal.getString("token")).apply();
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }

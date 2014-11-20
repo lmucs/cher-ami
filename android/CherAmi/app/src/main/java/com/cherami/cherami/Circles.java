@@ -133,8 +133,8 @@ public class Circles extends Fragment {
 
     public void getCircles(View view) {
         AsyncHttpClient client = new AsyncHttpClient();
-        String sessionKey = "com.cherami.cherami.sessionid";
-        String sessionid = prefs.getString(sessionKey, null);
+        String sessionKey = "com.cherami.cherami.token";
+        String token = prefs.getString(sessionKey, null);
         String userKey = "com.cherami.cherami.username";
         String username = prefs.getString(userKey, null);
         RequestParams params = new RequestParams();
@@ -142,7 +142,7 @@ public class Circles extends Fragment {
         final String[] circleArray = new String[100];
         final View view2 = view;
 
-        client.addHeader("Authorization", sessionid);
+        client.addHeader("Authorization", token);
         client.get(getActivity().getApplicationContext(), "http://" + getLocalUrlForApi() + "/api/circles", params, new AsyncHttpResponseHandler() {
 
             @Override

@@ -126,12 +126,12 @@ public class CreateCircleModal extends DialogFragment {
 
     public void attemptCreateCircle() {
         AsyncHttpClient client = new AsyncHttpClient();
-        String sessionKey = "com.cherami.cherami.sessionid";
-        String sessionid = prefs.getString(sessionKey, null);
-        System.out.println("sessionid: " + sessionid);
+        String sessionKey = "com.cherami.cherami.token";
+        String token = prefs.getString(sessionKey, null);
+        System.out.println("Token: " + token);
 
 
-        client.addHeader("Authorization", sessionid);
+        client.addHeader("Authorization", token);
         client.post(getActivity().getApplicationContext(), "http://" + getLocalUrlForApi() + "/api/circles",
                 convertJsonUserToStringEntity(getCreateCircleParamsAsJson()), "application/json",
                 new AsyncHttpResponseHandler() {

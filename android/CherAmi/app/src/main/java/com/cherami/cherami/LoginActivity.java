@@ -147,12 +147,12 @@ public class LoginActivity extends Activity {
                             e.printStackTrace();
                         }
                         try {
-                            String sessionKey = "com.cherami.cherami.sessionid";
+                            String sessionKey = "com.cherami.cherami.token";
                             String userKey = "com.cherami.cherami.username";
 
-                            prefs.edit().putString(sessionKey, returnVal.getString("sessionid")).apply();
+                            prefs.edit().putString(sessionKey, returnVal.getString("token")).apply();
                             prefs.edit().putString(userKey, mUsername.getText().toString()).apply();
-                            System.out.println("Session Id " + prefs.getString(sessionKey, null));
+                            System.out.println("Token " + prefs.getString(sessionKey, null));
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }

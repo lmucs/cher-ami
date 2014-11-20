@@ -171,11 +171,11 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
 
     public void attemptCreateMessage(View view) {
         AsyncHttpClient client = new AsyncHttpClient();
-        String sessionKey = "com.cherami.cherami.sessionid";
-        String sessionid = prefs.getString(sessionKey, null);
-        System.out.println("sessionid: " + sessionid);
+        String sessionKey = "com.cherami.cherami.token";
+        String token = prefs.getString(sessionKey, null);
+        System.out.println("Token: " + token);
 
-        client.addHeader("Authorization", sessionid);
+        client.addHeader("Authorization", token);
         client.post(this.getApplicationContext(), "http://" + getLocalUrlForApi() + "/api/messages",
                 convertJsonUserToStringEntity(getMessageObjectRequestAsJson()), "application/json",
                 new AsyncHttpResponseHandler() {
@@ -254,19 +254,19 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
 
     public void logoutUser () {
         AsyncHttpClient client = new AsyncHttpClient();
-        String sessionKey = "com.cherami.cherami.sessionid";
-        String sessionid = prefs.getString(sessionKey, null);
-        System.out.println("sessionid: " + sessionid);
+        String sessionKey = "com.cherami.cherami.token";
+        String token = prefs.getString(sessionKey, null);
+        System.out.println("Token: " + token);
 
 
-        client.addHeader("Authorization", sessionid);
+        client.addHeader("Authorization", token);
         client.delete(this.getApplicationContext(), "http://" + getLocalUrlForApi() + "/api/sessions",
                 new AsyncHttpResponseHandler() {
 
                     @Override
                     public void onStart() {
                         // called before request is started
-                        System.out.println("STARTING DELETE SESSIONID REQUEST");
+                        System.out.println("STARTING DELETE TOKEN REQUEST");
 
                     }
 
