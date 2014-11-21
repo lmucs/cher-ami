@@ -34,7 +34,7 @@ func (s *TestSuite) TestValidateBadHandle(c *C) {
 	}
 
 	for i, proposal := range badHandles {
-		result := v.Validate(proposal)
+		result := v.ValidateAndTag(proposal, "json")
 		c.Check(result, NotNil, Commentf("Index %d has no error", i))
 	}
 }
@@ -56,7 +56,7 @@ func (s *TestSuite) TestValidateGoodHandle(c *C) {
 	}
 
 	for i, proposal := range goodHandles {
-		result := v.Validate(proposal)
+		result := v.ValidateAndTag(proposal, "json")
 		c.Check(result, IsNil, Commentf("Index %d: %s", i, result))
 	}
 }
@@ -77,7 +77,7 @@ func (s *TestSuite) TestValidateBadEmail(c *C) {
 	}
 
 	for i, proposal := range badEmails {
-		result := v.Validate(proposal)
+		result := v.ValidateAndTag(proposal, "json")
 		c.Check(result, NotNil, Commentf("Index %d has no error", i))
 	}
 }
@@ -98,7 +98,7 @@ func (s *TestSuite) TestValidateGoodEmail(c *C) {
 		{Email: "4213@4uandme.com"},
 	}
 	for i, proposal := range goodEmails {
-		result := v.Validate(proposal)
+		result := v.ValidateAndTag(proposal, "json")
 		c.Check(result, IsNil, Commentf("Index %d: %s", i, result))
 	}
 }
@@ -111,7 +111,7 @@ func (s *TestSuite) TestValidateBadPassword(c *C) {
 		{Password: "VLeHkciByWBXNnaExhMA6QKwioybgEZCkEj9YzyhwvbofKTejj1"},
 	}
 	for i, proposal := range badPasswords {
-		result := v.Validate(proposal)
+		result := v.ValidateAndTag(proposal, "json")
 		c.Check(result, NotNil, Commentf("Index %d has no error", i))
 	}
 }
@@ -124,7 +124,7 @@ func (s *TestSuite) TestValidateGoodPassword(c *C) {
 		{Password: "iMpbnuVZadZKCYbTwoDbgmLfTNUvQDzRpdBxfWrbZCUHXkzEBx"},
 	}
 	for i, proposal := range goodPasswords {
-		result := v.Validate(proposal)
+		result := v.ValidateAndTag(proposal, "json")
 		c.Check(result, IsNil, Commentf("Index %d: %s", i, result))
 	}
 }

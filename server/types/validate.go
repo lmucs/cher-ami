@@ -31,9 +31,9 @@ func NewValidator() *validate.V {
 func validateHandle(i interface{}) error {
 	handle := i.(string)
 	if handle == "" {
-		return fmt.Errorf("Handle is a required field for signup")
+		return fmt.Errorf("Required field for signup")
 	} else if utf8.RuneCountInString(handle) > MAX_HANDLE_LENGTH {
-		return fmt.Errorf("Handle is too long, max length is %d", MAX_HANDLE_LENGTH)
+		return fmt.Errorf("Too long, max length is %d", MAX_HANDLE_LENGTH)
 	} else if !handleRegex.MatchString(handle) {
 		return fmt.Errorf(handle + " contains illegal characters")
 	} else {
@@ -44,7 +44,7 @@ func validateHandle(i interface{}) error {
 func validateEmail(i interface{}) error {
 	email := i.(string)
 	if email == "" {
-		return fmt.Errorf("Email is a required field for signup")
+		return fmt.Errorf("Required field for signup")
 	} else if !emailRegex.MatchString(email) {
 		return fmt.Errorf(email + " is an invalid email.")
 	} else {
@@ -56,11 +56,11 @@ func validatePassword(i interface{}) error {
 	password := i.(string)
 	passwordLen := utf8.RuneCountInString(password)
 	if password == "" {
-		return fmt.Errorf("Password is a required field for signup")
+		return fmt.Errorf("Required field for signup")
 	} else if passwordLen < MIN_PASS_LENGTH {
-		return fmt.Errorf("Password is too short, minimum length is %d", MIN_PASS_LENGTH)
+		return fmt.Errorf("Too short, minimum length is %d", MIN_PASS_LENGTH)
 	} else if passwordLen > MAX_PASS_LENGTH {
-		return fmt.Errorf("Password is too long, maximum length is %d", MAX_PASS_LENGTH)
+		return fmt.Errorf("Too long, maximum length is %d", MAX_PASS_LENGTH)
 	} else {
 		return nil
 	}
