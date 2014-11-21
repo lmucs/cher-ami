@@ -20,8 +20,8 @@ type UserAttributes struct {
 }
 
 type SignupProposal struct {
-	Handle          string `validate:"handle"`
-	Email           string
-	Password        string
-	ConfirmPassword string
+	Handle          string `json:"handle" validate:"handle"`
+	Email           string `json:"email" validate:"email"`
+	Password        string `json:"password" validate:"password"`
+	ConfirmPassword string `json:"confirmpassword" validate:"password"`
 }

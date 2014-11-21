@@ -7,6 +7,7 @@ import (
 	encoding "encoding/json"
 	"github.com/ChimeraCoder/go.crypto/bcrypt"
 	"github.com/ant0ine/go-json-rest/rest"
+	"github.com/mccoyst/validate"
 	"net/http"
 	"strconv"
 	"time"
@@ -24,8 +25,9 @@ func panicErr(err error) {
 //
 
 type Api struct {
-	Svc  *service.Svc
-	Util *apiutil.Util
+	Svc       *service.Svc
+	Util      *apiutil.Util
+	Validator *validate.V
 }
 
 /**
@@ -35,6 +37,7 @@ func NewApi(uri string) *Api {
 	api := &Api{
 		service.NewService(uri),
 		&apiutil.Util{},
+		types.NewValidator(),
 	}
 	return api
 }
@@ -80,38 +83,31 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
+	if err := a.Validator.ValidateAndTag(proposal, "json"); err != nil {
+		a.Util.SimpleJsonValidationReason(w, 400, err)
+		return
+	}
+
 	handle := proposal.Handle
 	email := proposal.Email
 	password := proposal.Password
 	confirm_password := proposal.ConfirmPassword
 
-	// Handle and Email checks
-	if handle == "" {
-		a.Util.SimpleJsonResponse(w, 400, "Handle is a required field for signup")
-		return
-	} else if email == "" {
-		a.Util.SimpleJsonResponse(w, 400, "Email is a required field for signup")
-		return
-	}
-
 	// Password checks
 	if password != confirm_password {
-		a.Util.SimpleJsonResponse(w, 403, "Passwords do not match")
-		return
-	} else if len(password) < MIN_PASS_LENGTH {
-		a.Util.SimpleJsonResponse(w, 403, "Passwords must be at least 8 characters long")
+		a.Util.SimpleJsonReason(w, 403, "Passwords do not match")
 		return
 	}
 
 	// Ensure unique handle
 	if unique := a.Svc.HandleIsUnique(handle); !unique {
-		a.Util.SimpleJsonResponse(w, 409, "Sorry, handle or email is already taken")
+		a.Util.SimpleJsonReason(w, 409, "Sorry, handle or email is already taken")
 		return
 	}
 
 	// Ensure unique email
 	if unique := a.Svc.EmailIsUnique(email); !unique {
-		a.Util.SimpleJsonResponse(w, 409, "Sorry, handle or email is already taken")
+		a.Util.SimpleJsonReason(w, 409, "Sorry, handle or email is already taken")
 		return
 	}
 
