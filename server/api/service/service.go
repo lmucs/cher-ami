@@ -2,6 +2,7 @@ package service
 
 import (
 	"./query"
+	"time"
 )
 
 //
@@ -10,8 +11,12 @@ import (
 
 const (
 	// Reserved Circles
-	GOLD      = "Gold"
-	BROADCAST = "Broadcast"
+	GOLD           = "Gold"
+	BROADCAST      = "Broadcast"
+	CHERAMI_PREFIX = "http://"
+	DOMAIN         = "cherami.io"
+	CHERAMI_URL    = CHERAMI_PREFIX + DOMAIN
+	API_URL        = CHERAMI_URL + "/api"
 )
 
 //
@@ -154,7 +159,31 @@ func (s Svc) SearchForUsers(circle, nameprefix string, skip, limit int, sort str
 }
 
 func (s Svc) SearchCircles(user string, skip, limit int) (results string, count int) {
-	return s.Query.SearchCircles(user, skip, limit)
+	circles := s.Query.SearchCircles(user, skip, limit)
+	formatted := make([]struct {
+		Name, Url, Description, Owner, Visibility, Members string
+		Created                                            time.Time
+	}, len(circles))
+	for i, c := range circles {
+		var visibility string
+		if c.Private != nil {
+			visibility = "private"
+		} else {
+			visibility = "public"
+		}
+		formatted[i] = struct{}{
+			Name:        c.Name,
+			Url:         API_URL + "/circles/" + c.Id,
+			Description: c.Description,
+			Owner:       c.Owner,
+			Visibility:  visibility,
+			Members:     API_URL + "/circles/" + c.Id + "/members",
+			Created:     c.Created,
+		}
+	}
+	bytes, err := json.Marshal(res)
+	panicIfErr(err)
+	return string(bytes), len(formatted)
 }
 
 func (s Svc) GetPasswordHash(handle string) (passwordHash []byte, ok bool) {
