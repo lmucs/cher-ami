@@ -88,11 +88,9 @@ func GetWithQueryParams(url string, m map[string]interface{}) (*http.Response, e
 //
 
 func GetJsonResponseMessage(response *http.Response) string {
-	type Json struct {
+	var message struct {
 		Response string
 	}
-
-	var message Json
 
 	if body, err := ioutil.ReadAll(response.Body); err != nil {
 		log.Fatal(err)
@@ -104,11 +102,9 @@ func GetJsonResponseMessage(response *http.Response) string {
 }
 
 func GetJsonReasonMessage(response *http.Response) string {
-	type Json struct {
+	var message struct {
 		Reason string
 	}
-
-	var message Json
 
 	if body, err := ioutil.ReadAll(response.Body); err != nil {
 		log.Fatal(err)
@@ -134,20 +130,14 @@ func GetJsonValidationReasonMessage(response *http.Response) []string {
 }
 
 func GetJsonUserData(response *http.Response) string {
-	type Json struct {
+	var user struct {
 		Handle string
 		Name   string
 	}
 
-	var user Json
-
-	body, err := ioutil.ReadAll(response.Body)
-	if err != nil {
+	if body, err := ioutil.ReadAll(response.Body); err != nil {
 		log.Fatal(err)
-	}
-
-	err = json.Unmarshal(body, &user)
-	if err != nil {
+	} else if err := json.Unmarshal(body, &user); err != nil {
 		log.Fatal(err)
 	}
 
@@ -167,19 +157,14 @@ func Unmarshal(response *http.Response, v interface{}) {
 //
 
 func GetAuthTokenFromResponse(response *http.Response) string {
-	authentication := struct {
+	var authentication struct {
 		Response string
 		Token    string
-	}{}
-	var (
-		body []byte
-		err  error
-	)
-	if body, err = ioutil.ReadAll(response.Body); err != nil {
-		log.Fatal(err)
 	}
 
-	if err := json.Unmarshal(body, &authentication); err != nil {
+	if body, err := ioutil.ReadAll(response.Body); err != nil {
+		log.Fatal(err)
+	} else if err := json.Unmarshal(body, &authentication); err != nil {
 		log.Fatal(err)
 	}
 
@@ -187,15 +172,15 @@ func GetAuthTokenFromResponse(response *http.Response) string {
 }
 
 func GetIdFromResponse(response *http.Response) string {
-	r := struct {
+	var res struct {
 		Id string
-	}{}
+	}
 
 	if body, err := ioutil.ReadAll(response.Body); err != nil {
 		log.Fatal(err)
-	} else if err := json.Unmarshal(body, &r); err != nil {
+	} else if err := json.Unmarshal(body, &res); err != nil {
 		log.Fatal(err)
 	}
 
-	return r.Id
+	return res.Id
 }

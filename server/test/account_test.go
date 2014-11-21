@@ -134,7 +134,7 @@ func (s *TestSuite) TestLoginUserNoExist(c *C) {
 func (s *TestSuite) TestLoginInvalidUsername(c *C) {
 	req.PostSignup("handleA", "test@test.io", "password1", "password1")
 
-	response, err := req.PostSessions("wrong_username", "password1")
+	response, err := req.PostSessions("wrongUsername", "password1")
 	if err != nil {
 		c.Error(err)
 	}
@@ -146,7 +146,7 @@ func (s *TestSuite) TestLoginInvalidUsername(c *C) {
 func (s *TestSuite) TestLoginInvalidPassword(c *C) {
 	req.PostSignup("handleA", "test@test.io", "password1", "password1")
 
-	response, err := req.PostSessions("handleA", "wrong_password")
+	response, err := req.PostSessions("handleA", "wrongPassword")
 	if err != nil {
 		c.Error(err)
 	}

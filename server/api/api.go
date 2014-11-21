@@ -10,7 +10,6 @@ import (
 	"github.com/mccoyst/validate"
 	"net/http"
 	"strconv"
-	"time"
 )
 
 func panicErr(err error) {
@@ -140,6 +139,11 @@ func (a Api) Login(w rest.ResponseWriter, r *rest.Request) {
 	credentials := types.LoginCredentials{}
 	if err := r.DecodeJsonPayload(&credentials); err != nil {
 		rest.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if err := a.Validator.ValidateAndTag(credentials, "json"); err != nil {
+		a.Util.SimpleJsonValidationReason(w, 400, err)
 		return
 	}
 
