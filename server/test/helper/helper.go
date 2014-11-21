@@ -119,6 +119,20 @@ func GetJsonReasonMessage(response *http.Response) string {
 	return message.Reason
 }
 
+func GetJsonValidationReasonMessage(response *http.Response) []string {
+	var message struct {
+		Reason []string
+	}
+
+	if body, err := ioutil.ReadAll(response.Body); err != nil {
+		log.Fatal(err)
+	} else if err := json.Unmarshal(body, &message); err != nil {
+		log.Fatal(err)
+	}
+
+	return message.Reason
+}
+
 func GetJsonUserData(response *http.Response) string {
 	type Json struct {
 		Handle string

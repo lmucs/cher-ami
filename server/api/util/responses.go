@@ -26,6 +26,18 @@ func (u Util) SimpleJsonReason(w rest.ResponseWriter, code int, message string) 
 	})
 }
 
+func (u Util) SimpleJsonValidationReason(w rest.ResponseWriter, code int, err []error) {
+	errorMessage := make([]string, len(err))
+	for i := range err {
+		errorMessage[i] = err[i].Error()
+	}
+
+	w.WriteHeader(code)
+	w.WriteJson(types.Json{
+		"reason": errorMessage,
+	})
+}
+
 func (u Util) FailedToAuthenticate(w rest.ResponseWriter) {
 	w.WriteHeader(401)
 	w.WriteJson(types.Json{
