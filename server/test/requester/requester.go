@@ -15,7 +15,6 @@ import (
 // Routes stored in a struct
 type Routes struct {
 	signupURL      string
-	changePassURL  string
 	sessionsURL    string
 	userURL        string
 	usersURL       string
@@ -37,7 +36,6 @@ type Requester struct {
 func NewRequester(apiURL string) *Requester {
 	routes := &Routes{
 		fmt.Sprintf("%s/signup", apiURL),
-		fmt.Sprintf("%s/changepassword", apiURL),
 		fmt.Sprintf("%s/sessions", apiURL),
 		fmt.Sprintf("%s/users/user", apiURL),
 		fmt.Sprintf("%s/users", apiURL),
@@ -107,17 +105,6 @@ func (req Requester) PostBlock(token string, target string) (*http.Response, err
 	}
 
 	return helper.Execute("POST", req.Routes.blockURL, payload)
-}
-
-func (req Requester) PostChangePassword(token string, password string, newPassword string, confirmNewPassword string) (*http.Response, error) {
-	payload := types.Json{
-		"token":              token,
-		"password":           password,
-		"newpassword":        newPassword,
-		"confirmnewpassword": confirmNewPassword,
-	}
-
-	return helper.Execute("POST", req.Routes.changePassURL, payload)
 }
 
 func (req Requester) PostCircles(token string, circleName string, public bool) (*http.Response, error) {
