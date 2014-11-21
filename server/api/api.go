@@ -137,10 +137,7 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 }
 
 func (a Api) Login(w rest.ResponseWriter, r *rest.Request) {
-	credentials := struct {
-		Handle   string
-		Password string
-	}{}
+	credentials := types.LoginCredentials{}
 	if err := r.DecodeJsonPayload(&credentials); err != nil {
 		rest.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -444,14 +441,6 @@ func (a Api) SearchCircles(w rest.ResponseWriter, r *rest.Request) {
 // Messages
 //
 
-type MessageData struct {
-	Id      string
-	Url     string
-	Author  string
-	Content string
-	Created time.Time
-}
-
 /**
  * Create a new, unpublished message
  */
@@ -518,10 +507,10 @@ func (a Api) GetAuthoredMessages(w rest.ResponseWriter, r *rest.Request) {
 		return
 	} else {
 		messages := a.Svc.GetMessagesByHandle(author)
-		messageData := make([]MessageData, len(messages))
+		messageData := make([]types.Message, len(messages))
 
 		for i := 0; i < len(messages); i++ {
-			messageData[i] = MessageData{
+			messageData[i] = types.Message{
 				messages[i].Id,
 				"<url>:<port>/api/messages/" + messages[i].Id, // hard-coded url/port...
 				messages[i].Author,
@@ -559,7 +548,7 @@ func (a Api) GetMessageById(w rest.ResponseWriter, r *rest.Request) {
 	}
 
 	if message, ok := a.Svc.GetVisibleMessageById(handle, id); ok {
-		data := MessageData{
+		data := types.Message{
 			message.Id,
 			"<url>:<port>/api/messages/" + message.Id, // hard-coded url/port...
 			message.Author,
