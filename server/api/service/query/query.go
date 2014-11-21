@@ -556,23 +556,26 @@ func (q Query) SearchForUsers(circle, namePrefix string, skip, limit int, sortBy
 	}
 }
 
-func (q Query) SearchCircles(user string, skip, limit int) (results string, count int) {
-	res := []struct {
-		//
-		//
-		// TODO JUST NAME AND ID FOR NOW.  THIS HAS TO BE FIXED TO BE LIKE API SPEC
-		//
-		//
-		Name string `json:"c.name"`
-		Id   int    `json:"id(c)"`
-	}{}
+type SearchCirclesRes struct {
+	Name        string               `json:"c.name"`
+	Id          string               `json:"c.id"`
+	Description string               `json:"c.description"`
+	Created     time.Time            `json:"c.created"`
+	Owner       string               `json:"owner.handle"`
+	Private     *neoism.Relationship `json:"partOf"`
+}
+
+func (q Query) SearchCircles(user string, skip, limit int) (res []SearchCirclesRes) {
+	res = make([]SearchCirclesRes, 0)
 
 	query := `
-        MATCH   (u:User)-[]->(c:Circle)
+        MATCH   (u:User)-[]->(c:Circle)<-[:OWNS]-(owner:User)
+        OPTIONAL MATCH (c)-[partOf:PART_OF]->(pd:PublicDomain)
         WHERE   u.handle = {user}
-        RETURN  c.name, id(c)
+        RETURN  c.name, c.id, c.description, c.created, owner.handle, partOf
         SKIP    {skip}
         LIMIT   {limit}
+        SORT    c.created
     `
 	props := neoism.Props{
 		"user":  user,
@@ -586,11 +589,9 @@ func (q Query) SearchCircles(user string, skip, limit int) (results string, coun
 	})
 
 	if len(res) == 0 {
-		return "", 0
+		return []SearchCirclesRes{}
 	} else {
-		bytes, err := json.Marshal(res)
-		panicIfErr(err)
-		return string(bytes), len(res)
+		return res
 	}
 }
 
