@@ -130,8 +130,8 @@ func (q Query) CreateDefaultCirclesForUser(handle string) bool {
             WHERE         u.handle = {handle}
             CREATE        (g:Circle  {name: {gold}})
             CREATE        (br:Circle {name: {broadcast}})
-            CREATE 	      (u)-[:CHIEF_OF]->(g)
-            CREATE        (u)-[:CHIEF_OF]->(br)
+            CREATE 	      (u)-[:OWNS]->(g)
+            CREATE        (u)-[:OWNS]->(br)
             CREATE UNIQUE (br)-[:PART_OF]->(p)
             RETURN        u.handle, g.name, br.name
         `,
@@ -155,7 +155,7 @@ func (q Query) CreateCircle(handle, circleName string, isPublic bool,
 	query := `
         MATCH   (u:User)
         WHERE   u.handle = {handle}
-        CREATE  (u)-[:CHIEF_OF]->(c:Circle)
+        CREATE  (u)-[:OWNS]->(c:Circle)
         SET     c.name   = {name}
         SET     c.id     = {id}
     `
@@ -276,7 +276,7 @@ func (q Query) JoinBroadcastCircleOfUser(handle, target string) bool {
 		Statement: `
             MATCH          (u:User)
             WHERE          u.handle = {handle}
-            MATCH          (t:User)-[:CHIEF_OF]->(c:Circle)
+            MATCH          (t:User)-[:OWNS]->(c:Circle)
             WHERE          t.handle = {target}
             AND            c.name   = {broadcast}
             CREATE UNIQUE  (u)-[r:MEMBER_OF]->(c)
@@ -365,7 +365,7 @@ func (q Query) UserPartOfCircle(handle, circleid string) bool {
 	}{}
 	q.cypherOrPanic(&neoism.CypherQuery{
 		Statement: `
-			MATCH   (u:User)-[:MEMBER_OF|CHIEF_OF]->(c:Circle)
+			MATCH   (u:User)-[:MEMBER_OF|OWNS]->(c:Circle)
 			WHERE   u.handle = {handle}
 			AND     c.id     = {id}
 			RETURN  c.id
@@ -623,7 +623,7 @@ func (q Query) GetCircleIdByName(handle, circleName string) (circleid string) {
 	}{}
 	q.cypherOrPanic(&neoism.CypherQuery{
 		Statement: `
-			MATCH   (u:User)-[:CHIEF_OF]->(c:Circle)
+			MATCH   (u:User)-[:OWNS]->(c:Circle)
 			WHERE   u.handle = {handle}
 			AND     c.name   = {circle}
 			RETURN  c.id
@@ -662,7 +662,7 @@ func (q Query) GetVisibleMessageById(handle, messageid string) (message *Message
 	messages := make([]Message, 0)
 	q.cypherOrPanic(&neoism.CypherQuery{
 		Statement: `
-			MATCH   (t:User)-[:WROTE]->(m:Message)-[:PUB_TO]->(c:Circle)<-[:MEMBER_OF|CHIEF_OF]-(u:User)
+			MATCH   (t:User)-[:WROTE]->(m:Message)-[:PUB_TO]->(c:Circle)<-[:MEMBER_OF|OWNS]-(u:User)
 			WHERE   u.handle = {handle}
             AND     m.id     = {messageid}
 			RETURN  m.id, t.handle, m.content, m.created
@@ -829,7 +829,7 @@ func (q Query) DisconnectTargetFromAllHeldCircles(handle, target string) {
             WHERE   u.handle = {handle}
             MATCH   (t:User)
             WHERE   t.handle = {target}
-            OPTIONAL MATCH (u)-[:CHIEF_OF]->(c:Circle)
+            OPTIONAL MATCH (u)-[:OWNS]->(c:Circle)
             OPTIONAL MATCH (t)-[r:MEMBER_OF]->(c)
             DELETE  r
         `,
@@ -861,7 +861,7 @@ func (q Query) DeleteUser(handle string) bool {
                 MATCH   (u)-[b:BLOCKED]->(:User)
                 DELETE  b
                 WITH    u
-                MATCH   (u)-[co_my:CHIEF_OF]->(c:Circle)-[po_my:PART_OF]->(:PublicDomain)
+                MATCH   (u)-[co_my:OWNS]->(c:Circle)-[po_my:PART_OF]->(:PublicDomain)
                 MATCH   (c)<-[mo_my:MEMBER_OF]-(:User)
                 MATCH   (c)<-[pt_my:PUB_TO]-(:Message)
                 DELETE  pt_my, mo_my, co_my, po_my, c, u
