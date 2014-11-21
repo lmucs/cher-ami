@@ -42,17 +42,19 @@ define(function(require, exports, module) {
                 remote: false
             });
             // Logic for auth check.
-            if (this.app.session.has('sessionid')) {
-                console.log("User logged in.");
+            this.app.headerRegion.show(new HeaderView({
+                session: this.app.session
+            }));
+            if (this.app.session.has('token')) {
+                console.log("User logged in");
                 $.ajaxSetup({
-                    headers: {'Authorization' : this.app.session.get('sessionid')}
+                    headers: {'Authorization' : this.app.session.get('token')}
                 })
                 // user is authed, redirect home
                 this.app.mainRegion.show(new HomeLayout({
                     session: this.app.session
                 }));
                 // Initialize header view after logged in
-                this.app.headerRegion.show(new HeaderView());
             } else {
                 this.app.mainRegion.show(new LandingLayout({
                     session: this.app.session

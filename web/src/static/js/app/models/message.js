@@ -5,8 +5,8 @@ define(function(require, exports, module) {
     var Message = Backbone.Model.extend({
         url: 'api/messages',
         defaults: {
-            Content: null,
-            Id: null
+            content: null,
+            id: null
         },
 
         initialize: function() {

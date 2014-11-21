@@ -127,7 +127,7 @@ func (s *TestSuite) TestLoginUserNoExist(c *C) {
 		c.Error(err)
 	}
 
-	c.Check(helper.GetJsonResponseMessage(response), Equals, "Invalid username or password, please try again.")
+	c.Check(helper.GetJsonReasonMessage(response), Equals, "Invalid username or password, please try again.")
 	c.Check(response.StatusCode, Equals, 403)
 }
 
@@ -139,7 +139,7 @@ func (s *TestSuite) TestLoginInvalidUsername(c *C) {
 		c.Error(err)
 	}
 
-	c.Check(helper.GetJsonResponseMessage(response), Equals, "Invalid username or password, please try again.")
+	c.Check(helper.GetJsonReasonMessage(response), Equals, "Invalid username or password, please try again.")
 	c.Check(response.StatusCode, Equals, 403)
 }
 
@@ -151,7 +151,7 @@ func (s *TestSuite) TestLoginInvalidPassword(c *C) {
 		c.Error(err)
 	}
 
-	c.Check(helper.GetJsonResponseMessage(response), Equals, "Invalid username or password, please try again.")
+	c.Check(helper.GetJsonReasonMessage(response), Equals, "Invalid username or password, please try again.")
 	c.Check(response.StatusCode, Equals, 403)
 }
 
@@ -179,7 +179,7 @@ func (s *TestSuite) TestLogoutUserNoExist(c *C) {
 	}
 
 	c.Check(response.StatusCode, Equals, 403)
-	c.Check(helper.GetJsonResponseMessage(response), Equals, "Cannot invalidate token because it is missing")
+	c.Check(helper.GetJsonReasonMessage(response), Equals, "Cannot invalidate token because it is missing")
 }
 
 func (s *TestSuite) TestLogoutOK(c *C) {
@@ -188,45 +188,6 @@ func (s *TestSuite) TestLogoutOK(c *C) {
 	sessionid_A := req.PostSessionGetAuthToken("handleA", "password1")
 
 	response, err := req.DeleteSessions(sessionid_A)
-	if err != nil {
-		c.Error(err)
-	}
-
-	c.Check(response.StatusCode, Equals, 204)
-}
-
-//
-// ChangePassword Tests:
-//
-
-func (s *TestSuite) TestChangePasswordUserNoExist(c *C) {
-	response, err := req.PostChangePassword("SomeSessionId", "password1", "password123", "password123")
-	if err != nil {
-		c.Error(err)
-	}
-
-	c.Check(helper.GetJsonResponseMessage(response), Equals, "Failed to authenticate user request")
-	c.Check(response.StatusCode, Equals, 401)
-}
-
-func (s *TestSuite) TestChangePasswordSamePassword(c *C) {
-	req.PostSignup("handleA", "handleA@test.io", "password1", "password1")
-
-	sessionid := req.PostSessionGetAuthToken("handleA", "password1")
-	response, err := req.PostChangePassword(sessionid, "password1", "password1", "password1")
-	if err != nil {
-		c.Error(err)
-	}
-
-	c.Check(helper.GetJsonReasonMessage(response), Equals, "Current/new password are same, please provide a new password.")
-	c.Check(response.StatusCode, Equals, 400)
-}
-
-func (s *TestSuite) TestChangePasswordOK(c *C) {
-	req.PostSignup("handleA", "handleA@test.io", "password1", "password1")
-
-	sessionid := req.PostSessionGetAuthToken("handleA", "password1")
-	response, err := req.PostChangePassword(sessionid, "password1", "password2", "password2")
 	if err != nil {
 		c.Error(err)
 	}

@@ -13,13 +13,11 @@ func MakeHandler(api cheramiapi.Api, disableLogs bool) (rest.ResourceHandler, er
 
 	err := handler.SetRoutes(
 		&rest.Route{"POST", "/signup", api.Signup},
-		&rest.Route{"POST", "/changepassword", api.ChangePassword},
 		&rest.Route{"POST", "/sessions", api.Login},
 		&rest.Route{"DELETE", "/sessions", api.Logout},
 		&rest.Route{"GET", "/users/:handle", api.GetUser},
 		&rest.Route{"PUT", "/users/:handle", api.SetUser},
 		&rest.Route{"GET", "/users", api.SearchForUsers},
-		//&rest.Route{"DELETE", "/users/:handle", api.DeleteUser},
 		&rest.Route{"GET", "/messages", api.GetAuthoredMessages},
 		&rest.Route{"GET", "/messages/:id", api.GetMessageById},
 		&rest.Route{"POST", "/messages", api.NewMessage},

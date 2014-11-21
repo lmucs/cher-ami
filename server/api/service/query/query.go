@@ -708,7 +708,7 @@ func (q Query) DeriveHandleFromAuthToken(token string) (handle string, ok bool) 
 // Update
 //
 
-func (q Query) SetGetNewAuthTokenForUser(handle string) string {
+func (q Query) SetGetNewAuthTokenForUser(handle string) (string, bool) {
 	created := []struct {
 		Token string `json:"a.value"`
 	}{}
@@ -735,10 +735,10 @@ func (q Query) SetGetNewAuthTokenForUser(handle string) string {
 		},
 		Result: &created,
 	})
-	if len(created) > 0 {
-		return created[0].Token
+	if ok := len(created) > 0; ok {
+		return created[0].Token, ok
 	} else {
-		return ""
+		return "", ok
 	}
 }
 

@@ -2,7 +2,7 @@ define(function(require, exports, module) {
 
     var backbone = require('backbone');
 
-    var Cricle = require('app/models/cricle').Cricle;
+    var Cricle = require('app/models/circle').Cricle;
 
     var Cricles = Backbone.Collection.extend({
         url: 'api/circles',

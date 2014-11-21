@@ -24,7 +24,7 @@ define(function(require, exports, module) {
                     that.set(response);
                     // Removes response property from response object
                     that.unset('response');
-                    session.set('sessionid', response.sessionid);
+                    session.set('token', response.token);
                     console.log(session.toJSON())
                 }
             })

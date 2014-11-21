@@ -135,9 +135,9 @@ func (s *TestSuite) TestPostBlockUserNoExist(c *C) {
 	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
 	req.PostSignup("handleB", "testB@test.io", "password2", "password2")
 
+	// This will be dangling, not belonging to handleA or any other user
 	sessionid := req.PostSessionGetAuthToken("handleA", "password1")
-
-	req.DeleteUser("handleA", "password1", sessionid)
+	_ = req.PostSessionGetAuthToken("handleA", "password1")
 
 	response, err := req.PostBlock(sessionid, "handleB")
 	if err != nil {
