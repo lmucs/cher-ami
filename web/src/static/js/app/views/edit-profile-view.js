@@ -37,7 +37,9 @@ define(function(require, exports, module) {
                 languages: this.ui.languages.val()
             });
             console.log(req);
-            req.save({patch: true});
+            req.save({patch: true}, {
+                type: 'patch'
+            });
         },
 
         initialize: function(options) {

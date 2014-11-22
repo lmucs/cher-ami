@@ -45,6 +45,10 @@ define(function(require, exports, module) {
             this.app.headerRegion.show(new HeaderView({
                 session: this.app.session
             }));
+
+        },
+        // Needed for AppRouter to initialize index route.
+        index: function() {
             if (this.app.session.has('token')) {
                 console.log("User logged in");
                 $.ajaxSetup({
@@ -61,8 +65,10 @@ define(function(require, exports, module) {
                 }));
             }
         },
-        // Needed for AppRouter to initialize index route.
-        index: function() {
+
+
+        showCircle: function() {
+            this.app.mainRegion.show(new CircleView())
         }
     });
     exports.AppController = AppController;
