@@ -1,6 +1,7 @@
 package api_test
 
 import (
+	"../types"
 	"./helper"
 	"encoding/json"
 	. "gopkg.in/check.v1"
@@ -48,6 +49,60 @@ func (s *TestSuite) TestSearchUsersOK(c *C) {
 		c.Check(data.Reason, Equals, "")
 		c.Check(len(results), Equals, 3)
 	}
+}
+
+//
+// Edit User Tests:
+//
+
+func (s *TestSuite) TestEditUserAllOK(c *C) {
+	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
+	token := req.PostSessionGetAuthToken("handleA", "password1")
+
+	patchObj1 := types.Json{
+		"resource": "firstname",
+		"value":    "Thomas",
+	}
+
+	patchObj2 := types.Json{
+		"resource": "lastname",
+		"value":    "Anderson",
+	}
+
+	patchObj3 := types.Json{
+		"resource": "gender",
+		"value":    "Male",
+	}
+
+	patchObj4 := types.Json{
+		"resource": "birthday",
+		"value":    "2002-10-02",
+	}
+
+	patchObj5 := types.Json{
+		"resource": "bio",
+		"value":    "I entered the Matrix once.",
+	}
+
+	patchObj6 := types.Json{
+		"resource": "interests",
+		"value":    "Slowing down time, freeing the human race, blowing up elevators.",
+	}
+
+	patchObj7 := types.Json{
+		"resource": "languages",
+		"value":    "English",
+	}
+
+	patchObj8 := types.Json{
+		"resource": "location",
+		"value":    "San Francisco, CA",
+	}
+
+	res, _ := req.EditUser(types.JsonArray{patchObj1, patchObj2, patchObj3, patchObj4, patchObj5, patchObj6, patchObj7, patchObj8}, "handleA", token)
+	c.Check(res.StatusCode, Equals, 200)
+	c.Check(helper.GetJsonResponseMessage(res), Equals, "Successfully updated user handleA")
+
 }
 
 //

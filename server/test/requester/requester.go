@@ -98,6 +98,10 @@ func (req Requester) GetUser(handle string) (*http.Response, error) {
 	return helper.GetWithQueryParams(req.Routes.usersURL+"/"+handle, payload)
 }
 
+func (req Requester) EditUser(payload types.JsonArray, handle, token string) (*http.Response, error) {
+	return helper.ExecutePatch(token, req.Routes.usersURL+"/"+handle, payload)
+}
+
 func (req Requester) PostBlock(token string, target string) (*http.Response, error) {
 	payload := types.Json{
 		"token":  token,
@@ -191,7 +195,7 @@ func (req Requester) PostMessageWithCirclesGetMessageId(content string, token st
 	return helper.GetIdFromResponse(res)
 }
 
-func (req Requester) EditMessage(payload []types.Json, id string, token string) (*http.Response, error) {
+func (req Requester) EditMessage(payload types.JsonArray, id string, token string) (*http.Response, error) {
 	return helper.ExecutePatch(token, req.Routes.messagesURL+"/"+id, payload)
 }
 
