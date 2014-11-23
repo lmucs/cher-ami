@@ -335,7 +335,7 @@ func (s *TestSuite) TestEditMessageBadOp(c *C) {
 	res, _ := req.EditMessage(types.JsonArray{patchObj}, messageid, sessionid)
 	resErr, index := helper.GetJsonPatchValidationReasonMessage(res)
 	c.Check(res.StatusCode, Equals, 400)
-	c.Check(resErr[0], Equals, "field op is invalid: change is not a valid op")
+	c.Check(resErr[0], Equals, "field op is invalid: change")
 	c.Check(index, Equals, 0)
 }
 
@@ -353,7 +353,7 @@ func (s *TestSuite) TestEditMessageBadResource(c *C) {
 	res, _ := req.EditMessage(types.JsonArray{patchObj}, messageid, sessionid)
 	resErr, index := helper.GetJsonPatchValidationReasonMessage(res)
 	c.Check(res.StatusCode, Equals, 400)
-	c.Check(resErr[0], Equals, "field resource is invalid: messageText is not a valid resource")
+	c.Check(resErr[0], Equals, "field resource is invalid: messageText")
 	c.Check(index, Equals, 0)
 }
 
