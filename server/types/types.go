@@ -45,6 +45,12 @@ type NewMessage struct {
 	Circles []string
 }
 
+type MessagePatch struct {
+	Op       string `json:"op" validate:"messageop"`
+	Resource string `json:"resource" validate:"messageresource"`
+	Value    string `json:"value" validate:"messagevalue"`
+}
+
 //
 // User Types
 //

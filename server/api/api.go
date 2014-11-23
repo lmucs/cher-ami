@@ -585,7 +585,7 @@ func (a Api) EditMessage(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	payload := make(types.JsonArray, 0)
+	payload := make([]types.MessagePatch, 0)
 	if err := r.DecodeJsonPayload(&payload); err != nil {
 		rest.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -599,26 +599,16 @@ func (a Api) EditMessage(w rest.ResponseWriter, r *rest.Request) {
 	}
 
 	// Validate input of patch objects
-	for i, obj := range payload {
-		index := strconv.Itoa(i)
-		if op, ok := obj["op"].(string); !ok {
-			a.Util.SimpleJsonReason(w, 400, "missing `op` parameter in object "+index)
-			return
-		} else if resource, ok := obj["resource"].(string); !ok {
-			a.Util.SimpleJsonReason(w, 400, "missing `resource` parameter in object "+index)
-			return
-		} else if value, ok := obj["value"].(string); !ok {
-			a.Util.SimpleJsonReason(w, 400, "missing `value` parameter in object "+index)
+	for index, obj := range payload {
+		if err := a.Validator.ValidateAndTag(obj, "json"); err != nil {
+			a.Util.PatchValidationReason(w, 400, err, index)
 			return
 		} else {
+			op := obj.Op
+			resource := obj.Resource
+			value := obj.Value
 			if op == "update" {
-				if resource != "content" && resource != "image" {
-					a.Util.SimpleJsonReason(w, 400, "Message only allows update to (content|image) at object "+index)
-					return
-				} else if resource == "content" && value == "" {
-					a.Util.SimpleJsonReason(w, 400, "Cannot update message content to empty at "+index)
-					return
-				} else if resource == "image" {
+				if resource == "image" {
 					a.Util.SimpleJsonReason(w, 405, "Edit message image value has yet to be implemented")
 					return
 				}
@@ -633,7 +623,7 @@ func (a Api) EditMessage(w rest.ResponseWriter, r *rest.Request) {
 					return
 				}
 			} else {
-				a.Util.SimpleJsonReason(w, 400, "Malformed patch request at object "+index)
+				a.Util.SimpleJsonReason(w, 400, "Malformed patch request at object "+strconv.Itoa(index))
 				return
 			}
 		}
@@ -641,9 +631,9 @@ func (a Api) EditMessage(w rest.ResponseWriter, r *rest.Request) {
 
 	// Service requests
 	for i, obj := range payload {
-		op, _ := obj["op"].(string)
-		resource, _ := obj["resource"].(string)
-		value, _ := obj["value"].(string)
+		op := obj.Op
+		resource := obj.Resource
+		value := obj.Value
 
 		if op == "update" {
 			if resource == "content" {

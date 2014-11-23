@@ -21,9 +21,12 @@ var (
 
 func NewValidator() *validate.V {
 	vd := validate.V{
-		"handle":   validateHandle,
-		"email":    validateEmail,
-		"password": validatePassword,
+		"handle":          validateHandle,
+		"email":           validateEmail,
+		"password":        validatePassword,
+		"messageop":       validateMessageOp,
+		"messageresource": validateMessageResource,
+		"messagevalue":    validateMessageValue,
 	}
 	return &vd
 }
@@ -61,6 +64,41 @@ func validatePassword(i interface{}) error {
 		return fmt.Errorf("Too short, minimum length is %d", MIN_PASS_LENGTH)
 	} else if passwordLen > MAX_PASS_LENGTH {
 		return fmt.Errorf("Too long, maximum length is %d", MAX_PASS_LENGTH)
+	} else {
+		return nil
+	}
+}
+
+//
+// EditMessage Validation
+//
+
+func validateMessageOp(i interface{}) error {
+	op := i.(string)
+	if op == "" {
+		return fmt.Errorf("Required field for message patch")
+	} else if op != "update" && op != "publish" && op != "unpublish" {
+		return fmt.Errorf(op + " is not a valid op")
+	} else {
+		return nil
+	}
+}
+
+func validateMessageResource(i interface{}) error {
+	resource := i.(string)
+	if resource == "" {
+		return fmt.Errorf("Required field for message patch")
+	} else if resource != "content" && resource != "image" && resource != "circle" {
+		return fmt.Errorf(resource + " is not a valid resource")
+	} else {
+		return nil
+	}
+}
+
+func validateMessageValue(i interface{}) error {
+	value := i.(string)
+	if value == "" {
+		return fmt.Errorf("Required field for message patch")
 	} else {
 		return nil
 	}

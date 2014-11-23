@@ -6,6 +6,18 @@ import (
 )
 
 //
+// Response Helpers
+//
+
+func decodeValidatorErrors(err []error) []string {
+	errorMessage := make([]string, len(err))
+	for i := range err {
+		errorMessage[i] = err[i].Error()
+	}
+	return errorMessage
+}
+
+//
 // Responses package
 // Used to send common Json responses
 //
@@ -27,13 +39,18 @@ func (u Util) SimpleJsonReason(w rest.ResponseWriter, code int, message string) 
 }
 
 func (u Util) SimpleJsonValidationReason(w rest.ResponseWriter, code int, err []error) {
-	errorMessage := make([]string, len(err))
-	for i := range err {
-		errorMessage[i] = err[i].Error()
-	}
-
+	errorMessage := decodeValidatorErrors(err)
 	w.WriteHeader(code)
 	w.WriteJson(types.Json{
+		"reason": errorMessage,
+	})
+}
+
+func (u Util) PatchValidationReason(w rest.ResponseWriter, code int, err []error, index int) {
+	errorMessage := decodeValidatorErrors(err)
+	w.WriteHeader(code)
+	w.WriteJson(types.Json{
+		"index":  index,
 		"reason": errorMessage,
 	})
 }

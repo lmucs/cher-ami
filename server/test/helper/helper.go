@@ -129,6 +129,21 @@ func GetJsonValidationReasonMessage(response *http.Response) []string {
 	return message.Reason
 }
 
+func GetJsonPatchValidationReasonMessage(response *http.Response) ([]string, int) {
+	var message struct {
+		Reason []string
+		Index  int
+	}
+
+	if body, err := ioutil.ReadAll(response.Body); err != nil {
+		log.Fatal(err)
+	} else if err := json.Unmarshal(body, &message); err != nil {
+		log.Fatal(err)
+	}
+
+	return message.Reason, message.Index
+}
+
 func GetJsonUserData(response *http.Response) string {
 	var user struct {
 		Handle string
