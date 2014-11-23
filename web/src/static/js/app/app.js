@@ -6,7 +6,8 @@ define(function(require, exports, module) {
     // Regions defined in index.html
     app.addRegions({
         headerRegion: '#header',
-        mainRegion: '#main'
+        mainRegion: '#main',
+        sidebarRegion:'#sidebarMain'
     })
 
     app.addInitializer(function() {

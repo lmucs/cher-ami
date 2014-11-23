@@ -18,6 +18,7 @@ define(function(require, exports, module) {
     var CircleView = require('app/views/circle-view').CircleView;
     var CreateCircleView = require('app/views/create-circle-view').CreateCircleView;
     var SettingsView = require('app/views/settings-view').SettingsView;
+    var SidebarView = require('app/views/sidebar-view').SidebarView;
 
     /** Models **/
     var Session = require('app/models/session').Session;
@@ -54,6 +55,7 @@ define(function(require, exports, module) {
                 $.ajaxSetup({
                     headers: {'Authorization' : this.app.session.get('token')}
                 })
+                this.app.sidebarRegion.show(new SidebarView())
                 // user is authed, redirect home
                 this.app.mainRegion.show(new HomeLayout({
                     session: this.app.session
@@ -66,9 +68,24 @@ define(function(require, exports, module) {
             }
         },
 
-
         showCircle: function() {
+            this.app.sidebarRegion.show(new SidebarView())
             this.app.mainRegion.show(new CircleView())
+        },
+
+        showCreateCircle: function() {
+            this.app.sidebarRegion.show(new SidebarView())
+            this.app.mainRegion.show(new CreateCircleView())
+        },
+
+        showProfile: function() {
+            this.app.sidebarRegion.show(new SidebarView())
+            this.app.mainRegion.show(new ProfileView())
+        },
+
+        showEditProfile: function() {
+            this.app.sidebarRegion.show(new SidebarView())
+            this.app.mainRegion.show(new EditProfileView())
         }
     });
     exports.AppController = AppController;

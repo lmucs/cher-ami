@@ -6,7 +6,10 @@ define(function(require, exports, module){
         controller: new AppController(),
         appRoutes: {
             '': 'index',
-            'goToCircles': 'showCircle'
+            'goToCircles': 'showCircle',
+            'goToCreateCircle': 'showCreateCircle',
+            'goToProfile': 'showProfile',
+            'editProfile': 'showEditProfile',
         },
 
     });
