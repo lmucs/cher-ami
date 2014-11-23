@@ -61,7 +61,12 @@ type UserAttributes struct {
 	Gender    string
 	Birthday  time.Time
 	Bio       string
-	Interests []string
-	Languages []string
+	Interests string
+	Languages string
 	Location  string
+}
+
+type UserPatch struct {
+	Resource string `json:"resource" validate:"userresource"`
+	Value    string `json:"value" validate:"uservalue"`
 }

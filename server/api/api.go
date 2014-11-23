@@ -200,26 +200,51 @@ func (a Api) GetUser(w rest.ResponseWriter, r *rest.Request) {
 
 }
 
-func (a Api) SetUser(w rest.ResponseWriter, r *rest.Request) {
-	// if !a.authenticate(r) {
-	// 	a.Util.FailedToAuthenticate(w)
-	// 	return
-	// }
+func (a Api) EditUser(w rest.ResponseWriter, r *rest.Request) {
+	if !a.authenticate(r) {
+		a.Util.FailedToAuthenticate(w)
+		return
+	}
 
-	// handle := r.PathParam("handle")
-	// if h, ok := a.Svc.GetHandleFromAuthorization(a.getTokenFromHeader(r)); !ok {
-	// 	a.Util.FailedToDetermineHandleFromAuthToken(w)
-	// 	return
-	// } else if h != handle {
-	// 	a.Util.SimpleJsonReason(w, 401, "You are not authorized to modify user "+handle)
-	// 	return
-	// }
+	attributes := []types.UserPatch{}
+	if err := r.DecodeJsonPayload(&attributes); err != nil {
+		rest.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
-	// attributes := types.UserAttributes{}
-	// if err := r.DecodeJsonPayload(&user); err != nil {
-	// 	rest.Error(w, err.Error(), http.StatusBadRequest)
-	// 	return
-	// }
+	handle := r.PathParam("handle")
+	if h, ok := a.Svc.GetHandleFromAuthorization(a.getTokenFromHeader(r)); !ok {
+		a.Util.FailedToDetermineHandleFromAuthToken(w)
+		return
+	} else if h != handle {
+		a.Util.SimpleJsonReason(w, 401, "You are not authorized to modify user "+handle)
+		return
+	}
+
+	// Validate input of patch objects
+	for index, obj := range attributes {
+		if err := a.Validator.ValidateAndTag(obj, "json"); err != nil {
+			a.Util.PatchValidationReason(w, 400, err, index)
+			return
+		}
+	}
+
+	// Service requests
+	for i, obj := range attributes {
+		resource := obj.Resource
+		value := obj.Value
+
+		if !a.Svc.UpdateUserAttribute(handle, resource, value) {
+			a.Util.SimpleJsonReason(w, 500, "Unexpected failure to fulfill service request at "+strconv.Itoa(i))
+			return
+		}
+	}
+
+	w.WriteHeader(200)
+	w.WriteJson(types.Json{
+		"response": "Successfully updated user " + handle,
+		"changes":  len(attributes),
+	})
 
 }
 

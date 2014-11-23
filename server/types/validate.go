@@ -15,8 +15,9 @@ const (
 
 // Regexes
 var (
-	handleRegex = regexp.MustCompile(`^[\p{L}\p{M}][\d\p{L}\p{M}]*$`)
-	emailRegex  = regexp.MustCompile(`^\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$`)
+	handleRegex        = regexp.MustCompile(`^[\p{L}\p{M}][\d\p{L}\p{M}]*$`)
+	emailRegex         = regexp.MustCompile(`^\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$`)
+	userAttributeRegex = regexp.MustCompile(`^((fir|la)stname|gender|birthday|bio|interests|languages|location)$`)
 )
 
 func NewValidator() *validate.V {
@@ -27,6 +28,8 @@ func NewValidator() *validate.V {
 		"messageop":       validateMessageOp,
 		"messageresource": validateMessageResource,
 		"messagevalue":    validateMessageValue,
+		"userresource":    validateUserResource,
+		"uservalue":       validateUserValue,
 	}
 	return &vd
 }
@@ -49,7 +52,7 @@ func validateEmail(i interface{}) error {
 	if email == "" {
 		return fmt.Errorf("Required field for signup")
 	} else if !emailRegex.MatchString(email) {
-		return fmt.Errorf(email + " is an invalid email.")
+		return fmt.Errorf(email + " is an invalid email")
 	} else {
 		return nil
 	}
@@ -78,7 +81,7 @@ func validateMessageOp(i interface{}) error {
 	if op == "" {
 		return fmt.Errorf("Required field for message patch")
 	} else if op != "update" && op != "publish" && op != "unpublish" {
-		return fmt.Errorf(op + " is not a valid op")
+		return fmt.Errorf(op)
 	} else {
 		return nil
 	}
@@ -89,7 +92,7 @@ func validateMessageResource(i interface{}) error {
 	if resource == "" {
 		return fmt.Errorf("Required field for message patch")
 	} else if resource != "content" && resource != "image" && resource != "circle" {
-		return fmt.Errorf(resource + " is not a valid resource")
+		return fmt.Errorf(resource)
 	} else {
 		return nil
 	}
@@ -99,6 +102,27 @@ func validateMessageValue(i interface{}) error {
 	value := i.(string)
 	if value == "" {
 		return fmt.Errorf("Required field for message patch")
+	} else {
+		return nil
+	}
+}
+
+func validateUserResource(i interface{}) error {
+	resource := i.(string)
+	if resource == "" {
+		return fmt.Errorf("Required field for user patch")
+		// !r.MatchString(resource)
+	} else if resource != "firstname" && resource != "lastname" && resource != "gender" && resource != "birthday" && resource != "bio" && resource != "interests" && resource != "languages" && resource != "location" {
+		return fmt.Errorf(resource)
+	} else {
+		return nil
+	}
+}
+
+func validateUserValue(i interface{}) error {
+	value := i.(string)
+	if value == "" {
+		return fmt.Errorf("Required field for user patch")
 	} else {
 		return nil
 	}

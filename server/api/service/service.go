@@ -203,3 +203,7 @@ func (s Svc) SetGetName(handle, newName string) (string, bool) {
 func (s Svc) UpdateContentOfMessage(messageid, content string) bool {
 	return s.Query.UpdateMessageContent(messageid, content)
 }
+
+func (s Svc) UpdateUserAttribute(handle, resource, content string) bool {
+	return s.Query.UpdateUserAttribute(handle, resource, content)
+}
