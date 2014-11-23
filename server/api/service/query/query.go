@@ -811,9 +811,9 @@ func (q Query) UpdateMessageContent(messageid, newContent string) bool {
 }
 
 func (q Query) UpdateUserAttribute(handle, resource, value string) bool {
-	var updated []struct {
+	updated := []struct {
 		Value string `json:"value"`
-	}
+	}{}
 
 	query := `
         MATCH  (u:User)
@@ -821,8 +821,6 @@ func (q Query) UpdateUserAttribute(handle, resource, value string) bool {
         SET    u.lastupdated      = {now}
         SET    u.` + resource + ` = {value}
         RETURN u.` + resource + ` as value`
-
-	fmt.Println(query)
 
 	q.cypherOrPanic(&neoism.CypherQuery{
 		Statement: query,
@@ -833,7 +831,6 @@ func (q Query) UpdateUserAttribute(handle, resource, value string) bool {
 		},
 		Result: &updated,
 	})
-	fmt.Printf("%+v\n", updated)
 	return len(updated) > 0
 }
 
