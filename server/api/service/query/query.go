@@ -128,17 +128,19 @@ func (q Query) CreateDefaultCirclesForUser(handle string) bool {
             WHERE         p.iam    = "PublicDomain"
             MATCH         (u:User)
             WHERE         u.handle = {handle}
-            CREATE        (g:Circle  {name: {gold}})
-            CREATE        (br:Circle {name: {broadcast}})
+            CREATE        (g:Circle  {name: {gold}, id: {gold_id}})
+            CREATE        (br:Circle {name: {broadcast}, id: {broadcast_id}})
             CREATE 	      (u)-[:CHIEF_OF]->(g)
             CREATE        (u)-[:CHIEF_OF]->(br)
             CREATE UNIQUE (br)-[:PART_OF]->(p)
             RETURN        u.handle, g.name, br.name
         `,
 		Parameters: neoism.Props{
-			"handle":    handle,
-			"gold":      GOLD,
-			"broadcast": BROADCAST,
+			"handle":       handle,
+			"gold":         GOLD,
+			"gold_id":      uniuri.NewLen(uniuri.UUIDLen),
+			"broadcast":    BROADCAST,
+			"broadcast_id": uniuri.NewLen(uniuri.UUIDLen),
 		},
 		Result: &created,
 	})
