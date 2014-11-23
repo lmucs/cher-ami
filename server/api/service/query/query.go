@@ -809,64 +809,29 @@ func (q Query) UpdateMessageContent(messageid, newContent string) bool {
 }
 
 func (q Query) UpdateUserAttribute(handle, resource, value string) bool {
-	var updated []struct{}
+	var updated []struct {
+		Value string `json:"value"`
+	}
+
 	query := `
         MATCH  (u:User)
-        WHERE  u.handle = {handle}
-        SET    u.lastupdated = {now}
-    `
-	switch resource {
-	case "firstname":
-		query = query + `
-                SET    u.firstname = {value}
-                RETURN u.firstname
-            `
-	case "lastname":
-		query = query + `
-                SET    u.lastname = {value}
-                RETURN u.lastname
-            `
-	case "gender":
-		query = query + `
-                SET    u.gender = {value}
-                RETURN u.gender
-            `
-	case "birthday":
-		query = query + `
-                SET    u.birthday = {value}
-                RETURN u.birthday
-            `
-	case "bio":
-		query = query + `
-                SET    u.bio = {value}
-                RETURN u.bio
-            `
-	case "interests":
-		query = query + `
-                SET    u.interests = {value}
-                RETURN u.interests
-            `
-	case "languages":
-		query = query + `
-                SET    u.languages = {value}
-                RETURN u.languages
-            `
-	case "location":
-		query = query + `
-                SET    u.location = {value}
-                RETURN u.location
-            `
-	}
+        WHERE  u.handle           = {handle}
+        SET    u.lastupdated      = {now}
+        SET    u.` + resource + ` = {value}
+        RETURN u.` + resource + ` as value`
+
+	fmt.Println(query)
+
 	q.cypherOrPanic(&neoism.CypherQuery{
 		Statement: query,
 		Parameters: neoism.Props{
-			"handle":   handle,
-			"resource": resource,
-			"value":    value,
-			"now":      time.Now().Local(),
+			"handle": handle,
+			"value":  value,
+			"now":    time.Now().Local(),
 		},
 		Result: &updated,
 	})
+	fmt.Printf("%+v\n", updated)
 	return len(updated) > 0
 }
 
