@@ -99,10 +99,19 @@ func (s *TestSuite) TestEditUserAllOK(c *C) {
 		"value":    "San Francisco, CA",
 	}
 
-	res, _ := req.EditUser(types.JsonArray{patchObj1, patchObj2, patchObj3, patchObj4, patchObj5, patchObj6, patchObj7, patchObj8}, "handleA", token)
-	c.Check(res.StatusCode, Equals, 200)
-	c.Check(helper.GetJsonResponseMessage(res), Equals, "Successfully updated user handleA")
+	res1, _ := req.EditUser(types.JsonArray{patchObj1, patchObj2, patchObj3, patchObj4, patchObj5, patchObj6, patchObj7, patchObj8}, "handleA", token)
+	c.Check(res1.StatusCode, Equals, 200)
+	c.Check(helper.GetJsonResponseMessage(res1), Equals, "Successfully updated user handleA")
+	// TODO: need get users, then make this section more extensive
 
+	patchObj9 := types.Json{
+		"resource": "languages",
+		"value":    "Pig Latin",
+	}
+
+	res2, _ := req.EditUser(types.JsonArray{patchObj9}, "handleA", token)
+	c.Check(res2.StatusCode, Equals, 200)
+	// TODO: check that updating a field doesn't delete the other fields.
 }
 
 //

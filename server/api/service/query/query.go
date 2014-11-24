@@ -1,6 +1,7 @@
 package query
 
 import (
+	"../../../types"
 	"encoding/json"
 	"fmt"
 	"github.com/dchest/uniuri"
@@ -19,11 +20,11 @@ type Query struct {
 // Constructor, use this when creating a new Query struct.
 func NewQuery(uri string) *Query {
 	neo4jdb, err := neoism.Connect(uri)
-	if err != nil {
-		panicIfErr(err)
-	}
+	panicIfErr(err)
+
 	query := Query{neo4jdb}
 	query.DatabaseInit()
+
 	return &query
 }
 
@@ -52,6 +53,18 @@ func panicIfErr(err error) {
 	}
 }
 
+//
+// Calculated Values
+//
+
+func Now() time.Time {
+	return time.Now().Local()
+}
+
+func NewUUID() string {
+	return uniuri.NewLen(uniuri.UUIDLen)
+}
+
 // Constants //
 const (
 	// Reserved Circles
@@ -76,15 +89,14 @@ type Message struct {
 func (q Query) CreateUniquePublicDomain() *neoism.Node {
 	// Initialize PublicDomain node
 	// Nodes must have at least one property to allow unique creation
-	if publicDomain, _, err := q.Db.GetOrCreateNode("PublicDomain", "iam", neoism.Props{
+	if pd, _, err := q.Db.GetOrCreateNode("PublicDomain", "iam", neoism.Props{
 		"iam": "PublicDomain",
 	}); err != nil {
 		panic(err)
 	} else {
 		// Label (has to be) added separately
-		panicIfErr(publicDomain.AddLabel("PublicDomain"))
-
-		return publicDomain
+		panicIfErr(pd.AddLabel("PublicDomain"))
+		return pd
 	}
 }
 
@@ -109,7 +121,7 @@ func (q Query) CreateUser(handle, email, passwordHash string) bool {
 			"handle":   handle,
 			"email":    email,
 			"password": passwordHash,
-			"joined":   time.Now().Local(),
+			"joined":   Now(),
 		},
 		Result: &newUser,
 	})
@@ -138,9 +150,9 @@ func (q Query) CreateDefaultCirclesForUser(handle string) bool {
 		Parameters: neoism.Props{
 			"handle":       handle,
 			"gold":         GOLD,
-			"gold_id":      uniuri.NewLen(uniuri.UUIDLen),
+			"gold_id":      NewUUID(),
 			"broadcast":    BROADCAST,
-			"broadcast_id": uniuri.NewLen(uniuri.UUIDLen),
+			"broadcast_id": NewUUID(),
 		},
 		Result: &created,
 	})
@@ -178,7 +190,7 @@ func (q Query) CreateCircle(handle, circleName string, isPublic bool,
 		Parameters: neoism.Props{
 			"handle": handle,
 			"name":   circleName,
-			"id":     uniuri.NewLen(uniuri.UUIDLen),
+			"id":     NewUUID(),
 		},
 		Result: &created,
 	})
@@ -211,8 +223,8 @@ func (q Query) CreateMessage(handle, content string) (messageid string, ok bool)
 		Parameters: neoism.Props{
 			"handle":  handle,
 			"content": content,
-			"now":     time.Now().Local(),
-			"id":      uniuri.NewLen(uniuri.UUIDLen),
+			"now":     Now(),
+			"id":      NewUUID(),
 		},
 		Result: &created,
 	})
@@ -240,7 +252,7 @@ func (q Query) CreatePublishedRelation(messageid, circleid string) bool {
 		Parameters: neoism.Props{
 			"messageid": messageid,
 			"circleid":  circleid,
-			"now":       time.Now().Local(),
+			"now":       Now(),
 		},
 		Result: &created,
 	})
@@ -263,7 +275,7 @@ func (q Query) CreateMemberOfRelation(handle, circleid string) bool {
 		Parameters: neoism.Props{
 			"handle": handle,
 			"id":     circleid,
-			"now":    time.Now().Local(),
+			"now":    Now(),
 		},
 		Result: &joined,
 	})
@@ -289,7 +301,7 @@ func (q Query) JoinBroadcastCircleOfUser(handle, target string) bool {
 			"handle":    handle,
 			"broadcast": BROADCAST,
 			"target":    target,
-			"now":       time.Now().Local(),
+			"now":       Now(),
 		},
 		Result: &created,
 	})
@@ -470,7 +482,7 @@ func (q Query) AuthTokenBelongsToSomeUser(token string) bool {
         `,
 		Parameters: neoism.Props{
 			"token": token,
-			"now":   time.Now().Local(),
+			"now":   Now(),
 		},
 		Result: &found,
 	})
@@ -562,7 +574,7 @@ func (q Query) SearchCircles(user string, skip, limit int) (results string, coun
 	res := []struct {
 		//
 		//
-		// TODO JUST NAME AND ID FOR NOW.  THIS HAS TO BE FIXED TO BE LIKE API SPEC
+		// This query is being fixed on branch `get-circles`
 		//
 		//
 		Name string `json:"c.name"`
@@ -695,7 +707,7 @@ func (q Query) DeriveHandleFromAuthToken(token string) (handle string, ok bool) 
 		`,
 		Parameters: neoism.Props{
 			"token": token,
-			"now":   time.Now().Local(),
+			"now":   Now(),
 		},
 		Result: &found,
 	})
@@ -714,7 +726,8 @@ func (q Query) SetGetNewAuthTokenForUser(handle string) (string, bool) {
 	created := []struct {
 		Token string `json:"a.value"`
 	}{}
-	now := time.Now().Local()
+	now := Now()
+	token := "Token " + NewUUID()
 	q.cypherOrPanic(&neoism.CypherQuery{
 		Statement: `
                 MATCH   (u:User)
@@ -731,7 +744,7 @@ func (q Query) SetGetNewAuthTokenForUser(handle string) (string, bool) {
             `,
 		Parameters: neoism.Props{
 			"handle": handle,
-			"token":  "Token " + uniuri.NewLen(uniuri.UUIDLen),
+			"token":  token,
 			"time":   now.Add(AUTH_TOKEN_DURATION),
 			"now":    now,
 		},
@@ -751,7 +764,7 @@ func (q Query) UpdatePassword(handle, newPasswordHash string) bool {
 	q.cypherOrPanic(&neoism.CypherQuery{
 		Statement: `
             MATCH   (u:User)
-            WHERE   u.handle = {handle}
+            WHERE   u.handle   = {handle}
             SET     u.password = {new_pass}
             RETURN  u.password
         `,
@@ -772,7 +785,7 @@ func (q Query) SetGetUserName(handle, newName string) (string, bool) {
 		Statement: `
             MATCH   (u:User)
             WHERE   u.handle = {handle}
-            SET     u.name = {name}
+            SET     u.name   = {name}
             RETURN  u.name
         `,
 		Parameters: neoism.Props{
@@ -803,7 +816,7 @@ func (q Query) UpdateMessageContent(messageid, newContent string) bool {
 		Parameters: neoism.Props{
 			"messageid": messageid,
 			"content":   newContent,
-			"now":       time.Now().Local(),
+			"now":       Now(),
 		},
 		Result: &updated,
 	})
@@ -812,22 +825,25 @@ func (q Query) UpdateMessageContent(messageid, newContent string) bool {
 
 func (q Query) UpdateUserAttribute(handle, resource, value string) bool {
 	updated := []struct {
-		Value string `json:"value"`
+		User string `json:"u.handle"`
 	}{}
 
+	changes := types.Json{
+		"u." + resource: value,
+	}
 	query := `
-        MATCH  (u:User)
-        WHERE  u.handle           = {handle}
-        SET    u.lastupdated      = {now}
-        SET    u.` + resource + ` = {value}
-        RETURN u.` + resource + ` as value`
+        MATCH   (u:User)
+        WHERE   u.handle      =  {handle}
+        SET     u.lastupdated =  {now}
+        SET     u             += {changes}
+        RETURN  u.handle`
 
 	q.cypherOrPanic(&neoism.CypherQuery{
 		Statement: query,
 		Parameters: neoism.Props{
-			"handle": handle,
-			"value":  value,
-			"now":    time.Now().Local(),
+			"handle":  handle,
+			"changes": changes,
+			"now":     Now(),
 		},
 		Result: &updated,
 	})
