@@ -568,20 +568,31 @@ type SearchCirclesRes struct {
 func (q Query) SearchCircles(user string, before time.Time, limit int) (found []SearchCirclesRes) {
 	found = make([]SearchCirclesRes, 0)
 
-	query := `
-        MATCH     (u:User)-[]->(c:Circle)<-[:OWNS]-(owner:User)
-        OPTIONAL MATCH (c)-[partOf:PART_OF]->(pd:PublicDomain)
-        WHERE     u.handle  = {user}
-        AND       c.created < {before}
-        RETURN    c.name, c.id, c.description, c.created, owner.handle, partOf
-        ORDER BY  c.created
-        LIMIT     {limit}
-    `
 	props := neoism.Props{
-		"user":   user,
 		"limit":  limit,
 		"before": before,
 	}
+	query := `
+        MATCH     (u:User)-[]->(c:Circle)<-[:OWNS]-(owner:User)
+        OPTIONAL MATCH (c)-[partOf:PART_OF]->(pd:PublicDomain)
+		WHERE       c.created < {before}
+	`
+	if user != "" {
+		query = query + `
+		AND       u.handle  = {user}
+		`
+		props = neoism.Props{
+			"user":   user,
+			"limit":  limit,
+			"before": before,
+		}
+	}
+	query = query + `
+		RETURN    c.name, c.id, c.description, c.created, owner.handle, partOf
+        ORDER BY  c.created
+        LIMIT     {limit}
+    `
+
 	q.cypherOrPanic(&neoism.CypherQuery{
 		Statement:  query,
 		Parameters: props,

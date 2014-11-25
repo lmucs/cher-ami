@@ -367,7 +367,7 @@ func (a Api) SearchCircles(w rest.ResponseWriter, r *rest.Request) {
 	}
 
 	if val, ok := querymap["user"]; !ok {
-		user, _ = a.Svc.GetHandleFromAuthorization(a.getTokenFromHeader(r))
+		user = ""
 	} else {
 		user = val[0]
 	}
