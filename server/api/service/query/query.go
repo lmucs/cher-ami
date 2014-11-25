@@ -598,13 +598,13 @@ func (q Query) SearchCircles(user string, before time.Time, limit int) (found []
 		"before": before,
 	}
 	query := `
-        MATCH     (u:User)-[]->(c:Circle)<-[:OWNS]-(owner:User)
-        OPTIONAL MATCH (c)-[partOf:PART_OF]->(pd:PublicDomain)
-		WHERE       c.created < {before}
+        MATCH     (u:User)-[]->(c:Circle)
+        MATCH     (c)<-[:OWNS]-(owner:User)
+		WHERE     c.created < {before}
 	`
 	if user != "" {
 		query = query + `
-		AND       u.handle  = {user}
+		AND       owner.handle  = {user}
 		`
 		props = neoism.Props{
 			"user":   user,
@@ -613,6 +613,7 @@ func (q Query) SearchCircles(user string, before time.Time, limit int) (found []
 		}
 	}
 	query = query + `
+        OPTIONAL MATCH (c)-[partOf:PART_OF]->(pd:PublicDomain)
 		RETURN    c.name, c.id, c.description, c.created, owner.handle, partOf
         ORDER BY  c.created
         LIMIT     {limit}

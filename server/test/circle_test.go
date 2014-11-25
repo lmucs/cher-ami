@@ -1,6 +1,7 @@
 package api_test
 
 import (
+	"../types"
 	"./helper"
 	. "gopkg.in/check.v1"
 )
@@ -132,11 +133,55 @@ func (s *TestSuite) TestPostPrivateCircleOK(c *C) {
 //
 
 func (s *TestSuite) TestSearchCirclesTargetNoExist(c *C) {
-	// stub
+	req.PostSignup("handleA", "test@test.io", "password1", "password1")
+	token := req.PostSessionGetAuthToken("handleA", "password1")
+
+	res, err := req.GetCircles(types.Json{
+		"token": token,
+		"user":  "handleB",
+	})
+	if err != nil {
+		c.Error(err)
+	}
+
+	body := types.SearchCirclesResponse{}
+	helper.Unmarshal(res, &body)
+
+	c.Check(res.StatusCode, Equals, 200)
+	c.Check(len(body.Results), Equals, 0)
+	c.Check(body.Count, Equals, 0)
 }
 
 func (s *TestSuite) TestSearchCirclesDefaultCirclesOK(c *C) {
-	// stub
+	req.PostSignup("handleA", "test@test.io", "password1", "password1")
+	token := req.PostSessionGetAuthToken("handleA", "password1")
+
+	// Empty handle
+	if res, err := req.GetCircles(types.Json{
+		"token":  token,
+		"handle": "",
+	}); err != nil {
+		c.Error(err)
+	} else {
+		body := types.SearchCirclesResponse{}
+		helper.Unmarshal(res, &body)
+		c.Check(res.StatusCode, Equals, 200)
+		c.Check(len(body.Results), Equals, 2)
+		c.Check(body.Count, Equals, 2)
+	}
+
+	// No handle
+	if res, err := req.GetCircles(types.Json{
+		"token": token,
+	}); err != nil {
+		c.Error(err)
+	} else {
+		body := types.SearchCirclesResponse{}
+		helper.Unmarshal(res, &body)
+		c.Check(res.StatusCode, Equals, 200)
+		c.Check(len(body.Results), Equals, 2)
+		c.Check(body.Count, Equals, 2)
+	}
 }
 
 func (s *TestSuite) TestSearchCirclesOfTargetOK(c *C) {
@@ -144,6 +189,10 @@ func (s *TestSuite) TestSearchCirclesOfTargetOK(c *C) {
 }
 
 func (s *TestSuite) TestSearchCirclesNoSpecificUserOK(c *C) {
+	// stub
+}
+
+func (s *TestSuite) TestSearchCirclesBeforeWorks(c *C) {
 	// stub
 }
 
