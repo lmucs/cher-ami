@@ -141,6 +141,7 @@ public class CreateMessageModal extends DialogFragment{
                             System.out.println(j);
                         }
 
+                        dismissModal();
                         Toast toast = Toast.makeText(getActivity().getApplicationContext(), responseText, Toast.LENGTH_LONG);
                         toast.show();
                     }
