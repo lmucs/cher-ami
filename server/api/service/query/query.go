@@ -1,7 +1,7 @@
 package query
 
 import (
-	"../../../types"
+	// "../../../types"
 	"encoding/json"
 	"fmt"
 	"github.com/dchest/uniuri"
@@ -177,10 +177,11 @@ func (q Query) CreateCircle(handle, circleName string, isPublic bool,
 
 	query := `
         MATCH   (u:User)
-        WHERE   u.handle = {handle}
+        WHERE   u.handle  = {handle}
         CREATE  (u)-[:OWNS]->(c:Circle)
-        SET     c.name   = {name}
-        SET     c.id     = {id}
+        SET     c.name    = {name}
+        SET     c.id      = {id}
+        SET     c.created = {now}
     `
 	if isPublic {
 		query = query + `
@@ -200,6 +201,7 @@ func (q Query) CreateCircle(handle, circleName string, isPublic bool,
 			"handle": handle,
 			"name":   circleName,
 			"id":     NewUUID(),
+			"now":    Now(),
 		},
 		Result: &created,
 	})

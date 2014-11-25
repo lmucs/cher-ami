@@ -145,7 +145,6 @@ func (req Requester) PostCircleGetCircleId(token string, circleName string, publ
 	return helper.GetIdFromResponse(res)
 }
 
-// `before` is a stringy number of milliseconds to be interpreted as a Unix date
 func (req Requester) GetCircles(payload types.Json) (*http.Response, error) {
 	return helper.GetWithQueryParams(req.Routes.circlesURL, payload)
 }
