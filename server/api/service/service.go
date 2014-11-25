@@ -1,8 +1,8 @@
 package service
 
 import (
+	"../../types"
 	"./query"
-	"time"
 )
 
 //
@@ -40,6 +40,12 @@ func NewService(uri string) *Svc {
 		query.NewQuery(uri),
 	}
 	return s
+}
+
+func panicIfErr(err error) {
+	if err != nil {
+		panic(err)
+	}
 }
 
 //
@@ -158,12 +164,9 @@ func (s Svc) SearchForUsers(circle, nameprefix string, skip, limit int, sort str
 	return s.Query.SearchForUsers(circle, nameprefix, skip, limit, sort)
 }
 
-func (s Svc) SearchCircles(user string, skip, limit int) (results string, count int) {
+func (s Svc) SearchCircles(user string, skip, limit int) (results []types.CircleResponse, count int) {
 	circles := s.Query.SearchCircles(user, skip, limit)
-	formatted := make([]struct {
-		Name, Url, Description, Owner, Visibility, Members string
-		Created                                            time.Time
-	}, len(circles))
+	formatted := make([]types.CircleResponse, len(circles))
 	for i, c := range circles {
 		var visibility string
 		if c.Private != nil {
@@ -171,7 +174,7 @@ func (s Svc) SearchCircles(user string, skip, limit int) (results string, count 
 		} else {
 			visibility = "public"
 		}
-		formatted[i] = struct{}{
+		formatted[i] = types.CircleResponse{
 			Name:        c.Name,
 			Url:         API_URL + "/circles/" + c.Id,
 			Description: c.Description,
@@ -181,9 +184,7 @@ func (s Svc) SearchCircles(user string, skip, limit int) (results string, count 
 			Created:     c.Created,
 		}
 	}
-	bytes, err := json.Marshal(res)
-	panicIfErr(err)
-	return string(bytes), len(formatted)
+	return formatted, len(formatted)
 }
 
 func (s Svc) GetPasswordHash(handle string) (passwordHash []byte, ok bool) {

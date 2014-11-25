@@ -1,7 +1,28 @@
 package types
 
-import ()
+import (
+	"time"
+)
 
 type Json map[string]interface{}
 
 type JsonArray []Json
+
+// The json annotations that accompany these structs allow json.Marshall
+// to to produce proper json instead of an escaped json string.
+
+type SearchCirclesResponse struct {
+	Results  []CircleResponse `json:"results"`
+	Response string           `json:"response"`
+	Count    int              `json:"count"`
+}
+
+type CircleResponse struct {
+	Name        string    `json:"name"`
+	Url         string    `json:"url"`
+	Description string    `json:"url"`
+	Owner       string    `json:"url"`
+	Visibility  string    `json:"visibility"`
+	Members     string    `json:"members"`
+	Created     time.Time `json:"created"`
+}

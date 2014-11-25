@@ -411,10 +411,10 @@ func (a Api) SearchCircles(w rest.ResponseWriter, r *rest.Request) {
 	results, count := a.Svc.SearchCircles(user, skip, limit)
 
 	w.WriteHeader(200)
-	w.WriteJson(types.Json{
-		"results":  results,
-		"response": "Search complete",
-		"count":    count,
+	w.WriteJson(types.SearchCirclesResponse{
+		Results:  results,
+		Response: "Search complete",
+		Count:    count,
 	})
 }
 

@@ -565,17 +565,17 @@ type SearchCirclesRes struct {
 	Private     *neoism.Relationship `json:"partOf"`
 }
 
-func (q Query) SearchCircles(user string, skip, limit int) (res []SearchCirclesRes) {
-	res = make([]SearchCirclesRes, 0)
+func (q Query) SearchCircles(user string, skip, limit int) (found []SearchCirclesRes) {
+	found = make([]SearchCirclesRes, 0)
 
 	query := `
-        MATCH   (u:User)-[]->(c:Circle)<-[:OWNS]-(owner:User)
+        MATCH     (u:User)-[]->(c:Circle)<-[:OWNS]-(owner:User)
         OPTIONAL MATCH (c)-[partOf:PART_OF]->(pd:PublicDomain)
-        WHERE   u.handle = {user}
-        RETURN  c.name, c.id, c.description, c.created, owner.handle, partOf
-        SKIP    {skip}
-        LIMIT   {limit}
-        SORT    c.created
+        WHERE     u.handle = {user}
+        RETURN    c.name, c.id, c.description, c.created, owner.handle, partOf
+        ORDER BY  c.created
+        SKIP      {skip}
+        LIMIT     {limit}
     `
 	props := neoism.Props{
 		"user":  user,
@@ -585,13 +585,13 @@ func (q Query) SearchCircles(user string, skip, limit int) (res []SearchCirclesR
 	q.cypherOrPanic(&neoism.CypherQuery{
 		Statement:  query,
 		Parameters: props,
-		Result:     &res,
+		Result:     &found,
 	})
 
-	if len(res) == 0 {
+	if len(found) == 0 {
 		return []SearchCirclesRes{}
 	} else {
-		return res
+		return found
 	}
 }
 
