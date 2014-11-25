@@ -6,7 +6,7 @@
         android:icon="@drawable/ic_action_edit"
         android:onClick="attemptCreateMessage"
         android:title="@string/action_edit"
-        cherami:showAsAction="always" />
+        android:showAsAction="ifRoom" />
 
     <item android:id="@+id/action_logout"
         android:title="@string/action_logout"
