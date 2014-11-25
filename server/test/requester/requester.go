@@ -145,6 +145,16 @@ func (req Requester) PostCircleGetCircleId(token string, circleName string, publ
 	return helper.GetIdFromResponse(res)
 }
 
+func (req Requester) GetCircles(user string, before time.Time, limit int) string {
+	payload := types.Json{
+		"user":   user,
+		"before": before,
+		"limit":  limit,
+	}
+
+	return helper.GetWithQueryParameters(req.Routes.circlesURL)
+}
+
 func (req Requester) PostJoin(token string, target string, circle string) (*http.Response, error) {
 	payload := types.Json{
 		"token":  token,

@@ -128,6 +128,26 @@ func (s *TestSuite) TestPostPrivateCircleOK(c *C) {
 }
 
 //
+// Search Cicles Tests:
+//
+
+func (s *TestSuite) TestSearchCirclesTargetNoExist(c *C) {
+	// stub
+}
+
+func (s *TestSuite) TestSearchCirclesDefaultCirclesOK(c *C) {
+	// stub
+}
+
+func (s *TestSuite) TestSearchCirclesOfTargetOK(c *C) {
+	// stub
+}
+
+func (s *TestSuite) TestSearchCirclesNoSpecificUserOK(c *C) {
+	// stub
+}
+
+//
 // Post Block Tests:
 //
 
