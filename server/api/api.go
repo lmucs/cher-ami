@@ -343,6 +343,10 @@ func (a Api) NewCircle(w rest.ResponseWriter, r *rest.Request) {
 }
 
 func (a Api) SearchCircles(w rest.ResponseWriter, r *rest.Request) {
+	if !a.authenticate(r) {
+		a.Util.FailedToAuthenticate(w)
+		return
+	}
 
 	querymap := r.URL.Query()
 
@@ -366,13 +370,20 @@ func (a Api) SearchCircles(w rest.ResponseWriter, r *rest.Request) {
 		}
 	}
 
-	if val, ok := querymap["user"]; !ok {
-		user = ""
+	if val, ok := querymap["user"]; !ok || val[0] == "" {
+		if handle, ok := a.Svc.GetHandleFromAuthorization(a.getTokenFromHeader(r)); !ok {
+			a.Util.FailedToDetermineHandleFromAuthToken(w)
+			return
+		} else {
+			user = handle
+		}
 	} else {
 		user = val[0]
 	}
 
-	if val, ok := querymap["before"]; !ok {
+	// "" is defaulty and taken to mean no specification rather than let
+	// it error when converted to a int
+	if val, ok := querymap["before"]; !ok || val[0] == "" {
 		before = time.Now().Local()
 	} else {
 		if millis, err := strconv.Atoi(val[0]); err != nil {
