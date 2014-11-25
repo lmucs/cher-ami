@@ -145,14 +145,9 @@ func (req Requester) PostCircleGetCircleId(token string, circleName string, publ
 	return helper.GetIdFromResponse(res)
 }
 
-func (req Requester) GetCircles(user string, before time.Time, limit int) string {
-	payload := types.Json{
-		"user":   user,
-		"before": before,
-		"limit":  limit,
-	}
-
-	return helper.GetWithQueryParameters(req.Routes.circlesURL)
+// `before` is a stringy number of milliseconds to be interpreted as a Unix date
+func (req Requester) GetCircles(payload types.Json) (*http.Response, error) {
+	return helper.GetWithQueryParams(req.Routes.circlesURL, payload)
 }
 
 func (req Requester) PostJoin(token string, target string, circle string) (*http.Response, error) {
