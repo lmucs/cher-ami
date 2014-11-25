@@ -9,7 +9,7 @@ define(function(require, exports, module) {
         model: Message,
 
         parse: function(response) {
-            return response.Objects;
+            return response.objects;
         },
 
         initialize: function() {
