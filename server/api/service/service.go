@@ -3,6 +3,7 @@ package service
 import (
 	"../../types"
 	"./query"
+	"time"
 )
 
 //
@@ -164,8 +165,8 @@ func (s Svc) SearchForUsers(circle, nameprefix string, skip, limit int, sort str
 	return s.Query.SearchForUsers(circle, nameprefix, skip, limit, sort)
 }
 
-func (s Svc) SearchCircles(user string, skip, limit int) (results []types.CircleResponse, count int) {
-	circles := s.Query.SearchCircles(user, skip, limit)
+func (s Svc) SearchCircles(user string, before time.Time, limit int) (results []types.CircleResponse, count int) {
+	circles := s.Query.SearchCircles(user, before, limit)
 	formatted := make([]types.CircleResponse, len(circles))
 	for i, c := range circles {
 		var visibility string
