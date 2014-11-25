@@ -40,9 +40,6 @@ define(function(require, exports, module) {
         initialize: function() {
             this.app = app;
             this.app.session = app.session;
-            this.app.headerRegion.show(new HeaderView({
-                session: this.app.session
-            }));
         },
         // Needed for AppRouter to initialize index route.
         index: function() {
@@ -61,6 +58,9 @@ define(function(require, exports, module) {
                 this.index();
             } else {
                 this.app.sidebarRegion.show(new SidebarView())
+                this.app.headerRegion.show(new HeaderView({
+                    session: this.app.session
+                }));
                 this.app.mainRegion.show(new HomeLayout({
                     session: this.app.session
                 }));
