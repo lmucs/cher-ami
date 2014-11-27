@@ -20,8 +20,8 @@ type SearchCirclesResponse struct {
 type CircleResponse struct {
 	Name        string    `json:"name"`
 	Url         string    `json:"url"`
-	Description string    `json:"url"`
-	Owner       string    `json:"url"`
+	Description string    `json:"description"`
+	Owner       string    `json:"owner"`
 	Visibility  string    `json:"visibility"`
 	Members     string    `json:"members"`
 	Created     time.Time `json:"created"`
