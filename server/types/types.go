@@ -4,10 +4,6 @@ import (
 	"time"
 )
 
-//
-// Json Types
-//
-
 type Json map[string]interface{}
 
 type JsonArray []Json
@@ -69,4 +65,23 @@ type UserAttributes struct {
 type UserPatch struct {
 	Resource string `json:"resource" validate:"userresource"`
 	Value    string `json:"value" validate:"uservalue"`
+}
+
+// The json annotations that accompany these structs allow json.Marshall
+// to to produce proper json instead of an escaped json string.
+
+type SearchCirclesResponse struct {
+	Results  []CircleResponse `json:"results"`
+	Response string           `json:"response"`
+	Count    int              `json:"count"`
+}
+
+type CircleResponse struct {
+	Name        string    `json:"name"`
+	Url         string    `json:"url"`
+	Description string    `json:"description"`
+	Owner       string    `json:"owner"`
+	Visibility  string    `json:"visibility"`
+	Members     string    `json:"members"`
+	Created     time.Time `json:"created"`
 }

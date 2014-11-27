@@ -140,10 +140,18 @@ func (q Query) CreateDefaultCirclesForUser(handle string) bool {
             WHERE         p.iam    = "PublicDomain"
             MATCH         (u:User)
             WHERE         u.handle = {handle}
-            CREATE        (g:Circle  {name: {gold}, id: {gold_id}})
-            CREATE        (br:Circle {name: {broadcast}, id: {broadcast_id}})
-            CREATE 	      (u)-[:CHIEF_OF]->(g)
-            CREATE        (u)-[:CHIEF_OF]->(br)
+            CREATE        (g:Circle  {
+            	name:    {gold},
+            	id:      {gold_id},
+            	created: {now}
+            })
+            CREATE        (br:Circle {
+            	name:    {broadcast},
+            	id:      {broadcast_id},
+            	created: {now}
+            })
+            CREATE 	      (u)-[:OWNS]->(g)
+            CREATE        (u)-[:OWNS]->(br)
             CREATE UNIQUE (br)-[:PART_OF]->(p)
             RETURN        u.handle, g.name, br.name
         `,
@@ -153,6 +161,7 @@ func (q Query) CreateDefaultCirclesForUser(handle string) bool {
 			"gold_id":      NewUUID(),
 			"broadcast":    BROADCAST,
 			"broadcast_id": NewUUID(),
+			"now":          Now(),
 		},
 		Result: &created,
 	})
@@ -168,10 +177,11 @@ func (q Query) CreateCircle(handle, circleName string, isPublic bool,
 
 	query := `
         MATCH   (u:User)
-        WHERE   u.handle = {handle}
-        CREATE  (u)-[:CHIEF_OF]->(c:Circle)
-        SET     c.name   = {name}
-        SET     c.id     = {id}
+        WHERE   u.handle  = {handle}
+        CREATE  (u)-[:OWNS]->(c:Circle)
+        SET     c.name    = {name}
+        SET     c.id      = {id}
+        SET     c.created = {now}
     `
 	if isPublic {
 		query = query + `
@@ -191,6 +201,7 @@ func (q Query) CreateCircle(handle, circleName string, isPublic bool,
 			"handle": handle,
 			"name":   circleName,
 			"id":     NewUUID(),
+			"now":    Now(),
 		},
 		Result: &created,
 	})
@@ -290,7 +301,7 @@ func (q Query) JoinBroadcastCircleOfUser(handle, target string) bool {
 		Statement: `
             MATCH          (u:User)
             WHERE          u.handle = {handle}
-            MATCH          (t:User)-[:CHIEF_OF]->(c:Circle)
+            MATCH          (t:User)-[:OWNS]->(c:Circle)
             WHERE          t.handle = {target}
             AND            c.name   = {broadcast}
             CREATE UNIQUE  (u)-[r:MEMBER_OF]->(c)
@@ -379,7 +390,7 @@ func (q Query) UserPartOfCircle(handle, circleid string) bool {
 	}{}
 	q.cypherOrPanic(&neoism.CypherQuery{
 		Statement: `
-			MATCH   (u:User)-[:MEMBER_OF|CHIEF_OF]->(c:Circle)
+			MATCH   (u:User)-[:MEMBER_OF|OWNS]->(c:Circle)
 			WHERE   u.handle = {handle}
 			AND     c.id     = {id}
 			RETURN  c.id
@@ -570,41 +581,54 @@ func (q Query) SearchForUsers(circle, namePrefix string, skip, limit int, sortBy
 	}
 }
 
-func (q Query) SearchCircles(user string, skip, limit int) (results string, count int) {
-	res := []struct {
-		//
-		//
-		// This query is being fixed on branch `get-circles`
-		//
-		//
-		Name string `json:"c.name"`
-		Id   int    `json:"id(c)"`
-	}{}
+type SearchCirclesRes struct {
+	Name        string               `json:"c.name"`
+	Id          string               `json:"c.id"`
+	Description string               `json:"c.description"`
+	Created     time.Time            `json:"c.created"`
+	Owner       string               `json:"owner.handle"`
+	Private     *neoism.Relationship `json:"partOf"`
+}
 
-	query := `
-        MATCH   (u:User)-[]->(c:Circle)
-        WHERE   u.handle = {user}
-        RETURN  c.name, id(c)
-        SKIP    {skip}
-        LIMIT   {limit}
-    `
+func (q Query) SearchCircles(user string, before time.Time, limit int) (found []SearchCirclesRes) {
+	found = make([]SearchCirclesRes, 0)
+
 	props := neoism.Props{
-		"user":  user,
-		"skip":  skip,
-		"limit": limit,
+		"limit":  limit,
+		"before": before,
 	}
+	query := `
+        MATCH     (u:User)-[]->(c:Circle)
+        MATCH     (c)<-[:OWNS]-(owner:User)
+		WHERE     c.created < {before}
+	`
+	if user != "" {
+		query = query + `
+		AND       owner.handle  = {user}
+		`
+		props = neoism.Props{
+			"user":   user,
+			"limit":  limit,
+			"before": before,
+		}
+	}
+	query = query + `
+        OPTIONAL MATCH (c)-[partOf:PART_OF]->(pd:PublicDomain)
+		RETURN    c.name, c.id, c.description, c.created, owner.handle, partOf
+        ORDER BY  c.created
+        LIMIT     {limit}
+    `
+
 	q.cypherOrPanic(&neoism.CypherQuery{
 		Statement:  query,
 		Parameters: props,
-		Result:     &res,
+		Result:     &found,
 	})
 
-	if len(res) == 0 {
-		return "", 0
+	if len(found) == 0 {
+		return []SearchCirclesRes{}
 	} else {
-		bytes, err := json.Marshal(res)
-		panicIfErr(err)
-		return string(bytes), len(res)
+		return found
 	}
 }
 
@@ -637,7 +661,7 @@ func (q Query) GetCircleIdByName(handle, circleName string) (circleid string) {
 	}{}
 	q.cypherOrPanic(&neoism.CypherQuery{
 		Statement: `
-			MATCH   (u:User)-[:CHIEF_OF]->(c:Circle)
+			MATCH   (u:User)-[:OWNS]->(c:Circle)
 			WHERE   u.handle = {handle}
 			AND     c.name   = {circle}
 			RETURN  c.id
@@ -676,7 +700,7 @@ func (q Query) GetVisibleMessageById(handle, messageid string) (message *Message
 	messages := make([]Message, 0)
 	q.cypherOrPanic(&neoism.CypherQuery{
 		Statement: `
-			MATCH   (t:User)-[:WROTE]->(m:Message)-[:PUB_TO]->(c:Circle)<-[:MEMBER_OF|CHIEF_OF]-(u:User)
+			MATCH   (t:User)-[:WROTE]->(m:Message)-[:PUB_TO]->(c:Circle)<-[:MEMBER_OF|OWNS]-(u:User)
 			WHERE   u.handle = {handle}
             AND     m.id     = {messageid}
 			RETURN  m.id, t.handle, m.content, m.created
@@ -871,7 +895,7 @@ func (q Query) DisconnectTargetFromAllHeldCircles(handle, target string) {
             WHERE   u.handle = {handle}
             MATCH   (t:User)
             WHERE   t.handle = {target}
-            OPTIONAL MATCH (u)-[:CHIEF_OF]->(c:Circle)
+            OPTIONAL MATCH (u)-[:OWNS]->(c:Circle)
             OPTIONAL MATCH (t)-[r:MEMBER_OF]->(c)
             DELETE  r
         `,
@@ -903,7 +927,7 @@ func (q Query) DeleteUser(handle string) bool {
                 MATCH   (u)-[b:BLOCKED]->(:User)
                 DELETE  b
                 WITH    u
-                MATCH   (u)-[co_my:CHIEF_OF]->(c:Circle)-[po_my:PART_OF]->(:PublicDomain)
+                MATCH   (u)-[co_my:OWNS]->(c:Circle)-[po_my:PART_OF]->(:PublicDomain)
                 MATCH   (c)<-[mo_my:MEMBER_OF]-(:User)
                 MATCH   (c)<-[pt_my:PUB_TO]-(:Message)
                 DELETE  pt_my, mo_my, co_my, po_my, c, u

@@ -391,78 +391,67 @@ func (a Api) NewCircle(w rest.ResponseWriter, r *rest.Request) {
 }
 
 func (a Api) SearchCircles(w rest.ResponseWriter, r *rest.Request) {
-
-	//
-	//
-	// TODO: USING SKIP AND LIMIT FOR NOW.  SHOULD BE BEFORE AND LIMIT.
-	// BUT I DON'T KNOW DATES IN GO YET.
-	//
-	//
+	if !a.authenticate(r) {
+		a.Util.FailedToAuthenticate(w)
+		return
+	}
 
 	querymap := r.URL.Query()
 
 	var user string
-	var skip int
+	var before time.Time
 	var limit int
 
 	if val, ok := querymap["limit"]; !ok {
 		limit = 20
 	} else {
 		if intval, err := strconv.Atoi(val[0]); err != nil {
-			w.WriteHeader(400)
-			w.WriteJson(types.Json{
-				"results":  nil,
-				"response": "Search failed",
-				"reason":   "Malformed limit",
-				"count":    0,
-			})
+			a.Util.SimpleJsonReason(w, 400, "Malformed limit")
 			return
-
 		} else {
 			if intval > 100 || intval < 1 {
-				w.WriteHeader(400)
-				w.WriteJson(types.Json{
-					"results":  nil,
-					"response": "Search failed",
-					"reason":   "Limit out of range",
-					"count":    0,
-				})
+				a.Util.SimpleJsonReason(w, 400, "Limit out of range")
+				return
 			} else {
 				limit = intval
 			}
 		}
 	}
 
-	if val, ok := querymap["user"]; !ok {
-		user, _ = a.Svc.GetHandleFromAuthorization(a.getTokenFromHeader(r))
+	if val, ok := querymap["user"]; !ok || val[0] == "" {
+		if handle, ok := a.Svc.GetHandleFromAuthorization(a.getTokenFromHeader(r)); !ok {
+			a.Util.FailedToDetermineHandleFromAuthToken(w)
+			return
+		} else {
+			user = handle
+		}
 	} else {
 		user = val[0]
 	}
 
-	if val, ok := querymap["skip"]; !ok {
-		skip = 0
+	// "" is defaulty and taken to mean no specification rather than let
+	// it error when converted to a int
+	if val, ok := querymap["before"]; !ok || val[0] == "" {
+		before = time.Now().Local()
 	} else {
-		if intval, err := strconv.Atoi(val[0]); err != nil {
-			w.WriteHeader(400)
-			w.WriteJson(types.Json{
-				"results":  nil,
-				"response": "Search failed",
-				"reason":   "Malformed skip",
-				"count":    0,
-			})
+		if millis, err := strconv.Atoi(val[0]); err != nil {
+			a.Util.SimpleJsonResponse(w, 400, "Malformed duration")
 			return
 		} else {
-			skip = intval
+			var seconds, nanoseconds int64
+			seconds = int64(millis / 1000)
+			nanoseconds = int64(millis % 1000 * 1000000)
+			before = time.Unix(seconds, nanoseconds)
 		}
 	}
 
-	results, count := a.Svc.SearchCircles(user, skip, limit)
+	results, count := a.Svc.SearchCircles(user, before, limit)
 
 	w.WriteHeader(200)
-	w.WriteJson(types.Json{
-		"results":  results,
-		"response": "Search complete",
-		"count":    count,
+	w.WriteJson(types.SearchCirclesResponse{
+		Results:  results,
+		Response: "Search complete",
+		Count:    count,
 	})
 }
 
