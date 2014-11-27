@@ -548,15 +548,10 @@ func (a Api) GetAuthoredMessages(w rest.ResponseWriter, r *rest.Request) {
 			}
 		}
 
-		b, err := encoding.Marshal(messageData)
-		if err != nil {
-			panicErr(err)
-		}
-
 		w.WriteHeader(200)
 		w.WriteJson(types.Json{
 			"response": "Found messages for user " + author,
-			"objects":  string(b),
+			"objects":  messageData,
 			"count":    len(messageData),
 		})
 	}

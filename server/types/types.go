@@ -33,11 +33,11 @@ type LoginCredentials struct {
 //
 
 type Message struct {
-	Id      string
-	Url     string
-	Author  string
-	Content string
-	Created time.Time
+	Id      string    `json:"id"`
+	Url     string    `json:"url"`
+	Author  string    `json:"author"`
+	Content string    `json:"content"`
+	Created time.Time `json:"created"`
 }
 
 type NewMessage struct {

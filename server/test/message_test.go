@@ -92,13 +92,12 @@ func (s *TestSuite) TestGetAuthoredMessagesOK(c *C) {
 
 	data := struct {
 		Response string
-		Objects  string
+		Objects  []MessageData
 		Count    int
 	}{}
-	helper.Unmarshal(res, &data)
 
-	objects := make([]MessageData, 0)
-	encoding.Unmarshal([]byte(data.Objects), &objects)
+	helper.Unmarshal(res, &data)
+	objects := data.Objects
 
 	c.Check(data.Response, Equals, "Found messages for user handleA")
 	c.Check(res.StatusCode, Equals, 200)

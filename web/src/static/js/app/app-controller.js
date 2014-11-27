@@ -18,6 +18,7 @@ define(function(require, exports, module) {
     var CircleView = require('app/views/circle-view').CircleView;
     var CreateCircleView = require('app/views/create-circle-view').CreateCircleView;
     var SettingsView = require('app/views/settings-view').SettingsView;
+    var SidebarView = require('app/views/sidebar-view').SidebarView;
 
     /** Models **/
     var Session = require('app/models/session').Session;
@@ -36,8 +37,9 @@ define(function(require, exports, module) {
     var ProfileLayout = require('app/layouts/profile-layout').ProfileLayout;
 
     var AppController = marionette.Controller.extend({
-        initialize: function(options) {
+        initialize: function() {
             this.app = app;
+<<<<<<< HEAD
             this.app.session = new Session({}, {
                 remote: false
             });
@@ -55,14 +57,69 @@ define(function(require, exports, module) {
                     session: this.app.session
                 }));
                 // Initialize header view after logged in
+=======
+            this.app.session = app.session;
+        },
+        // Needed for AppRouter to initialize index route.
+        index: function() {
+            console.log(this.app.session)
+            if (this.app.session.hasAuth()) {
+                this.showHomeLayout();
             } else {
                 this.app.mainRegion.show(new LandingLayout({
                     session: this.app.session
                 }));
             }
         },
-        // Needed for AppRouter to initialize index route.
-        index: function() {
+
+        showHomeLayout: function(options) {
+            if (!this.app.session.hasAuth()) {
+                this.index();
+>>>>>>> master
+            } else {
+                this.app.sidebarRegion.show(new SidebarView())
+                this.app.headerRegion.show(new HeaderView({
+                    session: this.app.session
+                }));
+                this.app.mainRegion.show(new HomeLayout({
+                    session: this.app.session
+                }));
+            }
+        },
+
+        showCircle: function(options) {
+            this.app.sidebarRegion.show(new SidebarView())
+            this.app.mainRegion.show(new CircleView({
+                session: this.app.session
+            }))
+        },
+
+        showCreateCircle: function(options) {
+            this.app.sidebarRegion.show(new SidebarView())
+            this.app.mainRegion.show(new CreateCircleView({
+                session: this.app.session
+            }))
+        },
+
+        showProfile: function(options) {
+            this.app.sidebarRegion.show(new SidebarView())
+            this.app.mainRegion.show(new ProfileView({
+                session: this.app.session
+            }))
+        },
+
+        showEditProfile: function(options) {
+            this.app.sidebarRegion.show(new SidebarView())
+            this.app.mainRegion.show(new EditProfileView({
+                session: this.app.session
+            }))
+        },
+
+        showSettings: function(options) {
+            this.app.sidebarRegion.show(new SidebarView())
+            this.app.mainRegion.show(new SettingsView({
+                session: this.app.session
+            })) 
         }
     });
     exports.AppController = AppController;
