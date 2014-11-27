@@ -20,7 +20,7 @@ import (
 func (s *TestSuite) TestSearchUsersOK(c *C) {
 	req.PostSignup("cat", "test1@test.io", "testing123", "testing123")
 	req.PostSignup("bat", "test2@test.io", "testing132", "testing132")
-	req.PostSignup("cat_woman", "test3@test.io", "testing213", "testing213")
+	req.PostSignup("catwoman", "test3@test.io", "testing213", "testing213")
 	req.PostSignup("catsawesome", "test4@test.io", "testing231", "testing231")
 	req.PostSignup("smart", "test5@test.io", "testing312", "testing312")
 	req.PostSignup("battle", "test6@test.io", "testing321", "testing321")
