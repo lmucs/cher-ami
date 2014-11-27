@@ -15,12 +15,10 @@ define(function(require, exports, module) {
             postArea: '#postArea',
             messageArea: '#messages',
             messageBox: '#message-box',
-            // postContainer: '#postContainer'
         },
 
         events: {
             'click #submitButton': 'onSubmit',
-            // 'keyup #postContainer': 'PostValidat'
         },
 
         onSubmit: function() {
@@ -43,7 +41,11 @@ define(function(require, exports, module) {
         initialize: function(options) {
             this.collection = options.collection;
             this.session = options.session;
-            this.collection.fetch();
+            this.collection.fetch({
+                success: function(res) {
+                    console.log(res);
+                }
+            });
         }
 
     });

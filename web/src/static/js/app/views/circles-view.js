@@ -7,7 +7,7 @@ define(function(require, exports, module) {
 
     var CirclesView = marionette.CollectionView.extend({
         childView: CircleView,
-        childViewContainer: '#circlesContainer',
+        childViewContainer: '#circleAreaContainer',
         template: template,
 
         ui: {
@@ -21,9 +21,7 @@ define(function(require, exports, module) {
         },
 
         initialize: function(options) {
-            // this.collection = options.collection;
-            // this.session = options.session;
-            // this.collection.fetch();
+
         }
 
     });

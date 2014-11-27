@@ -412,11 +412,11 @@ func (a Api) SearchCircles(w rest.ResponseWriter, r *rest.Request) {
 //
 
 type MessageData struct {
-	Id      string
-	Url     string
-	Author  string
-	Content string
-	Created time.Time
+	Id      string    `json:"id"`
+	Url     string    `json:"url"`
+	Author  string    `json:"author"`
+	Content string    `json:"content"`
+	Created time.Time `json:"created"`
 }
 
 /**
@@ -497,15 +497,10 @@ func (a Api) GetAuthoredMessages(w rest.ResponseWriter, r *rest.Request) {
 			}
 		}
 
-		b, err := encoding.Marshal(messageData)
-		if err != nil {
-			panicErr(err)
-		}
-
 		w.WriteHeader(200)
 		w.WriteJson(types.Json{
 			"response": "Found messages for user " + author,
-			"objects":  string(b),
+			"objects":  messageData,
 			"count":    len(messageData),
 		})
 	}
