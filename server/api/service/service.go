@@ -1,7 +1,9 @@
 package service
 
 import (
+	"../../types"
 	"./query"
+	"time"
 )
 
 //
@@ -10,8 +12,12 @@ import (
 
 const (
 	// Reserved Circles
-	GOLD      = "Gold"
-	BROADCAST = "Broadcast"
+	GOLD           = "Gold"
+	BROADCAST      = "Broadcast"
+	CHERAMI_PREFIX = "http://"
+	DOMAIN         = "cherami.io"
+	CHERAMI_URL    = CHERAMI_PREFIX + DOMAIN
+	API_URL        = CHERAMI_URL + "/api"
 )
 
 //
@@ -35,6 +41,12 @@ func NewService(uri string) *Svc {
 		query.NewQuery(uri),
 	}
 	return s
+}
+
+func panicIfErr(err error) {
+	if err != nil {
+		panic(err)
+	}
 }
 
 //
@@ -153,8 +165,27 @@ func (s Svc) SearchForUsers(circle, nameprefix string, skip, limit int, sort str
 	return s.Query.SearchForUsers(circle, nameprefix, skip, limit, sort)
 }
 
-func (s Svc) SearchCircles(user string, skip, limit int) (results string, count int) {
-	return s.Query.SearchCircles(user, skip, limit)
+func (s Svc) SearchCircles(user string, before time.Time, limit int) (results []types.CircleResponse, count int) {
+	circles := s.Query.SearchCircles(user, before, limit)
+	formatted := make([]types.CircleResponse, len(circles))
+	for i, c := range circles {
+		var visibility string
+		if c.Private != nil {
+			visibility = "private"
+		} else {
+			visibility = "public"
+		}
+		formatted[i] = types.CircleResponse{
+			Name:        c.Name,
+			Url:         API_URL + "/circles/" + c.Id,
+			Description: c.Description,
+			Owner:       c.Owner,
+			Visibility:  visibility,
+			Members:     API_URL + "/circles/" + c.Id + "/members",
+			Created:     c.Created,
+		}
+	}
+	return formatted, len(formatted)
 }
 
 func (s Svc) GetPasswordHash(handle string) (passwordHash []byte, ok bool) {
@@ -184,8 +215,7 @@ func (s Svc) GetHandleFromAuthorization(token string) (handle string, ok bool) {
 
 // Creates a new AuthToken node that points to a particular user
 // returning the value of the token created
-// [TODO] this should return string, bool
-func (s Svc) SetGetNewAuthToken(handle string) string {
+func (s Svc) SetGetNewAuthToken(handle string) (string, bool) {
 	return s.Query.SetGetNewAuthTokenForUser(handle)
 }
 

@@ -21,7 +21,7 @@ The API supports discovery of further endpoints, linking objects with absolute U
 
 
 ### Signup/create a new user [POST]
-Create a user given only a handle, email, and password. The service will create an initial status, reputation, and default circles, as well as record the creation timestamp. All other profile information is set using different operations.
+Create a user given only a handle, email, and password. The service will create an initial status, stir, and default circles, as well as record the creation timestamp. All other profile information is set using different operations.
 + Request
 
         {
@@ -32,19 +32,30 @@ Create a user given only a handle, email, and password. The service will create 
 + Response 201
 
         {
-            "response": "Signed up a new user!",
+            "url": "https://cher-ami.example.com/users/pelé",
             "handle": "pelé",
-            "email": "number10@brasil.example.com"
+            "email": "number10@brasil.example.com",
+            "stir": 10,
+            "status": "Hi, I'm new here!",
+            "joined": "2011-10-20T08:15Z",
+            "circles": [
+                {"name": "public", "url": "https://cher-ami.example.com/circles/207"},
+                {"name": "gold", "url": "https://cher-ami.example.com/circles/208"}
+            ]
+
         }
 + Response 400
 
         {
-            "reason": ("malformed json"|"Handle is a required field for signup"|"Email is a required field for signup")
+            "reason": ("malformed json"
+                      |"Handle is a required field for signup"
+                      |"Email is a required field for signup")
         }
 + Response 403
 
         {
-            "reason": ("Passwords do not match"|"Passwords must be at least 8 characters long")
+            "reason": ("Passwords do not match"
+                      |"Passwords must be at least 8 characters long")
         }
 + Response 409
 
@@ -52,8 +63,8 @@ Create a user given only a handle, email, and password. The service will create 
             "reason": "Sorry, handle or email is already taken"
         }
 
-## Login and Logout [/sessions]
 
+## Login and Logout [/sessions]
 
 
 ### Login [POST]
@@ -67,7 +78,6 @@ If the given username-password combination is valid, generate and return a token
 + Response 201
 
         {
-           "response": "Logged in pelé. Note your Authorization token.",
            "token": "Token hu876xvyft3ufib230ffn0spdfmwefna"
         }
 + Response 400
@@ -78,7 +88,7 @@ If the given username-password combination is valid, generate and return a token
 + Response 403
 
         {
-            "reason": "Invalid username or password, please try again."
+            "reason": "Invalid username or password"
         }
 
 
@@ -112,10 +122,10 @@ Fetch a desired set of users. You may filter by circle or leading characters of 
     + limit (optional, number, `20`) ... max number of results to return, for pagination, default 20, min 1, max 100
     + sort (required, string, `joined`)
 
-        sort results by name ascending, reputation descending, or join datetime descending (newest users first)
+        sort results by name ascending, stir descending, or join datetime descending (newest users first)
         + Values
             + `name`
-            + `reputation`
+            + `stir`
             + `joined`
 
 + Request
@@ -130,7 +140,7 @@ Fetch a desired set of users. You may filter by circle or leading characters of 
                 "url": "https://cher-ami.example.com/users/pelé",
                 "handle": "pelé",
                 "name": "Edson Arantes do Nascimento",
-                "reputation": 303,
+                "stir": 303,
                 "joined": "2011-10-20T08:15Z"
             },
             . . .
@@ -138,18 +148,24 @@ Fetch a desired set of users. You may filter by circle or leading characters of 
 + Response 400
 
         {
-            "reason": ("malformed json"|"missing sort"|"no such sort"|"malformed skip"|"malformed limit")
+            "reason": ("malformed json"
+                      |"missing sort"
+                      |"no such sort"
+                      |"malformed skip"
+                      |"malformed limit")
         }
 + Response 401
 
         {
             "response": "Failed to authenticate user request",
-            "reason":   "Missing, illegal or expired token",
+            "reason": "Missing, illegal or expired token",
         }
 + Response 403
 
         {
-            "reason": ("you do not own or belong to this circle"|"skip out of range"|"limit out of range")
+            "reason": ("you do not own or belong to this circle"
+                      |"skip out of range"
+                      |"limit out of range")
         }
 
 
@@ -173,7 +189,7 @@ Get _complete_ user data, including all profile information as well as blocked u
             "name": "Edson Arantes do Nascimento",
             "email": "number10@brasil.example.com",
             "status": "retired, but coaching",
-            "reputation": 1435346,
+            "stir": 1435346,
             "joined": "2011-10-20T08:15Z",
             "circles": [
                 {"name": "public", "url": "https://cher-ami.example.com/circles/207"},
@@ -197,7 +213,7 @@ Get _complete_ user data, including all profile information as well as blocked u
 
 
 ### Edit user [PATCH]
-Change only basic user information here such as display name, email, and status. Use a different endpoint for complex properties like the set of users that this user has blocked, or the circles in which this user participates. Also use different endpoints to adjust reputation and to upload a new avatar picture. Note that certain user data, such as the internal id, handle, and join date, cannot be changed at all.
+Change only basic user information here such as display name, email, and status. Use a different endpoint for complex properties like the set of users that this user has blocked, or the circles in which this user participates. Also use different endpoints to adjust stir and to upload a new avatar picture. Note that certain user data, such as the internal id, handle, and join date, cannot be changed at all.
 + Request
     + Headers
 
@@ -235,7 +251,7 @@ Change only basic user information here such as display name, email, and status.
             }
 + Response 204
 + Response 401
-        
+
         {
             "response": "Failed to authenticate user request",
             "reason":   "Missing, illegal or expired token",
@@ -317,7 +333,7 @@ Fetch the list of blocked users for the given user, paginated. The blocked users
                 "url": "https://cher-ami.example.com/users/liane",
                 "handle": "pelé",
                 "name": "Liane Cartman",
-                "reputation": 303,
+                "stir": 303,
                 "joined": "2011-10-20T08:15Z"
             },
             . . .
@@ -343,78 +359,6 @@ Fetch the list of blocked users for the given user, paginated. The blocked users
             "reason": "no such user"
         }
 
-
-
-## Reputation [/users/{handle}/reputation]
-
-
-
-### Adjust reputation +/- [PATCH]
-+ Request
-    + Headers
-
-            Authorization: Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-    + Body
-
-            {
-                "delta": 5,
-                "action": ("inc"|"dec")
-            }
-+ Response 204
-+ Response 400
-
-        {
-            "reason": ("malformed json"|"missing delta"|"missing action"|"unknown action"|"delta not an integer")
-        }
-+ Response 401
-
-        {
-            "reason": "missing, illegal, or expired token"
-        }
-+ Response 403
-
-        {
-            "reason": "you can not adjust others' reputations unless you are an admin"
-        }
-+ Response 404
-
-        {
-            "reason": "no such user"
-        }
-
-
-
-### Set reputation directly [PUT]
-+ Request
-    + Headers
-
-            Authorization: Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-    + Body
-
-            {
-                "reputatiom": 1005,
-            }
-+ Response 204
-+ Response 400
-
-        {
-            "reason": ("malformed json"|"missing reputation"|"reputation not an integer")
-        }
-+ Response 401
-
-        {
-            "reason": "missing, illegal, or expired token"
-        }
-+ Response 403
-
-        {
-            "reason": "you can not set others' reputations unless you are an admin"
-        }
-+ Response 404
-
-        {
-            "reason": "no such user"
-        }
 
 
 
@@ -478,12 +422,24 @@ Create a circle given only a name and visibility setting, setting the owner to t
 + Response 201
 
         {
-            "response": "Created new circle bffs for pelé"
+            "name": "bffs",
+            "url": "https://cher-ami.example.com/circles/2997",
+            "owner": "wendy",
+            "visibility": "private",
+            "members": "https://cher-ami.example.com/circles/2997/members",
+            "creation": "2011-10-20T14:22:09Z",
+            "stir": 0
         }
 + Response 400
 
-        Malformed JSON passed into API.
+        {
+            "reason": "malformed json"
+        }
++ Response 401
 
+        {
+            "reason": "missing, illegal, or expired token"
+        }
 + Response 403
 
         {
@@ -523,6 +479,7 @@ Fetch circles, optionally restricted to those with a given owner. The results wi
                 "owner": "wendy",
                 "visibility": "private",
                 "members": "https://cher-ami.example.com/circles/2997/members",
+                "stir": 75,
                 "creation": "2011-10-20T14:22:09Z"
             },
             . . .
@@ -564,8 +521,9 @@ Get complete circle data for the circle with the given id.
             "owner": "wendy",
             "visibility": "private",
             "members": "https://cher-ami.example.com/circles/2997/members",
+            "stir": 80,
             "creation": "2011-10-20T14:22:09Z"
-        },
+        }
 + Response 401
 
         {
@@ -627,7 +585,7 @@ Fetch the list of members of this circle, paginated. The members will always be 
                 "url": "https://cher-ami.example.com/users/towelie",
                 "handle": "towelie",
                 "name": "Smart Towel RG-400",
-                "reputation": 420,
+                "stir": 420,
                 "joined": "2011-04-20T16:20Z"
             },
             . . .
@@ -699,7 +657,7 @@ If a circle is public, all user can let themselves in, unless blocked by the cir
 
 
 ### Create message [POST]
-Creates a message for a given circle, with the given content. Optionally, the creator can set a minimum reputation threshold for viewing (defaults to 0, in a way). Server sets the id, creation timestamp, and author.
+Creates a message for a given circle, with the given content. Optionally, the creator can set a minimum stir threshold for viewing (defaults to 0, in a way). Server sets the id, creation timestamp, and author.
 + Request
     + Headers
 
@@ -708,7 +666,7 @@ Creates a message for a given circle, with the given content. Optionally, the cr
 
             {
                 "circle": 488,
-                "min_rep": 500,
+                "min_stir": 500,
                 "content": "There are no such things as stupid questions, only stupid people"
             }
 + Response 201
@@ -717,7 +675,7 @@ Creates a message for a given circle, with the given content. Optionally, the cr
             "content": "There are no such things as stupid questions, only stupid people",
             "url": "https://cher-ami.example.com/messages/98",
             "author": "garrison",
-            "min_rep": 500,
+            "min_stir": 500,
             "creation": "2011-10-20T14:22:09Z"
         }
 + Response 400
@@ -742,7 +700,7 @@ Creates a message for a given circle, with the given content. Optionally, the cr
 ## Message Search [/messages{?circle,name,before,limit}]
 
 ### Get messages [GET]
-Fetch the messages for the given circle or user, paginated. The messages will always be returned in order of descending creation date. Only messages corresponding to circles that the current user is allowed to see , and that the user has enough reputation to see, will be returned.
+Fetch the messages for the given circle or user, paginated. The messages will always be returned in order of descending creation date. Only messages corresponding to circles that the current user is allowed to see , and that the user has enough stir to see, will be returned.
 
 + Parameters
     + circle (optional, string, `284`) ... only return messages from this circle, required if name not supplied
@@ -814,8 +772,8 @@ Get the message with the given id.
 + Response 403
 
         {
-            "reason": "you don't have enough reputation to see this message",
-            "rep_required": 250
+            "reason": "you don't have enough stir to see this message",
+            "stir_required": 250
         }
 + Response 404
 
@@ -854,9 +812,9 @@ Edit an existing message by id. Is used to change properties like the message's 
     + Headers
 
             Authorization: Token xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-    
+
     + Body
-            
+
             {
                 "circles": ["circleid_001", "circleid_075"],
                 "content": "Hello world ... again"

@@ -10,7 +10,7 @@ define(function(require, exports, module) {
     
     //circles requirements
     var CircleView = require('app/views/circle-view').CircleView;
-    var CircleView = require('app/views/circles-view').CirclesView;
+    var CirclesView = require('app/views/circles-view').CirclesView;
     var CreateCircleView = require('app/views/create-circle-view').CreateCircleView;
     var Circle = require('app/models/circle').Circle;
     var Circles = require('app/collections/circles').Circles;
@@ -20,10 +20,13 @@ define(function(require, exports, module) {
     var EditProfileView = require('app/views/edit-profile-view').EditProfileView;
     var SettingsView = require('app/views/settings-view').SettingsView;
 
+    var SidebarView = require('app/views/sidebar-view').SidebarView;
+
     var HomeLayout = marionette.LayoutView.extend({
         template: template,
 
         regions: {
+            sidebar: '#sidebar-view',
             feed: '#feed-container',
             circle: '#create-circle-view',
             profile: '#profile-container',
@@ -42,41 +45,42 @@ define(function(require, exports, module) {
         },
 
         events: {
-            'click #goToCircles': 'showCircles',
-            'click #goToCreateCircle': 'showCreateCircle',
-            'click #goToProfile': 'showProfile',
-            'click #editProfile': 'showEditProfile',
+            // 'click #goToCircles': 'showCircles',
+            // 'click #goToCreateCircle': 'showCreateCircle',
+            // 'click #goToProfile': 'showProfile',
+            // 'click #editProfile': 'showEditProfile',
             'click #goToHome': 'showFeed',
-            'click #profileSaveButton': 'showProfile',
-            'click #goToSettings': 'showSettings'
+            // 'click #profileSaveButton': 'showProfile',
+            // 'click #goToSettings': 'showSettings'
         },
 
         initialize: function(options) {
         },
 
         onRender: function() {
+            // this.sidebar.show(new SidebarView());
             this.showFeed();
         },
 
-        showCircles: function(options) {
-            var showCircles = new CircleView();
-            this.profile.show(showCircles);
-        },
+        // showCircles: function(options) {
+        //     var showCircles = new CircleView();
+        //     this.profile.show(showCircles);
+        // },
 
-        showProfile: function(options) {
-            var showProfile = new ProfileView();
-            this.profile.show(showProfile);
-        },
+        // showProfile: function(options) {
+        //     var showProfile = new ProfileView();
+        //     this.profile.show(showProfile);
+        // },
 
-        showCreateCircle: function(options) {
-            var createCircle = new CreateCircleView();
-            this.profile.show(createCircle);
-        },
+        // showCreateCircle: function(options) {
+        //     var createCircle = new CreateCircleView();
+        //     this.profile.show(createCircle);
+        // },
 
-        showEditProfile: function(options) {
-            var editProfile = new EditProfileView();
-            this.profile.show(editProfile);
-        },
+        // showEditProfile: function(options) {
+        //     var editProfile = new EditProfileView();
+        //     this.profile.show(editProfile);
+        // },
 
         showFeed: function(options) {
             var messages = new Messages();
@@ -86,10 +90,10 @@ define(function(require, exports, module) {
             this.profile.show(feed);
         },
 
-        showSettings: function(options) {
-            var showSettings = new SettingsView();
-            this.profile.show(showSettings);
-        },
+        // showSettings: function(options) {
+        //     var showSettings = new SettingsView();
+        //     this.profile.show(showSettings);
+        // },
     });
     exports.HomeLayout = HomeLayout;
 })
