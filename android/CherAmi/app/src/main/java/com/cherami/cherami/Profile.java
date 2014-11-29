@@ -139,7 +139,8 @@ public class Profile extends Fragment {
                     JSONArray y = new JSONArray(responseText);
                     ProfileFeedItem message_data[] = new ProfileFeedItem[y.length()];
                     for (int x = 0; x < y.length(); x++){
-                        message_data[x] = new ProfileFeedItem(y.get(x).toString());
+
+                        message_data[x] = new ProfileFeedItem(new JSONObject(y.get((y.length()-1)-x).toString()).getString("author"),new JSONObject(y.get((y.length()-1)-x).toString()).getString("content"), processDate(new JSONObject(y.get((y.length()-1)-x).toString()).getString("created")));
                     }
 
                     ProfileFeedAdapter adapter = new ProfileFeedAdapter(getActivity(),
@@ -176,6 +177,10 @@ public class Profile extends Fragment {
         if (mListener != null) {
             mListener.onFragmentInteraction(uri);
         }
+    }
+
+    public String processDate(String date){
+        return date.substring(0, date.lastIndexOf("T"));
     }
 
     @Override

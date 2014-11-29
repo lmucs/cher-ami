@@ -7,13 +7,13 @@ public class ProfileFeedItem {
 
 
         public String message;
+        public String title;
+        public String date;
 
-        public ProfileFeedItem() {
-            this("Give this circle a name please");
-        }
-
-        public ProfileFeedItem(String message) {
+        public ProfileFeedItem(String title, String message, String date) {
+            this.title = title;
             this.message = message;
+            this.date = date;
         }
 
 }

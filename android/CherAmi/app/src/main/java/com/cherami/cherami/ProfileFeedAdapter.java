@@ -39,6 +39,8 @@ public class ProfileFeedAdapter extends ArrayAdapter<ProfileFeedItem> {
 
             holder = new ProfileFeedHolder();
             holder.txtTitle = (TextView) row.findViewById(R.id.txtTitle);
+            holder.txtContent = (TextView) row.findViewById(R.id.txtContent);
+            holder.txtDate = (TextView) row.findViewById(R.id.txtDate);
 
             row.setTag(holder);
         } else {
@@ -46,12 +48,16 @@ public class ProfileFeedAdapter extends ArrayAdapter<ProfileFeedItem> {
         }
 
         ProfileFeedItem profileFeedItem = data[position];
-        holder.txtTitle.setText(profileFeedItem.message);
+        holder.txtTitle.setText(profileFeedItem.title);
+        holder.txtContent.setText(profileFeedItem.message);
+        holder.txtDate.setText(profileFeedItem.date);
 
         return row;
     }
 
     static class ProfileFeedHolder {
         TextView txtTitle;
+        TextView txtContent;
+        TextView txtDate;
     }
 }
