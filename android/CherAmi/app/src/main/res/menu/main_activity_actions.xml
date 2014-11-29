@@ -2,6 +2,13 @@
 
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:cherami="http://schemas.android.com/apk/res-auto" >
+
+    <item android:id="@+id/action_search"
+        android:icon="@drawable/ic_action_search"
+        android:onClick="openSearchActivity"
+        android:title="@string/action_search"
+        android:showAsAction="ifRoom" />
+
     <item android:id="@+id/action_message"
         android:icon="@drawable/ic_action_edit"
         android:onClick="attemptCreateMessage"

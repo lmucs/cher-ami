@@ -169,6 +169,11 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
         return entity;
     }
 
+    public void openSearchActivity(MenuItem menuItem) {
+        Intent intent = new Intent(this, SearchActivity.class);
+        startActivity(intent);
+    }
+
     public boolean attemptCreateMessage(MenuItem menuItem) {
         // Create and show the dialog.
         CreateMessageModal newFragment = new CreateMessageModal();
