@@ -9,11 +9,12 @@
 
 
     <TextView
+        android:editable = "true"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="ThatHalfKorean"
-        android:id="@+id/textView3"
+        android:id="@+id/profileHandle"
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
@@ -26,9 +27,9 @@
         android:id="@+id/textView4"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:layout_below="@+id/textView3"
-        android:layout_alignRight="@+id/textView3"
-        android:layout_alignEnd="@+id/textView3" />
+        android:layout_below="@+id/profileHandle"
+        android:layout_alignRight="@+id/profileHandle"
+        android:layout_alignEnd="@+id/profileHandle" />
 
     <Button
         android:layout_width="wrap_content"
@@ -50,4 +51,13 @@
         android:layout_toLeftOf="@+id/button3"
         android:layout_toStartOf="@+id/button3"
         android:layout_below="@+id/textView4" />
+
+    <ListView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:id="@+id/profileFeed"
+        android:layout_below="@+id/textView5"
+        android:layout_centerHorizontal="true" />
 </RelativeLayout>
