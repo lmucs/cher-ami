@@ -22,7 +22,6 @@ func (s *TestSuite) TestPostCirclesUserNoExist(c *C) {
 
 func (s *TestSuite) TestPostCirclesUserNoSession(c *C) {
 	req.PostSignup("handleA", "test@test.io", "password1", "password1")
-
 	sessionid := req.PostSessionGetAuthToken("handleA", "password1")
 
 	req.DeleteSessions(sessionid)
@@ -38,7 +37,6 @@ func (s *TestSuite) TestPostCirclesUserNoSession(c *C) {
 
 func (s *TestSuite) TestPostCirclesNameReservedGold(c *C) {
 	req.PostSignup("handleA", "test@test.io", "password1", "password1")
-
 	sessionid := req.PostSessionGetAuthToken("handleA", "password1")
 
 	res1, err := req.PostCircles(sessionid, "Gold", false)
@@ -58,7 +56,6 @@ func (s *TestSuite) TestPostCirclesNameReservedGold(c *C) {
 
 func (s *TestSuite) TestPostCirclesNameReservedBroadcast(c *C) {
 	req.PostSignup("handleA", "test@test.io", "password1", "password1")
-
 	sessionid := req.PostSessionGetAuthToken("handleA", "password1")
 
 	res1, err := req.PostCircles(sessionid, "Broadcast", false)
@@ -76,9 +73,27 @@ func (s *TestSuite) TestPostCirclesNameReservedBroadcast(c *C) {
 	c.Check(res2.StatusCode, Equals, 403)
 }
 
+func (s *TestSuite) TestPostCirclesNameEmpty(c *C) {
+	req.PostSignup("handleA", "test@test.io", "password1", "password1")
+	token := req.PostSessionGetAuthToken("handleA", "password1")
+
+	res1, err := req.PostCircles(token, "", false)
+	if err != nil {
+		c.Error(err)
+	}
+	res2, err := req.PostCircles(token, "", true)
+	if err != nil {
+		c.Error(err)
+	}
+
+	c.Check(helper.GetJsonReasonMessage(res1), Equals, "Missing `circlename` parameter")
+	c.Check(res1.StatusCode, Equals, 400)
+	c.Check(helper.GetJsonReasonMessage(res2), Equals, "Missing `circlename` parameter")
+	c.Check(res2.StatusCode, Equals, 400)
+}
+
 func (s *TestSuite) TestPostPublicCircleOK(c *C) {
 	req.PostSignup("handleA", "test@test.io", "password1", "password1")
-
 	sessionid := req.PostSessionGetAuthToken("handleA", "password1")
 
 	res, err := req.PostCircles(sessionid, "MyPublicCircle", true)
@@ -104,7 +119,6 @@ func (s *TestSuite) TestPostPublicCircleOK(c *C) {
 
 func (s *TestSuite) TestPostPrivateCircleOK(c *C) {
 	req.PostSignup("handleA", "test@test.io", "password1", "password1")
-
 	sessionid := req.PostSessionGetAuthToken("handleA", "password1")
 
 	res, err := req.PostCircles(sessionid, "MyPrivateCircle", false)

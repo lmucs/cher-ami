@@ -306,11 +306,21 @@ func (a Api) NewCircle(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 	payload := struct {
-		CircleName string
-		Public     bool
+		CircleName string `json:"circlename"`
+		Public     bool   `json:"public"`
 	}{}
 	if err := r.DecodeJsonPayload(&payload); err != nil {
 		rest.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	circleName := payload.CircleName
+	isPublic := payload.Public
+
+	if circleName == "" {
+		a.Util.SimpleJsonReason(w, 400, "Missing `circlename` parameter")
+		return
+	} else if circleName == GOLD || circleName == BROADCAST {
+		a.Util.SimpleJsonReason(w, 403, circleName+" is a reserved circle name")
 		return
 	}
 
@@ -318,13 +328,6 @@ func (a Api) NewCircle(w rest.ResponseWriter, r *rest.Request) {
 		a.Util.FailedToDetermineHandleFromAuthToken(w)
 		return
 	} else {
-		circleName := payload.CircleName
-		isPublic := payload.Public
-
-		if circleName == GOLD || circleName == BROADCAST {
-			a.Util.SimpleJsonReason(w, 403, circleName+" is a reserved circle name")
-			return
-		}
 
 		if circleid, ok := a.Svc.NewCircle(handle, circleName, isPublic); !ok {
 			a.Util.SimpleJsonReason(w, 400, "Unexpected failure to create circle")
