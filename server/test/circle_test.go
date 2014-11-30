@@ -1,6 +1,7 @@
 package api_test
 
 import (
+	"../types"
 	"./helper"
 	. "gopkg.in/check.v1"
 )
@@ -128,6 +129,74 @@ func (s *TestSuite) TestPostPrivateCircleOK(c *C) {
 }
 
 //
+// Search Cicles Tests:
+//
+
+func (s *TestSuite) TestSearchCirclesTargetNoExist(c *C) {
+	req.PostSignup("handleA", "test@test.io", "password1", "password1")
+	token := req.PostSessionGetAuthToken("handleA", "password1")
+
+	res, err := req.GetCircles(types.Json{
+		"token": token,
+		"user":  "handleB",
+	})
+	if err != nil {
+		c.Error(err)
+	}
+
+	body := types.SearchCirclesResponse{}
+	helper.Unmarshal(res, &body)
+
+	c.Check(res.StatusCode, Equals, 200)
+	c.Check(len(body.Results), Equals, 0)
+	c.Check(body.Count, Equals, 0)
+}
+
+func (s *TestSuite) TestSearchCirclesDefaultCirclesOK(c *C) {
+	req.PostSignup("handleA", "test@test.io", "password1", "password1")
+	token := req.PostSessionGetAuthToken("handleA", "password1")
+
+	// Empty handle
+	if res, err := req.GetCircles(types.Json{
+		"token":  token,
+		"handle": "",
+	}); err != nil {
+		c.Error(err)
+	} else {
+		body := types.SearchCirclesResponse{}
+		helper.Unmarshal(res, &body)
+		c.Check(res.StatusCode, Equals, 200)
+		c.Check(len(body.Results), Equals, 2)
+		c.Check(body.Count, Equals, 2)
+	}
+
+	// No handle
+	if res, err := req.GetCircles(types.Json{
+		"token": token,
+	}); err != nil {
+		c.Error(err)
+	} else {
+		body := types.SearchCirclesResponse{}
+		helper.Unmarshal(res, &body)
+		c.Check(res.StatusCode, Equals, 200)
+		c.Check(len(body.Results), Equals, 2)
+		c.Check(body.Count, Equals, 2)
+	}
+}
+
+func (s *TestSuite) TestSearchCirclesOfTargetOK(c *C) {
+	// stub
+}
+
+func (s *TestSuite) TestSearchCirclesNoSpecificUserOK(c *C) {
+	// stub
+}
+
+func (s *TestSuite) TestSearchCirclesBeforeWorks(c *C) {
+	// stub
+}
+
+//
 // Post Block Tests:
 //
 
@@ -135,9 +204,9 @@ func (s *TestSuite) TestPostBlockUserNoExist(c *C) {
 	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
 	req.PostSignup("handleB", "testB@test.io", "password2", "password2")
 
+	// This will be dangling, not belonging to handleA or any other user
 	sessionid := req.PostSessionGetAuthToken("handleA", "password1")
-
-	req.DeleteUser("handleA", "password1", sessionid)
+	_ = req.PostSessionGetAuthToken("handleA", "password1")
 
 	response, err := req.PostBlock(sessionid, "handleB")
 	if err != nil {

@@ -5,9 +5,10 @@
     <string name="tab1">Feed</string>
     <string name="tab2">Circles</string>
     <string name="tab3">Profile</string>
+    <string name="action_search">Search</string>
     <string name="action_edit">New Message</string>
     <string name="action_logout">Logout</string>
-    <!--<string name="action_settings">Settings</string>-->
+    <!-- <string name="action_settings">Settings</string> -->
     <string name="handle">Handle/username</string>
     <string name="button_login">Login</string>
     <string name="Password">Password</string>
@@ -19,9 +20,18 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="title_activity_sign_up">SignUpActivity</string>
     <string name="filter_prompt">Filter By</string>
+    <string name="retry">Retry</string>
+    <string name="search_bar">Find users and circles</string>
+    <string name="search_button">Search</string>
+
     <string-array name="filter_array">
         <item>All</item>
         <item>Public</item>
         <item>Private</item>
     </string-array>
+
+    <string name="title_activity_search">SearchActivity</string>
+    <string name= "title_activity_other_user_profile_activity">OtherUserProfileActivity</string>
+    <string name="action_settings">Settings</string>
+
 </resources>

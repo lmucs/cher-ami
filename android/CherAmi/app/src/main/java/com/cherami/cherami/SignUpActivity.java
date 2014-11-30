@@ -1,7 +1,9 @@
 package com.cherami.cherami;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
@@ -111,7 +113,7 @@ public class SignUpActivity extends Activity {
         return entity;
     }
 
-    public void getAuthToken(){
+    public void getAuthToken() {
         AsyncHttpClient client = new AsyncHttpClient();
 
         client.post(this.getApplicationContext(), "http://" + getLocalUrlForApi() + "/api/sessions",
@@ -218,17 +220,35 @@ public class SignUpActivity extends Activity {
             @Override
             public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
                 // called when response HTTP status is "4XX" (eg. 401, 403, 404)
-                System.out.println("AWE RATS");
 
                 String responseText = null;
                 try {
-                    responseText = new JSONObject(new String(errorResponse)).getString("reason");
+                    if (errorResponse == null) {
+                        new AlertDialog.Builder(SignUpActivity.this)
+                                .setTitle("Network Error")
+                                .setMessage("You're not connected to the network :(")
+                                .setPositiveButton(getResources().getString(R.string.retry), new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        // retry connection
+                                        attemptCreateAccount();
+                                    }
+                                })
+                                .setNegativeButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        // do nothing
+                                    }
+                                })
+                                .setIcon(android.R.drawable.ic_dialog_alert)
+                                .show();
+                    } else {
+                        responseText = new JSONObject(new String(errorResponse)).getString("reason");
+                        Toast toast = Toast.makeText(getApplicationContext(), responseText, Toast.LENGTH_LONG);
+                        toast.show();
+                    }
+
                 } catch (JSONException j) {
                     System.out.println(j);
                 }
-
-                Toast toast = Toast.makeText(getApplicationContext(), responseText, Toast.LENGTH_LONG);
-                toast.show();
                 e.printStackTrace();
             }
 

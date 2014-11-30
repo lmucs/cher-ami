@@ -158,9 +158,10 @@ public class Circles extends Fragment {
                     responseText = new JSONObject(new String(responseBody)).getString("results");
                     JSONArray y = new JSONArray(responseText);
                     Circle circle_data[] = new Circle[y.length()];
-                    for (int x = 0; x < y.length(); x++){
-                        circle_data[x] = new Circle(y.get(x).toString());
+                    for (int x = 0; x < y.length(); x++) {
+                        circle_data[x] = new Circle(new JSONObject(y.get(x).toString()).getString("name"), new JSONObject(y.get(x).toString()).getString("owner"), processDate(new JSONObject(y.get(x).toString()).getString("created")));
                     }
+
 
                     CircleAdapter adapter = new CircleAdapter(getActivity(),
                             R.layout.circle_item_row, circle_data);
@@ -169,8 +170,6 @@ public class Circles extends Fragment {
                     circleList = (ListView) view2.findViewById(R.id.circleList);
 
                     circleList.setAdapter(adapter);
-                    String s = new JSONObject(new JSONArray(responseText).get(0).toString()).getString("c.name");
-                    System.out.println(s);
                 } catch (JSONException j) {
                     System.out.println(j);
                 }
@@ -198,6 +197,10 @@ public class Circles extends Fragment {
         if (mListener != null) {
             mListener.onFragmentInteraction(uri);
         }
+    }
+
+    public String processDate(String date){
+        return date.substring(0, date.lastIndexOf("T"));
     }
 
     @Override

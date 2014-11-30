@@ -93,31 +93,31 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 
 	// Handle and Email checks
 	if handle == "" {
-		a.Util.SimpleJsonResponse(w, 400, "Handle is a required field for signup")
+		a.Util.SimpleJsonReason(w, 400, "Handle is a required field for signup")
 		return
 	} else if email == "" {
-		a.Util.SimpleJsonResponse(w, 400, "Email is a required field for signup")
+		a.Util.SimpleJsonReason(w, 400, "Email is a required field for signup")
 		return
 	}
 
 	// Password checks
 	if password != confirm_password {
-		a.Util.SimpleJsonResponse(w, 403, "Passwords do not match")
+		a.Util.SimpleJsonReason(w, 403, "Passwords do not match")
 		return
 	} else if len(password) < MIN_PASS_LENGTH {
-		a.Util.SimpleJsonResponse(w, 403, "Passwords must be at least 8 characters long")
+		a.Util.SimpleJsonReason(w, 403, "Passwords must be at least 8 characters long")
 		return
 	}
 
 	// Ensure unique handle
 	if unique := a.Svc.HandleIsUnique(handle); !unique {
-		a.Util.SimpleJsonResponse(w, 409, "Sorry, handle or email is already taken")
+		a.Util.SimpleJsonReason(w, 409, "Sorry, handle or email is already taken")
 		return
 	}
 
 	// Ensure unique email
 	if unique := a.Svc.EmailIsUnique(email); !unique {
-		a.Util.SimpleJsonResponse(w, 409, "Sorry, handle or email is already taken")
+		a.Util.SimpleJsonReason(w, 409, "Sorry, handle or email is already taken")
 		return
 	}
 
@@ -129,12 +129,12 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 		hashed_pass = string(hash)
 	}
 	if !a.Svc.CreateNewUser(handle, email, hashed_pass) {
-		a.Util.SimpleJsonResponse(w, http.StatusInternalServerError, "Unexpected failure to create new user")
+		a.Util.SimpleJsonReason(w, http.StatusInternalServerError, "Unexpected failure to create new user")
 		return
 	}
 
 	if !a.Svc.MakeDefaultCirclesFor(handle) {
-		a.Util.SimpleJsonResponse(w, http.StatusInternalServerError, "Unexpected failure to make default circles")
+		a.Util.SimpleJsonReason(w, http.StatusInternalServerError, "Unexpected failure to make default circles")
 		return
 	}
 
@@ -160,23 +160,25 @@ func (a Api) Login(w rest.ResponseWriter, r *rest.Request) {
 	password := []byte(credentials.Password)
 
 	if passwordHash, ok := a.Svc.GetPasswordHash(handle); !ok {
-		a.Util.SimpleJsonResponse(w, 403, "Invalid username or password, please try again.")
+		a.Util.SimpleJsonReason(w, 403, "Invalid username or password, please try again.")
 		return
 	} else {
 		// err is nil if successful, error if comparison failed
 		if err := bcrypt.CompareHashAndPassword(passwordHash, password); err != nil {
-			a.Util.SimpleJsonResponse(w, 403, "Invalid username or password, please try again.")
+			a.Util.SimpleJsonReason(w, 403, "Invalid username or password, please try again.")
 			return
 		} else {
-			// Create an authentication node and return it to client
-			token := a.Svc.SetGetNewAuthToken(handle)
-
-			w.WriteHeader(201)
-			w.WriteJson(types.Json{
-				"response": "Logged in " + handle + ". Note your Authorization token.",
-				"token":    token,
-			})
-			return
+			// Create an Authentication token and return it to client
+			if token, ok := a.Svc.SetGetNewAuthToken(handle); !ok {
+				a.Util.SimpleJsonReason(w, 500, "Unexpected failure to produce new Authorization token")
+			} else {
+				w.WriteHeader(201)
+				w.WriteJson(types.Json{
+					"response": "Logged in " + handle + ". Note your Authorization token.",
+					"token":    token,
+				})
+				return
+			}
 		}
 	}
 }
@@ -189,76 +191,8 @@ func (a Api) Logout(w rest.ResponseWriter, r *rest.Request) {
 		w.WriteHeader(204)
 		return
 	} else {
-		a.Util.SimpleJsonResponse(w, 403, "Cannot invalidate token because it is missing")
+		a.Util.SimpleJsonReason(w, 403, "Cannot invalidate token because it is missing")
 		return
-	}
-}
-
-func (a Api) ChangePassword(w rest.ResponseWriter, r *rest.Request) {
-	if !a.authenticate(r) {
-		a.Util.FailedToAuthenticate(w)
-		return
-	}
-	user := struct {
-		Password           string
-		NewPassword        string
-		ConfirmNewPassword string
-	}{}
-
-	if err := r.DecodeJsonPayload(&user); err != nil {
-		rest.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	if handle, success := a.Svc.GetHandleFromAuthorization(a.getTokenFromHeader(r)); !success {
-		a.Util.FailedToDetermineHandleFromAuthToken(w)
-		return
-	} else {
-		password := []byte(user.Password)
-		newPassword := user.NewPassword
-		confirmNewPassword := user.ConfirmNewPassword
-
-		// Password checks
-		if newPassword != confirmNewPassword {
-			w.WriteHeader(400)
-			w.WriteJson(types.Json{
-				"response": "Passwords do not match",
-			})
-			return
-		} else if len(newPassword) < MIN_PASS_LENGTH {
-			a.Util.SimpleJsonReason(w, 400, "Passwords must be at least 8 characters long")
-			return
-		}
-
-		if passwordHash, ok := a.Svc.GetPasswordHash(handle); !ok {
-			a.Util.SimpleJsonReason(w, 400, "Invalid username or password, please try again.")
-			return
-		} else {
-			// err is nil if successful, error
-			if err := bcrypt.CompareHashAndPassword(passwordHash, password); err != nil {
-				a.Util.SimpleJsonReason(w, 400, "Invalid username or password, please try again.")
-				return
-			} else if err := bcrypt.CompareHashAndPassword(passwordHash, []byte(newPassword)); err == nil {
-				a.Util.SimpleJsonReason(w, 400, "Current/new password are same, please provide a new password.")
-				return
-			} else {
-				if hash, err := bcrypt.GenerateFromPassword([]byte(newPassword), 10); err != nil {
-					rest.Error(w, err.Error(), http.StatusInternalServerError)
-					return
-				} else {
-					hashed_new_pass := string(hash)
-					// Now set the new password
-					if !a.Svc.SetNewPassword(handle, hashed_new_pass) {
-						a.Util.SimpleJsonReason(w, 400, "Password change unsuccessful")
-						return
-					} else {
-						// No JSON is written.
-						w.WriteHeader(204)
-						return
-					}
-				}
-			}
-		}
 	}
 }
 
@@ -362,46 +296,6 @@ func (a Api) SearchForUsers(w rest.ResponseWriter, r *rest.Request) {
 	})
 }
 
-func (a Api) DeleteUser(w rest.ResponseWriter, r *rest.Request) {
-	if !a.authenticate(r) {
-		a.Util.FailedToAuthenticate(w)
-		return
-	}
-	credentials := struct {
-		Password string
-	}{}
-	if err := r.DecodeJsonPayload(&credentials); err != nil {
-		rest.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	if handle, success := a.Svc.GetHandleFromAuthorization(a.getTokenFromHeader(r)); !success {
-		a.Util.FailedToDetermineHandleFromAuthToken(w)
-		return
-	} else {
-		password := []byte(credentials.Password)
-
-		if passwordHash, ok := a.Svc.GetPasswordHash(handle); !ok {
-			// handle was bad
-			a.Util.SimpleJsonReason(w, 400, "Invalid username or password, please try again.")
-			return
-		} else {
-			// err is nil if successful, error
-			if err := bcrypt.CompareHashAndPassword(passwordHash, password); err != nil {
-				a.Util.SimpleJsonReason(w, 400, "Invalid username or password, please try again.")
-				return
-			} else {
-				if deleted := a.Svc.DeleteUser(handle); !deleted {
-					a.Util.SimpleJsonReason(w, 500, "Unexpected failure to delete user")
-					return
-				} else {
-					w.WriteHeader(204)
-				}
-			}
-		}
-	}
-}
-
 //
 // Circles
 //
@@ -449,78 +343,67 @@ func (a Api) NewCircle(w rest.ResponseWriter, r *rest.Request) {
 }
 
 func (a Api) SearchCircles(w rest.ResponseWriter, r *rest.Request) {
-
-	//
-	//
-	// TODO: USING SKIP AND LIMIT FOR NOW.  SHOULD BE BEFORE AND LIMIT.
-	// BUT I DON'T KNOW DATES IN GO YET.
-	//
-	//
+	if !a.authenticate(r) {
+		a.Util.FailedToAuthenticate(w)
+		return
+	}
 
 	querymap := r.URL.Query()
 
 	var user string
-	var skip int
+	var before time.Time
 	var limit int
 
 	if val, ok := querymap["limit"]; !ok {
 		limit = 20
 	} else {
 		if intval, err := strconv.Atoi(val[0]); err != nil {
-			w.WriteHeader(400)
-			w.WriteJson(types.Json{
-				"results":  nil,
-				"response": "Search failed",
-				"reason":   "Malformed limit",
-				"count":    0,
-			})
+			a.Util.SimpleJsonReason(w, 400, "Malformed limit")
 			return
-
 		} else {
 			if intval > 100 || intval < 1 {
-				w.WriteHeader(400)
-				w.WriteJson(types.Json{
-					"results":  nil,
-					"response": "Search failed",
-					"reason":   "Limit out of range",
-					"count":    0,
-				})
+				a.Util.SimpleJsonReason(w, 400, "Limit out of range")
+				return
 			} else {
 				limit = intval
 			}
 		}
 	}
 
-	if val, ok := querymap["user"]; !ok {
-		user, _ = a.Svc.GetHandleFromAuthorization(a.getTokenFromHeader(r))
+	if val, ok := querymap["user"]; !ok || val[0] == "" {
+		if handle, ok := a.Svc.GetHandleFromAuthorization(a.getTokenFromHeader(r)); !ok {
+			a.Util.FailedToDetermineHandleFromAuthToken(w)
+			return
+		} else {
+			user = handle
+		}
 	} else {
 		user = val[0]
 	}
 
-	if val, ok := querymap["skip"]; !ok {
-		skip = 0
+	// "" is defaulty and taken to mean no specification rather than let
+	// it error when converted to a int
+	if val, ok := querymap["before"]; !ok || val[0] == "" {
+		before = time.Now().Local()
 	} else {
-		if intval, err := strconv.Atoi(val[0]); err != nil {
-			w.WriteHeader(400)
-			w.WriteJson(types.Json{
-				"results":  nil,
-				"response": "Search failed",
-				"reason":   "Malformed skip",
-				"count":    0,
-			})
+		if millis, err := strconv.Atoi(val[0]); err != nil {
+			a.Util.SimpleJsonResponse(w, 400, "Malformed duration")
 			return
 		} else {
-			skip = intval
+			var seconds, nanoseconds int64
+			seconds = int64(millis / 1000)
+			nanoseconds = int64(millis % 1000 * 1000000)
+			before = time.Unix(seconds, nanoseconds)
 		}
 	}
 
-	results, count := a.Svc.SearchCircles(user, skip, limit)
+	results, count := a.Svc.SearchCircles(user, before, limit)
 
 	w.WriteHeader(200)
-	w.WriteJson(types.Json{
-		"results":  results,
-		"response": "Search complete",
-		"count":    count,
+	w.WriteJson(types.SearchCirclesResponse{
+		Results:  results,
+		Response: "Search complete",
+		Count:    count,
 	})
 }
 
@@ -529,11 +412,11 @@ func (a Api) SearchCircles(w rest.ResponseWriter, r *rest.Request) {
 //
 
 type MessageData struct {
-	Id      string
-	Url     string
-	Author  string
-	Content string
-	Created time.Time
+	Id      string    `json:"id"`
+	Url     string    `json:"url"`
+	Author  string    `json:"author"`
+	Content string    `json:"content"`
+	Created time.Time `json:"created"`
 }
 
 /**
@@ -614,15 +497,10 @@ func (a Api) GetAuthoredMessages(w rest.ResponseWriter, r *rest.Request) {
 			}
 		}
 
-		b, err := encoding.Marshal(messageData)
-		if err != nil {
-			panicErr(err)
-		}
-
 		w.WriteHeader(200)
 		w.WriteJson(types.Json{
 			"response": "Found messages for user " + author,
-			"objects":  string(b),
+			"objects":  messageData,
 			"count":    len(messageData),
 		})
 	}

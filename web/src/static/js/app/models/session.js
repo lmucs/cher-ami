@@ -6,7 +6,7 @@ define(function(require, exports, module) {
     var Session = BackboneSession.extend({
         defaults: {
             handle: null,
-            sessionid: null
+            token: null
         },
 
         options: {
@@ -15,7 +15,12 @@ define(function(require, exports, module) {
             persist: false
         },
 
-        authenticated: function() {
+        hasAuth: function() {
+            return this.has("token")
+        },
+
+        getTokenValue: function() {
+            return this.get("token")
         }
     });
 

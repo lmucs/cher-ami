@@ -75,8 +75,6 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
      */
     ViewPager mViewPager;
     SharedPreferences prefs;
-    Button newCirlce;
-    FragmentManager fm = getFragmentManager();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,7 +83,6 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
 
         prefs = context.getSharedPreferences(
                 "com.cherami.cherami", Context.MODE_PRIVATE);
-        super.onCreate(savedInstanceState);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -167,6 +164,11 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
             System.out.println("DONT LIKE TO STRING!");
         }
         return entity;
+    }
+
+    public void openSearchActivity(MenuItem menuItem) {
+        Intent intent = new Intent(this, SearchActivity.class);
+        startActivity(intent);
     }
 
     public boolean attemptCreateMessage(MenuItem menuItem) {
