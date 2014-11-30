@@ -10,7 +10,6 @@ define(function(require, exports, module){
             'goToCircles': 'showCircle',
             'goToCreateCircle': 'showCreateCircle',
             'goToProfile': 'showProfile',
-            'editProfile': 'showEditProfile',
             'goToSettings': 'showSettings'
         },
 

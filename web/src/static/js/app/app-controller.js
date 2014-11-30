@@ -83,14 +83,7 @@ define(function(require, exports, module) {
 
         showProfile: function(options) {
             this.app.sidebarRegion.show(new SidebarView())
-            this.app.mainRegion.show(new ProfileView({
-                session: this.app.session
-            }))
-        },
-
-        showEditProfile: function(options) {
-            this.app.sidebarRegion.show(new SidebarView())
-            this.app.mainRegion.show(new EditProfileView({
+            this.app.mainRegion.show(new ProfileLayout({
                 session: this.app.session
             }))
         },
