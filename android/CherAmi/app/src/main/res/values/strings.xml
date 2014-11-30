@@ -21,6 +21,8 @@
     <string name="title_activity_sign_up">SignUpActivity</string>
     <string name="filter_prompt">Filter By</string>
     <string name="retry">Retry</string>
+    <string name="search_bar">Find users and circles</string>
+    <string name="search_button">Search</string>
 
     <string-array name="filter_array">
         <item>All</item>
