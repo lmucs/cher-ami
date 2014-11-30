@@ -29,6 +29,7 @@
     </string-array>
 
     <string name="title_activity_search">SearchActivity</string>
+    <string name= "title_activity_other_user_profile_activity">OtherUserProfileActivity</string>
     <string name="action_settings">Settings</string>
 
 </resources>

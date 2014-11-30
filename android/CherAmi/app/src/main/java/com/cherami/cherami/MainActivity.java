@@ -75,8 +75,11 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
      */
     ViewPager mViewPager;
     SharedPreferences prefs;
-    Button newCirlce;
-    FragmentManager fm = getFragmentManager();
+
+    public void goToOther(View view){
+        Intent intent = new Intent(this, OtherUserProfileActivity.class);
+        startActivity(intent);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,7 +88,6 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
 
         prefs = context.getSharedPreferences(
                 "com.cherami.cherami", Context.MODE_PRIVATE);
-        super.onCreate(savedInstanceState);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
