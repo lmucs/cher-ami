@@ -8,6 +8,8 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
+import org.w3c.dom.Text;
+
 public class CircleAdapter extends ArrayAdapter<Circle> {
 
     Context context;
@@ -32,7 +34,9 @@ public class CircleAdapter extends ArrayAdapter<Circle> {
             row = inflater.inflate(layoutResourceId, parent, false);
 
             holder = new CircleHolder();
-            holder.txtTitle = (TextView) row.findViewById(R.id.txtTitle);
+            holder.txtName = (TextView) row.findViewById(R.id.txtName);
+            holder.txtOwner = (TextView) row.findViewById(R.id.txtOwner);
+            holder.txtDate = (TextView) row.findViewById(R.id.txtDate);
 
             row.setTag(holder);
         } else {
@@ -40,12 +44,16 @@ public class CircleAdapter extends ArrayAdapter<Circle> {
         }
 
         Circle circle = data[position];
-        holder.txtTitle.setText(circle.circleName);
+        holder.txtName.setText(circle.name);
+        holder.txtOwner.setText(circle.owner);
+        holder.txtDate.setText(circle.date);
 
         return row;
     }
 
     static class CircleHolder {
-        TextView txtTitle;
+        TextView txtName;
+        TextView txtOwner;
+        TextView txtDate;
     }
 }
