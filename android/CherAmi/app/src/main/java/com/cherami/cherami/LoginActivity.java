@@ -198,10 +198,6 @@ public class LoginActivity extends Activity {
                                 responseText = new JSONObject(new String(errorResponse)).getString("reason");
                                 Toast toast = Toast.makeText(getApplicationContext(), responseText, Toast.LENGTH_LONG);
                                 toast.show();
-                                if (responseText == null) {
-                                    // Alert dialogue saying "Cannot connect to network"
-                                    Log.e("Network", "Cannot connect to network");
-                                }
                             }
                         } catch (JSONException j) {
                             System.out.println("Dont like JSON");
