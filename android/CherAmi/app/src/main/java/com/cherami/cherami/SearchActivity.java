@@ -2,12 +2,14 @@ package com.cherami.cherami;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -87,10 +89,10 @@ public class SearchActivity extends Activity {
                     JSONArray y = new JSONArray(responseText);
                     User user_data[] = new User[y.length()];
                     for (int x = 0; x < y.length(); x++) {
-                        user_data[x] = new User(new JSONObject(y.get(x).toString()).getString("u.handle"));
+                        user_data[x] = new User(new JSONObject(y.get(x).toString()));
                     }
 
-                    UserAdapter adapter = new UserAdapter(SearchActivity.this,
+                    final UserAdapter adapter = new UserAdapter(SearchActivity.this,
                             R.layout.user_item_row, user_data);
 
                     System.out.println("adatper " + adapter);
@@ -101,6 +103,21 @@ public class SearchActivity extends Activity {
                     System.out.println("userlist: " + userList);
 
                     userList.setAdapter(adapter);
+                    userList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                        @Override
+                        public void onItemClick(AdapterView<?> parent, View view, int position,
+                                                long id) {
+                            Intent intent = new Intent(SearchActivity.this, OtherUserProfileActivity.class);
+                            Bundle mBundle = new Bundle();
+                            try {
+                                mBundle.putString("handle",adapter.getItem(position).getUserName().getString("u.handle"));
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                            intent.putExtras(mBundle);
+                            startActivity(intent);
+                        }
+                    });
                 } catch (JSONException j) {
                     System.out.println(j);
                 }

@@ -120,62 +120,7 @@ public class CreateMessageModal extends DialogFragment{
         newFragment.setArguments(args);
         newFragment.show(getFragmentManager(), "dialog");
 
-//        AsyncHttpClient client = new AsyncHttpClient();
-//        String sessionKey = "com.cherami.cherami.token";
-//        String token = prefs.getString(sessionKey, null);
-//        System.out.println("Token: " + token);
-//
-//        client.addHeader("Authorization", token);
-//        client.post(getActivity().getApplicationContext(), "http://" + getLocalUrlForApi() + "/api/messages",
-//                convertJsonUserToStringEntity(getMessageObjectRequestAsJson()), "application/json",
-//                new AsyncHttpResponseHandler() {
-//
-//                    @Override
-//                    public void onStart() {
-//                        // called before request is started
-//                        System.out.println("STARTING POST REQUEST");
-//
-//                    }
-//
-//                    @Override
-//                    public void onSuccess(int statusCode, Header[] headers, byte[] response) {
-//                        String s = new String(response);
-//                        // called when response HTTP status is "200 OK"
-//
-//                        String responseText = null;
-//                        try {
-//                            responseText = new JSONObject(new String(response)).getString("response");
-//                        } catch (JSONException j) {
-//                            System.out.println(j);
-//                        }
-//
-//                        Toast toast = Toast.makeText(getActivity().getApplicationContext(), responseText, Toast.LENGTH_LONG);
-//                        toast.show();
-//                    }
-//
-//                    @Override
-//                    public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
-//                        // called when response HTTP status is "4XX" (eg. 401, 403, 404)
-//
-//                        String responseText = null;
-//                        try {
-//                            responseText = new JSONObject(new String(errorResponse)).getString("Reason");
-//
-//                        } catch (JSONException j) {
-//                            System.out.println(j);
-//                        }
-//
-//                        Toast toast = Toast.makeText(getActivity().getApplicationContext(), responseText, Toast.LENGTH_LONG);
-//                        toast.show();
-//                        e.printStackTrace();
-//                    }
-//
-//                    @Override
-//                    public void onRetry(int retryNo) {
-//                        // called when request is retried
-//                        System.out.println("RETRYING?!?!");
-//                    }
-//                });
+
     }
 
 

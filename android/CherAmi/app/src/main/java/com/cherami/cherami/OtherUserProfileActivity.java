@@ -6,18 +6,26 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
 
 /**
  * Created by Geoff on 11/29/2014.
  */
 public class OtherUserProfileActivity extends Activity{
 
+    TextView textElement;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         ActionBar actionBar = getActionBar();
         actionBar.setDisplayHomeAsUpEnabled(true);
         setContentView(R.layout.other_user_profile);
+
+        textElement=(TextView)findViewById(R.id.otherUsername);
+        Bundle recdData = getIntent().getExtras();
+        String myVal = recdData.getString("handle");
+        textElement.setText(myVal);
+        System.out.println(myVal);
     }
 
 

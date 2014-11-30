@@ -1,12 +1,15 @@
 package com.cherami.cherami;
 
 import android.app.Activity;
+import android.content.ClipData;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
+
+import org.json.JSONException;
 
 public class UserAdapter extends ArrayAdapter<User> {
 
@@ -40,10 +43,20 @@ public class UserAdapter extends ArrayAdapter<User> {
         }
 
         User user = data[position];
-        holder.txtTitle.setText(user.userName);
+        try {
+            holder.txtTitle.setText(user.userName.getString("u.handle"));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
 
         return row;
     }
+    @Override
+    public User getItem(int position){
+     return data[position];
+    }
+
+
 
     static class UserHolder {
         TextView txtTitle;

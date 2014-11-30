@@ -76,11 +76,6 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
     ViewPager mViewPager;
     SharedPreferences prefs;
 
-    public void goToOther(View view){
-        Intent intent = new Intent(this, OtherUserProfileActivity.class);
-        startActivity(intent);
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Context context = getApplicationContext();

@@ -38,8 +38,7 @@
         android:id="@+id/button3"
         android:layout_alignParentTop="true"
         android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:onClick="goToOther"/>
+        android:layout_alignParentEnd="true"/>
 
     <TextView
         android:layout_width="match_parent"
