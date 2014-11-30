@@ -7,13 +7,6 @@ define(function(require, exports, module) {
     var MessageView = require('app/views/message-view').MessageView;
     var Message = require('app/models/message').Message;
     var Messages = require('app/collections/messages').Messages;
-    
-    //circles requirements
-    var CircleView = require('app/views/circle-view').CircleView;
-    var CirclesView = require('app/views/circles-view').CirclesView;
-    var CreateCircleView = require('app/views/create-circle-view').CreateCircleView;
-    var Circle = require('app/models/circle').Circle;
-    var Circles = require('app/collections/circles').Circles;
 
     //profile requirements
     var ProfileView = require('app/views/profile-view').ProfileView;

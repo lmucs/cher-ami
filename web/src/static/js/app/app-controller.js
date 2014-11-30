@@ -9,15 +9,21 @@ define(function(require, exports, module) {
     var SignupView = require('app/views/signup-view').SignupView;
     var FooterView = require('app/views/footer-view').FooterView;
     var LoginView = require('app/views/login-view').LoginView;
+    /** Messages views **/    
     var MessagesView = require('app/views/messages-view').MessagesView;
     var MessageView = require('app/views/message-view').MessageView;
+    /** Profile views **/    
     var EditProfileView = require('app/views/edit-profile-view').EditProfileView;
     var ProfileView = require('app/views/profile-view').ProfileView;
+    /** Comments views **/
     var CommentsView = require('app/views/comments-view').CommentsView;
     var CommentView = require('app/views/comment-view').CommentView;
+    /** Circle views **/
     var CircleView = require('app/views/circle-view').CircleView;
     var CreateCircleView = require('app/views/create-circle-view').CreateCircleView;
+    /** Settings views **/
     var SettingsView = require('app/views/settings-view').SettingsView;
+    /** Sidebar views **/
     var SidebarView = require('app/views/sidebar-view').SidebarView;
 
     /** Models **/
@@ -69,14 +75,7 @@ define(function(require, exports, module) {
 
         showCircle: function(options) {
             this.app.sidebarRegion.show(new SidebarView())
-            this.app.mainRegion.show(new CircleView({
-                session: this.app.session
-            }))
-        },
-
-        showCreateCircle: function(options) {
-            this.app.sidebarRegion.show(new SidebarView())
-            this.app.mainRegion.show(new CreateCircleView({
+            this.app.mainRegion.show(new CircleLayout({
                 session: this.app.session
             }))
         },
