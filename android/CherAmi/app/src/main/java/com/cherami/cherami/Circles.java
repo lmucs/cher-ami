@@ -158,7 +158,7 @@ public class Circles extends Fragment {
                     responseText = new JSONObject(new String(responseBody)).getString("results");
                     JSONArray y = new JSONArray(responseText);
                     Circle circle_data[] = new Circle[y.length()];
-                    for (int x = 0; x < y.length(); x++){
+                    for (int x = 0; x < y.length(); x++) {
                         circle_data[x] = new Circle(y.get(x).toString());
                     }
 
