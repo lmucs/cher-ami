@@ -2,7 +2,22 @@
 	.row
 		#main
 			#containerArea
+				position: relative
+				display: block
+				top: 60px
 				@include display(flex)
 				@include flex-direction(column)
 				@include align-items(center)
 				@include justify-content(space-between)
+
+				.mainContainer
+					background-color: aliceblue
+					padding: 20px
+					border-radius: 8px
+					border: 1px solid steelblue
+
+				.loginContainer
+					background-color: aliceblue
+					padding: 20px
+					border-radius: 8px
+					border: 1px solid steelblue
