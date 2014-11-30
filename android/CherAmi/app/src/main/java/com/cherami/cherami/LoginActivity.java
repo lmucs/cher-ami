@@ -81,11 +81,6 @@ public class LoginActivity extends Activity {
         return true;
     }
 
-    public void loginUser(View view) {
-        Intent intent = new Intent(this, MainActivity.class);
-        startActivity(intent);
-    }
-
     public String getLocalUrlForApi () {
         AssetManager assetManager = getResources().getAssets();
         InputStream inputStream = null;
@@ -188,6 +183,7 @@ public class LoginActivity extends Activity {
                                         .setPositiveButton(getResources().getString(R.string.retry), new DialogInterface.OnClickListener() {
                                             public void onClick(DialogInterface dialog, int which) {
                                                 // retry connection
+                                                attemptLoginAccount();
                                             }
                                         })
                                         .setNegativeButton(android.R.string.ok, new DialogInterface.OnClickListener() {
@@ -199,7 +195,9 @@ public class LoginActivity extends Activity {
                                         .show();
 
                             } else {
-                                responseText = new JSONObject(new String(errorResponse)).getString("response");
+                                responseText = new JSONObject(new String(errorResponse)).getString("reason");
+                                Toast toast = Toast.makeText(getApplicationContext(), responseText, Toast.LENGTH_LONG);
+                                toast.show();
                                 if (responseText == null) {
                                     // Alert dialogue saying "Cannot connect to network"
                                     Log.e("Network", "Cannot connect to network");
