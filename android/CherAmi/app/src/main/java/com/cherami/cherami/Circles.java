@@ -71,6 +71,7 @@ public class Circles extends Fragment {
         fragment.setArguments(args);
         return fragment;
     }
+
     public Circles() {
         // Required empty public constructor
     }
@@ -86,23 +87,6 @@ public class Circles extends Fragment {
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
 
-    }
-
-    public String getLocalUrlForApi () {
-        AssetManager assetManager = getResources().getAssets();
-        InputStream inputStream = null;
-        try {
-            inputStream = assetManager.open("config.properties");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        Properties properties = new Properties();
-        try {
-            properties.load(inputStream);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return properties.getProperty("myUrl");
     }
 
     @Override
@@ -142,13 +126,13 @@ public class Circles extends Fragment {
         final View view2 = view;
 
         client.addHeader("Authorization", token);
-        client.get(getActivity().getApplicationContext(), "http://" + getLocalUrlForApi() + "/api/circles", params, new AsyncHttpResponseHandler() {
+        client.get(getActivity().getApplicationContext(), "http://" + ApiHelper.getLocalUrlForApi(getResources()) + "/api/circles",
+                   params, new AsyncHttpResponseHandler() {
 
             @Override
             public void onStart() {
                 // called before request is started
                 System.out.println("STARTING GET REQUEST");
-
             }
 
             @Override
@@ -162,10 +146,8 @@ public class Circles extends Fragment {
                         circle_data[x] = new Circle(new JSONObject(y.get(x).toString()).getString("name"), new JSONObject(y.get(x).toString()).getString("owner"), processDate(new JSONObject(y.get(x).toString()).getString("created")));
                     }
 
-
                     CircleAdapter adapter = new CircleAdapter(getActivity(),
                             R.layout.circle_item_row, circle_data);
-
 
                     circleList = (ListView) view2.findViewById(R.id.circleList);
 
@@ -173,7 +155,6 @@ public class Circles extends Fragment {
                 } catch (JSONException j) {
                     System.out.println(j);
                 }
-
             }
 
             @Override

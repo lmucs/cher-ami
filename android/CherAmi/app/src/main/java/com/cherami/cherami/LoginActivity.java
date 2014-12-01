@@ -81,23 +81,6 @@ public class LoginActivity extends Activity {
         return true;
     }
 
-    public String getLocalUrlForApi () {
-        AssetManager assetManager = getResources().getAssets();
-        InputStream inputStream = null;
-        try {
-            inputStream = assetManager.open("config.properties");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        Properties properties = new Properties();
-        try {
-            properties.load(inputStream);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return properties.getProperty("myUrl");
-    }
-
     public JSONObject getUserObjectRequestAsJson () {
         JSONObject jsonParams = new JSONObject();
         try {
@@ -122,7 +105,7 @@ public class LoginActivity extends Activity {
     public void attemptLoginAccount() {
         AsyncHttpClient client = new AsyncHttpClient();
 
-        client.post(this.getApplicationContext(), "http://" + getLocalUrlForApi() + "/api/sessions",
+        client.post(this.getApplicationContext(), "http://" + ApiHelper.getLocalUrlForApi(getResources()) + "/api/sessions",
                 convertJsonUserToStringEntity(getUserObjectRequestAsJson()), "application/json",
                 new AsyncHttpResponseHandler() {
 

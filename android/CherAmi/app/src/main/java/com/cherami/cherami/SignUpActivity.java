@@ -62,23 +62,6 @@ public class SignUpActivity extends Activity {
         finish();
     }
 
-    public String getLocalUrlForApi () {
-        AssetManager assetManager = getResources().getAssets();
-        InputStream inputStream = null;
-        try {
-            inputStream = assetManager.open("config.properties");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        Properties properties = new Properties();
-        try {
-            properties.load(inputStream);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return properties.getProperty("myUrl");
-    }
-
     public JSONObject getUserObjectRequestAsJson () {
         JSONObject jsonParams = new JSONObject();
         try {
@@ -116,7 +99,7 @@ public class SignUpActivity extends Activity {
     public void getAuthToken() {
         AsyncHttpClient client = new AsyncHttpClient();
 
-        client.post(this.getApplicationContext(), "http://" + getLocalUrlForApi() + "/api/sessions",
+        client.post(this.getApplicationContext(), "http://" + ApiHelper.getLocalUrlForApi(getResources()) + "/api/sessions",
                 convertJsonUserToStringEntity(getLoginObjectRequestAsJson()), "application/json",
                 new AsyncHttpResponseHandler() {
 
@@ -187,7 +170,7 @@ public class SignUpActivity extends Activity {
     public void attemptCreateAccount() {
         AsyncHttpClient client = new AsyncHttpClient();
 
-        client.post(this.getApplicationContext(), "http://" + getLocalUrlForApi() + "/api/signup",
+        client.post(this.getApplicationContext(), "http://" + ApiHelper.getLocalUrlForApi(getResources()) + "/api/signup",
                     convertJsonUserToStringEntity(getUserObjectRequestAsJson()), "application/json",
                     new AsyncHttpResponseHandler() {
 

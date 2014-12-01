@@ -98,30 +98,15 @@ public class Profile extends Fragment {
         return rootView;
     }
 
-    public String getLocalUrlForApi () {
-        AssetManager assetManager = getResources().getAssets();
-        InputStream inputStream = null;
-        try {
-            inputStream = assetManager.open("config.properties");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        Properties properties = new Properties();
-        try {
-            properties.load(inputStream);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return properties.getProperty("myUrl");
-    }
-
     public void getProfileFeed(final View view) {
         AsyncHttpClient client = new AsyncHttpClient();
         String sessionKey = "com.cherami.cherami.token";
         String token = prefs.getString(sessionKey, null);
 
         client.addHeader("Authorization", token);
-        client.get(getActivity().getApplicationContext(), "http://" + getLocalUrlForApi() + "/api/messages", new AsyncHttpResponseHandler() {
+        client.get(getActivity().getApplicationContext(),
+                   "http://" + ApiHelper.getLocalUrlForApi(getResources()) + "/api/messages",
+                   new AsyncHttpResponseHandler() {
 
             @Override
             public void onStart() {

@@ -77,7 +77,7 @@ public class CircleForMessageModal extends DialogFragment {
         final View view2 = view;
 
         client.addHeader("Authorization", token);
-        client.get(getActivity().getApplicationContext(), "http://" + getLocalUrlForApi() + "/api/circles", params, new AsyncHttpResponseHandler() {
+        client.get(getActivity().getApplicationContext(), "http://" + ApiHelper.getLocalUrlForApi(getResources()) + "/api/circles", params, new AsyncHttpResponseHandler() {
 
             @Override
             public void onStart() {
@@ -128,23 +128,6 @@ public class CircleForMessageModal extends DialogFragment {
         });
     }
 
-    public String getLocalUrlForApi () {
-        AssetManager assetManager = getResources().getAssets();
-        InputStream inputStream = null;
-        try {
-            inputStream = assetManager.open("config.properties");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        Properties properties = new Properties();
-        try {
-            properties.load(inputStream);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return properties.getProperty("myUrl");
-    }
-
     public JSONObject getMessageObjectRequestAsJson () {
         JSONObject jsonParams = new JSONObject();
         JSONArray circleIds = new JSONArray();
@@ -190,7 +173,7 @@ public class CircleForMessageModal extends DialogFragment {
         System.out.println("Token: " + token);
 
         client.addHeader("Authorization", token);
-        client.post(getActivity().getApplicationContext(), "http://" + getLocalUrlForApi() + "/api/messages",
+        client.post(getActivity().getApplicationContext(), "http://" + ApiHelper.getLocalUrlForApi(getResources()) + "/api/messages",
                 convertJsonUserToStringEntity(getMessageObjectRequestAsJson()), "application/json",
                 new AsyncHttpResponseHandler() {
 

@@ -138,24 +138,6 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
         return super.onCreateOptionsMenu(menu);
     }
 
-    public String getLocalUrlForApi () {
-        AssetManager assetManager = getResources().getAssets();
-        InputStream inputStream = null;
-        try {
-            inputStream = assetManager.open("config.properties");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        Properties properties = new Properties();
-        try {
-            properties.load(inputStream);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return properties.getProperty("myUrl");
-    }
-
-
     public StringEntity convertJsonUserToStringEntity (JSONObject jsonParams) {
         StringEntity entity = null;
         try {
@@ -213,7 +195,7 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
 
 
         client.addHeader("Authorization", token);
-        client.delete(this.getApplicationContext(), "http://" + getLocalUrlForApi() + "/api/sessions",
+        client.delete(this.getApplicationContext(), "http://" + ApiHelper.getLocalUrlForApi(getResources()) + "/api/sessions",
                 new AsyncHttpResponseHandler() {
 
                     @Override

@@ -77,23 +77,6 @@ public class CreateCircleModal extends DialogFragment {
         return rootView;
     }
 
-    public String getLocalUrlForApi () {
-        AssetManager assetManager = getResources().getAssets();
-        InputStream inputStream = null;
-        try {
-            inputStream = assetManager.open("config.properties");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        Properties properties = new Properties();
-        try {
-            properties.load(inputStream);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return properties.getProperty("myUrl");
-    }
-
     public JSONObject getCreateCircleParamsAsJson () {
         JSONObject jsonParams = new JSONObject();
         EditText circleName = (EditText) root.findViewById(R.id.circleName);
@@ -132,7 +115,7 @@ public class CreateCircleModal extends DialogFragment {
 
 
         client.addHeader("Authorization", token);
-        client.post(getActivity().getApplicationContext(), "http://" + getLocalUrlForApi() + "/api/circles",
+        client.post(getActivity().getApplicationContext(), "http://" + ApiHelper.getLocalUrlForApi(getResources()) + "/api/circles",
                 convertJsonUserToStringEntity(getCreateCircleParamsAsJson()), "application/json",
                 new AsyncHttpResponseHandler() {
 

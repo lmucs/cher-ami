@@ -42,24 +42,6 @@ public class SearchActivity extends Activity {
         getActionBar().hide();
     }
 
-
-    public String getLocalUrlForApi () {
-        AssetManager assetManager = getResources().getAssets();
-        InputStream inputStream = null;
-        try {
-            inputStream = assetManager.open("config.properties");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        Properties properties = new Properties();
-        try {
-            properties.load(inputStream);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return properties.getProperty("myUrl");
-    }
-
     public void getUsers(View view) {
         AsyncHttpClient client = new AsyncHttpClient();
         String sessionKey = "com.cherami.cherami.token";
@@ -71,7 +53,7 @@ public class SearchActivity extends Activity {
         params.put("sort", "joined");
 
         client.addHeader("Authorization", token);
-        client.get(this.getApplicationContext(), "http://" + getLocalUrlForApi() + "/api/users", params, new AsyncHttpResponseHandler() {
+        client.get(this.getApplicationContext(), "http://" + ApiHelper.getLocalUrlForApi(getResources()) + "/api/users", params, new AsyncHttpResponseHandler() {
 
             @Override
             public void onStart() {

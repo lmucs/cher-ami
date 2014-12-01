@@ -49,7 +49,6 @@ public class CreateMessageModal extends DialogFragment{
         public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_create_message_modal, container, false);
             getDialog().setTitle("Create New Message");
-//        getDialog().setCancelable(true);
 
             createMessageButton = (Button) rootView.findViewById(R.id.createMessageButton);
             createMessageButton.setOnClickListener(new View.OnClickListener() {
@@ -68,23 +67,6 @@ public class CreateMessageModal extends DialogFragment{
             });
             root = rootView;
             return rootView;
-        }
-
-        public String getLocalUrlForApi () {
-            AssetManager assetManager = getResources().getAssets();
-            InputStream inputStream = null;
-            try {
-                inputStream = assetManager.open("config.properties");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            Properties properties = new Properties();
-            try {
-                properties.load(inputStream);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return properties.getProperty("myUrl");
         }
 
         public JSONObject getMessageObjectRequestAsJson () {
@@ -108,7 +90,7 @@ public class CreateMessageModal extends DialogFragment{
             return entity;
         }
 
-        public void dismissModal () {
+    public void dismissModal () {
             this.dismiss();
         }
 
@@ -120,7 +102,4 @@ public class CreateMessageModal extends DialogFragment{
         newFragment.setArguments(args);
         newFragment.show(getFragmentManager(), "dialog");
     }
-
-
-
 }
