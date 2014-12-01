@@ -679,6 +679,28 @@ func (q Query) GetCircleIdByName(handle, circleName string) (circleid string) {
 	}
 }
 
+func (q Query) GetPublicCirclesByHandle(handle string) (circles []SearchCircleRes, count int) {
+    circles = make([]types.CircleResponse, 0)
+    q.CypherOrPanic(&neoism.CypherQuery{
+        Statement: `
+            MATCH (t:User)-[:OWNS]-(c:Circle)-[partOf:PART_OF]->(pd:PublicDomain)
+            WHERE pd.iam = "PublicDomain"
+            AND   t.handle = {handle}
+            RETURN c.name
+                 , c.id
+                 , c.description
+                 , t.handle AS owner.handle
+                 , c.created
+                 , partOf
+
+        `,
+        Parameters: &neoism.Props{
+            "handle": handle,
+        },
+        Result: &circles
+    })
+}
+
 func (q Query) GetAllMessagesByHandle(target string) []Message {
 	messages := make([]Message, 0)
 	q.cypherOrPanic(&neoism.CypherQuery{
@@ -716,6 +738,85 @@ func (q Query) GetVisibleMessageById(handle, messageid string) (message *Message
 	} else {
 		return nil, ok
 	}
+}
+
+func (q Query) GetVisibleUserByHandle(handle, target string) (user types.UserView, found bool) {
+	users := make([]types.UserView, 0)
+	q.cypherOrPanic(&neoism.CypherQuery{
+		Statement: `
+            MATCH   (t:User), (u:User)
+            WHERE   not((u)<-[:BLOCKED]-(t))
+            AND     t.handle = {target}
+            AND     u.handle = {handle}
+            RETURN  t.handle    AS handle
+                  , t.firstname AS firstname
+                  , t.lastname  AS lastname
+                  , t.gender    AS gender
+                  , t.birthday  AS birthday
+                  , t.bio       AS bio
+                  , t.interests AS interests
+                  , t.languages AS languages
+                  , t.location  AS location
+        `,
+		Parameters: neoism.Props{
+			"handle": handle,
+			"target": target,
+		},
+		Result: &user,
+	})
+	if ok := len(users) > 0; ok {
+		return users[0], ok
+	} else {
+		return nil, ok
+	}
+}
+
+func (q Query) GetBlockedUsers(handle string) (users []types.UserView, count int) {
+    users = make([]types.UserView, 0)
+    q.CypherOrPanic(&neoism.CypherQuery{
+        Statement: `
+            MATCH (u:User)-[:BLOCKED]->(t:User)
+            WHERE u.handle = {handle}
+            RETURN t.handle AS handle
+        `,
+        Parameters: &neoism.Props{
+            "handle": handle,
+        },
+        Result: &users,
+    })
+    count = len(users)
+    if count > 0 {
+        return users, count
+    } else {
+        return []types.UserView{}, count
+    }
+}
+
+func (q Query) GetJoinedCirclesByHandle(handle string, skip, limit int) (circles []types.CircleResponse, count int) {
+    circles := make([]types.CircleResponse, 0)
+    q.CypherOrPanic(&neoism.CypherQuery{
+        Statement: `
+            MATCH          (u:User)-[:MEMBER_OF|OWNS]->(c:Circle)
+            WHERE          u.handle = {handle}
+            MATCH          (c)<-[:OWNS]-(owner:User)
+            OPTIONAL MATCH (c)-[partOf:PART_OF]->(pd:PublicDomain)
+            RETURN         c.name, c.id, c.description, c.created, owner.handle, partOf
+            ORDER BY       c.created
+            SKIP           {skip}
+            LIMIT          {limit}
+        `,
+        Parameters: &neoism.Props{
+            "handle": handle,
+            "skip": skip,
+            "limit": limit,
+        },
+        Result: &circles,
+    })
+    if count = len(circles); count > 0 {
+        return circles, count
+    } else {
+        return []types.CircleResponse{}, count
+    }
 }
 
 func (q Query) DeriveHandleFromAuthToken(token string) (handle string, ok bool) {

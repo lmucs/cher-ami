@@ -188,6 +188,10 @@ func (s Svc) SearchCircles(user string, before time.Time, limit int) (results []
 	return formatted, len(formatted)
 }
 
+func (s Svc) GetJoinedCircles(user string, skip, limit int) (results []types.CircleResponse, count int) {
+	return s.Query.GetJoinedCirclesByHandle(user, skip, limit)
+}
+
 func (s Svc) GetPasswordHash(handle string) (passwordHash []byte, ok bool) {
 	return s.Query.GetPasswordHash(handle)
 }
@@ -207,6 +211,48 @@ func (s Svc) GetVisibleMessageById(handle, messageid string,
 
 func (s Svc) GetHandleFromAuthorization(token string) (handle string, ok bool) {
 	return s.Query.DeriveHandleFromAuthToken(token)
+}
+
+func (s Svc) GetSelf(handle string) (result types.OwnUserView, ok bool) {
+	user := s.Query.GetVisibleUserByHandle(handle)
+	return types.OwnUserView{
+		Handle: user.Handle,
+		FirstName: user.FirstName,
+		LastName: user.LastName,
+		Gender: user.Gender,
+		Birthday: user.Birthday,
+		Bio: user.Bio,
+		Interests: user.Interests,
+		Languages: user.Languages,
+		Location: user.Location,
+		Circles: s.Query.GetJoinedCircles(handle, 0, 100),
+		Blocked: s.Query.GetBlockedUsers(handle),
+	}
+}
+
+func (s Svc) GetVisibleUser(handle string) (result types.UserView, ok bool) {
+	user := s.Query.GetVisibleUserByHandle(handle)
+	circles := s.Query.GetPublicCirclesByHandle(handle)
+	formatted := make([]types.CircleResponse, len(circles))
+	for i, c := range circles {
+		var visibility string
+		if c.Private != nil {
+			visibility = "private"
+		} else {
+			visibility = "public"
+		}
+		formatted[i] = types.CircleResponse{
+			Name:        c.Name,
+			Url:         API_URL + "/circles/" + c.Id,
+			Description: c.Description,
+			Owner:       c.Owner,
+			Visibility:  visibility,
+			Members:     API_URL + "/circles/" + c.Id + "/members",
+			Created:     c.Created,
+		}
+	}
+	user.Circles = formatted
+	return user, true
 }
 
 //

@@ -10,6 +10,7 @@ import (
 	"github.com/mccoyst/validate"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 func panicErr(err error) {
@@ -191,12 +192,19 @@ func (a Api) Logout(w rest.ResponseWriter, r *rest.Request) {
 // User
 //
 func (a Api) GetUser(w rest.ResponseWriter, r *rest.Request) {
-	// if !a.authenticate(r) {
-	// 	a.Util.FailedToAuthenticate(w)
-	// 	return
-	// }
+	if !a.authenticate(r) {
+		a.Util.FailedToAuthenticate(w)
+		return
+	}
 
-	// handle := r.PathParam("handle")
+	target := r.PathParam("handle")
+
+	if handle, ok := a.Svc.GetHandleFromAuthorization(a.getTokenFromHeader(r)); !ok {
+		a.Util.FailedToDetermineHandleFromAuthToken(w)
+		return
+	} else if target == handle {
+		a.Svc.GetSelf(handle)
+	}
 
 }
 

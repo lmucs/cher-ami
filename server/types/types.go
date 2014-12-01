@@ -67,6 +67,33 @@ type UserPatch struct {
 	Value    string `json:"value" validate:"uservalue"`
 }
 
+type OwnUserView struct {
+	Handle    string    `json:"handle"`
+	FirstName string    `json:"firstname"`
+	LastName  string    `json:"lastname"`
+	Gender    string    `json:"gender"`
+	Birthday  time.Time `json:"birthday"`
+	Bio       string    `json:"bio"`
+	Interests string    `json:"interests"`
+	Languages string    `json:"languages"`
+	Location  string    `json:"location"`
+	Circles []CircleResponse `json:"circles"`
+	Blocked []UserView    `json:"blocked"`
+}
+
+type UserView struct {
+	Handle    string    `json:"handle"`
+	FirstName string    `json:"firstname"`
+	LastName  string    `json:"lastname"`
+	Gender    string    `json:"gender"`
+	Birthday  time.Time `json:"birthday"`
+	Bio       string    `json:"bio"`
+	Interests string    `json:"interests"`
+	Languages string    `json:"languages"`
+	Location  string    `json:"location"`
+	Circles []CircleResponse `json:"circles"`
+}
+
 // The json annotations that accompany these structs allow json.Marshall
 // to to produce proper json instead of an escaped json string.
 
