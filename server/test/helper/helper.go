@@ -94,6 +94,7 @@ type fields struct {
 	Name     string `json:"name"`
 	Token    string `json:"token"`
 	Id       string `json:"id"`
+	Url      string `json:"url"`
 }
 
 func Unmarshal(r *http.Response, v interface{}) {
@@ -122,6 +123,12 @@ func GetJsonUserData(r *http.Response) string {
 	return f.Handle
 }
 
+func GetUrlFromResponse(r *http.Response) string {
+	f := fields{}
+	Unmarshal(r, &f)
+	return f.Url
+}
+
 //
 // Read info from headers:
 //
@@ -130,10 +137,4 @@ func GetAuthTokenFromResponse(r *http.Response) string {
 	f := fields{}
 	Unmarshal(r, &f)
 	return f.Token
-}
-
-func GetIdFromResponse(r *http.Response) string {
-	f := fields{}
-	Unmarshal(r, &f)
-	return f.Id
 }

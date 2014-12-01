@@ -10,17 +10,16 @@ import (
 
 // Testing Structs
 type MessageData struct {
-	Id      string
-	Url     string
-	Author  string
-	Content string
-	Created time.Time
+	Url     string    `json:"url"`
+	Author  string    `json:"author"`
+	Content string    `json:"content"`
+	Created time.Time `json:"created"`
 }
 
 type MessageResponse struct {
-	Response string
-	Reason   string
-	Object   string
+	Response string      `json:"response"`
+	Reason   string      `json:"reason"`
+	Object   MessageData `json:"object"`
 }
 
 //
@@ -169,14 +168,14 @@ func (s *TestSuite) TestGetMessageByIdUserBlocked(c *C) {
 	sessionid_B := req.PostSessionGetAuthToken("handleB", "password2")
 
 	req.PostBlock(sessionid_B, "handleA")
-	message_id := req.PostMessageGetMessageId("Go is going gophers!", sessionid_B)
+	message_url := req.PostMessageGetMessageUrl("Go is going gophers!", sessionid_B)
 
 	// handleA attempts to retrieve
-	if res, _ := req.GetMessageById(message_id, sessionid_A); true {
+	if res, _ := req.GetMessageByUrl(message_url, sessionid_A); true {
 		c.Check(res.StatusCode, Equals, 404)
 		message_response := MessageResponse{}
 		helper.Unmarshal(res, &message_response)
-		c.Check(message_response.Reason, Equals, "No such message with id "+message_id+" could be found")
+		c.Check(message_response.Reason, Equals, "No such message with id "+message_url+" could be found")
 	}
 }
 
@@ -187,14 +186,14 @@ func (s *TestSuite) TestGetMessageByIdPrivateCircle(c *C) {
 	sessionid_A := req.PostSessionGetAuthToken("handleA", "password1")
 	sessionid_B := req.PostSessionGetAuthToken("handleB", "password2")
 
-	message_id := req.PostMessageGetMessageId("Go is going gophers!", sessionid_B)
+	message_url := req.PostMessageGetMessageUrl("Go is going gophers!", sessionid_B)
 	req.PostCircles(sessionid_B, "SomePrivateCircle", false)
 
-	if res, _ := req.GetMessageById(message_id, sessionid_A); true {
+	if res, _ := req.GetMessageByUrl(message_url, sessionid_A); true {
 		c.Check(res.StatusCode, Equals, 404)
 		message_response := MessageResponse{}
 		helper.Unmarshal(res, &message_response)
-		c.Check(message_response.Reason, Equals, "No such message with id "+message_id+" could be found")
+		c.Check(message_response.Reason, Equals, "No such message with id "+message_url+" could be found")
 	}
 
 }
@@ -209,9 +208,9 @@ func (s *TestSuite) TestGetMessageByIdOK(c *C) {
 
 	circleid_1 := req.PostCircleGetCircleId(sessionid_A, "MyPublicCircle", true)
 	req.PostJoin(sessionid_B, "handleA", "MyPublicCircle")
-	messageid_1 := req.PostMessageWithCirclesGetMessageId("Go is going gophers!", sessionid_A, []string{circleid_1})
+	messageid_url := req.PostMessageWithCirclesGetMessageUrl("Go is going gophers!", sessionid_A, []string{circleid_1})
 
-	if res, _ := req.GetMessageById(messageid_1, sessionid_B); true {
+	if res, _ := req.GetMessageById(messageid_url, sessionid_B); true {
 		c.Check(res.StatusCode, Equals, 200)
 		var (
 			message_response MessageResponse
@@ -220,7 +219,7 @@ func (s *TestSuite) TestGetMessageByIdOK(c *C) {
 		helper.Unmarshal(res, &message_response)
 		encoding.Unmarshal([]byte(message_response.Object), &msg)
 		c.Check(message_response.Response, Equals, "Found message!")
-		c.Check(msg.Id, Equals, messageid_1)
+		c.Check(msg.Url, Equals, messageid_url)
 		c.Check(msg.Author, Equals, "handleA")
 		c.Check(msg.Content, Equals, "Go is going gophers!")
 	}
@@ -233,7 +232,7 @@ func (s *TestSuite) TestGetMessageByIdOK(c *C) {
 func (s *TestSuite) TestEditMessageInvalidAuth(c *C) {
 	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
 	sessionid := req.PostSessionGetAuthToken("handleA", "password1")
-	messageid := req.PostMessageGetMessageId("Hello, world!", sessionid)
+	messageid := req.PostMessageGetMessageUrl("Hello, world!", sessionid)
 	req.DeleteSessions(sessionid)
 
 	patchObj := types.Json{
@@ -252,7 +251,7 @@ func (s *TestSuite) TestEditMessageInvalidAuth(c *C) {
 func (s *TestSuite) TestEditMessageMissingParams(c *C) {
 	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
 	sessionid := req.PostSessionGetAuthToken("handleA", "password1")
-	messageid := req.PostMessageGetMessageId("Hello, world!", sessionid)
+	messageid := req.PostMessageGetMessageUrl("Hello, world!", sessionid)
 
 	// Cases of missing parameters
 	onlyOp := types.Json{
@@ -311,7 +310,7 @@ func (s *TestSuite) TestEditMessageMissingParams(c *C) {
 func (s *TestSuite) TestEditMessageBadOp(c *C) {
 	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
 	sessionid := req.PostSessionGetAuthToken("handleA", "password1")
-	messageid := req.PostMessageGetMessageId("Hello, world!", sessionid)
+	messageid := req.PostMessageGetMessageUrl("Hello, world!", sessionid)
 
 	patchObj := types.Json{
 		"op":       "change", // guess at op name
@@ -327,7 +326,7 @@ func (s *TestSuite) TestEditMessageBadOp(c *C) {
 func (s *TestSuite) TestEditMessageBadResource(c *C) {
 	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
 	sessionid := req.PostSessionGetAuthToken("handleA", "password1")
-	messageid := req.PostMessageGetMessageId("Hello, world!", sessionid)
+	messageid := req.PostMessageGetMessageUrl("Hello, world!", sessionid)
 
 	patchObj := types.Json{
 		"op":       "update",
@@ -343,7 +342,7 @@ func (s *TestSuite) TestEditMessageBadResource(c *C) {
 func (s *TestSuite) TestEditMessageBadPatchObject(c *C) {
 	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
 	sessionid := req.PostSessionGetAuthToken("handleA", "password1")
-	messageid := req.PostMessageGetMessageId("Hello, world!", sessionid)
+	messageid := req.PostMessageGetMessageUrl("Hello, world!", sessionid)
 
 	publishContent := types.Json{
 		"op":       "publish",
@@ -375,7 +374,7 @@ func (s *TestSuite) TestEditMessageUnableToUnpublish(c *C) {
 func (s *TestSuite) TestEditMessageUpdateContentOK(c *C) {
 	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
 	sessionid := req.PostSessionGetAuthToken("handleA", "password1")
-	messageid := req.PostMessageGetMessageId("Hello, world!", sessionid)
+	messageid := req.PostMessageGetMessageUrl("Hello, world!", sessionid)
 
 	patchObj := types.Json{
 		"op":       "update",
@@ -391,7 +390,7 @@ func (s *TestSuite) TestEditMessageUpdateContentOK(c *C) {
 func (s *TestSuite) TestEditMessagePublishCircleOK(c *C) {
 	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
 	sessionid := req.PostSessionGetAuthToken("handleA", "password1")
-	messageid := req.PostMessageGetMessageId("Hello, world!", sessionid)
+	messageid := req.PostMessageGetMessageUrl("Hello, world!", sessionid)
 	circleid := req.PostCircleGetCircleId(sessionid, "MyPublicCircle", true)
 
 	patchObj := types.Json{
@@ -409,7 +408,7 @@ func (s *TestSuite) TestEditMessageUnpublishCircleOK(c *C) {
 	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
 	sessionid := req.PostSessionGetAuthToken("handleA", "password1")
 	circleid := req.PostCircleGetCircleId(sessionid, "MyPublicCircle", true)
-	messageid := req.PostMessageWithCirclesGetMessageId("Hello, world!", sessionid, []string{circleid})
+	messageid := req.PostMessageWithCirclesGetMessageUrl("Hello, world!", sessionid, []string{circleid})
 
 	patchObj := types.Json{
 		"op":       "unpublish",
@@ -426,7 +425,7 @@ func (s *TestSuite) TestEditMessageAllOK(c *C) {
 	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
 	sessionid := req.PostSessionGetAuthToken("handleA", "password1")
 	circleid1 := req.PostCircleGetCircleId(sessionid, "MyPublicCircle", true)
-	messageid := req.PostMessageWithCirclesGetMessageId("Hello, world!", sessionid, []string{circleid1})
+	messageid := req.PostMessageWithCirclesGetMessageUrl("Hello, world!", sessionid, []string{circleid1})
 
 	patchObj1 := types.Json{
 		"op":       "update",
