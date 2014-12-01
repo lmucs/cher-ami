@@ -104,7 +104,7 @@ public class OtherUserProfileActivity extends Activity{
         String token = prefs.getString(sessionKey, null);
 
         client.addHeader("Authorization", token);
-        client.get(this.getApplicationContext(), "http://" + getLocalUrlForApi() + "/api/circles?user=" + myVal, new AsyncHttpResponseHandler() {
+        client.get(this.getApplicationContext(), ApiHelper.getLocalUrlForApi(getResources()) + "circles?user=" + myVal, new AsyncHttpResponseHandler() {
 
             @Override
             public void onStart() {
