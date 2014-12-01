@@ -4,6 +4,7 @@ import (
 	"../types"
 	"./helper"
 	. "gopkg.in/check.v1"
+	"time"
 )
 
 //
@@ -95,19 +96,19 @@ func (s *TestSuite) TestPostPublicCircleOK(c *C) {
 	if res, err := req.PostCircles(sessionid, "MyPublicCircle", true); err != nil {
 		c.Error(err)
 	} else {
-		data := struct {
-			Response string
-			Chief    string
-			Name     string
-			Public   bool
-			Id       string
-		}{}
-		c.Check(res.StatusCode, Equals, 201)
+		data := types.CircleResponse{}
 		helper.Unmarshal(res, &data)
-		c.Check(data.Response, Equals, "Created new circle!")
-		c.Check(data.Chief, Equals, "handleA")
+		c.Check(res.StatusCode, Equals, 201)
 		c.Check(data.Name, Equals, "MyPublicCircle")
-		c.Check(data.Public, Equals, true)
+		// [TODO] This can be improved, not best way to assure correct url
+		c.Check(data.Url, Not(Equals), "")
+		c.Check(data.Owner, Equals, "handleA")
+		c.Check(data.Description, Equals, "")
+		c.Check(data.Visibility, Equals, "public")
+		// [TODO] This can be improved, not best way to assure correct members url
+		c.Check(data.Members, Not(Equals), "")
+		// [TODO] This can be improved, not best way to assure correct date
+		c.Check(data.Created, Not(Equals), time.Time{})
 	}
 }
 
@@ -118,19 +119,19 @@ func (s *TestSuite) TestPostPrivateCircleOK(c *C) {
 	if res, err := req.PostCircles(sessionid, "MyPrivateCircle", false); err != nil {
 		c.Error(err)
 	} else {
-		data := struct {
-			Response string
-			Chief    string
-			Name     string
-			Public   bool
-			Id       string
-		}{}
+		data := types.CircleResponse{}
 		helper.Unmarshal(res, &data)
 		c.Check(res.StatusCode, Equals, 201)
-		c.Check(data.Response, Equals, "Created new circle!")
-		c.Check(data.Chief, Equals, "handleA")
 		c.Check(data.Name, Equals, "MyPrivateCircle")
-		c.Check(data.Public, Equals, false)
+		// [TODO] This can be improved, not best way to assure correct url
+		c.Check(data.Url, Not(Equals), "")
+		c.Check(data.Owner, Equals, "handleA")
+		c.Check(data.Description, Equals, "")
+		c.Check(data.Visibility, Equals, "private")
+		// [TODO] This can be improved, not best way to assure correct members url
+		c.Check(data.Members, Not(Equals), "")
+		// [TODO] This can be improved, not best way to assure correct date
+		c.Check(data.Created, Not(Equals), time.Time{})
 	}
 }
 

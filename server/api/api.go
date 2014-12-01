@@ -328,19 +328,12 @@ func (a Api) NewCircle(w rest.ResponseWriter, r *rest.Request) {
 		a.Util.FailedToDetermineHandleFromAuthToken(w)
 		return
 	} else {
-
-		if circleid, ok := a.Svc.NewCircle(handle, circleName, isPublic); !ok {
+		if circleResponse, ok := a.Svc.NewCircle(handle, circleName, isPublic); !ok {
 			a.Util.SimpleJsonReason(w, 400, "Unexpected failure to create circle")
 			return
 		} else {
 			w.WriteHeader(201)
-			w.WriteJson(types.Json{
-				"response": "Created new circle!",
-				"chief":    handle,
-				"name":     circleName,
-				"public":   isPublic,
-				"id":       circleid,
-			})
+			w.WriteJson(circleResponse)
 		}
 	}
 }
