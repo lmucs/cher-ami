@@ -53,7 +53,7 @@ public class SearchActivity extends Activity {
         params.put("sort", "joined");
 
         client.addHeader("Authorization", token);
-        client.get(this.getApplicationContext(), "http://" + ApiHelper.getLocalUrlForApi(getResources()) + "/api/users", params, new AsyncHttpResponseHandler() {
+        client.get(this.getApplicationContext(), ApiHelper.getLocalUrlForApi(getResources()) + "users", params, new AsyncHttpResponseHandler() {
 
             @Override
             public void onStart() {

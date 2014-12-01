@@ -195,7 +195,7 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
 
 
         client.addHeader("Authorization", token);
-        client.delete(this.getApplicationContext(), "http://" + ApiHelper.getLocalUrlForApi(getResources()) + "/api/sessions",
+        client.delete(this.getApplicationContext(), ApiHelper.getLocalUrlForApi(getResources()) + "sessions",
                 new AsyncHttpResponseHandler() {
 
                     @Override

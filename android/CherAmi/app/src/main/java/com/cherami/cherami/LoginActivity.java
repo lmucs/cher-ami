@@ -105,7 +105,7 @@ public class LoginActivity extends Activity {
     public void attemptLoginAccount() {
         AsyncHttpClient client = new AsyncHttpClient();
 
-        client.post(this.getApplicationContext(), "http://" + ApiHelper.getLocalUrlForApi(getResources()) + "/api/sessions",
+        client.post(this.getApplicationContext(), ApiHelper.getLocalUrlForApi(getResources()) + "sessions",
                 convertJsonUserToStringEntity(getUserObjectRequestAsJson()), "application/json",
                 new AsyncHttpResponseHandler() {
 

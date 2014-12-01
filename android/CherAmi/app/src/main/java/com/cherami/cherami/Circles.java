@@ -126,7 +126,7 @@ public class Circles extends Fragment {
         final View view2 = view;
 
         client.addHeader("Authorization", token);
-        client.get(getActivity().getApplicationContext(), "http://" + ApiHelper.getLocalUrlForApi(getResources()) + "/api/circles",
+        client.get(getActivity().getApplicationContext(), ApiHelper.getLocalUrlForApi(getResources()) + "circles",
                    params, new AsyncHttpResponseHandler() {
 
             @Override

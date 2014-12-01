@@ -105,7 +105,7 @@ public class Profile extends Fragment {
 
         client.addHeader("Authorization", token);
         client.get(getActivity().getApplicationContext(),
-                   "http://" + ApiHelper.getLocalUrlForApi(getResources()) + "/api/messages",
+                   ApiHelper.getLocalUrlForApi(getResources()) + "messages",
                    new AsyncHttpResponseHandler() {
 
             @Override

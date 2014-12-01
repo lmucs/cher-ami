@@ -115,7 +115,7 @@ public class CreateCircleModal extends DialogFragment {
 
 
         client.addHeader("Authorization", token);
-        client.post(getActivity().getApplicationContext(), "http://" + ApiHelper.getLocalUrlForApi(getResources()) + "/api/circles",
+        client.post(getActivity().getApplicationContext(), ApiHelper.getLocalUrlForApi(getResources()) + "circles",
                 convertJsonUserToStringEntity(getCreateCircleParamsAsJson()), "application/json",
                 new AsyncHttpResponseHandler() {
 

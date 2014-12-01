@@ -99,7 +99,7 @@ public class SignUpActivity extends Activity {
     public void getAuthToken() {
         AsyncHttpClient client = new AsyncHttpClient();
 
-        client.post(this.getApplicationContext(), "http://" + ApiHelper.getLocalUrlForApi(getResources()) + "/api/sessions",
+        client.post(this.getApplicationContext(), ApiHelper.getLocalUrlForApi(getResources()) + "sessions",
                 convertJsonUserToStringEntity(getLoginObjectRequestAsJson()), "application/json",
                 new AsyncHttpResponseHandler() {
 
@@ -170,7 +170,7 @@ public class SignUpActivity extends Activity {
     public void attemptCreateAccount() {
         AsyncHttpClient client = new AsyncHttpClient();
 
-        client.post(this.getApplicationContext(), "http://" + ApiHelper.getLocalUrlForApi(getResources()) + "/api/signup",
+        client.post(this.getApplicationContext(), ApiHelper.getLocalUrlForApi(getResources()) + "signup",
                     convertJsonUserToStringEntity(getUserObjectRequestAsJson()), "application/json",
                     new AsyncHttpResponseHandler() {
 
@@ -178,7 +178,6 @@ public class SignUpActivity extends Activity {
             public void onStart() {
                 // called before request is started
                 System.out.println("STARTING POST REQUEST");
-
             }
 
             @Override
