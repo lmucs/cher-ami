@@ -57,6 +57,10 @@ func MakeCircleMembersUrl(circleid string) string {
 	return MakeCircleUrl(circleid) + "/members"
 }
 
+func MakeMessageUrl(messageid string) string {
+	return API_URL + "/messages/" + messageid
+}
+
 func formatCircleView(c query.CircleView) types.CircleResponse {
 	var visibility string
 	if c.Private != nil {
@@ -141,8 +145,14 @@ func (s Svc) NewCircle(handle, circleName string, isPublic bool) (types.CircleRe
 	return formatCircleView(view), ok
 }
 
-func (s Svc) NewMessage(handle, content string) (messageid string, ok bool) {
-	return s.Query.CreateMessage(handle, content)
+func (s Svc) NewMessage(handle, content string) (message types.MessageView, ok bool) {
+	m, ok := s.Query.CreateMessage(handle, content)
+	if ok {
+		m.Url = MakeMessageUrl(m.Id)
+		return m, ok
+	} else {
+		return types.MessageView{}, ok
+	}
 }
 
 func (s Svc) PublishMessageToCircle(messageid, circleid string) bool {

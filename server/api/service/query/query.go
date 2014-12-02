@@ -75,13 +75,6 @@ const (
 
 // Return types //
 
-type Message struct {
-	Id      string    `json:"m.id"`
-	Author  string    `json:"t.handle"`
-	Content string    `json:"m.content"`
-	Created time.Time `json:"m.created"`
-}
-
 type CircleView struct {
 	Name        string               `json:"c.name"`
 	Id          string               `json:"c.id"`
@@ -220,11 +213,8 @@ func (q Query) CreateCircle(handle, circleName string, isPublic bool) (CircleVie
 	}
 }
 
-func (q Query) CreateMessage(handle, content string) (messageid string, ok bool) {
-	created := []struct {
-		Content string `json:"m.content"`
-		Id      string `json:"m.id"`
-	}{}
+func (q Query) CreateMessage(handle, content string) (message types.MessageView, ok bool) {
+	created := make([]types.MessageView, 0)
 	q.cypherOrPanic(&neoism.CypherQuery{
 		Statement: `
             MATCH   (u:User)
@@ -236,7 +226,10 @@ func (q Query) CreateMessage(handle, content string) (messageid string, ok bool)
               , id:        {id}
             })
             CREATE  (u)-[r:WROTE]->(m)
-            RETURN  m.content, m.id
+            RETURN  m.id      AS id
+                 ,  m.content AS content
+                 ,  u.handle  AS author
+                 ,  m.created AS created
         `,
 		Parameters: neoism.Props{
 			"handle":  handle,
@@ -248,9 +241,9 @@ func (q Query) CreateMessage(handle, content string) (messageid string, ok bool)
 	})
 
 	if ok = len(created) > 0; ok {
-		return created[0].Id, ok
+		return created[0], ok
 	} else {
-		return "", ok
+		return types.MessageView{}, ok
 	}
 }
 

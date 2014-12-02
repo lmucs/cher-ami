@@ -440,24 +440,20 @@ func (a Api) NewMessage(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	if messageid, success := a.Svc.NewMessage(handle, content); !success {
+	if message, ok := a.Svc.NewMessage(handle, content); !ok {
 		a.Util.SimpleJsonReason(w, 500, "Unexpected failure to create message")
 		return
 	} else {
 		if len(circles) > 0 {
 			for _, circleid := range circles {
-				if !a.Svc.PublishMessageToCircle(messageid, circleid) {
+				if !a.Svc.PublishMessageToCircle(message.Id, circleid) {
 					a.Util.SimpleJsonReason(w, 400, "Failed to publish to one of circles provided")
 					return
 				}
 			}
 		}
 		w.WriteHeader(201)
-		w.WriteJson(types.Json{
-			"response":     "Successfully created message for " + handle,
-			"id":           messageid,
-			"published_to": circles,
-		})
+		w.WriteJson(message)
 	}
 }
 

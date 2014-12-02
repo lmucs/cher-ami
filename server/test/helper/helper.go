@@ -4,11 +4,13 @@ import (
 	"../../types"
 	b "bytes"
 	"encoding/json"
+	// "fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	u "net/url"
 	"strconv"
+	"strings"
 )
 
 //
@@ -127,6 +129,15 @@ func GetUrlFromResponse(r *http.Response) string {
 	f := fields{}
 	Unmarshal(r, &f)
 	return f.Url
+}
+
+func GetIdFromUrlField(r *http.Response) string {
+	return GetIdFromUrlString(GetUrlFromResponse(r))
+}
+
+func GetIdFromUrlString(url string) string {
+	split := strings.Split(url, "/")
+	return split[len(split)-1]
 }
 
 //

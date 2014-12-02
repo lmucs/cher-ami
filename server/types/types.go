@@ -39,3 +39,11 @@ type MessageResponseView struct {
 	Objects []MessageView `json:"objects"`
 	Count   int           `json:"count"`
 }
+
+//
+// Test types
+//
+
+type ReasonCatcher struct {
+	Reason string `json:"reason"`
+}

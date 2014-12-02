@@ -3,9 +3,7 @@ package api_test
 import (
 	"../types"
 	"./helper"
-	encoding "encoding/json"
 	. "gopkg.in/check.v1"
-	"time"
 )
 
 //
@@ -75,23 +73,18 @@ func (s *TestSuite) TestGetAuthoredMessagesOK(c *C) {
 
 	res, _ := req.GetAuthoredMessages(sessionid)
 
-	data := struct {
-		Response string
-		Objects  []MessageData
-		Count    int
-	}{}
+	data := types.MessageResponseView{}
 
 	helper.Unmarshal(res, &data)
-	objects := data.Objects
+	o := data.Objects
 
-	c.Check(data.Response, Equals, "Found messages for user handleA")
 	c.Check(res.StatusCode, Equals, 200)
 	c.Check(data.Count, Equals, 4)
-	c.Check(objects[0].Author, Equals, "handleA")
-	c.Check(objects[0].Content, Equals, "Go is going gophers!")
-	c.Check(objects[1].Content, Equals, "Hypothesize about stuff")
-	c.Check(objects[2].Content, Equals, "The nearest exit may be behind you")
-	c.Check(objects[3].Content, Equals, "I make soap.")
+	c.Check(o[0].Author, Equals, "handleA")
+	c.Check(o[0].Content, Equals, "Go is going gophers!")
+	c.Check(o[1].Content, Equals, "Hypothesize about stuff")
+	c.Check(o[2].Content, Equals, "The nearest exit may be behind you")
+	c.Check(o[3].Content, Equals, "I make soap.")
 }
 
 //
@@ -126,23 +119,23 @@ func (s *TestSuite) TestGetMessageByIdDoesNotExist(c *C) {
 
 	if res, _ := req.GetMessageById("some_id", sessionid); true {
 		c.Check(res.StatusCode, Equals, 404)
-		message_response := MessageResponse{}
-		helper.Unmarshal(res, &message_response)
-		c.Check(message_response.Reason, Equals, "No such message with id some_id could be found")
+		catcher := types.ReasonCatcher{}
+		helper.Unmarshal(res, &catcher)
+		c.Check(catcher.Reason, Equals, "No such message with id some_id could be found")
 	}
 
 	if res, _ := req.GetMessageById("another-wrong-id", sessionid); true {
 		c.Check(res.StatusCode, Equals, 404)
-		message_response := MessageResponse{}
-		helper.Unmarshal(res, &message_response)
-		c.Check(message_response.Reason, Equals, "No such message with id another-wrong-id could be found")
+		catcher := types.ReasonCatcher{}
+		helper.Unmarshal(res, &catcher)
+		c.Check(catcher.Reason, Equals, "No such message with id another-wrong-id could be found")
 	}
 
 	if res, _ := req.GetMessageById("2", sessionid); true {
 		c.Check(res.StatusCode, Equals, 404)
-		message_response := MessageResponse{}
-		helper.Unmarshal(res, &message_response)
-		c.Check(message_response.Reason, Equals, "No such message with id 2 could be found")
+		catcher := types.ReasonCatcher{}
+		helper.Unmarshal(res, &catcher)
+		c.Check(catcher.Reason, Equals, "No such message with id 2 could be found")
 	}
 }
 
@@ -159,9 +152,10 @@ func (s *TestSuite) TestGetMessageByIdUserBlocked(c *C) {
 	// handleA attempts to retrieve
 	if res, _ := req.GetMessageByUrl(message_url, sessionid_A); true {
 		c.Check(res.StatusCode, Equals, 404)
-		message_response := MessageResponse{}
-		helper.Unmarshal(res, &message_response)
-		c.Check(message_response.Reason, Equals, "No such message with id "+message_url+" could be found")
+		catcher := types.ReasonCatcher{}
+		helper.Unmarshal(res, &catcher)
+		id := helper.GetIdFromUrlString(message_url)
+		c.Check(catcher.Reason, Equals, "No such message with id "+id+" could be found")
 	}
 }
 
@@ -177,37 +171,31 @@ func (s *TestSuite) TestGetMessageByIdPrivateCircle(c *C) {
 
 	if res, _ := req.GetMessageByUrl(message_url, sessionid_A); true {
 		c.Check(res.StatusCode, Equals, 404)
-		message_response := MessageResponse{}
-		helper.Unmarshal(res, &message_response)
-		c.Check(message_response.Reason, Equals, "No such message with id "+message_url+" could be found")
+		catcher := types.ReasonCatcher{}
+		helper.Unmarshal(res, &catcher)
+		id := helper.GetIdFromUrlString(message_url)
+		c.Check(catcher.Reason, Equals, "No such message with id "+id+" could be found")
 	}
-
 }
 
 // Successful retrieval by id
 func (s *TestSuite) TestGetMessageByIdOK(c *C) {
 	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
 	req.PostSignup("handleB", "testB@test.io", "password2", "password2")
-
 	sessionid_A := req.PostSessionGetAuthToken("handleA", "password1")
 	sessionid_B := req.PostSessionGetAuthToken("handleB", "password2")
 
 	circleid_1 := req.PostCircleGetCircleId(sessionid_A, "MyPublicCircle", true)
 	req.PostJoin(sessionid_B, "handleA", "MyPublicCircle")
-	messageid_url := req.PostMessageWithCirclesGetMessageUrl("Go is going gophers!", sessionid_A, []string{circleid_1})
+	message_url := req.PostMessageWithCirclesGetMessageUrl("Go is going gophers!", sessionid_A, []string{circleid_1})
 
-	if res, _ := req.GetMessageById(messageid_url, sessionid_B); true {
+	if res, _ := req.GetMessageByUrl(message_url, sessionid_B); true {
+		m := types.MessageView{}
+		helper.Unmarshal(res, &m)
+
 		c.Check(res.StatusCode, Equals, 200)
-		var (
-			message_response MessageResponse
-			msg              MessageData
-		)
-		helper.Unmarshal(res, &message_response)
-		encoding.Unmarshal([]byte(message_response.Object), &msg)
-		c.Check(message_response.Response, Equals, "Found message!")
-		c.Check(msg.Url, Equals, messageid_url)
-		c.Check(msg.Author, Equals, "handleA")
-		c.Check(msg.Content, Equals, "Go is going gophers!")
+		c.Check(m.Author, Equals, "handleA")
+		c.Check(m.Content, Equals, "Go is going gophers!")
 	}
 }
 

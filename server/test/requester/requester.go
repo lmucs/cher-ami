@@ -10,7 +10,6 @@ import (
 	helper "../helper/"
 	"fmt"
 	"net/http"
-	"strings"
 )
 
 // Routes stored in a struct
@@ -94,8 +93,8 @@ func (req Requester) GetMessageById(id, token string) (*http.Response, error) {
 }
 
 func (req Requester) GetMessageByUrl(url, token string) (*http.Response, error) {
-	split := strings.Split(url, "/")
-	return req.GetMessageById(split[len(split)-1], token)
+	id := helper.GetIdFromUrlString(url)
+	return req.GetMessageById(id, token)
 }
 
 func (req Requester) GetUser(handle string) (*http.Response, error) {
@@ -148,7 +147,7 @@ func (req Requester) PostCircleGetCircleId(token string, circleName string, publ
 		panic(err)
 	}
 
-	return helper.GetIdFromResponse(res)
+	return helper.GetIdFromUrlField(res)
 }
 
 func (req Requester) GetCircles(payload types.Json) (*http.Response, error) {
@@ -204,14 +203,15 @@ func (req Requester) PostMessageWithCirclesGetMessageUrl(content string, token s
 		"token":   token,
 		"circles": circles,
 	}
-
-	res, err := helper.Execute("POST", req.Routes.messagesURL, payload)
-
-	if err != nil {
+	if res, err := helper.Execute("POST", req.Routes.messagesURL, payload); err != nil {
 		panic(err)
+	} else {
+		return helper.GetUrlFromResponse(res)
 	}
+}
 
-	return helper.GetUrlFromResponse(res)
+func (req Requester) PostMessageWithCirclesGetMessageId(content, token string, circles []string) string {
+	return helper.GetIdFromUrlString(req.PostMessageWithCirclesGetMessageUrl(content, token, circles))
 }
 
 func (req Requester) EditMessage(payload []types.Json, id string, token string) (*http.Response, error) {
