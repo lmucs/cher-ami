@@ -82,6 +82,8 @@ public class CreateCircleModal extends DialogFragment {
         EditText circleName = (EditText) root.findViewById(R.id.circleName);
         RadioButton publicRadioButton = (RadioButton) root.findViewById(R.id.publicRadioButton);
         Boolean isCirclePublic = publicRadioButton.isChecked();
+        System.out.println(publicRadioButton.isChecked());
+        String visibilitySetting = publicRadioButton.isChecked() ? "public" : "private";
 
         try {
             jsonParams.put("CircleName", circleName.getText().toString());
@@ -111,8 +113,6 @@ public class CreateCircleModal extends DialogFragment {
         AsyncHttpClient client = new AsyncHttpClient();
         String sessionKey = "com.cherami.cherami.token";
         String token = prefs.getString(sessionKey, null);
-        System.out.println("Token: " + token);
-
 
         client.addHeader("Authorization", token);
         client.post(getActivity().getApplicationContext(), ApiHelper.getLocalUrlForApi(getResources()) + "circles",
@@ -134,12 +134,13 @@ public class CreateCircleModal extends DialogFragment {
                         String responseText = null;
                         try {
                             responseText = new JSONObject(new String(response)).getString("response");
+                            System.out.println(new JSONObject(new String(response)).toString());
                         } catch (JSONException j) {
                             System.out.println("Dont like JSON");
                         }
 
                         Log.d("Status Code: ", Integer.toString(statusCode));
-                        System.out.println("SUCCESSFUL CIRCLE POST");
+
                         dismissModal();
                         Toast toast = Toast.makeText(getActivity().getApplicationContext(), responseText, Toast.LENGTH_LONG);
                         toast.show();

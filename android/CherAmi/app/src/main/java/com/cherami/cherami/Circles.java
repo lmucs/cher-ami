@@ -7,11 +7,13 @@ import android.content.res.AssetManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.Toast;
@@ -28,6 +30,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Properties;
 
 
@@ -51,6 +54,7 @@ public class Circles extends Fragment {
     private String mParam2;
     private Spinner spinner;
     SharedPreferences prefs;
+    CircleAdapter adapter;
 
     private OnFragmentInteractionListener mListener;
 
@@ -89,20 +93,54 @@ public class Circles extends Fragment {
 
     }
 
+    public void filterCircles () {
+        System.out.println("FILTERING CIRCLES!");
+        String value = spinner.getSelectedItem().toString();
+        Log.d("SPINNER VALUE:", value);
+        CircleAdapter newCircleAdapter;
+
+        try {
+            Circle [] circleData = Circles.this.adapter.getData();
+
+            if (value.equals("All")) {
+                newCircleAdapter = new CircleAdapter(getActivity(),
+                        R.layout.circle_item_row, circleData);
+            } else {
+                ArrayList<Circle> filteredCircles = new ArrayList<Circle>();
+                for (int i = 0; i < circleData.length; i++) {
+                    if (circleData[i].visibility.equals(value.toLowerCase())) {
+                        filteredCircles.add(circleData[i]);
+                    }
+                }
+
+                Circle [] newCircleData = filteredCircles.toArray(new Circle[filteredCircles.size()]);
+                newCircleAdapter = new CircleAdapter(getActivity(),
+                        R.layout.circle_item_row, newCircleData);
+            }
+
+            circleList = (ListView) Circles.this.getView().findViewById(R.id.circleList);
+            circleList.setAdapter(newCircleAdapter);
+
+        } catch (NullPointerException n) {
+            System.out.println("NO DATA YET!");
+        }
+
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         View rootView = inflater.inflate(R.layout.fragment_circles, container, false);
-
         getCircles(rootView);
 
         // Get the filter value
         spinner = (Spinner) rootView.findViewById(R.id.filter_spinner);
+
+
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             public void onItemSelected(AdapterView<?> parent, View view,
                                        int position, long id) {
-                String value = spinner.getSelectedItem().toString();
-                System.out.println("Value: " + value);
+                filterCircles();
             }
 
             @Override
@@ -113,6 +151,10 @@ public class Circles extends Fragment {
 
         // Inflate the layout for this fragment
         return rootView;
+    }
+
+    public void setCircleAdapter (CircleAdapter circleAdapter) {
+        this.adapter = circleAdapter;
     }
 
     public void getCircles(View view) {
@@ -141,20 +183,26 @@ public class Circles extends Fragment {
                 try {
                     responseText = new JSONObject(new String(responseBody)).getString("results");
                     JSONArray y = new JSONArray(responseText);
+                    System.out.println(y.toString());
                     Circle circle_data[] = new Circle[y.length()];
                     for (int x = 0; x < y.length(); x++) {
-                        circle_data[x] = new Circle(new JSONObject(y.get(x).toString()).getString("name"), new JSONObject(y.get(x).toString()).getString("owner"), processDate(new JSONObject(y.get(x).toString()).getString("created")));
+
+                        circle_data[x] = new Circle(new JSONObject(y.get(x).toString()).getString("name"),
+                                                    new JSONObject(y.get(x).toString()).getString("owner"),
+                                                    processDate(new JSONObject(y.get(x).toString()).getString("created")),
+                                                    new JSONObject(y.get(x).toString()).getString("visibility"));
                     }
 
                     CircleAdapter adapter = new CircleAdapter(getActivity(),
                             R.layout.circle_item_row, circle_data);
-
+                    Circles.this.setCircleAdapter(adapter);
                     circleList = (ListView) view2.findViewById(R.id.circleList);
 
                     circleList.setAdapter(adapter);
                 } catch (JSONException j) {
                     System.out.println(j);
                 }
+                filterCircles();
             }
 
             @Override

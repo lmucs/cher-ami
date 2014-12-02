@@ -56,4 +56,8 @@ public class CircleAdapter extends ArrayAdapter<Circle> {
         TextView txtOwner;
         TextView txtDate;
     }
+
+    public Circle [] getData () {
+        return this.data;
+    }
 }
