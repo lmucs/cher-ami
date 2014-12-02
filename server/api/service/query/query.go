@@ -1,7 +1,7 @@
 package query
 
 import (
-	// "../../../types"
+	"../../../types"
 	"encoding/json"
 	"fmt"
 	"github.com/dchest/uniuri"
@@ -677,13 +677,16 @@ func (q Query) GetCircleIdByName(handle, circleName string) (circleid string) {
 	}
 }
 
-func (q Query) GetAllMessagesByHandle(target string) []Message {
-	messages := make([]Message, 0)
+func (q Query) GetAllMessagesByHandle(target string) []types.MessageView {
+	messages := make([]types.MessageView, 0)
 	q.cypherOrPanic(&neoism.CypherQuery{
 		Statement: `
             MATCH     (t:User)-[:WROTE]->(m:Message)
             WHERE     t.handle = {target}
-            RETURN    m.id, t.handle, m.content, m.created
+            RETURN    m.id      AS id
+                 ,    t.handle  AS author
+                 ,    m.content AS content
+                 ,    m.created AS created
             ORDER BY  m.created
         `,
 		Parameters: neoism.Props{
@@ -694,14 +697,17 @@ func (q Query) GetAllMessagesByHandle(target string) []Message {
 	return messages
 }
 
-func (q Query) GetVisibleMessageById(handle, messageid string) (message *Message, found bool) {
-	messages := make([]Message, 0)
+func (q Query) GetVisibleMessageById(handle, messageid string) (message types.MessageView, ok bool) {
+	messages := make([]types.MessageView, 0)
 	q.cypherOrPanic(&neoism.CypherQuery{
 		Statement: `
 			MATCH   (t:User)-[:WROTE]->(m:Message)-[:PUB_TO]->(c:Circle)<-[:MEMBER_OF|OWNS]-(u:User)
 			WHERE   u.handle = {handle}
             AND     m.id     = {messageid}
-			RETURN  m.id, t.handle, m.content, m.created
+			RETURN  m.id      AS id
+                 ,  t.handle  AS author
+                 ,  m.content AS content
+                 ,  m.created AS created
 		`,
 		Parameters: neoism.Props{
 			"handle":    handle,
@@ -709,10 +715,10 @@ func (q Query) GetVisibleMessageById(handle, messageid string) (message *Message
 		},
 		Result: &messages,
 	})
-	if ok := len(messages) > 0; ok {
-		return &messages[0], ok
+	if ok = len(messages) > 0; ok {
+		return messages[0], ok
 	} else {
-		return nil, ok
+		return types.MessageView{}, ok
 	}
 }
 

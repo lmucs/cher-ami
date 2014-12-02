@@ -209,12 +209,11 @@ func (s Svc) GetCircleId(handle, circleName string) (circleid string) {
 	return s.Query.GetCircleIdByName(handle, circleName)
 }
 
-func (s Svc) GetMessagesByHandle(target string) []query.Message {
+func (s Svc) GetMessagesByHandle(target string) []types.MessageView {
 	return s.Query.GetAllMessagesByHandle(target)
 }
 
-func (s Svc) GetVisibleMessageById(handle, messageid string,
-) (message *query.Message, ok bool) {
+func (s Svc) GetVisibleMessageById(handle, messageid string) (message types.MessageView, ok bool) {
 	return s.Query.GetVisibleMessageById(handle, messageid)
 }
 

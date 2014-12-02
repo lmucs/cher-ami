@@ -4,7 +4,6 @@ import (
 	"../types"
 	"./service"
 	apiutil "./util"
-	encoding "encoding/json"
 	"github.com/ChimeraCoder/go.crypto/bcrypt"
 	"github.com/ant0ine/go-json-rest/rest"
 	"net/http"
@@ -405,12 +404,9 @@ func (a Api) SearchCircles(w rest.ResponseWriter, r *rest.Request) {
 // Messages
 //
 
-type MessageData struct {
-	Id      string    `json:"id"`
-	Url     string    `json:"url"`
-	Author  string    `json:"author"`
-	Content string    `json:"content"`
-	Created time.Time `json:"created"`
+func makeMessageUrl(m *types.MessageView) {
+	// [TODO] hard-coded url/port...
+	m.Url = "<url>:<port>/api/messages/" + m.Id
 }
 
 /**
@@ -479,23 +475,14 @@ func (a Api) GetAuthoredMessages(w rest.ResponseWriter, r *rest.Request) {
 		return
 	} else {
 		messages := a.Svc.GetMessagesByHandle(author)
-		messageData := make([]MessageData, len(messages))
-
 		for i := 0; i < len(messages); i++ {
-			messageData[i] = MessageData{
-				messages[i].Id,
-				"<url>:<port>/api/messages/" + messages[i].Id, // hard-coded url/port...
-				messages[i].Author,
-				messages[i].Content,
-				messages[i].Created,
-			}
+			makeMessageUrl(&messages[i])
 		}
 
 		w.WriteHeader(200)
-		w.WriteJson(types.Json{
-			"response": "Found messages for user " + author,
-			"objects":  messageData,
-			"count":    len(messageData),
+		w.WriteJson(types.MessageResponseView{
+			Objects: messages,
+			Count:   len(messages),
 		})
 	}
 }
@@ -515,23 +502,10 @@ func (a Api) GetMessageById(w rest.ResponseWriter, r *rest.Request) {
 	}
 
 	if message, ok := a.Svc.GetVisibleMessageById(handle, id); ok {
-		data := MessageData{
-			message.Id,
-			"<url>:<port>/api/messages/" + message.Id, // hard-coded url/port...
-			message.Author,
-			message.Content,
-			message.Created,
-		}
+		makeMessageUrl(&message)
 
-		if b, err := encoding.Marshal(data); err != nil {
-			panicErr(err)
-		} else {
-			w.WriteHeader(200)
-			w.WriteJson(types.Json{
-				"response": "Found message!",
-				"object":   string(b),
-			})
-		}
+		w.WriteHeader(200)
+		w.WriteJson(message)
 	} else {
 		a.Util.SimpleJsonReason(w, 404, "No such message with id "+id+" could be found")
 		return

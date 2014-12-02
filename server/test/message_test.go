@@ -8,20 +8,6 @@ import (
 	"time"
 )
 
-// Testing Structs
-type MessageData struct {
-	Url     string    `json:"url"`
-	Author  string    `json:"author"`
-	Content string    `json:"content"`
-	Created time.Time `json:"created"`
-}
-
-type MessageResponse struct {
-	Response string      `json:"response"`
-	Reason   string      `json:"reason"`
-	Object   MessageData `json:"object"`
-}
-
 //
 // Post Message Tests
 //
