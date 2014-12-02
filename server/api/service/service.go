@@ -61,9 +61,9 @@ func MakeMessageUrl(messageid string) string {
 	return API_URL + "/messages/" + messageid
 }
 
-func formatCircleView(c query.CircleView) types.CircleResponse {
+func formatCircleView(c query.RawCircleView) types.CircleResponse {
 	var visibility string
-	if c.Private != nil {
+	if c.Public == nil {
 		visibility = "private"
 	} else {
 		visibility = "public"

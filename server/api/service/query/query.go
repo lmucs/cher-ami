@@ -75,13 +75,13 @@ const (
 
 // Return types //
 
-type CircleView struct {
-	Name        string               `json:"c.name"`
-	Id          string               `json:"c.id"`
-	Description string               `json:"c.description"`
-	Created     time.Time            `json:"c.created"`
-	Owner       string               `json:"ownerName"`
-	Private     *neoism.Relationship `json:"partOf"`
+type RawCircleView struct {
+	Name        string               `json:"name"`
+	Id          string               `json:"id"`
+	Description string               `json:"description"`
+	Created     time.Time            `json:"created"`
+	Owner       string               `json:"owner"`
+	Public      *neoism.Relationship `json:"public"`
 }
 
 //
@@ -170,13 +170,13 @@ func (q Query) CreateDefaultCirclesForUser(handle string) bool {
 	return len(created) > 0
 }
 
-func (q Query) CreateCircle(handle, circleName string, isPublic bool) (CircleView, bool) {
-	created := []CircleView{}
+func (q Query) CreateCircle(handle, circleName string, isPublic bool) (RawCircleView, bool) {
+	created := []RawCircleView{}
 
 	query := `
         MATCH   (u:User), (p:PublicDomain)
         WHERE   u.handle      = {handle}
-        AND     p.iam = "PublicDomain"
+        AND     p.iam         = "PublicDomain"
         CREATE  (u)-[:OWNS]->(c:Circle)
         SET     c.name        = {name}
         SET     c.id          = {id}
@@ -191,8 +191,13 @@ func (q Query) CreateCircle(handle, circleName string, isPublic bool) (CircleVie
 	}
 	query = query + `
 	    WITH    u, c, p
-		OPTIONAL MATCH (c)-[partOf:PART_OF]->(p)
-        RETURN    c.name, c.id, c.description, c.created, c.name AS ownerName, partOf
+		OPTIONAL MATCH (c)-[r:PART_OF]->(p)
+        RETURN  c.name        AS name
+             ,  c.id          AS id
+             ,  c.description AS description
+             ,  c.created     AS created
+             ,  u.handle      AS owner
+             ,  r             AS public
     `
 
 	q.cypherOrPanic(&neoism.CypherQuery{
@@ -209,7 +214,7 @@ func (q Query) CreateCircle(handle, circleName string, isPublic bool) (CircleVie
 	if ok := len(created) > 0; ok {
 		return created[0], ok
 	} else {
-		return CircleView{}, ok
+		return RawCircleView{}, ok
 	}
 }
 
@@ -581,8 +586,8 @@ func (q Query) SearchForUsers(circle, namePrefix string, skip, limit int, sortBy
 	}
 }
 
-func (q Query) SearchCircles(user string, before time.Time, limit int) (found []CircleView) {
-	found = make([]CircleView, 0)
+func (q Query) SearchCircles(user string, before time.Time, limit int) (found []RawCircleView) {
+	found = make([]RawCircleView, 0)
 
 	props := neoism.Props{
 		"limit":  limit,
@@ -617,7 +622,7 @@ func (q Query) SearchCircles(user string, before time.Time, limit int) (found []
 	})
 
 	if len(found) == 0 {
-		return []CircleView{}
+		return []RawCircleView{}
 	} else {
 		return found
 	}

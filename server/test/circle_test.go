@@ -3,6 +3,7 @@ package api_test
 import (
 	"../types"
 	"./helper"
+	"fmt"
 	. "gopkg.in/check.v1"
 	"time"
 )
@@ -91,9 +92,9 @@ func (s *TestSuite) TestPostCirclesNameEmpty(c *C) {
 
 func (s *TestSuite) TestPostPublicCircleOK(c *C) {
 	req.PostSignup("handleA", "test@test.io", "password1", "password1")
-	sessionid := req.PostSessionGetAuthToken("handleA", "password1")
+	token := req.PostSessionGetAuthToken("handleA", "password1")
 
-	if res, err := req.PostCircles(sessionid, "MyPublicCircle", true); err != nil {
+	if res, err := req.PostCircles(token, "MyPublicCircle", true); err != nil {
 		c.Error(err)
 	} else {
 		data := types.CircleResponse{}
@@ -114,9 +115,9 @@ func (s *TestSuite) TestPostPublicCircleOK(c *C) {
 
 func (s *TestSuite) TestPostPrivateCircleOK(c *C) {
 	req.PostSignup("handleA", "test@test.io", "password1", "password1")
-	sessionid := req.PostSessionGetAuthToken("handleA", "password1")
+	token := req.PostSessionGetAuthToken("handleA", "password1")
 
-	if res, err := req.PostCircles(sessionid, "MyPrivateCircle", false); err != nil {
+	if res, err := req.PostCircles(token, "MyPrivateCircle", false); err != nil {
 		c.Error(err)
 	} else {
 		data := types.CircleResponse{}
