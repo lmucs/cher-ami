@@ -133,8 +133,14 @@ func (s *TestSuite) TestLoginOK(c *C) {
 	if err != nil {
 		c.Error(err)
 	}
-
-	c.Check(helper.GetJsonResponseMessage(response), Equals, "Logged in handleA. Note your Authorization token.")
+	res := struct{
+		Handle string
+		Response string
+		Token string
+	}{}
+	helper.Unmarshal(response, &res)
+	c.Check(res.Handle, Equals, "handleA")
+	c.Check(res.Response, Equals, "Logged in handleA. Note your Authorization token.")
 	c.Check(response.StatusCode, Equals, 201)
 }
 

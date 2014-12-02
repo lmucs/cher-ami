@@ -21,6 +21,10 @@ define(function(require, exports, module) {
 
         getTokenValue: function() {
             return this.get("token")
+        },
+
+        getHandle: function() {
+            return this.get("handle")
         }
     });
 

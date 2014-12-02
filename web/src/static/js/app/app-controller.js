@@ -74,10 +74,14 @@ define(function(require, exports, module) {
         },
 
         showCircle: function(options) {
-            this.app.sidebarRegion.show(new SidebarView())
-            this.app.mainRegion.show(new CircleLayout({
-                session: this.app.session
-            }))
+            if (!this.app.session.hasAuth()) {
+                this.index();
+            } else {
+                this.app.sidebarRegion.show(new SidebarView())
+                this.app.mainRegion.show(new CircleLayout({
+                    session: this.app.session
+                }))
+            }
         },
 
         showProfile: function(options) {
