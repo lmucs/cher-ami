@@ -34,7 +34,8 @@ define(function(require, exports, module) {
                 location: this.ui.location.val(),
                 bio: this.ui.bio.val(),
                 interests: this.ui.interests.val(),
-                languages: this.ui.languages.val()
+                languages: this.ui.languages.val(),
+                session: this.session
             });
             console.log(req);
             req.save({patch: true}, {
@@ -43,7 +44,7 @@ define(function(require, exports, module) {
         },
 
         initialize: function(options) {
-            // this.session = options.session;
+            this.session = options.session;
         },
         
     });
