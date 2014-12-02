@@ -2,14 +2,14 @@ define(function(require, exports, module) {
 
     var backbone = require('backbone');
 
-    var Circle = require('app/models/circle').Circle;
+    var CreateCircle = require('app/models/create-circle').CreateCircle;
 
     var Circles = Backbone.Collection.extend({
         url: 'api/circles',
-        model: Circle,
+        model: CreateCircle,
 
         parse: function(response) {
-            // return JSON.parse(response.Objects);
+            return response.objects;
         },
 
         initialize: function() {
