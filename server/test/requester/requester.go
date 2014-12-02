@@ -197,6 +197,10 @@ func (req Requester) PostMessageGetMessageUrl(content, token string) string {
 	return helper.GetUrlFromResponse(res)
 }
 
+func (req Requester) PostMessageGetMessageId(content, token string) string {
+	return helper.GetIdFromUrlString(req.PostMessageGetMessageUrl(content, token))
+}
+
 func (req Requester) PostMessageWithCirclesGetMessageUrl(content string, token string, circles []string) string {
 	payload := types.Json{
 		"content": content,
