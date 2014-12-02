@@ -171,9 +171,9 @@ func (s Svc) SearchCircles(user string, before time.Time, limit int) (results []
 	for i, c := range circles {
 		var visibility string
 		if c.Private != nil {
-			visibility = "private"
-		} else {
 			visibility = "public"
+		} else {
+			visibility = "private"
 		}
 		formatted[i] = types.CircleResponse{
 			Name:        c.Name,
