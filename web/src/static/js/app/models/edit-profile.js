@@ -17,7 +17,7 @@ define(function(require, exports, module) {
         },
 
         initialize: function(options) {
-            this.session = options.session;
+            // this.session = options.session;
             console.log(this.get('firstname'));
             this.url = "/api/users/" + this.get('firstname');
         }

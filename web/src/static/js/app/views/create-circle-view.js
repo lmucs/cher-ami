@@ -2,6 +2,7 @@ define(function(require, exports, module) {
 
     var marionette = require('marionette');
     var template = require('hbs!../templates/create-circle-view')
+    var CircleView = require('app/views/circle-view').CircleView;
     var CreateCircle = require('app/models/create-circle').CreateCircle;
 
     var CreateCircleView = marionette.ItemView.extend({
@@ -27,9 +28,14 @@ define(function(require, exports, module) {
                 public: this.ui.visibility.val() === 'public',
                 visibility: this.ui.visibility.val(),
             });
-            console.log(this.ui.name.val()),
             console.log(req)
             req.save();
+            console.log("Circle Added");
+            this.collection.add(req);
+        },
+
+        initialize: function(options) {
+
         }
         
 
