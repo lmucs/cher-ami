@@ -4,11 +4,13 @@ import (
 	"../../types"
 	b "bytes"
 	"encoding/json"
+	// "fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	u "net/url"
 	"strconv"
+	"strings"
 )
 
 //
@@ -87,115 +89,76 @@ func GetWithQueryParams(url string, m map[string]interface{}) (*http.Response, e
 // Read Body of Response:
 //
 
-func GetJsonResponseMessage(response *http.Response) string {
-	var message struct {
-		Response string
-	}
-
-	if body, err := ioutil.ReadAll(response.Body); err != nil {
-		log.Fatal(err)
-	} else if err := json.Unmarshal(body, &message); err != nil {
-		log.Fatal(err)
-	}
-
-	return message.Response
+type fields struct {
+	Response string `json:"response"`
+	Reason   string `json:"reason"`
+	Handle   string `json:"handle"`
+	Name     string `json:"name"`
+	Token    string `json:"token"`
+	Id       string `json:"id"`
+	Url      string `json:"url"`
 }
 
-func GetJsonReasonMessage(response *http.Response) string {
-	var message struct {
-		Reason string
-	}
-
-	if body, err := ioutil.ReadAll(response.Body); err != nil {
-		log.Fatal(err)
-	} else if err := json.Unmarshal(body, &message); err != nil {
-		log.Fatal(err)
-	}
-
-	return message.Reason
-}
-
-func GetJsonValidationReasonMessage(response *http.Response) []string {
-	var message struct {
-		Reason []string
-	}
-
-	if body, err := ioutil.ReadAll(response.Body); err != nil {
-		log.Fatal(err)
-	} else if err := json.Unmarshal(body, &message); err != nil {
-		log.Fatal(err)
-	}
-
-	return message.Reason
-}
-
-func GetJsonPatchValidationReasonMessage(response *http.Response) ([]string, int) {
-	var message struct {
-		Reason []string
-		Index  int
-	}
-
-	if body, err := ioutil.ReadAll(response.Body); err != nil {
-		log.Fatal(err)
-	} else if err := json.Unmarshal(body, &message); err != nil {
-		log.Fatal(err)
-	}
-
-	return message.Reason, message.Index
-}
-
-func GetJsonUserData(response *http.Response) string {
-	var user struct {
-		Handle string
-		Name   string
-	}
-
-	if body, err := ioutil.ReadAll(response.Body); err != nil {
-		log.Fatal(err)
-	} else if err := json.Unmarshal(body, &user); err != nil {
-		log.Fatal(err)
-	}
-
-	return user.Handle
-}
-
-func Unmarshal(response *http.Response, v interface{}) {
-	if body, err := ioutil.ReadAll(response.Body); err != nil {
+func Unmarshal(r *http.Response, v interface{}) {
+	if body, err := ioutil.ReadAll(r.Body); err != nil {
 		log.Fatal(err)
 	} else if err := json.Unmarshal(body, &v); err != nil {
 		log.Fatal(err)
 	}
 }
 
-//
-// Read info from headers:
-//
-
-func GetAuthTokenFromResponse(response *http.Response) string {
-	var authentication struct {
-		Response string
-		Token    string
-	}
-
-	if body, err := ioutil.ReadAll(response.Body); err != nil {
-		log.Fatal(err)
-	} else if err := json.Unmarshal(body, &authentication); err != nil {
-		log.Fatal(err)
-	}
-
-	return authentication.Token
+func GetJsonResponseMessage(r *http.Response) string {
+	f := fields{}
+	Unmarshal(r, &f)
+	return f.Response
 }
 
-func GetIdFromResponse(response *http.Response) string {
-	var res struct {
-		Id string
-	}
+func GetJsonReasonMessage(r *http.Response) string {
+	f := fields{}
+	Unmarshal(r, &f)
+	return f.Reason
+}
 
-	if body, err := ioutil.ReadAll(response.Body); err != nil {
-		log.Fatal(err)
-	} else if err := json.Unmarshal(body, &res); err != nil {
-		log.Fatal(err)
+func GetJsonValidationReasonMessage(r *http.Response) []string {
+	var message struct {
+		Reason []string `json:"reason"`
 	}
+	Unmarshal(r, &message)
+	return message.Reason
+}
 
-	return res.Id
+func GetJsonPatchValidationReasonMessage(r *http.Response) ([]string, int) {
+	var message struct {
+		Reason []string `json:"reason"`
+		Index  int      `json:"index"`
+	}
+	Unmarshal(r, &message)
+	return message.Reason, message.Index
+}
+
+func GetJsonUserData(r *http.Response) string {
+	f := fields{}
+	Unmarshal(r, &f)
+	return f.Handle
+}
+
+func GetUrlFromResponse(r *http.Response) string {
+	f := fields{}
+	Unmarshal(r, &f)
+	return f.Url
+}
+
+func GetIdFromUrlField(r *http.Response) string {
+	return GetIdFromUrlString(GetUrlFromResponse(r))
+}
+
+func GetIdFromUrlString(url string) string {
+	split := strings.Split(url, "/")
+	return split[len(split)-1]
+}
+
+func GetAuthTokenFromResponse(r *http.Response) string {
+	f := fields{}
+	Unmarshal(r, &f)
+	return f.Token
 }

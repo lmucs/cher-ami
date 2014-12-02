@@ -112,3 +112,24 @@ type CircleResponse struct {
 	Members     string    `json:"members"`
 	Created     time.Time `json:"created"`
 }
+
+type MessageView struct {
+	Id      string    `json:"id"`
+	Url     string    `json:"url"`
+	Author  string    `json:"author"`
+	Content string    `json:"content"`
+	Created time.Time `json:"created"`
+}
+
+type MessageResponseView struct {
+	Objects []MessageView `json:"objects"`
+	Count   int           `json:"count"`
+}
+
+//
+// Test types
+//
+
+type ReasonCatcher struct {
+	Reason string `json:"reason"`
+}

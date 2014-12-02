@@ -49,6 +49,37 @@ func panicIfErr(err error) {
 	}
 }
 
+func MakeCircleUrl(circleid string) string {
+	return API_URL + "/circles/" + circleid
+}
+
+func MakeCircleMembersUrl(circleid string) string {
+	return MakeCircleUrl(circleid) + "/members"
+}
+
+func MakeMessageUrl(messageid string) string {
+	return API_URL + "/messages/" + messageid
+}
+
+func formatCircleView(c query.RawCircleView) types.CircleResponse {
+	var visibility string
+	if c.Public == nil {
+		visibility = "private"
+	} else {
+		visibility = "public"
+	}
+	formatted := types.CircleResponse{
+		Name:        c.Name,
+		Url:         MakeCircleUrl(c.Id),
+		Description: c.Description,
+		Owner:       c.Owner,
+		Visibility:  visibility,
+		Members:     MakeCircleMembersUrl(c.Id),
+		Created:     c.Created,
+	}
+	return formatted
+}
+
 //
 // Checks
 //
@@ -109,13 +140,19 @@ func (s Svc) MakeDefaultCirclesFor(handle string) bool {
 	return s.Query.CreateDefaultCirclesForUser(handle)
 }
 
-func (s Svc) NewCircle(handle, circleName string, isPublic bool,
-) (circleid string, ok bool) {
-	return s.Query.CreateCircle(handle, circleName, isPublic)
+func (s Svc) NewCircle(handle, circleName string, isPublic bool) (types.CircleResponse, bool) {
+	view, ok := s.Query.CreateCircle(handle, circleName, isPublic)
+	return formatCircleView(view), ok
 }
 
-func (s Svc) NewMessage(handle, content string) (messageid string, ok bool) {
-	return s.Query.CreateMessage(handle, content)
+func (s Svc) NewMessage(handle, content string) (message types.MessageView, ok bool) {
+	m, ok := s.Query.CreateMessage(handle, content)
+	if ok {
+		m.Url = MakeMessageUrl(m.Id)
+		return m, ok
+	} else {
+		return types.MessageView{}, ok
+	}
 }
 
 func (s Svc) PublishMessageToCircle(messageid, circleid string) bool {
@@ -169,27 +206,18 @@ func (s Svc) SearchCircles(user string, before time.Time, limit int) (results []
 	circles := s.Query.SearchCircles(user, before, limit)
 	formatted := make([]types.CircleResponse, len(circles))
 	for i, c := range circles {
-		var visibility string
-		if c.Private != nil {
-			visibility = "private"
-		} else {
-			visibility = "public"
-		}
-		formatted[i] = types.CircleResponse{
-			Name:        c.Name,
-			Url:         API_URL + "/circles/" + c.Id,
-			Description: c.Description,
-			Owner:       c.Owner,
-			Visibility:  visibility,
-			Members:     API_URL + "/circles/" + c.Id + "/members",
-			Created:     c.Created,
-		}
+		formatted[i] = formatCircleView(c)
 	}
 	return formatted, len(formatted)
 }
 
 func (s Svc) GetJoinedCircles(user string, skip, limit int) (results []types.CircleResponse, count int) {
-	return s.Query.GetJoinedCirclesByHandle(user, skip, limit)
+	circles, _ := s.Query.GetJoinedCirclesByHandle(user, skip, limit)
+	formatted := make([]types.CircleResponse, len(circles))
+	for i, c := range circles {
+		formatted[i] = formatCircleView(c)
+	}
+	return formatted, len(formatted)
 }
 
 func (s Svc) GetPasswordHash(handle string) (passwordHash []byte, ok bool) {
@@ -200,12 +228,11 @@ func (s Svc) GetCircleId(handle, circleName string) (circleid string) {
 	return s.Query.GetCircleIdByName(handle, circleName)
 }
 
-func (s Svc) GetMessagesByHandle(target string) []query.Message {
+func (s Svc) GetMessagesByHandle(target string) []types.MessageView {
 	return s.Query.GetAllMessagesByHandle(target)
 }
 
-func (s Svc) GetVisibleMessageById(handle, messageid string,
-) (message *query.Message, ok bool) {
+func (s Svc) GetVisibleMessageById(handle, messageid string) (message types.MessageView, ok bool) {
 	return s.Query.GetVisibleMessageById(handle, messageid)
 }
 
@@ -213,46 +240,44 @@ func (s Svc) GetHandleFromAuthorization(token string) (handle string, ok bool) {
 	return s.Query.DeriveHandleFromAuthToken(token)
 }
 
-func (s Svc) GetSelf(handle string) (result types.OwnUserView, ok bool) {
-	user := s.Query.GetVisibleUserByHandle(handle)
-	return types.OwnUserView{
-		Handle: user.Handle,
-		FirstName: user.FirstName,
-		LastName: user.LastName,
-		Gender: user.Gender,
-		Birthday: user.Birthday,
-		Bio: user.Bio,
-		Interests: user.Interests,
-		Languages: user.Languages,
-		Location: user.Location,
-		Circles: s.Query.GetJoinedCircles(handle, 0, 100),
-		Blocked: s.Query.GetBlockedUsers(handle),
+func (s Svc) GetSelf(handle, target string) (result types.OwnUserView, ok bool) {
+	if user, ok := s.Query.GetVisibleUserByHandle(handle, target); !ok{
+		return types.OwnUserView{}, ok
+	} else {
+		circles, _ := s.Query.GetJoinedCirclesByHandle(handle, 0, 100)
+		formatted := make([]types.CircleResponse, len(circles))
+		for i, c := range circles {
+			formatted[i] = formatCircleView(c)
+		}
+		blocked, _ := s.Query.GetBlockedUsers(handle)
+		return types.OwnUserView{
+			Handle: user.Handle,
+			FirstName: user.FirstName,
+			LastName: user.LastName,
+			Gender: user.Gender,
+			Birthday: user.Birthday,
+			Bio: user.Bio,
+			Interests: user.Interests,
+			Languages: user.Languages,
+			Location: user.Location,
+			Circles: formatted,
+			Blocked: blocked,
+		}, ok
 	}
 }
 
-func (s Svc) GetVisibleUser(handle string) (result types.UserView, ok bool) {
-	user := s.Query.GetVisibleUserByHandle(handle)
-	circles := s.Query.GetPublicCirclesByHandle(handle)
-	formatted := make([]types.CircleResponse, len(circles))
-	for i, c := range circles {
-		var visibility string
-		if c.Private != nil {
-			visibility = "private"
-		} else {
-			visibility = "public"
+func (s Svc) GetVisibleUser(handle, target string) (result types.UserView, ok bool) {
+	if user, ok := s.Query.GetVisibleUserByHandle(handle, target); !ok{
+		return types.UserView{}, ok
+	} else {
+		circles, _ := s.Query.GetPublicCirclesByHandle(handle)
+		formatted := make([]types.CircleResponse, len(circles))
+		for i, c := range circles {
+			formatted[i] = formatCircleView(c)
 		}
-		formatted[i] = types.CircleResponse{
-			Name:        c.Name,
-			Url:         API_URL + "/circles/" + c.Id,
-			Description: c.Description,
-			Owner:       c.Owner,
-			Visibility:  visibility,
-			Members:     API_URL + "/circles/" + c.Id + "/members",
-			Created:     c.Created,
-		}
+		user.Circles = formatted
+		return user, true
 	}
-	user.Circles = formatted
-	return user, true
 }
 
 //

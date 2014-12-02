@@ -4,7 +4,6 @@ import (
 	"../types"
 	"./service"
 	apiutil "./util"
-	encoding "encoding/json"
 	"github.com/ChimeraCoder/go.crypto/bcrypt"
 	"github.com/ant0ine/go-json-rest/rest"
 	"github.com/mccoyst/validate"
@@ -166,6 +165,7 @@ func (a Api) Login(w rest.ResponseWriter, r *rest.Request) {
 			} else {
 				w.WriteHeader(201)
 				w.WriteJson(types.Json{
+					"handle": handle,
 					"response": "Logged in " + handle + ". Note your Authorization token.",
 					"token":    token,
 				})
@@ -203,7 +203,7 @@ func (a Api) GetUser(w rest.ResponseWriter, r *rest.Request) {
 		a.Util.FailedToDetermineHandleFromAuthToken(w)
 		return
 	} else if target == handle {
-		a.Svc.GetSelf(handle)
+		a.Svc.GetSelf(handle, target)
 	}
 
 }
@@ -362,11 +362,21 @@ func (a Api) NewCircle(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 	payload := struct {
-		CircleName string
-		Public     bool
+		CircleName string `json:"circlename"`
+		Public     bool   `json:"public"`
 	}{}
 	if err := r.DecodeJsonPayload(&payload); err != nil {
 		rest.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	circleName := payload.CircleName
+	isPublic := payload.Public
+
+	if circleName == "" {
+		a.Util.SimpleJsonReason(w, 400, "Missing `circlename` parameter")
+		return
+	} else if circleName == GOLD || circleName == BROADCAST {
+		a.Util.SimpleJsonReason(w, 403, circleName+" is a reserved circle name")
 		return
 	}
 
@@ -374,26 +384,12 @@ func (a Api) NewCircle(w rest.ResponseWriter, r *rest.Request) {
 		a.Util.FailedToDetermineHandleFromAuthToken(w)
 		return
 	} else {
-		circleName := payload.CircleName
-		isPublic := payload.Public
-
-		if circleName == GOLD || circleName == BROADCAST {
-			a.Util.SimpleJsonReason(w, 403, circleName+" is a reserved circle name")
-			return
-		}
-
-		if circleid, ok := a.Svc.NewCircle(handle, circleName, isPublic); !ok {
+		if circleResponse, ok := a.Svc.NewCircle(handle, circleName, isPublic); !ok {
 			a.Util.SimpleJsonReason(w, 400, "Unexpected failure to create circle")
 			return
 		} else {
 			w.WriteHeader(201)
-			w.WriteJson(types.Json{
-				"response": "Created new circle!",
-				"chief":    handle,
-				"name":     circleName,
-				"public":   isPublic,
-				"id":       circleid,
-			})
+			w.WriteJson(circleResponse)
 		}
 	}
 }
@@ -426,7 +422,7 @@ func (a Api) SearchCircles(w rest.ResponseWriter, r *rest.Request) {
 		}
 	}
 
-	if val, ok := querymap["user"]; !ok || val[0] == "" {
+	if val, ok := querymap["user"]; !ok {
 		if handle, ok := a.Svc.GetHandleFromAuthorization(a.getTokenFromHeader(r)); !ok {
 			a.Util.FailedToDetermineHandleFromAuthToken(w)
 			return
@@ -437,9 +433,7 @@ func (a Api) SearchCircles(w rest.ResponseWriter, r *rest.Request) {
 		user = val[0]
 	}
 
-	// "" is defaulty and taken to mean no specification rather than let
-	// it error when converted to a int
-	if val, ok := querymap["before"]; !ok || val[0] == "" {
+	if val, ok := querymap["before"]; !ok {
 		before = time.Now().Local()
 	} else {
 		if millis, err := strconv.Atoi(val[0]); err != nil {
@@ -466,6 +460,11 @@ func (a Api) SearchCircles(w rest.ResponseWriter, r *rest.Request) {
 //
 // Messages
 //
+
+func makeMessageUrl(m *types.MessageView) {
+	// [TODO] hard-coded url/port...
+	m.Url = "<url>:<port>/api/messages/" + m.Id
+}
 
 /**
  * Create a new, unpublished message
@@ -498,24 +497,20 @@ func (a Api) NewMessage(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	if messageid, success := a.Svc.NewMessage(handle, content); !success {
+	if message, ok := a.Svc.NewMessage(handle, content); !ok {
 		a.Util.SimpleJsonReason(w, 500, "Unexpected failure to create message")
 		return
 	} else {
 		if len(circles) > 0 {
 			for _, circleid := range circles {
-				if !a.Svc.PublishMessageToCircle(messageid, circleid) {
+				if !a.Svc.PublishMessageToCircle(message.Id, circleid) {
 					a.Util.SimpleJsonReason(w, 400, "Failed to publish to one of circles provided")
 					return
 				}
 			}
 		}
 		w.WriteHeader(201)
-		w.WriteJson(types.Json{
-			"response":     "Successfully created message for " + handle,
-			"id":           messageid,
-			"published_to": circles,
-		})
+		w.WriteJson(message)
 	}
 }
 
@@ -533,23 +528,14 @@ func (a Api) GetAuthoredMessages(w rest.ResponseWriter, r *rest.Request) {
 		return
 	} else {
 		messages := a.Svc.GetMessagesByHandle(author)
-		messageData := make([]types.Message, len(messages))
-
 		for i := 0; i < len(messages); i++ {
-			messageData[i] = types.Message{
-				messages[i].Id,
-				"<url>:<port>/api/messages/" + messages[i].Id, // hard-coded url/port...
-				messages[i].Author,
-				messages[i].Content,
-				messages[i].Created,
-			}
+			makeMessageUrl(&messages[i])
 		}
 
 		w.WriteHeader(200)
-		w.WriteJson(types.Json{
-			"response": "Found messages for user " + author,
-			"objects":  messageData,
-			"count":    len(messageData),
+		w.WriteJson(types.MessageResponseView{
+			Objects: messages,
+			Count:   len(messages),
 		})
 	}
 }
@@ -569,23 +555,10 @@ func (a Api) GetMessageById(w rest.ResponseWriter, r *rest.Request) {
 	}
 
 	if message, ok := a.Svc.GetVisibleMessageById(handle, id); ok {
-		data := types.Message{
-			message.Id,
-			"<url>:<port>/api/messages/" + message.Id, // hard-coded url/port...
-			message.Author,
-			message.Content,
-			message.Created,
-		}
+		makeMessageUrl(&message)
 
-		if b, err := encoding.Marshal(data); err != nil {
-			panicErr(err)
-		} else {
-			w.WriteHeader(200)
-			w.WriteJson(types.Json{
-				"response": "Found message!",
-				"object":   string(b),
-			})
-		}
+		w.WriteHeader(200)
+		w.WriteJson(message)
 	} else {
 		a.Util.SimpleJsonReason(w, 404, "No such message with id "+id+" could be found")
 		return
