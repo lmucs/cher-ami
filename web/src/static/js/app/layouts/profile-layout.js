@@ -32,7 +32,9 @@ define(function(require, exports, module) {
         },
 
         showEditProfile: function() {
-            var editProfile = new EditProfileView();
+            var editProfile = new EditProfileView({
+                session: this.session
+            });
             this.profile.show(editProfile);
         }
         
