@@ -78,6 +78,7 @@ If the given username-password combination is valid, generate and return a token
 + Response 201
 
         {
+           "handle": "pelé",
            "token": "Token hu876xvyft3ufib230ffn0spdfmwefna"
         }
 + Response 400

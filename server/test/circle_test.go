@@ -3,7 +3,6 @@ package api_test
 import (
 	"../types"
 	"./helper"
-	"fmt"
 	. "gopkg.in/check.v1"
 	"time"
 )

@@ -173,6 +173,7 @@ func (a Api) Login(w rest.ResponseWriter, r *rest.Request) {
 			} else {
 				w.WriteHeader(201)
 				w.WriteJson(types.Json{
+					"handle": handle,
 					"response": "Logged in " + handle + ". Note your Authorization token.",
 					"token":    token,
 				})
