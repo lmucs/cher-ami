@@ -30,10 +30,15 @@ func (s *TestSuite) TestPostMessageContentOnlyOK(c *C) {
 	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
 	sessionid := req.PostSessionGetAuthToken("handleA", "password1")
 
-	res, _ := req.PostMessage("Go is going gophers!", sessionid)
-
-	c.Check(res.StatusCode, Equals, 201)
-	c.Check(helper.GetJsonResponseMessage(res), Equals, "Successfully created message for handleA")
+	if res, _ := req.PostMessage("Go is going gophers!", sessionid); true {
+		c.Check(res.StatusCode, Equals, 201)
+		m := types.MessageView{}
+		helper.Unmarshal(res, &m)
+		c.Check(m.Id, Not(Equals), "")
+		c.Check(m.Url, Not(Equals), "")
+		c.Check(m.Author, Equals, "handleA")
+		c.Check(m.Content, Equals, "Go is going gophers!")
+	}
 }
 
 func (s *TestSuite) TestPostMessageContentCirclesOK(c *C) {
@@ -46,10 +51,17 @@ func (s *TestSuite) TestPostMessageContentCirclesOK(c *C) {
 
 	circles := []string{circleid, circleid2}
 
-	res, _ := req.PostMessageWithCircles("Go is going gophers!", sessionid, circles)
-
-	c.Check(res.StatusCode, Equals, 201)
-	c.Check(helper.GetJsonResponseMessage(res), Equals, "Successfully created message for handleA")
+	if res, _ := req.PostMessageWithCircles("Go is going gophers!", sessionid, circles); true {
+		c.Check(res.StatusCode, Equals, 201)
+		m := types.MessageView{}
+		helper.Unmarshal(res, &m)
+		c.Check(m.Id, Not(Equals), "")
+		c.Check(m.Url, Not(Equals), "")
+		c.Check(m.Author, Equals, "handleA")
+		c.Check(m.Content, Equals, "Go is going gophers!")
+		// [TODO] ensure that the message was published successfully, we know it was successful because
+		// there was as 201 not a 400
+	}
 }
 
 //
