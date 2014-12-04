@@ -1,7 +1,7 @@
 .container
 	.row
 		#main
-		
+
 			@include display(flex)
 			@include flex-direction(column)
 			@include align-items(center)
@@ -27,22 +27,37 @@
 						border: 1px solid lightblue
 						margin-top: 20px
 
+	@media (min-width: 500px)					
+		#theBadColumn
+			@include display(flex)
+			@include flex-direction(column)
+			@include align-items(left)
+			@include justify-content(space-between)
+			@include span-columns(2)
 
-	#theBadColumn
-		@include display(flex)
-		@include flex-direction(column)
-		@include align-items(left)
-		@include justify-content(space-between)
-		@include span-columns(2)
 
-	.sidebar-nav
-		background-color: aliceblue
-		padding: 10px
-		border-radius: 10px
-		border: 1px solid steelblue
-		margin-top: 10px
-		@include display(flex)
-		@include flex-direction(column)
-		@include align-items(left)
-		@include justify-content(space-between)
-		@include span-columns(2)
+		.sidebar-nav
+			background-color: aliceblue
+			padding: 10px
+			border-radius: 10px
+			border: 1px solid steelblue
+			margin-top: 10px
+			min-width: 100px
+			@include display(flex)
+			@include flex-direction(column)
+			@include align-items(left)
+			@include justify-content(space-between)
+			@include span-columns(2)
+
+	@media (max-width: 500px)
+		.sidebar-nav
+			background-color: aliceblue
+			padding: 10px
+			border-radius: 10px
+			border: 1px solid steelblue
+			margin-top: 10px
+			min-width: 300px
+			max-width: 600px
+			width: 100%
+			@include span-columns(4)
+			@include omega()
