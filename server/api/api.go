@@ -165,7 +165,7 @@ func (a Api) Login(w rest.ResponseWriter, r *rest.Request) {
 			} else {
 				w.WriteHeader(201)
 				w.WriteJson(types.Json{
-					"handle": handle,
+					"handle":   handle,
 					"response": "Logged in " + handle + ". Note your Authorization token.",
 					"token":    token,
 				})
@@ -202,10 +202,15 @@ func (a Api) GetUser(w rest.ResponseWriter, r *rest.Request) {
 	if handle, ok := a.Svc.GetHandleFromAuthorization(a.getTokenFromHeader(r)); !ok {
 		a.Util.FailedToDetermineHandleFromAuthToken(w)
 		return
-	} else if target == handle {
-		a.Svc.GetSelf(handle, target)
+	} else {
+		if user, ok := a.Svc.GetVisibleUser(handle, target); !ok {
+			a.Util.SimpleJsonReason(w, 500, "Failed to get user "+target)
+			return
+		} else {
+			w.WriteHeader(200)
+			w.WriteJson(user)
+		}
 	}
-
 }
 
 func (a Api) EditUser(w rest.ResponseWriter, r *rest.Request) {

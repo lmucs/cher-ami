@@ -676,30 +676,30 @@ func (q Query) GetCircleIdByName(handle, circleName string) (circleid string) {
 }
 
 func (q Query) GetPublicCirclesByHandle(handle string) (circles []RawCircleView, count int) {
-    circles = make([]RawCircleView, 0)
-    q.cypherOrPanic(&neoism.CypherQuery{
-        Statement: `
+	circles = make([]RawCircleView, 0)
+	q.cypherOrPanic(&neoism.CypherQuery{
+		Statement: `
             MATCH (t:User)-[:OWNS]-(c:Circle)-[partOf:PART_OF]->(pd:PublicDomain)
             WHERE pd.iam = "PublicDomain"
             AND   t.handle = {handle}
-            RETURN c.name
-                 , c.id
-                 , c.description
-                 , t.handle AS owner.handle
-                 , c.created
-                 , partOf
+            RETURN c.name AS name
+                 , c.id AS id
+                 , c.description AS description
+                 , t.handle AS owner
+                 , c.created AS created
+                 , partOf AS public
 
         `,
-        Parameters: neoism.Props{
-            "handle": handle,
-        },
-        Result: &circles,
-    })
-    if len(circles) > 0 {
-        return circles, len(circles)
-    } else {
-        return []RawCircleView{}, len(circles)
-    }
+		Parameters: neoism.Props{
+			"handle": handle,
+		},
+		Result: &circles,
+	})
+	if len(circles) > 0 {
+		return circles, len(circles)
+	} else {
+		return []RawCircleView{}, len(circles)
+	}
 }
 
 func (q Query) GetAllMessagesByHandle(target string) []types.MessageView {
@@ -769,7 +769,7 @@ func (q Query) GetVisibleUserByHandle(handle, target string) (user types.UserVie
 			"handle": handle,
 			"target": target,
 		},
-		Result: &user,
+		Result: &users,
 	})
 	if ok := len(users) > 0; ok {
 		return users[0], ok
@@ -779,30 +779,30 @@ func (q Query) GetVisibleUserByHandle(handle, target string) (user types.UserVie
 }
 
 func (q Query) GetBlockedUsers(handle string) (users []types.UserView, count int) {
-    users = make([]types.UserView, 0)
-    q.cypherOrPanic(&neoism.CypherQuery{
-        Statement: `
+	users = make([]types.UserView, 0)
+	q.cypherOrPanic(&neoism.CypherQuery{
+		Statement: `
             MATCH (u:User)-[:BLOCKED]->(t:User)
             WHERE u.handle = {handle}
             RETURN t.handle AS handle
         `,
-        Parameters: neoism.Props{
-            "handle": handle,
-        },
-        Result: &users,
-    })
-    count = len(users)
-    if count > 0 {
-        return users, count
-    } else {
-        return []types.UserView{}, count
-    }
+		Parameters: neoism.Props{
+			"handle": handle,
+		},
+		Result: &users,
+	})
+	count = len(users)
+	if count > 0 {
+		return users, count
+	} else {
+		return []types.UserView{}, count
+	}
 }
 
 func (q Query) GetJoinedCirclesByHandle(handle string, skip, limit int) (circles []RawCircleView, count int) {
-    circles = make([]RawCircleView, 0)
-    q.cypherOrPanic(&neoism.CypherQuery{
-        Statement: `
+	circles = make([]RawCircleView, 0)
+	q.cypherOrPanic(&neoism.CypherQuery{
+		Statement: `
             MATCH          (u:User)-[:MEMBER_OF|OWNS]->(c:Circle)
             WHERE          u.handle = {handle}
             MATCH          (c)<-[:OWNS]-(owner:User)
@@ -817,18 +817,18 @@ func (q Query) GetJoinedCirclesByHandle(handle string, skip, limit int) (circles
             SKIP           {skip}
             LIMIT          {limit}
         `,
-        Parameters: neoism.Props{
-            "handle": handle,
-            "skip": skip,
-            "limit": limit,
-        },
-        Result: &circles,
-    })
-    if count = len(circles); count > 0 {
-        return circles, count
-    } else {
-        return []RawCircleView{}, count
-    }
+		Parameters: neoism.Props{
+			"handle": handle,
+			"skip":   skip,
+			"limit":  limit,
+		},
+		Result: &circles,
+	})
+	if count = len(circles); count > 0 {
+		return circles, count
+	} else {
+		return []RawCircleView{}, count
+	}
 }
 
 func (q Query) DeriveHandleFromAuthToken(token string) (handle string, ok bool) {
@@ -966,7 +966,7 @@ func (q Query) UpdateUserAttribute(handle, resource, value string) bool {
 	}{}
 
 	changes := types.Json{
-		"u." + resource: value,
+		resource: value,
 	}
 	query := `
         MATCH   (u:User)

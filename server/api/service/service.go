@@ -3,6 +3,7 @@ package service
 import (
 	"../../types"
 	"./query"
+	"fmt"
 	"time"
 )
 
@@ -240,36 +241,17 @@ func (s Svc) GetHandleFromAuthorization(token string) (handle string, ok bool) {
 	return s.Query.DeriveHandleFromAuthToken(token)
 }
 
-func (s Svc) GetSelf(handle, target string) (result types.OwnUserView, ok bool) {
-	if user, ok := s.Query.GetVisibleUserByHandle(handle, target); !ok{
-		return types.OwnUserView{}, ok
-	} else {
-		circles, _ := s.Query.GetJoinedCirclesByHandle(handle, 0, 100)
-		formatted := make([]types.CircleResponse, len(circles))
-		for i, c := range circles {
-			formatted[i] = formatCircleView(c)
-		}
-		blocked, _ := s.Query.GetBlockedUsers(handle)
-		return types.OwnUserView{
-			Handle: user.Handle,
-			FirstName: user.FirstName,
-			LastName: user.LastName,
-			Gender: user.Gender,
-			Birthday: user.Birthday,
-			Bio: user.Bio,
-			Interests: user.Interests,
-			Languages: user.Languages,
-			Location: user.Location,
-			Circles: formatted,
-			Blocked: blocked,
-		}, ok
-	}
-}
-
 func (s Svc) GetVisibleUser(handle, target string) (result types.UserView, ok bool) {
-	if user, ok := s.Query.GetVisibleUserByHandle(handle, target); !ok{
+	if user, ok := s.Query.GetVisibleUserByHandle(handle, target); !ok {
 		return types.UserView{}, ok
 	} else {
+		// var blockedUsers types.UserView
+		if handle == target {
+			if blocked, count := s.Query.GetBlockedUsers(handle); count > 0 {
+				user.Blocked = blocked
+			}
+		}
+		fmt.Printf("%+v", user)
 		circles, _ := s.Query.GetPublicCirclesByHandle(handle)
 		formatted := make([]types.CircleResponse, len(circles))
 		for i, c := range circles {
