@@ -1,16 +1,18 @@
 .container
 	.row
 		#main
+		
+			@include display(flex)
+			@include flex-direction(column)
+			@include align-items(center)
+			@include justify-content(space-between)
+			@include span-columns(4)
+
 			#profile-container
 				margin-top: 10px
 				min-width: 300px
 				max-width: 600px
 				width: 100%
-				@include display(flex)
-				@include flex-direction(column)
-				@include align-items(center)
-				@include justify-content(space-between)
-				@include span-columns(3)
 
 				.row
 					#feed-area
@@ -32,7 +34,7 @@
 		@include align-items(left)
 		@include justify-content(space-between)
 		@include span-columns(2)
-		
+
 	.sidebar-nav
 		background-color: aliceblue
 		padding: 10px
