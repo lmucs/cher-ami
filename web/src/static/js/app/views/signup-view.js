@@ -47,6 +47,7 @@ define(function(require, exports, module) {
             });
             console.log(req)
             req.save();
+            req.authenticate();
         },
 
         inputValidate: function(event) {

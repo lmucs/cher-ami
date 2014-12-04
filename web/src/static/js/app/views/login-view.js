@@ -40,11 +40,7 @@ define(function(require, exports, module) {
             this.model.set("password", this.ui.pass.val());
             this.model.authenticate();
             this.model.clear();
-            //
-            // PURE EVIL: FIX THIS AWFUL AWFUL THING.
-            //
-            setTimeout(function () {window.location.reload()}, 3000)
-        }
+        },
 
     });
 

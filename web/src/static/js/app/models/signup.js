@@ -16,6 +16,14 @@ define(function(require, exports, module) {
             confirmpassword: null
         },
 
+        authenticate: function() {
+            this.save({}, {
+                success: function(model, response) {
+                    window.location.replace('/#Home');
+                }
+            })
+        },
+
         initialize: function() {
 
         }
