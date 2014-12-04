@@ -2,11 +2,29 @@
 	.row
 		#main
 			#profile-container
+				min-width: 300px
+				max-width: 600px
+				width: 100%
 				@include display(flex)
 				@include flex-direction(column)
 				@include align-items(center)
 				@include justify-content(space-between)
 				@include span-columns(3)
+
+				.row
+					#feed-area
+						background-color: aliceblue
+						padding: 20px
+						border-radius: 10px
+						border: 1px solid steelblue
+					#message-box
+						background-color: white
+						padding: 10px
+						border-radius: 3px
+						border: 1px solid lightblue
+						margin-top: 20px
+
+
 
 	.sidebar-nav
 		@include display(flex)
