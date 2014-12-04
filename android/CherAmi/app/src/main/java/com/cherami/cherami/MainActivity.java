@@ -160,12 +160,6 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
         return true;
     }
 
-    public void displayCreateCircleModal (View view) {
-        // Create and show the dialog.
-        CreateCircleModal newFragment = new CreateCircleModal();
-        newFragment.show(getFragmentManager(), "dialog");
-    }
-
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
