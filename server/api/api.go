@@ -12,13 +12,6 @@ import (
 	"time"
 )
 
-func panicErr(err error) {
-	if err != nil {
-		panic(err)
-		return
-	}
-}
-
 //
 // Application Types
 //
@@ -34,9 +27,9 @@ type Api struct {
  */
 func NewApi(uri string) *Api {
 	api := &Api{
-		service.NewService(uri),
-		&apiutil.Util{},
-		types.NewValidator(),
+		Svc:       service.NewService(uri),
+		Util:      &apiutil.Util{},
+		Validator: types.NewValidator(),
 	}
 	return api
 }

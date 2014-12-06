@@ -27,7 +27,8 @@ Create a user given only a handle, email, and password. The service will create 
         {
             "handle": "pelé",
             "email": "number10@brasil.example.com",
-            "password": "Brasil Uber Alles"
+            "password": "Brasil Uber Alles",
+            "confirmpassword": "Brasil Uber Alles"
         }
 + Response 201
 
