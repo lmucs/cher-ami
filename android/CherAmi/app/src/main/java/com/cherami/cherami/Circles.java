@@ -1,7 +1,9 @@
 package com.cherami.cherami;
 
 import android.app.Activity;
+import android.app.FragmentManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.net.Uri;
@@ -92,7 +94,6 @@ public class Circles extends Fragment {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
-
     }
 
     public void filterCircles () {
@@ -158,6 +159,7 @@ public class Circles extends Fragment {
     }
 
     public void displayCreateCircleModal () {
+
         CreateCircleModal createCircleModalFragment = new CreateCircleModal();
         createCircleModalFragment.show(getFragmentManager(), "dialog");
     }

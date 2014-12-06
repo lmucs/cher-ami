@@ -38,7 +38,7 @@
         android:id="@+id/circleList"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
-        android:layout_above="@+id/newCircle"
-        android:layout_below="@+id/filter_spinner"/>
+        android:layout_below="@+id/filter_spinner"
+        android:layout_above="@+id/createNewCircle" />
 
 </RelativeLayout>

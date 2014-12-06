@@ -57,7 +57,6 @@ public class CreateCircleModal extends DialogFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_create_circle_modal, container, false);
         getDialog().setTitle("Create New Circle");
-//        getDialog().setCancelable(true);
 
         createCircleButton = (Button) rootView.findViewById(R.id.createCircleButton);
         createCircleButton.setOnClickListener(new View.OnClickListener() {
@@ -70,10 +69,11 @@ public class CreateCircleModal extends DialogFragment {
         dismissModalButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                dismissModal();
+                CreateCircleModal.this.dismiss();
             }
         });
         root = rootView;
+
         return rootView;
     }
 
@@ -103,10 +103,6 @@ public class CreateCircleModal extends DialogFragment {
             System.out.println("DONT LIKE TO STRING!");
         }
         return entity;
-    }
-
-    public void dismissModal () {
-        this.dismiss();
     }
 
     public void attemptCreateCircle() {
@@ -140,10 +136,10 @@ public class CreateCircleModal extends DialogFragment {
                         }
 
                         Log.d("Status Code: ", Integer.toString(statusCode));
-
-                        dismissModal();
+                        CreateCircleModal.this.dismiss();
                         Toast toast = Toast.makeText(getActivity().getApplicationContext(), responseText, Toast.LENGTH_LONG);
                         toast.show();
+
                     }
 
                     @Override
@@ -169,6 +165,4 @@ public class CreateCircleModal extends DialogFragment {
                     }
                 });
     }
-
-
 }
