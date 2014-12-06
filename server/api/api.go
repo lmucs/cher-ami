@@ -422,7 +422,8 @@ func (a Api) SearchCircles(w rest.ResponseWriter, r *rest.Request) {
 
 	// Reveals public and private circles user is apart of. If user parameter is absent
 	// will use the logged in user as the target of the query.
-	if val, ok := querymap["user"]; !ok {
+	// Empty assumed not to be the name of a user, DWIW
+	if val, ok := querymap["user"]; !ok || val.(string) == "" {
 		if handle, ok := a.Svc.GetHandleFromAuthorization(a.getTokenFromHeader(r)); !ok {
 			a.Util.FailedToDetermineHandleFromAuthToken(w)
 			return
@@ -447,7 +448,7 @@ func (a Api) SearchCircles(w rest.ResponseWriter, r *rest.Request) {
 		}
 	}
 
-	results, count := a.Svc.SearchCircles(user, before, limit)
+	results, count := a.Svc.CirclesUserIsPartOf(user, before, limit)
 
 	w.WriteHeader(200)
 	w.WriteJson(types.SearchCirclesResponse{

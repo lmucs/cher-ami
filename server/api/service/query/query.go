@@ -807,12 +807,12 @@ func (q Query) GetJoinedCirclesByHandle(handle string, skip, limit int) (circles
             WHERE          u.handle = {handle}
             MATCH          (c)<-[:OWNS]-(owner:User)
             OPTIONAL MATCH (c)-[partOf:PART_OF]->(pd:PublicDomain)
-            RETURN         c.name AS name
-                         , c.id AS id
+            RETURN         c.name        AS name
+                         , c.id          AS id
                          , c.description AS description
-                         , c.created AS created
-                         , owner.handle AS owner
-                         , partOf AS public
+                         , c.created     AS created
+                         , owner.handle  AS owner
+                         , partOf        AS public
             ORDER BY       c.created
             SKIP           {skip}
             LIMIT          {limit}
