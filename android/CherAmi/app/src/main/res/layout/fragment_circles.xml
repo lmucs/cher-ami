@@ -1,4 +1,5 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:fbutton="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
@@ -25,12 +26,26 @@
         android:layout_alignParentRight="true"
         android:entries="@array/filter_array"/>
 
-    <Button
-        android:layout_width="fill_parent"
+    <info.hoang8f.widget.FButton
+        android:id="@+id/createNewCircle"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_margin="10dp"
         android:layout_alignParentBottom="true"
-        android:text="Create New Circle"
-        android:id="@+id/createNewCircle"/>
+        android:text="Create Circle"
+        android:textColor="@android:color/white"
+        fbutton:buttonColor="#4cc1f0"
+        fbutton:shadowEnabled="false"
+        android:layout_centerHorizontal="true"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp" />
+
+    <!--<Button-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_alignParentBottom="true"-->
+        <!--android:text="Create New Circle"-->
+        <!--android:id="@+id/createNewCircle"/>-->
 
     <ListView
         android:layout_width="wrap_content"
