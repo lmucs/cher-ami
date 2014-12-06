@@ -27,6 +27,8 @@ define(function(require, exports, module) {
                     session.set('token', response.token);
                     session.set('handle', response.handle);
                     console.log(session.toJSON())
+                    window.location.replace('/#Home');
+                    window.location.reload()
                 }
             })
         }

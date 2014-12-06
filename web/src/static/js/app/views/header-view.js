@@ -28,7 +28,7 @@ define(function(require, exports, module) {
             this.session.logout({
                 reload: true
             });
-
+            window.location.replace('/');
         }
 
     });

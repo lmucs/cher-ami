@@ -4,11 +4,13 @@ import (
 	"../../types"
 	b "bytes"
 	"encoding/json"
+	// "fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	u "net/url"
 	"strconv"
+	"strings"
 )
 
 //
@@ -87,101 +89,63 @@ func GetWithQueryParams(url string, m map[string]interface{}) (*http.Response, e
 // Read Body of Response:
 //
 
-func GetJsonResponseMessage(response *http.Response) string {
-	type Json struct {
-		Response string
-	}
-
-	var message Json
-
-	if body, err := ioutil.ReadAll(response.Body); err != nil {
-		log.Fatal(err)
-	} else if err := json.Unmarshal(body, &message); err != nil {
-		log.Fatal(err)
-	}
-
-	return message.Response
+type fields struct {
+	Response string `json:"response"`
+	Reason   string `json:"reason"`
+	Handle   string `json:"handle"`
+	Name     string `json:"name"`
+	Token    string `json:"token"`
+	Id       string `json:"id"`
+	Url      string `json:"url"`
 }
 
-func GetJsonReasonMessage(response *http.Response) string {
-	type Json struct {
-		Reason string
-	}
-
-	var message Json
-
-	if body, err := ioutil.ReadAll(response.Body); err != nil {
-		log.Fatal(err)
-	} else if err := json.Unmarshal(body, &message); err != nil {
-		log.Fatal(err)
-	}
-
-	return message.Reason
-}
-
-func GetJsonUserData(response *http.Response) string {
-	type Json struct {
-		Handle string
-		Name   string
-	}
-
-	var user Json
-
-	body, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	err = json.Unmarshal(body, &user)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return user.Handle
-}
-
-func Unmarshal(response *http.Response, v interface{}) {
-	if body, err := ioutil.ReadAll(response.Body); err != nil {
+func Unmarshal(r *http.Response, v interface{}) {
+	if body, err := ioutil.ReadAll(r.Body); err != nil {
 		log.Fatal(err)
 	} else if err := json.Unmarshal(body, &v); err != nil {
 		log.Fatal(err)
 	}
 }
 
+func GetJsonResponseMessage(r *http.Response) string {
+	f := fields{}
+	Unmarshal(r, &f)
+	return f.Response
+}
+
+func GetJsonReasonMessage(r *http.Response) string {
+	f := fields{}
+	Unmarshal(r, &f)
+	return f.Reason
+}
+
+func GetJsonUserData(r *http.Response) string {
+	f := fields{}
+	Unmarshal(r, &f)
+	return f.Handle
+}
+
+func GetUrlFromResponse(r *http.Response) string {
+	f := fields{}
+	Unmarshal(r, &f)
+	return f.Url
+}
+
+func GetIdFromUrlField(r *http.Response) string {
+	return GetIdFromUrlString(GetUrlFromResponse(r))
+}
+
+func GetIdFromUrlString(url string) string {
+	split := strings.Split(url, "/")
+	return split[len(split)-1]
+}
+
 //
 // Read info from headers:
 //
 
-func GetAuthTokenFromResponse(response *http.Response) string {
-	authentication := struct {
-		Response string
-		Token    string
-	}{}
-	var (
-		body []byte
-		err  error
-	)
-	if body, err = ioutil.ReadAll(response.Body); err != nil {
-		log.Fatal(err)
-	}
-
-	if err := json.Unmarshal(body, &authentication); err != nil {
-		log.Fatal(err)
-	}
-
-	return authentication.Token
-}
-
-func GetIdFromResponse(response *http.Response) string {
-	r := struct {
-		Id string
-	}{}
-
-	if body, err := ioutil.ReadAll(response.Body); err != nil {
-		log.Fatal(err)
-	} else if err := json.Unmarshal(body, &r); err != nil {
-		log.Fatal(err)
-	}
-
-	return r.Id
+func GetAuthTokenFromResponse(r *http.Response) string {
+	f := fields{}
+	Unmarshal(r, &f)
+	return f.Token
 }

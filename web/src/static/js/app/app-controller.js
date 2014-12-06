@@ -77,6 +77,9 @@ define(function(require, exports, module) {
             if (!this.app.session.hasAuth()) {
                 this.index();
             } else {
+                this.app.headerRegion.show(new HeaderView({
+                    session: this.app.session
+                }));
                 this.app.sidebarRegion.show(new SidebarView())
                 this.app.mainRegion.show(new CircleLayout({
                     session: this.app.session
@@ -85,6 +88,9 @@ define(function(require, exports, module) {
         },
 
         showProfile: function(options) {
+            this.app.headerRegion.show(new HeaderView({
+                session: this.app.session
+            }));
             this.app.sidebarRegion.show(new SidebarView())
             this.app.mainRegion.show(new ProfileLayout({
                 session: this.app.session
@@ -92,6 +98,9 @@ define(function(require, exports, module) {
         },
 
         showSettings: function(options) {
+            this.app.headerRegion.show(new HeaderView({
+                session: this.app.session
+            }));
             this.app.sidebarRegion.show(new SidebarView())
             this.app.mainRegion.show(new SettingsView({
                 session: this.app.session
