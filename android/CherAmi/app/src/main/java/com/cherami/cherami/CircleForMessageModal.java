@@ -3,30 +3,22 @@ package com.cherami.cherami;
 import android.app.DialogFragment;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
-
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
-
 import org.apache.http.Header;
 import org.apache.http.entity.StringEntity;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.util.Properties;
 
 /**
  * Created by Geoff on 11/22/2014.
@@ -46,9 +38,9 @@ public class CircleForMessageModal extends DialogFragment {
         messageValue = mArgs.getString("messageValue");
         Context context = getActivity().getApplicationContext();
         prefs = context.getSharedPreferences("com.cherami.cherami", Context.MODE_PRIVATE);
-        System.out.println("This is my value " + messageValue);
         super.onCreate(savedInstanceState);
     }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_circle_to_post_msg_modal, container, false);
@@ -66,7 +58,7 @@ public class CircleForMessageModal extends DialogFragment {
         return rootView;
     }
 
-    public void getCircles(View view) {
+    public void getCircles(final View view) {
         AsyncHttpClient client = new AsyncHttpClient();
         String sessionKey = "com.cherami.cherami.token";
         String token = prefs.getString(sessionKey, null);
@@ -74,7 +66,6 @@ public class CircleForMessageModal extends DialogFragment {
         String username = prefs.getString(userKey, null);
         RequestParams params = new RequestParams();
         params.put("user", username);
-        final View view2 = view;
 
         client.addHeader("Authorization", token);
         client.get(getActivity().getApplicationContext(), ApiHelper.getLocalUrlForApi(getResources()) + "circles", params, new AsyncHttpResponseHandler() {
@@ -93,7 +84,7 @@ public class CircleForMessageModal extends DialogFragment {
                     responseText = new JSONObject(new String(responseBody)).getString("results");
                     JSONArray y = new JSONArray(responseText);
                     circle_data = new CircleForMessagesItem[y.length()];
-                    for (int x = 0; x < y.length(); x++){
+                    for (int x = 0; x < y.length(); x++) {
                         circle_data[x] = new CircleForMessagesItem(new JSONObject(y.get(x).toString()), false);
                     }
 
@@ -101,11 +92,9 @@ public class CircleForMessageModal extends DialogFragment {
                             R.layout.circle_to_post_msg, circle_data);
 
 
-                    circleList = (ListView) view2.findViewById(R.id.cir_msg_List);
+                    circleList = (ListView) view.findViewById(R.id.cir_msg_List);
 
                     circleList.setAdapter(adapter);
-                    String s = new JSONObject(new JSONArray(responseText).get(0).toString()).getString("name");
-                    System.out.println(s);
                 } catch (JSONException j) {
                     System.out.println(j);
                 }
@@ -128,14 +117,13 @@ public class CircleForMessageModal extends DialogFragment {
         });
     }
 
-    public JSONObject getMessageObjectRequestAsJson () {
+    public JSONObject getMessageObjectRequestAsJson() {
         JSONObject jsonParams = new JSONObject();
         JSONArray circleIds = new JSONArray();
-        for(int i = 0; i < circle_data.length; i++){
-            if(circle_data[i].isSelected()) {
-
+        for (int i = 0; i < circle_data.length; i++) {
+            if (circle_data[i].isSelected()) {
                 try {
-                    circleIds.put(circle_data[i].circleName.getString("url").substring(circle_data[i].circleName.getString("url").lastIndexOf('/')+1));
+                    circleIds.put(circle_data[i].circleName.getString("url").substring(circle_data[i].circleName.getString("url").lastIndexOf('/') + 1));
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -151,18 +139,18 @@ public class CircleForMessageModal extends DialogFragment {
         return jsonParams;
     }
 
-    public StringEntity convertJsonUserToStringEntity (JSONObject jsonParams) {
+    public StringEntity convertJsonUserToStringEntity(JSONObject jsonParams) {
         StringEntity entity = null;
         try {
             entity = new StringEntity(jsonParams.toString());
         } catch (UnsupportedEncodingException i) {
-            System.out.println("DONT LIKE TO STRING!");
+            System.out.println(i);
         }
-        System.out.println("entity "+entity);
+        System.out.println("entity " + entity);
         return entity;
     }
 
-    public void dismissModal () {
+    public void dismissModal() {
         this.dismiss();
     }
 
@@ -186,7 +174,6 @@ public class CircleForMessageModal extends DialogFragment {
 
                     @Override
                     public void onSuccess(int statusCode, Header[] headers, byte[] response) {
-                        String s = new String(response);
                         // called when response HTTP status is "200 OK"
 
                         String responseText = null;
@@ -225,7 +212,6 @@ public class CircleForMessageModal extends DialogFragment {
                     }
                 });
     }
-
 
 
 }
