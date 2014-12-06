@@ -799,27 +799,27 @@ func (q Query) GetBlockedUsers(handle string) (users []types.UserView, count int
 	}
 }
 
-func (q Query) GetJoinedCirclesByHandle(handle string, skip, limit int) (circles []RawCircleView, count int) {
+func (q Query) GetJoinedCirclesByHandle(handle string, before time.Time, limit int) (circles []RawCircleView, count int) {
 	circles = make([]RawCircleView, 0)
 	q.cypherOrPanic(&neoism.CypherQuery{
 		Statement: `
-            MATCH          (u:User)-[:MEMBER_OF|OWNS]->(c:Circle)
-            WHERE          u.handle = {handle}
-            MATCH          (c)<-[:OWNS]-(owner:User)
-            OPTIONAL MATCH (c)-[partOf:PART_OF]->(pd:PublicDomain)
-            RETURN         c.name        AS name
-                         , c.id          AS id
-                         , c.description AS description
-                         , c.created     AS created
-                         , owner.handle  AS owner
-                         , partOf        AS public
-            ORDER BY       c.created
-            SKIP           {skip}
-            LIMIT          {limit}
+            MATCH           (u:User)-[:MEMBER_OF|OWNS]->(c:Circle)
+            WHERE           u.handle = {handle}
+            AND             c.created < {before}
+            MATCH           (c)<-[:OWNS]-(owner:User)
+            OPTIONAL MATCH  (c)-[partOf:PART_OF]->(pd:PublicDomain)
+            RETURN          c.name        AS name
+                          , c.id          AS id
+                          , c.description AS description
+                          , c.created     AS created
+                          , owner.handle  AS owner
+                          , partOf        AS public
+            ORDER BY        c.created
+            LIMIT           {limit}
         `,
 		Parameters: neoism.Props{
 			"handle": handle,
-			"skip":   skip,
+			"before": before,
 			"limit":  limit,
 		},
 		Result: &circles,

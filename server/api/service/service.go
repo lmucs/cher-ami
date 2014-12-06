@@ -212,8 +212,8 @@ func (s Svc) SearchCircles(user string, before time.Time, limit int) (results []
 	return formatted, len(formatted)
 }
 
-func (s Svc) CirclesUserIsPartOf(user string, skip, limit int) (results []types.CircleResponse, count int) {
-	circles, _ := s.Query.GetJoinedCirclesByHandle(user, skip, limit)
+func (s Svc) CirclesUserIsPartOf(user string, before time.Time, limit int) (results []types.CircleResponse, count int) {
+	circles, _ := s.Query.GetJoinedCirclesByHandle(user, before, limit)
 	formatted := make([]types.CircleResponse, len(circles))
 	for i, c := range circles {
 		formatted[i] = formatCircleView(c)
