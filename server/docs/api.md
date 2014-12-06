@@ -460,7 +460,7 @@ Create a circle given only a name and visibility setting, setting the owner to t
 
 
 ### Search for circles [GET]
-Fetch circles, optionally restricted to those with a given owner. The results will be paginated. Only basic circle data is returned; however, the url to get the complete data is also returned. Circles are returned in order of descending creation date.  We may add custom sorting capability in the future.
+Fetch the circles a user is part of, if the optional user parameter is absent this will return the circles that the authenticated user is apart of. The results will be paginated. Circles are returned in order of descending creation date.  We may add custom sorting capability in the future.
 
 + Parameters
     + user (optional, string, `alice`) ... only return circles owned by this user
@@ -482,7 +482,7 @@ Fetch circles, optionally restricted to those with a given owner. The results wi
                 "visibility": "private",
                 "members": "https://cher-ami.example.com/circles/2997/members",
                 "stir": 75,
-                "creation": "2011-10-20T14:22:09Z"
+                "created": "2011-10-20T14:22:09Z"
             },
             . . .
         ]
