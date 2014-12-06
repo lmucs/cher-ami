@@ -136,7 +136,7 @@ func (s *TestSuite) TestPostPrivateCircleOK(c *C) {
 }
 
 //
-// Search Cicles Tests:
+// Search Circles Tests:
 //
 
 func (s *TestSuite) TestSearchCirclesTargetNoExist(c *C) {
@@ -163,8 +163,8 @@ func (s *TestSuite) TestSearchCirclesDefaultCirclesOK(c *C) {
 
 	// Empty handle
 	if res, err := req.GetCircles(types.Json{
-		"token":  token,
-		"handle": "",
+		"token": token,
+		"user":  "",
 	}); err != nil {
 		c.Error(err)
 	} else {
@@ -190,19 +190,120 @@ func (s *TestSuite) TestSearchCirclesDefaultCirclesOK(c *C) {
 }
 
 func (s *TestSuite) TestSearchCirclesOfTargetOK(c *C) {
-	// req.PostSignup("handleA", "test@test.io", "password1", "password1")
-	// token := req.PostSessionGetAuthToken("handleA", "password1")
+	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
+	req.PostSignup("handleB", "testB@test.io", "password2", "password2")
+	token_A := req.PostSessionGetAuthToken("handleA", "password1")
+	token_B := req.PostSessionGetAuthToken("handleB", "password2")
 
-	// test all properties that circles should have
-
+	// One public and private circle by handleA
+	// Test from perspective of both
+	if _, err := req.PostCircles(token_A, "TheFirstCircle", true); err != nil {
+		c.Error(err)
+	}
+	if _, err := req.PostCircles(token_A, "TheSecondCircle", false); err != nil {
+		c.Error(err)
+	}
+	if res, err := req.GetCircles(types.Json{
+		"token": token_A,
+		"user":  "handleA",
+	}); err != nil {
+		c.Error(err)
+	} else {
+		body := types.SearchCirclesResponse{}
+		helper.Unmarshal(res, &body)
+		c.Check(res.StatusCode, Equals, 200)
+		c.Check(len(body.Results), Equals, 4)
+		c.Check(body.Count, Equals, 4)
+	}
+	// handleB will see the same json
+	if res, err := req.GetCircles(types.Json{
+		"token": token_B,
+		"user":  "handleA",
+	}); err != nil {
+		c.Error(err)
+	} else {
+		body := types.SearchCirclesResponse{}
+		helper.Unmarshal(res, &body)
+		c.Check(res.StatusCode, Equals, 200)
+		c.Check(len(body.Results), Equals, 4)
+		c.Check(body.Count, Equals, 4)
+	}
 }
 
+// This is essentially getting the circles one is part of
+// without supplying an user parameter.
 func (s *TestSuite) TestSearchCirclesNoSpecificUserOK(c *C) {
-	// stub
+	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
+	req.PostSignup("handleB", "testB@test.io", "password2", "password2")
+	token_A := req.PostSessionGetAuthToken("handleA", "password1")
+	token_B := req.PostSessionGetAuthToken("handleB", "password2")
+
+	// One public and private circle by handleA
+	// One circle by handleB
+	// Test from unsupplied user parameter perspective of both
+	if _, err := req.PostCircles(token_A, "CharmanderCircle", true); err != nil {
+		c.Error(err)
+	}
+	if _, err := req.PostCircles(token_A, "CharmeleonCircle", false); err != nil {
+		c.Error(err)
+	}
+	if _, err := req.PostCircles(token_B, "BulbasaurCircle", false); err != nil {
+		c.Error(err)
+	}
+	// Test unsupplied user param and user="" inputs (they work the same)
+	if res, err := req.GetCircles(types.Json{
+		"token": token_A,
+	}); err != nil {
+		c.Error(err)
+	} else {
+		body := types.SearchCirclesResponse{}
+		helper.Unmarshal(res, &body)
+		c.Check(res.StatusCode, Equals, 200)
+		c.Check(len(body.Results), Equals, 4)
+		c.Check(body.Count, Equals, 4)
+	}
+
+	if res, err := req.GetCircles(types.Json{
+		"token": token_A,
+		"user":  "",
+	}); err != nil {
+		c.Error(err)
+	} else {
+		body := types.SearchCirclesResponse{}
+		helper.Unmarshal(res, &body)
+		c.Check(res.StatusCode, Equals, 200)
+		c.Check(len(body.Results), Equals, 4)
+		c.Check(body.Count, Equals, 4)
+	}
+
+	if res, err := req.GetCircles(types.Json{
+		"token": token_B,
+	}); err != nil {
+		c.Error(err)
+	} else {
+		body := types.SearchCirclesResponse{}
+		helper.Unmarshal(res, &body)
+		c.Check(res.StatusCode, Equals, 200)
+		c.Check(len(body.Results), Equals, 3)
+		c.Check(body.Count, Equals, 3)
+	}
+
+	if res, err := req.GetCircles(types.Json{
+		"token": token_B,
+		"user":  "",
+	}); err != nil {
+		c.Error(err)
+	} else {
+		body := types.SearchCirclesResponse{}
+		helper.Unmarshal(res, &body)
+		c.Check(res.StatusCode, Equals, 200)
+		c.Check(len(body.Results), Equals, 3)
+		c.Check(body.Count, Equals, 3)
+	}
 }
 
 func (s *TestSuite) TestSearchCirclesBeforeWorks(c *C) {
-	// stub
+	// [TODO] stub, lower priority, but should be verified to work...
 }
 
 //
