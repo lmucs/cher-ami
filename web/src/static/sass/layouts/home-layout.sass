@@ -61,3 +61,33 @@
 			width: 100%
 			@include span-columns(4)
 			@include omega()
+
+	#headerRow
+		#header
+			margin-top: 10px
+			padding: 10px
+			border-bottom: 2px solid steelblue
+			.container
+				@include outer-container
+				.row
+					.img-responsive
+						max-height: 150px
+						max-width: auto
+						float: left
+						@inlcude span-columns(4)
+
+					#search
+						position: relative
+						left: 18%
+						right: 10px
+						@include span-columns(4)
+						#search-form
+							max-width: 350px
+						#seach-button:
+							position: relative
+					#logout
+						position: relative
+						left: 20%
+						max-width: 108px
+						float: right
+						@include span-columns(4)
