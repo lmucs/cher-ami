@@ -510,22 +510,24 @@ func (a Api) GetMessages(w rest.ResponseWriter, r *rest.Request) {
 	}
 
 	querymap := r.URL.Query()
-
 	var target string
 	var circleid string
 
-	if handle, ok := a.Svc.GetHandleFromAuthorization(a.getTokenFromHeader(r)); !ok {
+	if self, ok := a.Svc.GetHandleFromAuthorization(a.getTokenFromHeader(r)); !ok {
 		a.Util.FailedToDetermineHandleFromAuthToken(w)
 		return
 	} else {
-		if target, targetOk, circleid, circleOk := querymap["handle"], querymap["circleid"]; targetOk && circleOk {
-			a.Svc.GetMessageByHandleInCircle(target, circle)
-		} else if targetOk && !circleOk {
+		target, t := querymap["handle"]
+		circleid, c := querymap["circleid"]
+
+		if t && c {
+			a.Svc.GetMessagesByTargetInCircle(self, target, circleid)
+		} else if t && !c && target != self {
 			a.Svc.GetVisibleMessagesByHandle(target)
-		} else if !targetOk && circleOk {
-			a.Svc.GetMessagesInCircle(circleid)
+		} else if !t && c {
+			a.Svc.GetMessagesInCircle(self, circleid)
 		} else {
-			a.Svc.GetAllMessagesVisibleTo(handle)
+			a.Svc.GetMessageFeedOfHandle(self)
 		}
 	}
 }

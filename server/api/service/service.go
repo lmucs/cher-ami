@@ -227,8 +227,38 @@ func (s Svc) GetCircleId(handle, circleName string) (circleid string) {
 	return s.Query.GetCircleIdByName(handle, circleName)
 }
 
-func (s Svc) GetMessagesByHandle(target string) []types.MessageView {
-	return s.Query.GetAllMessagesByHandle(target)
+func (s Svc) GetVisibleMessagesByHandle(target string) ([]types.MessageView, bool) {
+	if ok := s.UserExists(target); ok {
+		return s.Query.GetPublishedMessagesByAuthor(target), ok
+	} else {
+		return []types.MessageView{}, ok
+	}
+}
+
+func (s Svc) GetMessagesByTargetInCircle(self, target, circleid string) ([]types.MessageView, bool) {
+	if ok := s.Query.CanSeeCircle(self, circleid); ok {
+		return s.Query.GetMessagesByHandleInCircle(target, circleid), ok
+	} else {
+		return []types.MessageView{}, ok
+	}
+}
+
+func (s Svc) GetMessagesInCircle(self, circleid string) ([]types.MessageView, bool) {
+	if ok := s.Query.CanSeeCircle(self, circleid); ok {
+		return s.Query.GetMessageFeedOfCircle(circleid), ok
+	} else {
+		return []types.MessageView{}, ok
+	}
+}
+
+// Should only be used on the logged-in user
+// retrieves the personalized feed of the user
+func (s Svc) GetMessageFeedOfHandle(handle string) ([]types.MessageView, bool) {
+	if ok := s.UserExists(handle); ok {
+		return s.Query.GetMessageFeedOfHandle(handle), ok
+	} else {
+		return []types.MessageView{}, ok
+	}
 }
 
 func (s Svc) GetVisibleMessageById(handle, messageid string) (message types.MessageView, ok bool) {

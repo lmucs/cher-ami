@@ -704,7 +704,7 @@ func (q Query) GetAllMessagesByHandle(target string) []types.MessageView {
 	q.cypherOrPanic(&neoism.CypherQuery{
 		Statement: `
             MATCH     (t:User)-[:WROTE]->(m:Message)
-            WHERE     t.handle = {target}
+            WHERE     t.handle  = {target}
             RETURN    m.id      AS id
                  ,    t.handle  AS author
                  ,    m.content AS content
