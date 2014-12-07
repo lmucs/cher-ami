@@ -95,11 +95,13 @@ public class CreateCircleModal extends DialogFragment {
 
     public StringEntity convertJsonUserToStringEntity (JSONObject jsonParams) {
         StringEntity entity = null;
+
         try {
             entity = new StringEntity(jsonParams.toString());
         } catch (UnsupportedEncodingException i) {
 
         }
+
         return entity;
     }
 
@@ -131,9 +133,9 @@ public class CreateCircleModal extends DialogFragment {
                         CreateCircleModal.this.dismiss();
                         // Dr. Toal this is where I'd like to call the getCircles to refresh the list
                         // after a successful circle creation
-                        Toast toast = Toast.makeText(getActivity().getApplicationContext(), responseText, Toast.LENGTH_LONG);
+                        Toast toast = Toast.makeText(getActivity().getApplicationContext(),
+                                                     responseText, Toast.LENGTH_LONG);
                         toast.show();
-
                     }
 
                     @Override
@@ -146,7 +148,8 @@ public class CreateCircleModal extends DialogFragment {
 
                         }
 
-                        Toast toast = Toast.makeText(getActivity().getApplicationContext(), responseText, Toast.LENGTH_LONG);
+                        Toast toast = Toast.makeText(getActivity().getApplicationContext(),
+                                                     responseText, Toast.LENGTH_LONG);
                         toast.show();
                         e.printStackTrace();
                     }

@@ -122,7 +122,6 @@ public class LoginActivity extends Activity {
                         try {
                             ApiHelper.saveAuthorizationToken(context, mUsername.getText().toString(),
                                     returnVal.getString("token"));
-
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
@@ -134,9 +133,6 @@ public class LoginActivity extends Activity {
                         } catch (JSONException j) {
 
                         }
-
-                        Toast toast = Toast.makeText(getApplicationContext(), responseText, Toast.LENGTH_LONG);
-                        toast.show();
 
                         Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                         startActivity(intent);
