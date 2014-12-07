@@ -1,7 +1,10 @@
 package com.cherami.cherami;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
@@ -30,6 +33,7 @@ public class CircleResult extends Activity {
     TextView textElement;
     String circleName;
     String owner;
+    ProgressDialog dialog;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Context context = this.getApplicationContext();
@@ -104,11 +108,13 @@ public class CircleResult extends Activity {
 
                         @Override
                         public void onStart() {
-
+                            dialog = ProgressDialog.show(CircleResult.this, "",
+                                    "Loading. Please wait...", true);
                         }
 
                         @Override
                         public void onSuccess(int statusCode, Header[] headers, byte[] response) {
+                            dialog.dismiss();
                             String responseText = null;
 
                             try {
@@ -124,17 +130,30 @@ public class CircleResult extends Activity {
 
                         @Override
                         public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
+                            dialog.dismiss();
                             String responseText = null;
 
                             try {
-                                responseText = new JSONObject(new String(errorResponse)).getString("Reason");
+                                if (!NetworkCheck.isConnected(errorResponse)) {
+                                    new AlertDialog.Builder(CircleResult.this)
+                                            .setTitle("Network Error")
+                                            .setMessage("You're not connected to the network :(")
+                                            .setNegativeButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                                                public void onClick(DialogInterface dialog, int which) {
+                                                    // do nothing
+                                                }
+                                            })
+                                            .setIcon(android.R.drawable.ic_dialog_alert)
+                                            .show();
+
+                                } else {
+                                    responseText = new JSONObject(new String(errorResponse)).getString("reason");
+                                    Toast toast = Toast.makeText(getApplicationContext(), responseText, Toast.LENGTH_LONG);
+                                    toast.show();
+                                }
                             } catch (JSONException j) {
 
                             }
-
-                            Toast toast = Toast.makeText(CircleResult.this.getApplicationContext(), responseText, Toast.LENGTH_LONG);
-                            toast.show();
-                            e.printStackTrace();
                         }
 
                         @Override
