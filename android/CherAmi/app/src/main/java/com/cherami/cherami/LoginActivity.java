@@ -23,6 +23,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.loopj.android.http.AsyncHttpClient;
@@ -57,6 +58,7 @@ public class LoginActivity extends Activity {
      */
     EditText mUsername;
     EditText mPassword;
+    private ProgressBar progressBar;
 
     SharedPreferences prefs;
     @Override
@@ -68,6 +70,8 @@ public class LoginActivity extends Activity {
                 "com.cherami.cherami", Context.MODE_PRIVATE);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+        progressBar = (ProgressBar)findViewById(R.id.progressBar);
+        progressBar.setVisibility(View.GONE);
         getActionBar().hide();
 
         mUsername = (EditText) findViewById(R.id.username);
@@ -113,6 +117,7 @@ public class LoginActivity extends Activity {
                     public void onStart() {
                         // called before request is started
                         System.out.println("STARTING POST REQUEST");
+                        progressBar.setVisibility(View.VISIBLE);
 
                     }
 
@@ -150,11 +155,13 @@ public class LoginActivity extends Activity {
 
                         Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                         startActivity(intent);
+                        progressBar.setVisibility(View.GONE);
                         finish();
                     }
 
                     @Override
                     public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
+                        progressBar.setVisibility(View.GONE);
                         // called when response HTTP status is "4XX" (eg. 401, 403, 404)
 
                         String responseText = null;
