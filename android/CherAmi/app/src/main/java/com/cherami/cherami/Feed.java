@@ -32,9 +32,9 @@ public class Feed extends Fragment {
 
         FeedItem feed_data[] = new FeedItem[]
                 {
-                        new FeedItem("This is an image posted by Willy Hugestud"),
-                        new FeedItem("Here's some text posted by ThatHalfKorean"),
-                        new FeedItem("I just took a 25 minutes bathroom break posted by CrashProphet")
+                        new FeedItem("This is an image posted by Willy Hugestud","http://www.amovieaweek.com/images/social1.png"),
+                        new FeedItem("Here's some text posted by ThatHalfKorean","http://s2.quickmeme.com/img/25/25418a62177a75a6b412ffcc6328ddd37bc8495df2442fc62f1b1fa5408b65a1.jpg"),
+                        new FeedItem("I just took a 25 minutes bathroom break posted by CrashProphet","")
                 };
 
         FeedAdapter adapter = new FeedAdapter(this.getActivity(),

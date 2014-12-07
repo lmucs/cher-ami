@@ -6,7 +6,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.squareup.picasso.Picasso;
 
 public class FeedAdapter extends ArrayAdapter<FeedItem> {
 
@@ -33,6 +36,7 @@ public class FeedAdapter extends ArrayAdapter<FeedItem> {
 
             holder = new FeedHolder();
             holder.txtTitle = (TextView) row.findViewById(R.id.txtTitle);
+            holder.imgLoad = (ImageView) row.findViewById(R.id.imgLoad);
 
             row.setTag(holder);
         } else {
@@ -41,11 +45,15 @@ public class FeedAdapter extends ArrayAdapter<FeedItem> {
 
         FeedItem feedItem = data[position];
         holder.txtTitle.setText(feedItem.title);
+        if(!(feedItem.img.equals(""))){
+            Picasso.with(context).load(feedItem.img).into(holder.imgLoad);
+        }
 
         return row;
     }
 
     static class FeedHolder {
         TextView txtTitle;
+        ImageView imgLoad;
     }
 }

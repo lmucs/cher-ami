@@ -40,6 +40,7 @@ dependencies {
     compile 'com.fasterxml.jackson.core:jackson-annotations:2.2.+'
     compile 'com.loopj.android:android-async-http:1.4.5'
     compile 'info.hoang8f:fbutton:1.0.5'
+    compile 'com.squareup.picasso:picasso:2.4.0'
 }
 
 repositories {
