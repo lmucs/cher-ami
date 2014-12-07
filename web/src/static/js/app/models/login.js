@@ -13,6 +13,16 @@ define(function(require, exports, module) {
             this.session = options.session;
         },
 
+        validate: function() {
+            $.ajaxSetup({
+                statusCode: {
+                    403: function() {
+                        return false
+                    }
+                }
+            });
+        },
+
         authenticate: function() {
             var session = this.session;
             var that = this;
