@@ -103,7 +103,7 @@ public class OtherUserProfileActivity extends Activity{
 
                     circleList = (ListView) view.findViewById(R.id.otherCircleFeed);
                     circleList.setAdapter(adapter);
-                    
+
                     circleList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                         @Override
                         public void onItemClick(AdapterView<?> parent, View view, int position,
