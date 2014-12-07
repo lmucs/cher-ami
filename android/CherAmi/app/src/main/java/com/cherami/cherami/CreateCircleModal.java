@@ -147,16 +147,7 @@ public class CreateCircleModal extends DialogFragment {
 
                         try {
                             if (!NetworkCheck.isConnected(errorResponse)) {
-                                new AlertDialog.Builder(getActivity())
-                                        .setTitle("Network Error")
-                                        .setMessage("You're not connected to the network :(")
-                                        .setNegativeButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-                                            public void onClick(DialogInterface dialog, int which) {
-                                                // do nothing
-                                            }
-                                        })
-                                        .setIcon(android.R.drawable.ic_dialog_alert)
-                                        .show();
+                                NetworkCheck.displayNetworkErrorModal(getActivity());
 
                             } else {
                                 responseText = new JSONObject(new String(errorResponse)).getString("reason");

@@ -192,16 +192,7 @@ public class MainActivity extends Activity implements ActionBar.TabListener {
 
                         try {
                             if (!NetworkCheck.isConnected(errorResponse)) {
-                                new AlertDialog.Builder(MainActivity.this)
-                                        .setTitle("Network Error")
-                                        .setMessage("You're not connected to the network :(")
-                                        .setNegativeButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-                                            public void onClick(DialogInterface dialog, int which) {
-                                                // do nothing
-                                            }
-                                        })
-                                        .setIcon(android.R.drawable.ic_dialog_alert)
-                                        .show();
+                                NetworkCheck.displayNetworkErrorModal(MainActivity.this);
 
                             } else {
                                 responseText = new JSONObject(new String(errorResponse)).getString("reason");
