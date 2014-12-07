@@ -13,8 +13,6 @@ import (
 
 const (
 	// Reserved Circles
-	GOLD           = "Gold"
-	BROADCAST      = "Broadcast"
 	CHERAMI_PREFIX = "http://"
 	DOMAIN         = "cherami.io"
 	CHERAMI_URL    = CHERAMI_PREFIX + DOMAIN

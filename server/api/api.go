@@ -34,13 +34,6 @@ func NewApi(uri string) *Api {
 	return api
 }
 
-// Constants
-const (
-	GOLD            = "Gold"
-	BROADCAST       = "Broadcast"
-	MIN_PASS_LENGTH = 8
-)
-
 //
 // API util
 //
@@ -373,7 +366,7 @@ func (a Api) NewCircle(w rest.ResponseWriter, r *rest.Request) {
 	if circleName == "" {
 		a.Util.SimpleJsonReason(w, 400, "Missing `circlename` parameter")
 		return
-	} else if circleName == GOLD || circleName == BROADCAST {
+	} else if circleName == types.GOLD || circleName == types.BROADCAST {
 		a.Util.SimpleJsonReason(w, 403, circleName+" is a reserved circle name")
 		return
 	}

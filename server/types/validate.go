@@ -11,6 +11,8 @@ const (
 	MIN_PASS_LENGTH   = 8
 	MAX_PASS_LENGTH   = 50
 	MAX_HANDLE_LENGTH = 16
+	GOLD              = "Gold"
+	BROADCAST         = "Broadcast"
 )
 
 // Regexes

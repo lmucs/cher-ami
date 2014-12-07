@@ -67,9 +67,6 @@ func NewUUID() string {
 
 // Constants //
 const (
-	// Reserved Circles
-	GOLD                = "Gold"
-	BROADCAST           = "Broadcast"
 	AUTH_TOKEN_DURATION = time.Hour
 )
 
@@ -159,9 +156,9 @@ func (q Query) CreateDefaultCirclesForUser(handle string) bool {
         `,
 		Parameters: neoism.Props{
 			"handle":       handle,
-			"gold":         GOLD,
+			"gold":         types.GOLD,
+			"broadcast":    types.BROADCAST,
 			"gold_id":      NewUUID(),
-			"broadcast":    BROADCAST,
 			"broadcast_id": NewUUID(),
 			"now":          Now(),
 		},
@@ -315,7 +312,7 @@ func (q Query) JoinBroadcastCircleOfUser(handle, target string) bool {
         `,
 		Parameters: neoism.Props{
 			"handle":    handle,
-			"broadcast": BROADCAST,
+			"broadcast": types.BROADCAST,
 			"target":    target,
 			"now":       Now(),
 		},
