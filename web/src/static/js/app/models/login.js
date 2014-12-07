@@ -16,7 +16,8 @@ define(function(require, exports, module) {
         validate: function() {
             $.ajaxSetup({
                 statusCode: {
-                    403: function() {
+                    403: function(response) {
+                        console.log(response.responseText)
                         return false
                     }
                 }
