@@ -54,7 +54,18 @@ public class CircleForMessageModal extends DialogFragment {
         createCircleButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                attemptPostMessage();
+                boolean postMessage = false;
+                for(int i = 0; i < circle_data.length; i++){
+                    if(circle_data[i].isSelected()){
+                        postMessage = true;
+                    }
+                }
+                if(postMessage) {
+                    attemptPostMessage();
+                } else {
+                    Toast toast = Toast.makeText(CircleForMessageModal.this.context, "Please select a circle to post a message to.", Toast.LENGTH_LONG);
+                    toast.show();
+                }
             }
         });
         root = rootView;
