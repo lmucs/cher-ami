@@ -122,6 +122,9 @@ public class SignUpActivity extends Activity {
                         }
                         try {
                             String sessionKey = "com.cherami.cherami.token";
+                            String userKey = "com.cherami.cherami.username";
+
+                            prefs.edit().putString(userKey, mUsername.getText().toString()).apply();
                             prefs.edit().putString(sessionKey, returnVal.getString("token")).apply();
                         } catch (JSONException e) {
                             e.printStackTrace();

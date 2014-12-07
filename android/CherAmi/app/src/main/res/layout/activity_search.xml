@@ -1,4 +1,5 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:fbutton="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -8,13 +9,27 @@
     android:paddingBottom="@dimen/activity_vertical_margin"
     tools:context="com.cherami.cherami.SearchActivity">
 
-    <Button
+    <!--<Button-->
+        <!--android:id="@+id/search_button"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:text="Search"-->
+        <!--android:onClick="getUsers"-->
+        <!--android:layout_alignParentRight="true"/>-->
+
+    <info.hoang8f.widget.FButton
         android:id="@+id/search_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Search"
+        android:textColor="@android:color/white"
         android:onClick="getUsers"
-        android:layout_alignParentRight="true"/>
+        fbutton:buttonColor="#4cc1f0"
+        fbutton:shadowEnabled="false"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp" />
 
     <EditText
         android:id="@+id/search_bar"

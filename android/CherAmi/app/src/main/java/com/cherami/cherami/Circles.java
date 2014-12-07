@@ -1,7 +1,9 @@
 package com.cherami.cherami;
 
 import android.app.Activity;
+import android.app.FragmentManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.net.Uri;
@@ -57,6 +59,7 @@ public class Circles extends Fragment {
     SharedPreferences prefs;
     CircleAdapter adapter;
     Button createNewCircleButton;
+    Button refreshButton;
 
     private OnFragmentInteractionListener mListener;
 
@@ -92,7 +95,6 @@ public class Circles extends Fragment {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
-
     }
 
     public void filterCircles () {
@@ -135,6 +137,7 @@ public class Circles extends Fragment {
 
         spinner = (Spinner) rootView.findViewById(R.id.filter_spinner);
         createNewCircleButton = (Button) rootView.findViewById(R.id.createNewCircle);
+        refreshButton = (Button) rootView.findViewById(R.id.refreshButton);
 
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -151,6 +154,13 @@ public class Circles extends Fragment {
             @Override
             public void onClick(View v) {
                 displayCreateCircleModal();
+            }
+        });
+
+        refreshButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Circles.this.getCircles(Circles.this.getView());
             }
         });
 

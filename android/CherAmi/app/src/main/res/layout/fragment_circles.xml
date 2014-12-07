@@ -53,7 +53,18 @@
         android:id="@+id/circleList"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
-        android:layout_above="@+id/newCircle"
-        android:layout_below="@+id/filter_spinner"/>
+        android:layout_below="@+id/filter_spinner"
+        android:layout_above="@+id/createNewCircle" />
+
+    <Button
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Refresh"
+        android:id="@+id/refreshButton"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_above="@+id/circleList" />
 
 </RelativeLayout>
