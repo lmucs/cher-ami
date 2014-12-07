@@ -709,7 +709,7 @@ func (q Query) GetAllMessagesByHandle(target string) []types.MessageView {
                  ,    t.handle  AS author
                  ,    m.content AS content
                  ,    m.created AS created
-            ORDER BY  m.created
+            ORDER BY  m.created DESC
         `,
 		Parameters: neoism.Props{
 			"target": target,
