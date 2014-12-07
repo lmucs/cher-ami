@@ -76,15 +76,18 @@ public class CreateCircleModal extends DialogFragment {
         return rootView;
     }
 
+    public String getCircleName () {
+        return ((EditText) root.findViewById(R.id.circleName)).getText().toString();
+    }
+
     public JSONObject getCreateCircleParamsAsJson () {
         JSONObject jsonParams = new JSONObject();
-        EditText circleName = (EditText) root.findViewById(R.id.circleName);
         RadioButton publicRadioButton = (RadioButton) root.findViewById(R.id.publicRadioButton);
         Boolean isCirclePublic = publicRadioButton.isChecked();
         String visibilitySetting = publicRadioButton.isChecked() ? "public" : "private";
 
         try {
-            jsonParams.put("CircleName", circleName.getText().toString());
+            jsonParams.put("CircleName", getCircleName());
             jsonParams.put("Public", isCirclePublic);
         } catch (JSONException j) {
 
@@ -121,20 +124,12 @@ public class CreateCircleModal extends DialogFragment {
 
                     @Override
                     public void onSuccess(int statusCode, Header[] headers, byte[] response) {
-                        String s = new String(response);
-                        String responseText = null;
-
-                        try {
-                            responseText = new JSONObject(new String(response)).getString("response");
-                        } catch (JSONException j) {
-
-                        }
-
+                        String successfulCreation = "Successfully created new " +
+                                                    CreateCircleModal.this.getCircleName() +
+                                                    " circle.";
                         CreateCircleModal.this.dismiss();
-                        // Dr. Toal this is where I'd like to call the getCircles to refresh the list
-                        // after a successful circle creation
                         Toast toast = Toast.makeText(getActivity().getApplicationContext(),
-                                                     responseText, Toast.LENGTH_LONG);
+                                                     successfulCreation, Toast.LENGTH_LONG);
                         toast.show();
                     }
 
