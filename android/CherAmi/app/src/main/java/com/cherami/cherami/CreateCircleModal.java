@@ -107,8 +107,7 @@ public class CreateCircleModal extends DialogFragment {
 
     public void attemptCreateCircle() {
         AsyncHttpClient client = new AsyncHttpClient();
-        String sessionKey = "com.cherami.cherami.token";
-        String token = prefs.getString(sessionKey, null);
+        String token = ApiHelper.getSessionToken(prefs);
 
         client.addHeader("Authorization", token);
         client.post(getActivity().getApplicationContext(), ApiHelper.getLocalUrlForApi(getResources()) + "circles",
@@ -117,8 +116,6 @@ public class CreateCircleModal extends DialogFragment {
 
                     @Override
                     public void onStart() {
-                        // called before request is started
-                        System.out.println("STARTING POST TO CIRCLES REQUEST");
 
                     }
 
@@ -130,12 +127,10 @@ public class CreateCircleModal extends DialogFragment {
                         String responseText = null;
                         try {
                             responseText = new JSONObject(new String(response)).getString("response");
-                            System.out.println(new JSONObject(new String(response)).toString());
                         } catch (JSONException j) {
-                            System.out.println("Dont like JSON");
+
                         }
 
-                        Log.d("Status Code: ", Integer.toString(statusCode));
                         CreateCircleModal.this.dismiss();
                         Toast toast = Toast.makeText(getActivity().getApplicationContext(), responseText, Toast.LENGTH_LONG);
                         toast.show();

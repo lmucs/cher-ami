@@ -100,8 +100,7 @@ public class OtherUserProfileActivity extends Activity{
 
     public void getOtherUserCircles(final View view) {
         AsyncHttpClient client = new AsyncHttpClient();
-        String sessionKey = "com.cherami.cherami.token";
-        String token = prefs.getString(sessionKey, null);
+        String token = ApiHelper.getSessionToken(prefs);
 
         client.addHeader("Authorization", token);
         client.get(this.getApplicationContext(), ApiHelper.getLocalUrlForApi(getResources()) + "circles?user=" + myVal, new AsyncHttpResponseHandler() {

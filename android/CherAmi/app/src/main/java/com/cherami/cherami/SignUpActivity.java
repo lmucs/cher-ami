@@ -129,13 +129,12 @@ public class SignUpActivity extends Activity {
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
-                        // called when response HTTP status is "200 OK"
 
                         String responseText = null;
                         try {
                             responseText = new JSONObject(new String(response)).getString("response");
                         } catch (JSONException j) {
-                            System.out.println(j);
+
                         }
 
                         Toast toast = Toast.makeText(getApplicationContext(), responseText, Toast.LENGTH_LONG);

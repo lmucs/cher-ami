@@ -60,8 +60,8 @@ public class CircleForMessageModal extends DialogFragment {
 
     public void getCircles(final View view) {
         AsyncHttpClient client = new AsyncHttpClient();
-        String sessionKey = "com.cherami.cherami.token";
-        String token = prefs.getString(sessionKey, null);
+        String token = ApiHelper.getSessionToken(prefs);
+
         String userKey = "com.cherami.cherami.username";
         String username = prefs.getString(userKey, null);
         RequestParams params = new RequestParams();
@@ -72,9 +72,6 @@ public class CircleForMessageModal extends DialogFragment {
 
             @Override
             public void onStart() {
-                // called before request is started
-                System.out.println("STARTING GET REQUEST");
-
             }
 
             @Override
@@ -108,7 +105,6 @@ public class CircleForMessageModal extends DialogFragment {
                 String responseText = null;
                 try {
                     responseText = new JSONObject(new String(errorResponse)).getString("reason");
-
                 } catch (JSONException j) {
                     System.out.println(j);
                 }
@@ -156,9 +152,7 @@ public class CircleForMessageModal extends DialogFragment {
 
     public void attemptPostMessage() {
         AsyncHttpClient client = new AsyncHttpClient();
-        String sessionKey = "com.cherami.cherami.token";
-        String token = prefs.getString(sessionKey, null);
-        System.out.println("Token: " + token);
+        String token = ApiHelper.getSessionToken(prefs);
 
         client.addHeader("Authorization", token);
         client.post(getActivity().getApplicationContext(), ApiHelper.getLocalUrlForApi(getResources()) + "messages",
@@ -167,8 +161,6 @@ public class CircleForMessageModal extends DialogFragment {
 
                     @Override
                     public void onStart() {
-                        // called before request is started
-                        System.out.println("STARTING POST REQUEST");
 
                     }
 
@@ -196,7 +188,7 @@ public class CircleForMessageModal extends DialogFragment {
                             responseText = new JSONObject(new String(errorResponse)).getString("reason");
 
                         } catch (JSONException j) {
-                            System.out.println(j);
+
                         }
 
                         Toast toast = Toast.makeText(getActivity().getApplicationContext(), responseText, Toast.LENGTH_LONG);
@@ -207,8 +199,7 @@ public class CircleForMessageModal extends DialogFragment {
 
                     @Override
                     public void onRetry(int retryNo) {
-                        // called when request is retried
-                        System.out.println("RETRYING?!?!");
+
                     }
                 });
     }

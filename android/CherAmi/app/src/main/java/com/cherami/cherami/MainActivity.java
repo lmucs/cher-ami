@@ -183,12 +183,9 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
 
     public void logoutUser () {
         AsyncHttpClient client = new AsyncHttpClient();
-        String sessionKey = "com.cherami.cherami.token";
-        String token = prefs.getString(sessionKey, null);
-        System.out.println("Token: " + token);
-
-
+        String token = ApiHelper.getSessionToken(prefs);
         client.addHeader("Authorization", token);
+
         client.delete(this.getApplicationContext(), ApiHelper.getLocalUrlForApi(getResources()) + "sessions",
                 new AsyncHttpResponseHandler() {
 
@@ -196,14 +193,10 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
                     public void onStart() {
                         // called before request is started
                         System.out.println("STARTING DELETE TOKEN REQUEST");
-
                     }
 
                     @Override
                     public void onSuccess(int statusCode, Header[] headers, byte[] response) {
-
-                        Log.d("Status Code: ", Integer.toString(statusCode));
-                        System.out.println("IN LOGOUT SECTION");
                         Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
                         startActivity(intent);
                         finish();
@@ -231,8 +224,7 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
 
                     @Override
                     public void onRetry(int retryNo) {
-                        // called when request is retried
-                        System.out.println("RETRYING?!?!");
+
                     }
                 });
     }

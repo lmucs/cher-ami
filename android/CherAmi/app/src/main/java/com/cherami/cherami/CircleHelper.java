@@ -93,8 +93,8 @@ public class CircleHelper {
 
     public JSONArray getCirclesArray () {
         AsyncHttpClient client = new AsyncHttpClient();
-        String sessionKey = "com.cherami.cherami.token";
-        String token = this.prefs.getString(sessionKey, null);
+        String token = ApiHelper.getSessionToken(prefs);
+
         String userKey = "com.cherami.cherami.username";
         String username = this.prefs.getString(userKey, null);
         RequestParams params = new RequestParams();

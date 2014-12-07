@@ -100,8 +100,7 @@ public class Profile extends Fragment {
 
     public void getProfileFeed(final View view) {
         AsyncHttpClient client = new AsyncHttpClient();
-        String sessionKey = "com.cherami.cherami.token";
-        String token = prefs.getString(sessionKey, null);
+        String token = ApiHelper.getSessionToken(prefs);
 
         client.addHeader("Authorization", token);
         client.get(getActivity().getApplicationContext(),
@@ -110,8 +109,6 @@ public class Profile extends Fragment {
 
             @Override
             public void onStart() {
-                // called before request is started
-                System.out.println("STARTING GET REQUEST");
 
             }
 
@@ -136,7 +133,7 @@ public class Profile extends Fragment {
 
                     messageList.setAdapter(adapter);
                 } catch (JSONException j) {
-                    System.out.println(j);
+
                 }
 
             }
@@ -190,16 +187,6 @@ public class Profile extends Fragment {
         startActivity(intent);
     }
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
         public void onFragmentInteraction(Uri uri);

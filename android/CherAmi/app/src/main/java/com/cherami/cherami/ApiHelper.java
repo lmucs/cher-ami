@@ -1,5 +1,6 @@
 package com.cherami.cherami;
 
+import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 
@@ -12,6 +13,8 @@ import java.util.Properties;
  */
 public class ApiHelper {
 
+
+
     public static String getLocalUrlForApi (Resources resources) {
         AssetManager assetManager = resources.getAssets();
         Properties properties = new Properties();
@@ -22,5 +25,10 @@ public class ApiHelper {
         }
 
         return properties.getProperty("myUrl");
+    }
+
+    public static String getSessionToken (SharedPreferences prefs) {
+        String sessionKey = "com.cherami.cherami.token";
+        return prefs.getString(sessionKey, null);
     }
 }

@@ -178,8 +178,8 @@ public class Circles extends Fragment {
 
     public void getCircles(View view) {
         AsyncHttpClient client = new AsyncHttpClient();
-        String sessionKey = "com.cherami.cherami.token";
-        String token = prefs.getString(sessionKey, null);
+        String token = ApiHelper.getSessionToken(prefs);
+
         String userKey = "com.cherami.cherami.username";
         String username = prefs.getString(userKey, null);
         RequestParams params = new RequestParams();

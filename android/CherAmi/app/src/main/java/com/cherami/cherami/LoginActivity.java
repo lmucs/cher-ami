@@ -136,7 +136,6 @@ public class LoginActivity extends Activity {
 
                             prefs.edit().putString(sessionKey, returnVal.getString("token")).apply();
                             prefs.edit().putString(userKey, mUsername.getText().toString()).apply();
-                            System.out.println("Token " + prefs.getString(sessionKey, null));
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
@@ -144,10 +143,9 @@ public class LoginActivity extends Activity {
 
                         String responseText = null;
                         try {
-
                             responseText = new JSONObject(new String(response)).getString("response");
                         } catch (JSONException j) {
-                            System.out.println("Dont like JSON");
+
                         }
 
                         Toast toast = Toast.makeText(getApplicationContext(), responseText, Toast.LENGTH_LONG);

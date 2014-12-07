@@ -44,8 +44,8 @@ public class SearchActivity extends Activity {
 
     public void getUsers(View view) {
         AsyncHttpClient client = new AsyncHttpClient();
-        String sessionKey = "com.cherami.cherami.token";
-        String token = prefs.getString(sessionKey, null);
+        String token = ApiHelper.getSessionToken(prefs);
+
         String searchInput = ((EditText)findViewById(R.id.search_bar)).getText().toString();
         System.out.println("Searching: " + searchInput);
         RequestParams params = new RequestParams();
@@ -57,8 +57,6 @@ public class SearchActivity extends Activity {
 
             @Override
             public void onStart() {
-                // called before request is started
-                System.out.println("STARTING GET REQUEST");
 
             }
 
@@ -101,7 +99,7 @@ public class SearchActivity extends Activity {
                         }
                     });
                 } catch (JSONException j) {
-                    System.out.println(j);
+
                 }
 
             }
@@ -115,7 +113,7 @@ public class SearchActivity extends Activity {
                     responseText = new JSONObject(new String(errorResponse)).getString("reason");
 
                 } catch (JSONException j) {
-                    System.out.println(j);
+
                 }
 
             }
