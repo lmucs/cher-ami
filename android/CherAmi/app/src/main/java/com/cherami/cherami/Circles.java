@@ -59,6 +59,7 @@ public class Circles extends Fragment {
     SharedPreferences prefs;
     CircleAdapter adapter;
     Button createNewCircleButton;
+    Button refreshButton;
 
     private OnFragmentInteractionListener mListener;
 
@@ -136,6 +137,7 @@ public class Circles extends Fragment {
 
         spinner = (Spinner) rootView.findViewById(R.id.filter_spinner);
         createNewCircleButton = (Button) rootView.findViewById(R.id.createNewCircle);
+        refreshButton = (Button) rootView.findViewById(R.id.refreshButton);
 
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -155,11 +157,17 @@ public class Circles extends Fragment {
             }
         });
 
+        refreshButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Circles.this.getCircles(Circles.this.getView());
+            }
+        });
+
         return rootView;
     }
 
     public void displayCreateCircleModal () {
-
         CreateCircleModal createCircleModalFragment = new CreateCircleModal();
         createCircleModalFragment.show(getFragmentManager(), "dialog");
     }
