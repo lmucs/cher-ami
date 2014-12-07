@@ -24,8 +24,8 @@ define(function(require, exports, module) {
         },
 
         events: {
-            'click #remember-me': 'onRememberConfirm',
             'keyup #handle': 'inputValidate',
+            'click #remember-me': 'onRememberConfirm',
             'click #signup': 'onFormConfirm'
         },
 

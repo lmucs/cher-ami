@@ -6,6 +6,8 @@ define(function(require, exports, module){
     var AppRouter = require('app/app-router').AppRouter;
 
     app.appRouter = new AppRouter();
-    app.start();
+	$(document).ready(function() {
+		app.start();
+	});
 
 });
