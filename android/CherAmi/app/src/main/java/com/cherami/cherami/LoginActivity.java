@@ -148,7 +148,7 @@ public class LoginActivity extends Activity {
                         String responseText = null;
 
                         try {
-                            if (errorResponse == null) {
+                            if (!NetworkCheck.isConnected(errorResponse)) {
                                 new AlertDialog.Builder(LoginActivity.this)
                                         .setTitle("Network Error")
                                         .setMessage("You're not connected to the network :(")

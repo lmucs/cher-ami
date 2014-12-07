@@ -2,6 +2,7 @@ package com.cherami.cherami;
 
 import android.app.Activity;
 import android.app.FragmentManager;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -62,6 +63,7 @@ public class Circles extends Fragment {
     Button createNewCircleButton;
     Button refreshButton;
     Context context;
+    ProgressDialog dialog;
 
     public Circles() {
 
@@ -184,7 +186,8 @@ public class Circles extends Fragment {
 
             @Override
             public void onStart() {
-
+                dialog = ProgressDialog.show(getActivity(), "",
+                        "Loading. Please wait...", true);
             }
 
             @Override
@@ -212,10 +215,12 @@ public class Circles extends Fragment {
                 }
 
                 filterCircles();
+                dialog.dismiss();
             }
 
             @Override
             public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable error) {
+                dialog.dismiss();
                 String responseText = null;
 
                 try {
