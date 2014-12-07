@@ -6,6 +6,7 @@ import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -22,8 +23,10 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.EditText;
-import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.loopj.android.http.AsyncHttpClient;
@@ -58,7 +61,7 @@ public class LoginActivity extends Activity {
      */
     EditText mUsername;
     EditText mPassword;
-    private ProgressBar progressBar;
+    ProgressDialog dialog;
 
     SharedPreferences prefs;
     @Override
@@ -70,8 +73,6 @@ public class LoginActivity extends Activity {
                 "com.cherami.cherami", Context.MODE_PRIVATE);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-        progressBar = (ProgressBar)findViewById(R.id.progressBar);
-        progressBar.setVisibility(View.GONE);
         getActionBar().hide();
 
         mUsername = (EditText) findViewById(R.id.username);
@@ -117,12 +118,13 @@ public class LoginActivity extends Activity {
                     public void onStart() {
                         // called before request is started
                         System.out.println("STARTING POST REQUEST");
-                        progressBar.setVisibility(View.VISIBLE);
-
+                        dialog = ProgressDialog.show(LoginActivity.this, "",
+                                "Loading. Please wait...", true);
                     }
 
                     @Override
                     public void onSuccess(int statusCode, Header[] headers, byte[] response) {
+                        dialog.dismiss();
                         String s = new String(response);
                         JSONObject returnVal = new JSONObject();
                         try {
@@ -155,13 +157,12 @@ public class LoginActivity extends Activity {
 
                         Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                         startActivity(intent);
-                        progressBar.setVisibility(View.GONE);
                         finish();
                     }
 
                     @Override
                     public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
-                        progressBar.setVisibility(View.GONE);
+                        dialog.dismiss();
                         // called when response HTTP status is "4XX" (eg. 401, 403, 404)
 
                         String responseText = null;
