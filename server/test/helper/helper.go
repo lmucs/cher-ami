@@ -119,6 +119,23 @@ func GetJsonReasonMessage(r *http.Response) string {
 	return f.Reason
 }
 
+func GetJsonValidationReasonMessage(r *http.Response) []string {
+	var message struct {
+		Reason []string `json:"reason"`
+	}
+	Unmarshal(r, &message)
+	return message.Reason
+}
+
+func GetJsonPatchValidationReasonMessage(r *http.Response) ([]string, int) {
+	var message struct {
+		Reason []string `json:"reason"`
+		Index  int      `json:"index"`
+	}
+	Unmarshal(r, &message)
+	return message.Reason, message.Index
+}
+
 func GetJsonUserData(r *http.Response) string {
 	f := fields{}
 	Unmarshal(r, &f)
@@ -139,10 +156,6 @@ func GetIdFromUrlString(url string) string {
 	split := strings.Split(url, "/")
 	return split[len(split)-1]
 }
-
-//
-// Read info from headers:
-//
 
 func GetAuthTokenFromResponse(r *http.Response) string {
 	f := fields{}

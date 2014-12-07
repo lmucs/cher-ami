@@ -32,8 +32,7 @@ define(function(require, exports, module) {
         $.ajaxSetup({
             statusCode: {
                 401: function() {
-                    alert("hey 401")
-                    window.location.replace("/")
+                    window.location.reload()
                 }
             }
         })

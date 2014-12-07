@@ -67,9 +67,6 @@ func NewUUID() string {
 
 // Constants //
 const (
-	// Reserved Circles
-	GOLD                = "Gold"
-	BROADCAST           = "Broadcast"
 	AUTH_TOKEN_DURATION = time.Hour
 )
 
@@ -159,9 +156,9 @@ func (q Query) CreateDefaultCirclesForUser(handle string) bool {
         `,
 		Parameters: neoism.Props{
 			"handle":       handle,
-			"gold":         GOLD,
+			"gold":         types.GOLD,
+			"broadcast":    types.BROADCAST,
 			"gold_id":      NewUUID(),
-			"broadcast":    BROADCAST,
 			"broadcast_id": NewUUID(),
 			"now":          Now(),
 		},
@@ -315,7 +312,7 @@ func (q Query) JoinBroadcastCircleOfUser(handle, target string) bool {
         `,
 		Parameters: neoism.Props{
 			"handle":    handle,
-			"broadcast": BROADCAST,
+			"broadcast": types.BROADCAST,
 			"target":    target,
 			"now":       Now(),
 		},
@@ -675,6 +672,33 @@ func (q Query) GetCircleIdByName(handle, circleName string) (circleid string) {
 	}
 }
 
+func (q Query) GetPublicCirclesByHandle(handle string) (circles []RawCircleView, count int) {
+	circles = make([]RawCircleView, 0)
+	q.cypherOrPanic(&neoism.CypherQuery{
+		Statement: `
+            MATCH (t:User)-[:OWNS]-(c:Circle)-[partOf:PART_OF]->(pd:PublicDomain)
+            WHERE pd.iam = "PublicDomain"
+            AND   t.handle = {handle}
+            RETURN c.name AS name
+                 , c.id AS id
+                 , c.description AS description
+                 , t.handle AS owner
+                 , c.created AS created
+                 , partOf AS public
+
+        `,
+		Parameters: neoism.Props{
+			"handle": handle,
+		},
+		Result: &circles,
+	})
+	if len(circles) > 0 {
+		return circles, len(circles)
+	} else {
+		return []RawCircleView{}, len(circles)
+	}
+}
+
 func (q Query) GetAllMessagesByHandle(target string) []types.MessageView {
 	messages := make([]types.MessageView, 0)
 	q.cypherOrPanic(&neoism.CypherQuery{
@@ -717,6 +741,90 @@ func (q Query) GetVisibleMessageById(handle, messageid string) (message types.Me
 		return messages[0], ok
 	} else {
 		return types.MessageView{}, ok
+	}
+}
+
+func (q Query) GetVisibleUserByHandle(handle, target string) (user types.UserView, found bool) {
+	users := make([]types.UserView, 0)
+	q.cypherOrPanic(&neoism.CypherQuery{
+		Statement: `
+            MATCH   (t:User), (u:User)
+            WHERE   not((u)<-[:BLOCKED]-(t))
+            AND     t.handle = {target}
+            AND     u.handle = {handle}
+            RETURN  t.handle    AS handle
+                  , t.firstname AS firstname
+                  , t.lastname  AS lastname
+                  , t.gender    AS gender
+                  , t.birthday  AS birthday
+                  , t.bio       AS bio
+                  , t.interests AS interests
+                  , t.languages AS languages
+                  , t.location  AS location
+        `,
+		Parameters: neoism.Props{
+			"handle": handle,
+			"target": target,
+		},
+		Result: &users,
+	})
+	if ok := len(users) > 0; ok {
+		return users[0], ok
+	} else {
+		return types.UserView{}, ok
+	}
+}
+
+func (q Query) GetBlockedUsers(handle string) (users []types.UserView, count int) {
+	users = make([]types.UserView, 0)
+	q.cypherOrPanic(&neoism.CypherQuery{
+		Statement: `
+            MATCH (u:User)-[:BLOCKED]->(t:User)
+            WHERE u.handle = {handle}
+            RETURN t.handle AS handle
+        `,
+		Parameters: neoism.Props{
+			"handle": handle,
+		},
+		Result: &users,
+	})
+	count = len(users)
+	if count > 0 {
+		return users, count
+	} else {
+		return []types.UserView{}, count
+	}
+}
+
+func (q Query) GetJoinedCirclesByHandle(handle string, before time.Time, limit int) (circles []RawCircleView, count int) {
+	circles = make([]RawCircleView, 0)
+	q.cypherOrPanic(&neoism.CypherQuery{
+		Statement: `
+            MATCH           (u:User)-[:MEMBER_OF|OWNS]->(c:Circle)
+            WHERE           u.handle = {handle}
+            AND             c.created < {before}
+            MATCH           (c)<-[:OWNS]-(owner:User)
+            OPTIONAL MATCH  (c)-[partOf:PART_OF]->(pd:PublicDomain)
+            RETURN          c.name        AS name
+                          , c.id          AS id
+                          , c.description AS description
+                          , c.created     AS created
+                          , owner.handle  AS owner
+                          , partOf        AS public
+            ORDER BY        c.created
+            LIMIT           {limit}
+        `,
+		Parameters: neoism.Props{
+			"handle": handle,
+			"before": before,
+			"limit":  limit,
+		},
+		Result: &circles,
+	})
+	if count = len(circles); count > 0 {
+		return circles, count
+	} else {
+		return []RawCircleView{}, count
 	}
 }
 
@@ -843,6 +951,33 @@ func (q Query) UpdateMessageContent(messageid, newContent string) bool {
 			"messageid": messageid,
 			"content":   newContent,
 			"now":       Now(),
+		},
+		Result: &updated,
+	})
+	return len(updated) > 0
+}
+
+func (q Query) UpdateUserAttribute(handle, resource, value string) bool {
+	updated := []struct {
+		User string `json:"u.handle"`
+	}{}
+
+	changes := types.Json{
+		resource: value,
+	}
+	query := `
+        MATCH   (u:User)
+        WHERE   u.handle      =  {handle}
+        SET     u.lastupdated =  {now}
+        SET     u             += {changes}
+        RETURN  u.handle`
+
+	q.cypherOrPanic(&neoism.CypherQuery{
+		Statement: query,
+		Parameters: neoism.Props{
+			"handle":  handle,
+			"changes": changes,
+			"now":     Now(),
 		},
 		Result: &updated,
 	})
