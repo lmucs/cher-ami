@@ -129,6 +129,8 @@ public class CreateCircleModal extends DialogFragment {
                         }
 
                         CreateCircleModal.this.dismiss();
+                        // Dr. Toal this is where I'd like to call the getCircles to refresh the list
+                        // after a successful circle creation
                         Toast toast = Toast.makeText(getActivity().getApplicationContext(), responseText, Toast.LENGTH_LONG);
                         toast.show();
 
