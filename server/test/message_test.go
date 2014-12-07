@@ -269,27 +269,40 @@ func (s *TestSuite) TestEditMessageMissingParams(c *C) {
 
 	res, _ := req.EditMessage(types.JsonArray{onlyOp}, messageid, sessionid)
 	c.Check(res.StatusCode, Equals, 400)
-	c.Check(helper.GetJsonReasonMessage(res), Equals, "missing `resource` parameter in object 0")
+	resErr, index := helper.GetJsonPatchValidationReasonMessage(res)
+	c.Check(resErr[0], Equals, "field resource is invalid: Required field for message patch")
+	c.Check(index, Equals, 0)
 
 	res, _ = req.EditMessage(types.JsonArray{onlyResource}, messageid, sessionid)
 	c.Check(res.StatusCode, Equals, 400)
-	c.Check(helper.GetJsonReasonMessage(res), Equals, "missing `op` parameter in object 0")
+	resErr, index = helper.GetJsonPatchValidationReasonMessage(res)
+	c.Check(resErr[0], Equals, "field op is invalid: Required field for message patch")
+	c.Check(index, Equals, 0)
 
 	res, _ = req.EditMessage(types.JsonArray{onlyValue}, messageid, sessionid)
 	c.Check(res.StatusCode, Equals, 400)
-	c.Check(helper.GetJsonReasonMessage(res), Equals, "missing `op` parameter in object 0")
+	resErr, index = helper.GetJsonPatchValidationReasonMessage(res)
+	c.Check(resErr[0], Equals, "field op is invalid: Required field for message patch")
+	c.Check(index, Equals, 0)
 
 	res, _ = req.EditMessage(types.JsonArray{onlyOpResource}, messageid, sessionid)
 	c.Check(res.StatusCode, Equals, 400)
-	c.Check(helper.GetJsonReasonMessage(res), Equals, "missing `value` parameter in object 0")
+	resErr, index = helper.GetJsonPatchValidationReasonMessage(res)
+	c.Check(resErr[0], Equals, "field value is invalid: Required field for message patch")
+	c.Check(index, Equals, 0)
 
 	res, _ = req.EditMessage(types.JsonArray{onlyResourceValue}, messageid, sessionid)
 	c.Check(res.StatusCode, Equals, 400)
-	c.Check(helper.GetJsonReasonMessage(res), Equals, "missing `op` parameter in object 0")
+	resErr, index = helper.GetJsonPatchValidationReasonMessage(res)
+	c.Check(resErr[0], Equals, "field op is invalid: Required field for message patch")
+	c.Check(index, Equals, 0)
 
 	res, _ = req.EditMessage(types.JsonArray{onlyOpValue}, messageid, sessionid)
 	c.Check(res.StatusCode, Equals, 400)
-	c.Check(helper.GetJsonReasonMessage(res), Equals, "missing `resource` parameter in object 0")
+
+	resErr, index = helper.GetJsonPatchValidationReasonMessage(res)
+	c.Check(resErr[0], Equals, "field resource is invalid: Required field for message patch")
+	c.Check(index, Equals, 0)
 }
 
 func (s *TestSuite) TestEditMessageBadOp(c *C) {
@@ -304,8 +317,10 @@ func (s *TestSuite) TestEditMessageBadOp(c *C) {
 	}
 
 	res, _ := req.EditMessage(types.JsonArray{patchObj}, messageid, sessionid)
+	resErr, index := helper.GetJsonPatchValidationReasonMessage(res)
 	c.Check(res.StatusCode, Equals, 400)
-	c.Check(helper.GetJsonReasonMessage(res), Equals, "Malformed patch request at object 0")
+	c.Check(resErr[0], Equals, "field op is invalid: change")
+	c.Check(index, Equals, 0)
 }
 
 func (s *TestSuite) TestEditMessageBadResource(c *C) {
@@ -320,8 +335,10 @@ func (s *TestSuite) TestEditMessageBadResource(c *C) {
 	}
 
 	res, _ := req.EditMessage(types.JsonArray{patchObj}, messageid, sessionid)
+	resErr, index := helper.GetJsonPatchValidationReasonMessage(res)
 	c.Check(res.StatusCode, Equals, 400)
-	c.Check(helper.GetJsonReasonMessage(res), Equals, "Message only allows update to (content|image) at object 0")
+	c.Check(resErr[0], Equals, "field resource is invalid: messageText")
+	c.Check(index, Equals, 0)
 }
 
 func (s *TestSuite) TestEditMessageBadPatchObject(c *C) {

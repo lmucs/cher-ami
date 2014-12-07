@@ -6,25 +6,20 @@ import (
 	apiutil "./util"
 	"github.com/ChimeraCoder/go.crypto/bcrypt"
 	"github.com/ant0ine/go-json-rest/rest"
+	"github.com/mccoyst/validate"
 	"net/http"
 	"strconv"
 	"time"
 )
-
-func panicErr(err error) {
-	if err != nil {
-		panic(err)
-		return
-	}
-}
 
 //
 // Application Types
 //
 
 type Api struct {
-	Svc  *service.Svc
-	Util *apiutil.Util
+	Svc       *service.Svc
+	Util      *apiutil.Util
+	Validator *validate.V
 }
 
 /**
@@ -32,18 +27,12 @@ type Api struct {
  */
 func NewApi(uri string) *Api {
 	api := &Api{
-		service.NewService(uri),
-		&apiutil.Util{},
+		Svc:       service.NewService(uri),
+		Util:      &apiutil.Util{},
+		Validator: types.NewValidator(),
 	}
 	return api
 }
-
-// Constants
-const (
-	GOLD            = "Gold"
-	BROADCAST       = "Broadcast"
-	MIN_PASS_LENGTH = 8
-)
 
 //
 // API util
@@ -73,15 +62,14 @@ func (a Api) getTokenFromHeader(r *rest.Request) string {
  * Expects a json POST with "username", "email", "password", "confirmpassword"
  */
 func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
-	type Proposal struct {
-		Handle          string
-		Email           string
-		Password        string
-		ConfirmPassword string
-	}
-	proposal := Proposal{}
+	proposal := types.SignupProposal{}
 	if err := r.DecodeJsonPayload(&proposal); err != nil {
 		rest.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if err := a.Validator.ValidateAndTag(proposal, "json"); err != nil {
+		a.Util.SimpleJsonValidationReason(w, 400, err)
 		return
 	}
 
@@ -90,21 +78,9 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 	password := proposal.Password
 	confirm_password := proposal.ConfirmPassword
 
-	// Handle and Email checks
-	if handle == "" {
-		a.Util.SimpleJsonReason(w, 400, "Handle is a required field for signup")
-		return
-	} else if email == "" {
-		a.Util.SimpleJsonReason(w, 400, "Email is a required field for signup")
-		return
-	}
-
 	// Password checks
 	if password != confirm_password {
 		a.Util.SimpleJsonReason(w, 403, "Passwords do not match")
-		return
-	} else if len(password) < MIN_PASS_LENGTH {
-		a.Util.SimpleJsonReason(w, 403, "Passwords must be at least 8 characters long")
 		return
 	}
 
@@ -146,12 +122,14 @@ func (a Api) Signup(w rest.ResponseWriter, r *rest.Request) {
 }
 
 func (a Api) Login(w rest.ResponseWriter, r *rest.Request) {
-	credentials := struct {
-		Handle   string
-		Password string
-	}{}
+	credentials := types.LoginCredentials{}
 	if err := r.DecodeJsonPayload(&credentials); err != nil {
 		rest.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if err := a.Validator.ValidateAndTag(credentials, "json"); err != nil {
+		a.Util.SimpleJsonValidationReason(w, 400, err)
 		return
 	}
 
@@ -173,7 +151,7 @@ func (a Api) Login(w rest.ResponseWriter, r *rest.Request) {
 			} else {
 				w.WriteHeader(201)
 				w.WriteJson(types.Json{
-					"handle": handle,
+					"handle":   handle,
 					"response": "Logged in " + handle + ". Note your Authorization token.",
 					"token":    token,
 				})
@@ -199,6 +177,75 @@ func (a Api) Logout(w rest.ResponseWriter, r *rest.Request) {
 //
 // User
 //
+func (a Api) GetUser(w rest.ResponseWriter, r *rest.Request) {
+	if !a.authenticate(r) {
+		a.Util.FailedToAuthenticate(w)
+		return
+	}
+
+	target := r.PathParam("handle")
+
+	if handle, ok := a.Svc.GetHandleFromAuthorization(a.getTokenFromHeader(r)); !ok {
+		a.Util.FailedToDetermineHandleFromAuthToken(w)
+		return
+	} else {
+		if user, ok := a.Svc.GetVisibleUser(handle, target); !ok {
+			a.Util.SimpleJsonReason(w, 500, "Failed to get user "+target)
+			return
+		} else {
+			w.WriteHeader(200)
+			w.WriteJson(user)
+		}
+	}
+}
+
+func (a Api) EditUser(w rest.ResponseWriter, r *rest.Request) {
+	if !a.authenticate(r) {
+		a.Util.FailedToAuthenticate(w)
+		return
+	}
+
+	attributes := []types.UserPatch{}
+	if err := r.DecodeJsonPayload(&attributes); err != nil {
+		rest.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	handle := r.PathParam("handle")
+	if h, ok := a.Svc.GetHandleFromAuthorization(a.getTokenFromHeader(r)); !ok {
+		a.Util.FailedToDetermineHandleFromAuthToken(w)
+		return
+	} else if h != handle {
+		a.Util.SimpleJsonReason(w, 401, "You are not authorized to modify user "+handle)
+		return
+	}
+
+	// Validate input of patch objects
+	for index, obj := range attributes {
+		if err := a.Validator.ValidateAndTag(obj, "json"); err != nil {
+			a.Util.PatchValidationReason(w, 400, err, index)
+			return
+		}
+	}
+
+	// Service requests
+	for i, obj := range attributes {
+		resource := obj.Resource
+		value := obj.Value
+
+		if !a.Svc.UpdateUserAttribute(handle, resource, value) {
+			a.Util.SimpleJsonReason(w, 500, "Unexpected failure to fulfill service request at "+strconv.Itoa(i))
+			return
+		}
+	}
+
+	w.WriteHeader(200)
+	w.WriteJson(types.Json{
+		"response": "Successfully updated user " + handle,
+		"changes":  len(attributes),
+	})
+
+}
 
 func (a Api) SearchForUsers(w rest.ResponseWriter, r *rest.Request) {
 	querymap := r.URL.Query()
@@ -319,7 +366,7 @@ func (a Api) NewCircle(w rest.ResponseWriter, r *rest.Request) {
 	if circleName == "" {
 		a.Util.SimpleJsonReason(w, 400, "Missing `circlename` parameter")
 		return
-	} else if circleName == GOLD || circleName == BROADCAST {
+	} else if circleName == types.GOLD || circleName == types.BROADCAST {
 		a.Util.SimpleJsonReason(w, 403, circleName+" is a reserved circle name")
 		return
 	}
@@ -366,7 +413,10 @@ func (a Api) SearchCircles(w rest.ResponseWriter, r *rest.Request) {
 		}
 	}
 
-	if val, ok := querymap["user"]; !ok {
+	// Reveals public and private circles user is apart of. If user parameter is absent
+	// will use the logged in user as the target of the query.
+	// Empty assumed not to be the name of a user, DWIW
+	if val, ok := querymap["user"]; !ok || val[0] == "" {
 		if handle, ok := a.Svc.GetHandleFromAuthorization(a.getTokenFromHeader(r)); !ok {
 			a.Util.FailedToDetermineHandleFromAuthToken(w)
 			return
@@ -391,7 +441,7 @@ func (a Api) SearchCircles(w rest.ResponseWriter, r *rest.Request) {
 		}
 	}
 
-	results, count := a.Svc.SearchCircles(user, before, limit)
+	results, count := a.Svc.CirclesUserIsPartOf(user, before, limit)
 
 	w.WriteHeader(200)
 	w.WriteJson(types.SearchCirclesResponse{
@@ -519,7 +569,7 @@ func (a Api) EditMessage(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 
-	payload := make(types.JsonArray, 0)
+	payload := make([]types.MessagePatch, 0)
 	if err := r.DecodeJsonPayload(&payload); err != nil {
 		rest.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -533,26 +583,16 @@ func (a Api) EditMessage(w rest.ResponseWriter, r *rest.Request) {
 	}
 
 	// Validate input of patch objects
-	for i, obj := range payload {
-		index := strconv.Itoa(i)
-		if op, ok := obj["op"].(string); !ok {
-			a.Util.SimpleJsonReason(w, 400, "missing `op` parameter in object "+index)
-			return
-		} else if resource, ok := obj["resource"].(string); !ok {
-			a.Util.SimpleJsonReason(w, 400, "missing `resource` parameter in object "+index)
-			return
-		} else if value, ok := obj["value"].(string); !ok {
-			a.Util.SimpleJsonReason(w, 400, "missing `value` parameter in object "+index)
+	for index, obj := range payload {
+		if err := a.Validator.ValidateAndTag(obj, "json"); err != nil {
+			a.Util.PatchValidationReason(w, 400, err, index)
 			return
 		} else {
+			op := obj.Op
+			resource := obj.Resource
+			value := obj.Value
 			if op == "update" {
-				if resource != "content" && resource != "image" {
-					a.Util.SimpleJsonReason(w, 400, "Message only allows update to (content|image) at object "+index)
-					return
-				} else if resource == "content" && value == "" {
-					a.Util.SimpleJsonReason(w, 400, "Cannot update message content to empty at "+index)
-					return
-				} else if resource == "image" {
+				if resource == "image" {
 					a.Util.SimpleJsonReason(w, 405, "Edit message image value has yet to be implemented")
 					return
 				}
@@ -567,7 +607,7 @@ func (a Api) EditMessage(w rest.ResponseWriter, r *rest.Request) {
 					return
 				}
 			} else {
-				a.Util.SimpleJsonReason(w, 400, "Malformed patch request at object "+index)
+				a.Util.SimpleJsonReason(w, 400, "Malformed patch request at object "+strconv.Itoa(index))
 				return
 			}
 		}
@@ -575,9 +615,9 @@ func (a Api) EditMessage(w rest.ResponseWriter, r *rest.Request) {
 
 	// Service requests
 	for i, obj := range payload {
-		op, _ := obj["op"].(string)
-		resource, _ := obj["resource"].(string)
-		value, _ := obj["value"].(string)
+		op := obj.Op
+		resource := obj.Resource
+		value := obj.Value
 
 		if op == "update" {
 			if resource == "content" {

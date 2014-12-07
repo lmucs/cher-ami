@@ -3,6 +3,7 @@ package service
 import (
 	"../../types"
 	"./query"
+	"fmt"
 	"time"
 )
 
@@ -12,8 +13,6 @@ import (
 
 const (
 	// Reserved Circles
-	GOLD           = "Gold"
-	BROADCAST      = "Broadcast"
 	CHERAMI_PREFIX = "http://"
 	DOMAIN         = "cherami.io"
 	CHERAMI_URL    = CHERAMI_PREFIX + DOMAIN
@@ -211,6 +210,15 @@ func (s Svc) SearchCircles(user string, before time.Time, limit int) (results []
 	return formatted, len(formatted)
 }
 
+func (s Svc) CirclesUserIsPartOf(user string, before time.Time, limit int) (results []types.CircleResponse, count int) {
+	circles, _ := s.Query.GetJoinedCirclesByHandle(user, before, limit)
+	formatted := make([]types.CircleResponse, len(circles))
+	for i, c := range circles {
+		formatted[i] = formatCircleView(c)
+	}
+	return formatted, len(formatted)
+}
+
 func (s Svc) GetPasswordHash(handle string) (passwordHash []byte, ok bool) {
 	return s.Query.GetPasswordHash(handle)
 }
@@ -229,6 +237,27 @@ func (s Svc) GetVisibleMessageById(handle, messageid string) (message types.Mess
 
 func (s Svc) GetHandleFromAuthorization(token string) (handle string, ok bool) {
 	return s.Query.DeriveHandleFromAuthToken(token)
+}
+
+func (s Svc) GetVisibleUser(handle, target string) (result types.UserView, ok bool) {
+	if user, ok := s.Query.GetVisibleUserByHandle(handle, target); !ok {
+		return types.UserView{}, ok
+	} else {
+		// var blockedUsers types.UserView
+		if handle == target {
+			if blocked, count := s.Query.GetBlockedUsers(handle); count > 0 {
+				user.Blocked = blocked
+			}
+		}
+		fmt.Printf("%+v", user)
+		circles, _ := s.Query.GetPublicCirclesByHandle(handle)
+		formatted := make([]types.CircleResponse, len(circles))
+		for i, c := range circles {
+			formatted[i] = formatCircleView(c)
+		}
+		user.Circles = formatted
+		return user, true
+	}
 }
 
 //
@@ -255,4 +284,8 @@ func (s Svc) SetGetName(handle, newName string) (string, bool) {
 
 func (s Svc) UpdateContentOfMessage(messageid, content string) bool {
 	return s.Query.UpdateMessageContent(messageid, content)
+}
+
+func (s Svc) UpdateUserAttribute(handle, resource, content string) bool {
+	return s.Query.UpdateUserAttribute(handle, resource, content)
 }
