@@ -1,15 +1,24 @@
 package com.cherami.cherami;
 
-public class Circle {
-    public String name;
-    public String owner;
-    public String date;
-    public String visibility;
+import org.json.JSONException;
+import org.json.JSONObject;
 
-    public Circle(String name, String owner, String date, String visibility) {
-        this.name = name;
-        this.owner = owner;
-        this.date = date;
-        this.visibility = visibility;
+public class Circle {
+    public JSONObject circle;
+
+    public Circle(JSONObject circle) {
+        this.circle = circle;
     }
+    public JSONObject getCircle(){
+        return this.circle;
+    }
+    public String getVisibility(){
+        try {
+            return this.circle.getString("visibility");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
 }

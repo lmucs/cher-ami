@@ -42,6 +42,10 @@ public class CircleResult extends Activity {
         Bundle recdData = getIntent().getExtras();
         circleName = recdData.getString("circleName");
         owner = recdData.getString("owner");
+        View joinButton = findViewById(R.id.joinCircle);
+        if(recdData.getString("joinVisibility").equals("none")){
+            joinButton.setVisibility(View.GONE);
+        }
         textElement.setText(circleName);
     }
 
