@@ -63,8 +63,16 @@ public class CircleForMessageModal extends DialogFragment {
                 if(postMessage) {
                     attemptPostMessage();
                 } else {
-                    Toast toast = Toast.makeText(CircleForMessageModal.this.context, "Please select a circle to post a message to.", Toast.LENGTH_LONG);
-                    toast.show();
+                    new AlertDialog.Builder(getActivity())
+                            .setTitle("No Circles Selected")
+                            .setMessage("Please select a circle to post a message to.")
+                            .setNegativeButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    // do nothing
+                                }
+                            })
+                            .setIcon(android.R.drawable.ic_dialog_alert)
+                            .show();
                 }
             }
         });
