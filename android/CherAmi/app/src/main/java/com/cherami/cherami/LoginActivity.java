@@ -118,6 +118,7 @@ public class LoginActivity extends Activity {
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
+
                         try {
                             ApiHelper.saveAuthorizationToken(context, mUsername.getText().toString(),
                                     returnVal.getString("token"));

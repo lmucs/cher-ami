@@ -103,7 +103,7 @@ public class SearchActivity extends Activity {
             public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable error) {
                 dialog.dismiss();
                 String responseText = null;
-                
+
                 try {
                     responseText = new JSONObject(new String(errorResponse)).getString("reason");
                 } catch (JSONException j) {

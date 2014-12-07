@@ -190,7 +190,6 @@ public class MainActivity extends Activity implements ActionBar.TabListener {
 
                         try {
                             responseText = new JSONObject(new String(errorResponse)).getString("Reason");
-
                         } catch (JSONException j) {
 
                         }
