@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -95,13 +96,30 @@ public class OtherUserProfileActivity extends Activity{
                     OtherUserCircle circle_data[] = new OtherUserCircle[y.length()];
                     for (int x = 0; x < y.length(); x++) {
 
-                        circle_data[x] = new OtherUserCircle(new JSONObject(y.get(x).toString()).getString("name"), new JSONObject(y.get(x).toString()).getString("owner"), processDate(new JSONObject(y.get(x).toString()).getString("created")));                    }
+                        circle_data[x] = new OtherUserCircle(new JSONObject(y.get(x).toString()));                    }
 
-                    OtherUserProfileAdapter adapter = new OtherUserProfileAdapter(OtherUserProfileActivity.this,
+                    final OtherUserProfileAdapter adapter = new OtherUserProfileAdapter(OtherUserProfileActivity.this,
                             R.layout.other_user_circle_row, circle_data);
 
                     circleList = (ListView) view.findViewById(R.id.otherCircleFeed);
                     circleList.setAdapter(adapter);
+                    
+                    circleList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                        @Override
+                        public void onItemClick(AdapterView<?> parent, View view, int position,
+                                                long id) {
+                            Intent intent = new Intent(OtherUserProfileActivity.this, CircleResult.class);
+                            Bundle mBundle = new Bundle();
+                            try {
+                                mBundle.putString("owner",adapter.getItem(position).getCircle().getString("owner"));
+                                mBundle.putString("circleName", adapter.getItem(position).getCircle().getString("name"));
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                            intent.putExtras(mBundle);
+                            startActivity(intent);
+                        }
+                    });
 
                 } catch (JSONException j) {
 

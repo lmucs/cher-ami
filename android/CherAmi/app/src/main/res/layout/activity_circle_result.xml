@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:fbutton="http://schemas.android.com/apk/res-auto"
+    tools:context="com.cherami.cherami.CircleResult"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
@@ -12,25 +15,32 @@
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="Circle Name"
-        android:id="@+id/textView"
+        android:id="@+id/circleName"
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
 
-    <Button
+    <info.hoang8f.widget.FButton
+        android:id="@+id/joinCircle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Join Circle"
-        android:id="@+id/button"
+        android:layout_margin="10dp"
         android:layout_alignParentTop="true"
         android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true" />
+        android:layout_alignParentEnd="true"
+        android:text="Join Circle"
+        android:onClick="joinCircle"
+        android:textColor="@android:color/white"
+        fbutton:buttonColor="#4cc1f0"
+        fbutton:shadowEnabled="false"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp" />
 
     <ListView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/listView"
-        android:layout_below="@+id/button"
+        android:layout_below="@+id/joinCircle"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
 </RelativeLayout>

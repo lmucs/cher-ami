@@ -8,6 +8,8 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
+import org.json.JSONException;
+
 /**
  * Created by Geoff on 11/30/2014.
  */
@@ -46,11 +48,20 @@ public class OtherUserProfileAdapter extends ArrayAdapter<OtherUserCircle> {
         }
 
         OtherUserCircle otherUserCircle = data[position];
-        holder.txtName.setText(otherUserCircle.name);
-        holder.txtOwner.setText(otherUserCircle.owner);
-        holder.txtDate.setText(otherUserCircle.date);
+        try {
+            holder.txtName.setText(otherUserCircle.circle.getString("name"));
+            holder.txtOwner.setText(otherUserCircle.circle.getString("owner"));
+            holder.txtDate.setText(otherUserCircle.circle.getString("created"));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
 
         return row;
+    }
+
+    @Override
+    public OtherUserCircle getItem(int position){
+        return data[position];
     }
 
     static class OtherUserCircleHolder {
