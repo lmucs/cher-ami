@@ -15,6 +15,8 @@ func MakeHandler(api cheramiapi.Api, disableLogs bool) (rest.ResourceHandler, er
 		&rest.Route{"POST", "/signup", api.Signup},
 		&rest.Route{"POST", "/sessions", api.Login},
 		&rest.Route{"DELETE", "/sessions", api.Logout},
+		&rest.Route{"GET", "/users/:handle", api.GetUser},
+		&rest.Route{"PATCH", "/users/:handle", api.EditUser},
 		&rest.Route{"GET", "/users", api.SearchForUsers},
 		&rest.Route{"GET", "/messages", api.GetAuthoredMessages},
 		&rest.Route{"GET", "/messages/:id", api.GetMessageById},

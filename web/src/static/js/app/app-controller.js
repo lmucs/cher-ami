@@ -45,6 +45,25 @@ define(function(require, exports, module) {
     var AppController = marionette.Controller.extend({
         initialize: function() {
             this.app = app;
+<<<<<<< HEAD
+            this.app.session = new Session({}, {
+                remote: false
+            });
+            // Logic for auth check.
+            this.app.headerRegion.show(new HeaderView({
+                session: this.app.session
+            }));
+            if (this.app.session.has('token')) {
+                console.log("User logged in");
+                $.ajaxSetup({
+                    headers: {'Authorization' : this.app.session.get('token')}
+                })
+                // user is authed, redirect home
+                this.app.mainRegion.show(new HomeLayout({
+                    session: this.app.session
+                }));
+                // Initialize header view after logged in
+=======
             this.app.session = app.session;
         },
         // Needed for AppRouter to initialize index route.
@@ -62,6 +81,7 @@ define(function(require, exports, module) {
         showHomeLayout: function(options) {
             if (!this.app.session.hasAuth()) {
                 this.index();
+>>>>>>> master
             } else {
                 this.app.sidebarRegion.show(new SidebarView())
                 this.app.headerRegion.show(new HeaderView({
@@ -74,13 +94,23 @@ define(function(require, exports, module) {
         },
 
         showCircle: function(options) {
-            this.app.sidebarRegion.show(new SidebarView())
-            this.app.mainRegion.show(new CircleLayout({
-                session: this.app.session
-            }))
+            if (!this.app.session.hasAuth()) {
+                this.index();
+            } else {
+                this.app.headerRegion.show(new HeaderView({
+                    session: this.app.session
+                }));
+                this.app.sidebarRegion.show(new SidebarView())
+                this.app.mainRegion.show(new CircleLayout({
+                    session: this.app.session
+                }))
+            }
         },
 
         showProfile: function(options) {
+            this.app.headerRegion.show(new HeaderView({
+                session: this.app.session
+            }));
             this.app.sidebarRegion.show(new SidebarView())
             this.app.mainRegion.show(new ProfileLayout({
                 session: this.app.session
@@ -88,6 +118,9 @@ define(function(require, exports, module) {
         },
 
         showSettings: function(options) {
+            this.app.headerRegion.show(new HeaderView({
+                session: this.app.session
+            }));
             this.app.sidebarRegion.show(new SidebarView())
             this.app.mainRegion.show(new SettingsView({
                 session: this.app.session

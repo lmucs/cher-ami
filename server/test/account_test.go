@@ -14,8 +14,8 @@ func (s *TestSuite) TestSignupEmptyHandle(c *C) {
 	if err != nil {
 		c.Error(err)
 	}
-
-	c.Check(helper.GetJsonReasonMessage(response), Equals, "Handle is a required field for signup")
+	res := helper.GetJsonValidationReasonMessage(response)
+	c.Check(res[0], Equals, "field handle is invalid: Required field for signup")
 	c.Check(response.StatusCode, Equals, 400)
 }
 
@@ -24,8 +24,28 @@ func (s *TestSuite) TestSignupEmptyEmail(c *C) {
 	if err != nil {
 		c.Error(err)
 	}
+	res := helper.GetJsonValidationReasonMessage(response)
+	c.Check(res[0], Equals, "field email is invalid: Required field for signup")
+	c.Check(response.StatusCode, Equals, 400)
+}
 
-	c.Check(helper.GetJsonReasonMessage(response), Equals, "Email is a required field for signup")
+func (s *TestSuite) TestSignupEmptyPassword(c *C) {
+	response, err := req.PostSignup("handleA", "test@test.io", "", "password1")
+	if err != nil {
+		c.Error(err)
+	}
+	res := helper.GetJsonValidationReasonMessage(response)
+	c.Check(res[0], Equals, "field password is invalid: Required field for signup")
+	c.Check(response.StatusCode, Equals, 400)
+}
+
+func (s *TestSuite) TestSignupEmptyConfirmPassword(c *C) {
+	response, err := req.PostSignup("handleA", "test@test.io", "password1", "")
+	if err != nil {
+		c.Error(err)
+	}
+	res := helper.GetJsonValidationReasonMessage(response)
+	c.Check(res[0], Equals, "field confirmpassword is invalid: Required field for signup")
 	c.Check(response.StatusCode, Equals, 400)
 }
 
@@ -34,7 +54,6 @@ func (s *TestSuite) TestSignupPasswordMismatch(c *C) {
 	if err != nil {
 		c.Error(err)
 	}
-
 	c.Check(helper.GetJsonReasonMessage(response), Equals, "Passwords do not match")
 	c.Check(response.StatusCode, Equals, 403)
 }
@@ -42,15 +61,25 @@ func (s *TestSuite) TestSignupPasswordMismatch(c *C) {
 func (s *TestSuite) TestSignupPasswordTooShort(c *C) {
 	entry := "testing"
 
-	for i := len(entry); i >= 0; i-- {
+	response, err := req.PostSignup("handleA", "test@test.io", "", "")
+	if err != nil {
+		c.Error(err)
+	}
+	res := helper.GetJsonValidationReasonMessage(response)
+	c.Check(res[0], Equals, "field password is invalid: Required field for signup")
+	c.Check(res[1], Equals, "field confirmpassword is invalid: Required field for signup")
+	c.Check(response.StatusCode, Equals, 400)
+
+	for i := len(entry) - 1; i >= 0; i-- {
 		pass := entry[:len(entry)-i]
 		response, err := req.PostSignup("handleA", "test@test.io", pass, pass)
 		if err != nil {
 			c.Error(err)
 		}
-
-		c.Check(helper.GetJsonReasonMessage(response), Equals, "Passwords must be at least 8 characters long")
-		c.Check(response.StatusCode, Equals, 403, Commentf("Password length = %d.", len(entry)-i))
+		res := helper.GetJsonValidationReasonMessage(response)
+		c.Check(res[0], Equals, "field password is invalid: Too short, minimum length is 8")
+		c.Check(res[1], Equals, "field confirmpassword is invalid: Too short, minimum length is 8")
+		c.Check(response.StatusCode, Equals, 400, Commentf("Password length = %d.", len(entry)-i))
 	}
 }
 
@@ -105,7 +134,7 @@ func (s *TestSuite) TestLoginUserNoExist(c *C) {
 func (s *TestSuite) TestLoginInvalidUsername(c *C) {
 	req.PostSignup("handleA", "test@test.io", "password1", "password1")
 
-	response, err := req.PostSessions("wrong_username", "password1")
+	response, err := req.PostSessions("wrongUsername", "password1")
 	if err != nil {
 		c.Error(err)
 	}
@@ -117,7 +146,7 @@ func (s *TestSuite) TestLoginInvalidUsername(c *C) {
 func (s *TestSuite) TestLoginInvalidPassword(c *C) {
 	req.PostSignup("handleA", "test@test.io", "password1", "password1")
 
-	response, err := req.PostSessions("handleA", "wrong_password")
+	response, err := req.PostSessions("handleA", "wrongPassword")
 	if err != nil {
 		c.Error(err)
 	}
@@ -133,8 +162,14 @@ func (s *TestSuite) TestLoginOK(c *C) {
 	if err != nil {
 		c.Error(err)
 	}
-
-	c.Check(helper.GetJsonResponseMessage(response), Equals, "Logged in handleA. Note your Authorization token.")
+	res := struct{
+		Handle string
+		Response string
+		Token string
+	}{}
+	helper.Unmarshal(response, &res)
+	c.Check(res.Handle, Equals, "handleA")
+	c.Check(res.Response, Equals, "Logged in handleA. Note your Authorization token.")
 	c.Check(response.StatusCode, Equals, 201)
 }
 

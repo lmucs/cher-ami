@@ -1,6 +1,84 @@
 <h3>Settings</h3>
-<div>Change Profile Picture</div>
-<div>Change your password</div>
-<div>Change your email address</div>
-<div>Who can see me?</div>
-<div>Blocked list</div>
+
+<h3>Change Password</h3>
+<div class="fieldgroup">
+    <label>Current Password</label>
+    <div>
+        <input type="password" id="pass1" name="password">
+    </div>
+    <div class="password-meter">
+        <div class="password-meter-message"> </div>
+        <div class="password-meter-bg">
+            <div class="password-meter-bar"></div>
+        </div>
+    </div>
+</div>
+<div class="fieldgroup">
+    <label>New Password</label>
+    <div>
+        <input type="password" id="pass2" name="password">
+    </div>
+    <div class="password-meter">
+        <div class="password-meter-message"> </div>
+        <div class="password-meter-bg">
+        <div class="password-meter-bar"></div>
+        </div>
+    </div>
+</div>
+<div class="fieldgroup">
+    <label>Reenter New Password</label>
+    <div>
+        <input type="password" id="pass3" name="password">
+    </div>
+    <div class="password-meter">
+        <div class="password-meter-message"> </div>
+        <div class="password-meter-bg">
+            <div class="password-meter-bar"></div>
+        </div>
+    </div>
+</div>
+
+<button id="submitChanges" type="button" class="btn btn-default">Save Changes</button>
+
+<h3>Change Email Address</h3>
+<div class="fieldgroup">
+    <label for="email">New Email Address</label>
+    <div>
+        <input type="email" name = "email" id="input-email">
+    </div>
+</div>
+<div class="fieldgroup">
+    <label for="email">Reenter New Email Address</label>
+    <div>
+        <input type="email" name = "email" id="input-email">
+    </div>
+</div>
+<div class="fieldgroup">
+    <label>Password</label>
+    <div>
+        <input type="password" id="pass1" name="password">
+    </div>
+    <div class="password-meter">
+        <div class="password-meter-message"> </div>
+        <div class="password-meter-bg">
+            <div class="password-meter-bar"></div>
+        </div>
+    </div>
+</div>
+
+<button id="submitChanges" type="button" class="btn btn-default">Save Changes</button>
+
+<h3>Privacy</h3>
+<div id="visibility">
+    <label for="visibilitySelector" >Who Can See Me?</label>
+    <div class="circleCreateInput">
+        <select id="visibilitySelector">
+            <option>Friends</option>
+            <option>Everyone</option>
+            <option>Friends of Friends</option>
+            <option>Custom</option>
+        </select>
+    </div>
+</div>
+
+<label>Blocked list</label>

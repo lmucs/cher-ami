@@ -3,25 +3,8 @@ package api_test
 import (
 	"../types"
 	"./helper"
-	encoding "encoding/json"
 	. "gopkg.in/check.v1"
-	"time"
 )
-
-// Testing Structs
-type MessageData struct {
-	Id      string
-	Url     string
-	Author  string
-	Content string
-	Created time.Time
-}
-
-type MessageResponse struct {
-	Response string
-	Reason   string
-	Object   string
-}
 
 //
 // Post Message Tests
@@ -47,10 +30,15 @@ func (s *TestSuite) TestPostMessageContentOnlyOK(c *C) {
 	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
 	sessionid := req.PostSessionGetAuthToken("handleA", "password1")
 
-	res, _ := req.PostMessage("Go is going gophers!", sessionid)
-
-	c.Check(res.StatusCode, Equals, 201)
-	c.Check(helper.GetJsonResponseMessage(res), Equals, "Successfully created message for handleA")
+	if res, _ := req.PostMessage("Go is going gophers!", sessionid); true {
+		c.Check(res.StatusCode, Equals, 201)
+		m := types.MessageView{}
+		helper.Unmarshal(res, &m)
+		c.Check(m.Id, Not(Equals), "")
+		c.Check(m.Url, Not(Equals), "")
+		c.Check(m.Author, Equals, "handleA")
+		c.Check(m.Content, Equals, "Go is going gophers!")
+	}
 }
 
 func (s *TestSuite) TestPostMessageContentCirclesOK(c *C) {
@@ -63,10 +51,17 @@ func (s *TestSuite) TestPostMessageContentCirclesOK(c *C) {
 
 	circles := []string{circleid, circleid2}
 
-	res, _ := req.PostMessageWithCircles("Go is going gophers!", sessionid, circles)
-
-	c.Check(res.StatusCode, Equals, 201)
-	c.Check(helper.GetJsonResponseMessage(res), Equals, "Successfully created message for handleA")
+	if res, _ := req.PostMessageWithCircles("Go is going gophers!", sessionid, circles); true {
+		c.Check(res.StatusCode, Equals, 201)
+		m := types.MessageView{}
+		helper.Unmarshal(res, &m)
+		c.Check(m.Id, Not(Equals), "")
+		c.Check(m.Url, Not(Equals), "")
+		c.Check(m.Author, Equals, "handleA")
+		c.Check(m.Content, Equals, "Go is going gophers!")
+		// [TODO] ensure that the message was published successfully, we know it was successful because
+		// there was as 201 not a 400
+	}
 }
 
 //
@@ -90,23 +85,18 @@ func (s *TestSuite) TestGetAuthoredMessagesOK(c *C) {
 
 	res, _ := req.GetAuthoredMessages(sessionid)
 
-	data := struct {
-		Response string
-		Objects  []MessageData
-		Count    int
-	}{}
+	data := types.MessageResponseView{}
 
 	helper.Unmarshal(res, &data)
-	objects := data.Objects
+	o := data.Objects
 
-	c.Check(data.Response, Equals, "Found messages for user handleA")
 	c.Check(res.StatusCode, Equals, 200)
 	c.Check(data.Count, Equals, 4)
-	c.Check(objects[0].Author, Equals, "handleA")
-	c.Check(objects[0].Content, Equals, "Go is going gophers!")
-	c.Check(objects[1].Content, Equals, "Hypothesize about stuff")
-	c.Check(objects[2].Content, Equals, "The nearest exit may be behind you")
-	c.Check(objects[3].Content, Equals, "I make soap.")
+	c.Check(o[0].Author, Equals, "handleA")
+	c.Check(o[0].Content, Equals, "Go is going gophers!")
+	c.Check(o[1].Content, Equals, "Hypothesize about stuff")
+	c.Check(o[2].Content, Equals, "The nearest exit may be behind you")
+	c.Check(o[3].Content, Equals, "I make soap.")
 }
 
 //
@@ -141,23 +131,23 @@ func (s *TestSuite) TestGetMessageByIdDoesNotExist(c *C) {
 
 	if res, _ := req.GetMessageById("some_id", sessionid); true {
 		c.Check(res.StatusCode, Equals, 404)
-		message_response := MessageResponse{}
-		helper.Unmarshal(res, &message_response)
-		c.Check(message_response.Reason, Equals, "No such message with id some_id could be found")
+		catcher := types.ReasonCatcher{}
+		helper.Unmarshal(res, &catcher)
+		c.Check(catcher.Reason, Equals, "No such message with id some_id could be found")
 	}
 
 	if res, _ := req.GetMessageById("another-wrong-id", sessionid); true {
 		c.Check(res.StatusCode, Equals, 404)
-		message_response := MessageResponse{}
-		helper.Unmarshal(res, &message_response)
-		c.Check(message_response.Reason, Equals, "No such message with id another-wrong-id could be found")
+		catcher := types.ReasonCatcher{}
+		helper.Unmarshal(res, &catcher)
+		c.Check(catcher.Reason, Equals, "No such message with id another-wrong-id could be found")
 	}
 
 	if res, _ := req.GetMessageById("2", sessionid); true {
 		c.Check(res.StatusCode, Equals, 404)
-		message_response := MessageResponse{}
-		helper.Unmarshal(res, &message_response)
-		c.Check(message_response.Reason, Equals, "No such message with id 2 could be found")
+		catcher := types.ReasonCatcher{}
+		helper.Unmarshal(res, &catcher)
+		c.Check(catcher.Reason, Equals, "No such message with id 2 could be found")
 	}
 }
 
@@ -169,14 +159,15 @@ func (s *TestSuite) TestGetMessageByIdUserBlocked(c *C) {
 	sessionid_B := req.PostSessionGetAuthToken("handleB", "password2")
 
 	req.PostBlock(sessionid_B, "handleA")
-	message_id := req.PostMessageGetMessageId("Go is going gophers!", sessionid_B)
+	message_url := req.PostMessageGetMessageUrl("Go is going gophers!", sessionid_B)
 
 	// handleA attempts to retrieve
-	if res, _ := req.GetMessageById(message_id, sessionid_A); true {
+	if res, _ := req.GetMessageByUrl(message_url, sessionid_A); true {
 		c.Check(res.StatusCode, Equals, 404)
-		message_response := MessageResponse{}
-		helper.Unmarshal(res, &message_response)
-		c.Check(message_response.Reason, Equals, "No such message with id "+message_id+" could be found")
+		catcher := types.ReasonCatcher{}
+		helper.Unmarshal(res, &catcher)
+		id := helper.GetIdFromUrlString(message_url)
+		c.Check(catcher.Reason, Equals, "No such message with id "+id+" could be found")
 	}
 }
 
@@ -187,42 +178,36 @@ func (s *TestSuite) TestGetMessageByIdPrivateCircle(c *C) {
 	sessionid_A := req.PostSessionGetAuthToken("handleA", "password1")
 	sessionid_B := req.PostSessionGetAuthToken("handleB", "password2")
 
-	message_id := req.PostMessageGetMessageId("Go is going gophers!", sessionid_B)
+	message_url := req.PostMessageGetMessageUrl("Go is going gophers!", sessionid_B)
 	req.PostCircles(sessionid_B, "SomePrivateCircle", false)
 
-	if res, _ := req.GetMessageById(message_id, sessionid_A); true {
+	if res, _ := req.GetMessageByUrl(message_url, sessionid_A); true {
 		c.Check(res.StatusCode, Equals, 404)
-		message_response := MessageResponse{}
-		helper.Unmarshal(res, &message_response)
-		c.Check(message_response.Reason, Equals, "No such message with id "+message_id+" could be found")
+		catcher := types.ReasonCatcher{}
+		helper.Unmarshal(res, &catcher)
+		id := helper.GetIdFromUrlString(message_url)
+		c.Check(catcher.Reason, Equals, "No such message with id "+id+" could be found")
 	}
-
 }
 
 // Successful retrieval by id
 func (s *TestSuite) TestGetMessageByIdOK(c *C) {
 	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
 	req.PostSignup("handleB", "testB@test.io", "password2", "password2")
-
 	sessionid_A := req.PostSessionGetAuthToken("handleA", "password1")
 	sessionid_B := req.PostSessionGetAuthToken("handleB", "password2")
 
 	circleid_1 := req.PostCircleGetCircleId(sessionid_A, "MyPublicCircle", true)
 	req.PostJoin(sessionid_B, "handleA", "MyPublicCircle")
-	messageid_1 := req.PostMessageWithCirclesGetMessageId("Go is going gophers!", sessionid_A, []string{circleid_1})
+	message_url := req.PostMessageWithCirclesGetMessageUrl("Go is going gophers!", sessionid_A, []string{circleid_1})
 
-	if res, _ := req.GetMessageById(messageid_1, sessionid_B); true {
+	if res, _ := req.GetMessageByUrl(message_url, sessionid_B); true {
+		m := types.MessageView{}
+		helper.Unmarshal(res, &m)
+
 		c.Check(res.StatusCode, Equals, 200)
-		var (
-			message_response MessageResponse
-			msg              MessageData
-		)
-		helper.Unmarshal(res, &message_response)
-		encoding.Unmarshal([]byte(message_response.Object), &msg)
-		c.Check(message_response.Response, Equals, "Found message!")
-		c.Check(msg.Id, Equals, messageid_1)
-		c.Check(msg.Author, Equals, "handleA")
-		c.Check(msg.Content, Equals, "Go is going gophers!")
+		c.Check(m.Author, Equals, "handleA")
+		c.Check(m.Content, Equals, "Go is going gophers!")
 	}
 }
 
@@ -284,28 +269,40 @@ func (s *TestSuite) TestEditMessageMissingParams(c *C) {
 
 	res, _ := req.EditMessage(types.JsonArray{onlyOp}, messageid, sessionid)
 	c.Check(res.StatusCode, Equals, 400)
-	c.Check(helper.GetJsonReasonMessage(res), Equals, "missing `resource` parameter in object 0")
+	resErr, index := helper.GetJsonPatchValidationReasonMessage(res)
+	c.Check(resErr[0], Equals, "field resource is invalid: Required field for message patch")
+	c.Check(index, Equals, 0)
 
 	res, _ = req.EditMessage(types.JsonArray{onlyResource}, messageid, sessionid)
 	c.Check(res.StatusCode, Equals, 400)
-	c.Check(helper.GetJsonReasonMessage(res), Equals, "missing `op` parameter in object 0")
+	resErr, index = helper.GetJsonPatchValidationReasonMessage(res)
+	c.Check(resErr[0], Equals, "field op is invalid: Required field for message patch")
+	c.Check(index, Equals, 0)
 
 	res, _ = req.EditMessage(types.JsonArray{onlyValue}, messageid, sessionid)
 	c.Check(res.StatusCode, Equals, 400)
-	c.Check(helper.GetJsonReasonMessage(res), Equals, "missing `op` parameter in object 0")
+	resErr, index = helper.GetJsonPatchValidationReasonMessage(res)
+	c.Check(resErr[0], Equals, "field op is invalid: Required field for message patch")
+	c.Check(index, Equals, 0)
 
 	res, _ = req.EditMessage(types.JsonArray{onlyOpResource}, messageid, sessionid)
 	c.Check(res.StatusCode, Equals, 400)
-	c.Check(helper.GetJsonReasonMessage(res), Equals, "missing `value` parameter in object 0")
+	resErr, index = helper.GetJsonPatchValidationReasonMessage(res)
+	c.Check(resErr[0], Equals, "field value is invalid: Required field for message patch")
+	c.Check(index, Equals, 0)
 
 	res, _ = req.EditMessage(types.JsonArray{onlyResourceValue}, messageid, sessionid)
 	c.Check(res.StatusCode, Equals, 400)
-	c.Check(helper.GetJsonReasonMessage(res), Equals, "missing `op` parameter in object 0")
+	resErr, index = helper.GetJsonPatchValidationReasonMessage(res)
+	c.Check(resErr[0], Equals, "field op is invalid: Required field for message patch")
+	c.Check(index, Equals, 0)
 
 	res, _ = req.EditMessage(types.JsonArray{onlyOpValue}, messageid, sessionid)
 	c.Check(res.StatusCode, Equals, 400)
-	c.Check(helper.GetJsonReasonMessage(res), Equals, "missing `resource` parameter in object 0")
 
+	resErr, index = helper.GetJsonPatchValidationReasonMessage(res)
+	c.Check(resErr[0], Equals, "field resource is invalid: Required field for message patch")
+	c.Check(index, Equals, 0)
 }
 
 func (s *TestSuite) TestEditMessageBadOp(c *C) {
@@ -320,8 +317,10 @@ func (s *TestSuite) TestEditMessageBadOp(c *C) {
 	}
 
 	res, _ := req.EditMessage(types.JsonArray{patchObj}, messageid, sessionid)
+	resErr, index := helper.GetJsonPatchValidationReasonMessage(res)
 	c.Check(res.StatusCode, Equals, 400)
-	c.Check(helper.GetJsonReasonMessage(res), Equals, "Malformed patch request at object 0")
+	c.Check(resErr[0], Equals, "field op is invalid: change")
+	c.Check(index, Equals, 0)
 }
 
 func (s *TestSuite) TestEditMessageBadResource(c *C) {
@@ -336,8 +335,10 @@ func (s *TestSuite) TestEditMessageBadResource(c *C) {
 	}
 
 	res, _ := req.EditMessage(types.JsonArray{patchObj}, messageid, sessionid)
+	resErr, index := helper.GetJsonPatchValidationReasonMessage(res)
 	c.Check(res.StatusCode, Equals, 400)
-	c.Check(helper.GetJsonReasonMessage(res), Equals, "Message only allows update to (content|image) at object 0")
+	c.Check(resErr[0], Equals, "field resource is invalid: messageText")
+	c.Check(index, Equals, 0)
 }
 
 func (s *TestSuite) TestEditMessageBadPatchObject(c *C) {
@@ -365,11 +366,11 @@ func (s *TestSuite) TestEditMessageBadPatchObject(c *C) {
 }
 
 func (s *TestSuite) TestEditMessageUnableToPublish(c *C) {
-
+	// stub
 }
 
 func (s *TestSuite) TestEditMessageUnableToUnpublish(c *C) {
-
+	// stub
 }
 
 func (s *TestSuite) TestEditMessageUpdateContentOK(c *C) {

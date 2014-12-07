@@ -15,7 +15,6 @@ import (
 // Routes stored in a struct
 type Routes struct {
 	signupURL      string
-	changePassURL  string
 	sessionsURL    string
 	userURL        string
 	usersURL       string
@@ -37,7 +36,6 @@ type Requester struct {
 func NewRequester(apiURL string) *Requester {
 	routes := &Routes{
 		fmt.Sprintf("%s/signup", apiURL),
-		fmt.Sprintf("%s/changepassword", apiURL),
 		fmt.Sprintf("%s/sessions", apiURL),
 		fmt.Sprintf("%s/users/user", apiURL),
 		fmt.Sprintf("%s/users", apiURL),
@@ -92,12 +90,21 @@ func (req Requester) GetMessageById(id, token string) (*http.Response, error) {
 	return helper.GetWithQueryParams(req.Routes.messagesURL+"/"+id, payload)
 }
 
+func (req Requester) GetMessageByUrl(url, token string) (*http.Response, error) {
+	id := helper.GetIdFromUrlString(url)
+	return req.GetMessageById(id, token)
+}
+
 func (req Requester) GetUser(handle string) (*http.Response, error) {
 	payload := types.Json{
 		"handle": handle,
 	}
 
 	return helper.GetWithQueryParams(req.Routes.usersURL+"/"+handle, payload)
+}
+
+func (req Requester) EditUser(payload types.JsonArray, handle, token string) (*http.Response, error) {
+	return helper.ExecutePatch(token, req.Routes.usersURL+"/"+handle, payload)
 }
 
 func (req Requester) PostBlock(token string, target string) (*http.Response, error) {
@@ -107,17 +114,6 @@ func (req Requester) PostBlock(token string, target string) (*http.Response, err
 	}
 
 	return helper.Execute("POST", req.Routes.blockURL, payload)
-}
-
-func (req Requester) PostChangePassword(token string, password string, newPassword string, confirmNewPassword string) (*http.Response, error) {
-	payload := types.Json{
-		"token":              token,
-		"password":           password,
-		"newpassword":        newPassword,
-		"confirmnewpassword": confirmNewPassword,
-	}
-
-	return helper.Execute("POST", req.Routes.changePassURL, payload)
 }
 
 func (req Requester) PostCircles(token string, circleName string, public bool) (*http.Response, error) {
@@ -142,7 +138,7 @@ func (req Requester) PostCircleGetCircleId(token string, circleName string, publ
 		panic(err)
 	}
 
-	return helper.GetIdFromResponse(res)
+	return helper.GetIdFromUrlField(res)
 }
 
 func (req Requester) GetCircles(payload types.Json) (*http.Response, error) {
@@ -178,7 +174,7 @@ func (req Requester) PostMessageWithCircles(content string, token string, circle
 	return helper.Execute("POST", req.Routes.messagesURL, payload)
 }
 
-func (req Requester) PostMessageGetMessageId(content, token string) string {
+func (req Requester) PostMessageGetMessageUrl(content, token string) string {
 	payload := types.Json{
 		"content": content,
 		"token":   token,
@@ -189,26 +185,31 @@ func (req Requester) PostMessageGetMessageId(content, token string) string {
 		panic(err)
 	}
 
-	return helper.GetIdFromResponse(res)
+	return helper.GetUrlFromResponse(res)
 }
 
-func (req Requester) PostMessageWithCirclesGetMessageId(content string, token string, circles []string) string {
+func (req Requester) PostMessageGetMessageId(content, token string) string {
+	return helper.GetIdFromUrlString(req.PostMessageGetMessageUrl(content, token))
+}
+
+func (req Requester) PostMessageWithCirclesGetMessageUrl(content string, token string, circles []string) string {
 	payload := types.Json{
 		"content": content,
 		"token":   token,
 		"circles": circles,
 	}
-
-	res, err := helper.Execute("POST", req.Routes.messagesURL, payload)
-
-	if err != nil {
+	if res, err := helper.Execute("POST", req.Routes.messagesURL, payload); err != nil {
 		panic(err)
+	} else {
+		return helper.GetUrlFromResponse(res)
 	}
-
-	return helper.GetIdFromResponse(res)
 }
 
-func (req Requester) EditMessage(payload []types.Json, id string, token string) (*http.Response, error) {
+func (req Requester) PostMessageWithCirclesGetMessageId(content, token string, circles []string) string {
+	return helper.GetIdFromUrlString(req.PostMessageWithCirclesGetMessageUrl(content, token, circles))
+}
+
+func (req Requester) EditMessage(payload types.JsonArray, id string, token string) (*http.Response, error) {
 	return helper.ExecutePatch(token, req.Routes.messagesURL+"/"+id, payload)
 }
 

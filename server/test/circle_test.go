@@ -4,6 +4,7 @@ import (
 	"../types"
 	"./helper"
 	. "gopkg.in/check.v1"
+	"time"
 )
 
 //
@@ -11,145 +12,149 @@ import (
 //
 
 func (s *TestSuite) TestPostCirclesUserNoExist(c *C) {
-	res, err := req.PostCircles("SomeSessionId", "SomeCircle", true)
-	if err != nil {
+	if res, err := req.PostCircles("SomeSessionId", "SomeCircle", true); err != nil {
 		c.Error(err)
+	} else {
+		c.Check(helper.GetJsonResponseMessage(res), Equals, "Failed to authenticate user request")
+		c.Check(res.StatusCode, Equals, 401)
 	}
-
-	c.Check(helper.GetJsonResponseMessage(res), Equals, "Failed to authenticate user request")
-	c.Check(res.StatusCode, Equals, 401)
 }
 
 func (s *TestSuite) TestPostCirclesUserNoSession(c *C) {
 	req.PostSignup("handleA", "test@test.io", "password1", "password1")
-
 	sessionid := req.PostSessionGetAuthToken("handleA", "password1")
-
 	req.DeleteSessions(sessionid)
 
-	res, err := req.PostCircles(sessionid, "SomeCircle", true)
-	if err != nil {
+	if res, err := req.PostCircles(sessionid, "SomeCircle", true); err != nil {
 		c.Error(err)
+	} else {
+		c.Check(helper.GetJsonResponseMessage(res), Equals, "Failed to authenticate user request")
+		c.Check(res.StatusCode, Equals, 401)
 	}
-
-	c.Check(helper.GetJsonResponseMessage(res), Equals, "Failed to authenticate user request")
-	c.Check(res.StatusCode, Equals, 401)
 }
 
 func (s *TestSuite) TestPostCirclesNameReservedGold(c *C) {
 	req.PostSignup("handleA", "test@test.io", "password1", "password1")
-
 	sessionid := req.PostSessionGetAuthToken("handleA", "password1")
 
-	res1, err := req.PostCircles(sessionid, "Gold", false)
-	if err != nil {
+	if res, err := req.PostCircles(sessionid, "Gold", false); err != nil {
 		c.Error(err)
-	}
-	res2, err := req.PostCircles(sessionid, "Gold", true)
-	if err != nil {
-		c.Error(err)
+	} else {
+		c.Check(helper.GetJsonReasonMessage(res), Equals, "Gold is a reserved circle name")
+		c.Check(res.StatusCode, Equals, 403)
 	}
 
-	c.Check(helper.GetJsonReasonMessage(res1), Equals, "Gold is a reserved circle name")
-	c.Check(res1.StatusCode, Equals, 403)
-	c.Check(helper.GetJsonReasonMessage(res2), Equals, "Gold is a reserved circle name")
-	c.Check(res2.StatusCode, Equals, 403)
+	if res, err := req.PostCircles(sessionid, "Gold", true); err != nil {
+		c.Error(err)
+	} else {
+		c.Check(helper.GetJsonReasonMessage(res), Equals, "Gold is a reserved circle name")
+		c.Check(res.StatusCode, Equals, 403)
+	}
 }
 
 func (s *TestSuite) TestPostCirclesNameReservedBroadcast(c *C) {
 	req.PostSignup("handleA", "test@test.io", "password1", "password1")
-
 	sessionid := req.PostSessionGetAuthToken("handleA", "password1")
-
-	res1, err := req.PostCircles(sessionid, "Broadcast", false)
-	if err != nil {
+	if res, err := req.PostCircles(sessionid, "Broadcast", false); err != nil {
 		c.Error(err)
-	}
-	res2, err := req.PostCircles(sessionid, "Broadcast", true)
-	if err != nil {
-		c.Error(err)
+	} else {
+		c.Check(helper.GetJsonReasonMessage(res), Equals, "Broadcast is a reserved circle name")
+		c.Check(res.StatusCode, Equals, 403)
 	}
 
-	c.Check(helper.GetJsonReasonMessage(res1), Equals, "Broadcast is a reserved circle name")
-	c.Check(res1.StatusCode, Equals, 403)
-	c.Check(helper.GetJsonReasonMessage(res2), Equals, "Broadcast is a reserved circle name")
-	c.Check(res2.StatusCode, Equals, 403)
+	if res, err := req.PostCircles(sessionid, "Broadcast", true); err != nil {
+		c.Error(err)
+	} else {
+		c.Check(helper.GetJsonReasonMessage(res), Equals, "Broadcast is a reserved circle name")
+		c.Check(res.StatusCode, Equals, 403)
+	}
+}
+
+func (s *TestSuite) TestPostCirclesNameEmpty(c *C) {
+	req.PostSignup("handleA", "test@test.io", "password1", "password1")
+	token := req.PostSessionGetAuthToken("handleA", "password1")
+
+	if res, err := req.PostCircles(token, "", false); err != nil {
+		c.Error(err)
+	} else {
+		c.Check(helper.GetJsonReasonMessage(res), Equals, "Missing `circlename` parameter")
+		c.Check(res.StatusCode, Equals, 400)
+	}
+
+	if res, err := req.PostCircles(token, "", true); err != nil {
+		c.Error(err)
+	} else {
+		c.Check(helper.GetJsonReasonMessage(res), Equals, "Missing `circlename` parameter")
+		c.Check(res.StatusCode, Equals, 400)
+	}
 }
 
 func (s *TestSuite) TestPostPublicCircleOK(c *C) {
 	req.PostSignup("handleA", "test@test.io", "password1", "password1")
+	token := req.PostSessionGetAuthToken("handleA", "password1")
 
-	sessionid := req.PostSessionGetAuthToken("handleA", "password1")
-
-	res, err := req.PostCircles(sessionid, "MyPublicCircle", true)
-	if err != nil {
+	if res, err := req.PostCircles(token, "MyPublicCircle", true); err != nil {
 		c.Error(err)
+	} else {
+		data := types.CircleResponse{}
+		helper.Unmarshal(res, &data)
+		c.Check(res.StatusCode, Equals, 201)
+		c.Check(data.Name, Equals, "MyPublicCircle")
+		// [TODO] This can be improved, not best way to assure correct url
+		c.Check(data.Url, Not(Equals), "")
+		c.Check(data.Owner, Equals, "handleA")
+		c.Check(data.Description, Equals, "")
+		c.Check(data.Visibility, Equals, "public")
+		// [TODO] This can be improved, not best way to assure correct members url
+		c.Check(data.Members, Not(Equals), "")
+		// [TODO] This can be improved, not best way to assure correct date
+		c.Check(data.Created, Not(Equals), time.Time{})
 	}
-	c.Check(res.StatusCode, Equals, 201)
-
-	data := struct {
-		Response string
-		Chief    string
-		Name     string
-		Public   bool
-		Id       string
-	}{}
-
-	helper.Unmarshal(res, &data)
-	c.Check(data.Response, Equals, "Created new circle!")
-	c.Check(data.Chief, Equals, "handleA")
-	c.Check(data.Name, Equals, "MyPublicCircle")
-	c.Check(data.Public, Equals, true)
 }
 
 func (s *TestSuite) TestPostPrivateCircleOK(c *C) {
 	req.PostSignup("handleA", "test@test.io", "password1", "password1")
+	token := req.PostSessionGetAuthToken("handleA", "password1")
 
-	sessionid := req.PostSessionGetAuthToken("handleA", "password1")
-
-	res, err := req.PostCircles(sessionid, "MyPrivateCircle", false)
-	if err != nil {
+	if res, err := req.PostCircles(token, "MyPrivateCircle", false); err != nil {
 		c.Error(err)
+	} else {
+		data := types.CircleResponse{}
+		helper.Unmarshal(res, &data)
+		c.Check(res.StatusCode, Equals, 201)
+		c.Check(data.Name, Equals, "MyPrivateCircle")
+		// [TODO] This can be improved, not best way to assure correct url
+		c.Check(data.Url, Not(Equals), "")
+		c.Check(data.Owner, Equals, "handleA")
+		c.Check(data.Description, Equals, "")
+		c.Check(data.Visibility, Equals, "private")
+		// [TODO] This can be improved, not best way to assure correct members url
+		c.Check(data.Members, Not(Equals), "")
+		// [TODO] This can be improved, not best way to assure correct date
+		c.Check(data.Created, Not(Equals), time.Time{})
 	}
-	c.Check(res.StatusCode, Equals, 201)
-
-	data := struct {
-		Response string
-		Chief    string
-		Name     string
-		Public   bool
-		Id       string
-	}{}
-
-	helper.Unmarshal(res, &data)
-	c.Check(data.Response, Equals, "Created new circle!")
-	c.Check(data.Chief, Equals, "handleA")
-	c.Check(data.Name, Equals, "MyPrivateCircle")
-	c.Check(data.Public, Equals, false)
 }
 
 //
-// Search Cicles Tests:
+// Search Circles Tests:
 //
 
 func (s *TestSuite) TestSearchCirclesTargetNoExist(c *C) {
 	req.PostSignup("handleA", "test@test.io", "password1", "password1")
 	token := req.PostSessionGetAuthToken("handleA", "password1")
 
-	res, err := req.GetCircles(types.Json{
+	if res, err := req.GetCircles(types.Json{
 		"token": token,
 		"user":  "handleB",
-	})
-	if err != nil {
+	}); err != nil {
 		c.Error(err)
+	} else {
+		body := types.SearchCirclesResponse{}
+		helper.Unmarshal(res, &body)
+		c.Check(res.StatusCode, Equals, 200)
+		c.Check(len(body.Results), Equals, 0)
+		c.Check(body.Count, Equals, 0)
 	}
-
-	body := types.SearchCirclesResponse{}
-	helper.Unmarshal(res, &body)
-
-	c.Check(res.StatusCode, Equals, 200)
-	c.Check(len(body.Results), Equals, 0)
-	c.Check(body.Count, Equals, 0)
 }
 
 func (s *TestSuite) TestSearchCirclesDefaultCirclesOK(c *C) {
@@ -158,8 +163,8 @@ func (s *TestSuite) TestSearchCirclesDefaultCirclesOK(c *C) {
 
 	// Empty handle
 	if res, err := req.GetCircles(types.Json{
-		"token":  token,
-		"handle": "",
+		"token": token,
+		"user":  "",
 	}); err != nil {
 		c.Error(err)
 	} else {
@@ -185,15 +190,167 @@ func (s *TestSuite) TestSearchCirclesDefaultCirclesOK(c *C) {
 }
 
 func (s *TestSuite) TestSearchCirclesOfTargetOK(c *C) {
-	// stub
+	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
+	req.PostSignup("handleB", "testB@test.io", "password2", "password2")
+	token_A := req.PostSessionGetAuthToken("handleA", "password1")
+	token_B := req.PostSessionGetAuthToken("handleB", "password2")
+
+	// One public and private circle by handleA
+	// Test from perspective of both
+	if _, err := req.PostCircles(token_A, "TheFirstCircle", true); err != nil {
+		c.Error(err)
+	}
+	if _, err := req.PostCircles(token_A, "TheSecondCircle", false); err != nil {
+		c.Error(err)
+	}
+	if res, err := req.GetCircles(types.Json{
+		"token": token_A,
+		"user":  "handleA",
+	}); err != nil {
+		c.Error(err)
+	} else {
+		body := types.SearchCirclesResponse{}
+		helper.Unmarshal(res, &body)
+		c.Check(res.StatusCode, Equals, 200)
+		c.Check(len(body.Results), Equals, 4)
+		c.Check(body.Count, Equals, 4)
+	}
+	// handleB will see the same json
+	if res, err := req.GetCircles(types.Json{
+		"token": token_B,
+		"user":  "handleA",
+	}); err != nil {
+		c.Error(err)
+	} else {
+		body := types.SearchCirclesResponse{}
+		helper.Unmarshal(res, &body)
+		c.Check(res.StatusCode, Equals, 200)
+		c.Check(len(body.Results), Equals, 4)
+		c.Check(body.Count, Equals, 4)
+	}
 }
 
+// Circles join by the user are from a variety of creators
+func (s *TestSuite) TestSearchCirclesOfTargetVarietyOK(c *C) {
+	req.PostSignup("Alpha", "testA@test.io", "password1", "password1")
+	req.PostSignup("Bravo", "testB@test.io", "password2", "password2")
+	req.PostSignup("Charlie", "testC@test.io", "password3", "password3")
+	req.PostSignup("Delta", "testD@test.io", "password4", "password4")
+	token_A := req.PostSessionGetAuthToken("Alpha", "password1")
+	token_B := req.PostSessionGetAuthToken("Bravo", "password2")
+
+	// Alpha will be the joiner. His joined circles will be tested from the perspective
+	// of himself and Bravo
+	if _, err := req.PostJoin(token_A, "Bravo", types.BROADCAST); err != nil {
+		c.Error(err)
+	}
+	if _, err := req.PostJoin(token_A, "Charlie", types.BROADCAST); err != nil {
+		c.Error(err)
+	}
+	if _, err := req.PostJoin(token_A, "Delta", types.BROADCAST); err != nil {
+		c.Error(err)
+	}
+
+	if res, err := req.GetCircles(types.Json{
+		"token": token_A,
+	}); err != nil {
+		c.Error(err)
+	} else {
+		body := types.SearchCirclesResponse{}
+		helper.Unmarshal(res, &body)
+		c.Check(res.StatusCode, Equals, 200)
+		c.Check(len(body.Results), Equals, 5)
+		c.Check(body.Count, Equals, 5)
+	}
+
+	if res, err := req.GetCircles(types.Json{
+		"token": token_B,
+		"user":  "Alpha",
+	}); err != nil {
+		c.Error(err)
+	} else {
+		body := types.SearchCirclesResponse{}
+		helper.Unmarshal(res, &body)
+		c.Check(res.StatusCode, Equals, 200)
+		c.Check(len(body.Results), Equals, 5)
+		c.Check(body.Count, Equals, 5)
+	}
+}
+
+// This is essentially getting the circles one is part of
+// without supplying an user parameter.
 func (s *TestSuite) TestSearchCirclesNoSpecificUserOK(c *C) {
-	// stub
+	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
+	req.PostSignup("handleB", "testB@test.io", "password2", "password2")
+	token_A := req.PostSessionGetAuthToken("handleA", "password1")
+	token_B := req.PostSessionGetAuthToken("handleB", "password2")
+
+	// One public and private circle by handleA
+	// One circle by handleB
+	// Test from unsupplied user parameter perspective of both
+	if _, err := req.PostCircles(token_A, "CharmanderCircle", true); err != nil {
+		c.Error(err)
+	}
+	if _, err := req.PostCircles(token_A, "CharmeleonCircle", false); err != nil {
+		c.Error(err)
+	}
+	if _, err := req.PostCircles(token_B, "BulbasaurCircle", false); err != nil {
+		c.Error(err)
+	}
+	// Test unsupplied user param and user="" inputs (they work the same)
+	if res, err := req.GetCircles(types.Json{
+		"token": token_A,
+	}); err != nil {
+		c.Error(err)
+	} else {
+		body := types.SearchCirclesResponse{}
+		helper.Unmarshal(res, &body)
+		c.Check(res.StatusCode, Equals, 200)
+		c.Check(len(body.Results), Equals, 4)
+		c.Check(body.Count, Equals, 4)
+	}
+
+	if res, err := req.GetCircles(types.Json{
+		"token": token_A,
+		"user":  "",
+	}); err != nil {
+		c.Error(err)
+	} else {
+		body := types.SearchCirclesResponse{}
+		helper.Unmarshal(res, &body)
+		c.Check(res.StatusCode, Equals, 200)
+		c.Check(len(body.Results), Equals, 4)
+		c.Check(body.Count, Equals, 4)
+	}
+
+	if res, err := req.GetCircles(types.Json{
+		"token": token_B,
+	}); err != nil {
+		c.Error(err)
+	} else {
+		body := types.SearchCirclesResponse{}
+		helper.Unmarshal(res, &body)
+		c.Check(res.StatusCode, Equals, 200)
+		c.Check(len(body.Results), Equals, 3)
+		c.Check(body.Count, Equals, 3)
+	}
+
+	if res, err := req.GetCircles(types.Json{
+		"token": token_B,
+		"user":  "",
+	}); err != nil {
+		c.Error(err)
+	} else {
+		body := types.SearchCirclesResponse{}
+		helper.Unmarshal(res, &body)
+		c.Check(res.StatusCode, Equals, 200)
+		c.Check(len(body.Results), Equals, 3)
+		c.Check(body.Count, Equals, 3)
+	}
 }
 
 func (s *TestSuite) TestSearchCirclesBeforeWorks(c *C) {
-	// stub
+	// [TODO] stub, lower priority, but should be verified to work...
 }
 
 //

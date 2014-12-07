@@ -9,7 +9,7 @@ define(function(require, exports, module) {
         model: CreateCircle,
 
         parse: function(response) {
-            return response.objects;
+            return response.results;
         },
 
         initialize: function() {
