@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.FragmentManager;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.net.Uri;
@@ -99,7 +100,7 @@ public class Circles extends Fragment {
 
     public void filterCircles () {
         String value = spinner.getSelectedItem().toString();
-        CircleAdapter newCircleAdapter;
+        final CircleAdapter newCircleAdapter;
 
         try {
             Circle [] circleData = Circles.this.adapter.getData();
@@ -110,7 +111,7 @@ public class Circles extends Fragment {
             } else {
                 ArrayList<Circle> filteredCircles = new ArrayList<Circle>();
                 for (int i = 0; i < circleData.length; i++) {
-                    if (circleData[i].visibility.equals(value.toLowerCase())) {
+                    if (circleData[i].getVisibility().equals(value.toLowerCase())) {
                         filteredCircles.add(circleData[i]);
                     }
                 }
@@ -122,6 +123,23 @@ public class Circles extends Fragment {
 
             circleList = (ListView) Circles.this.getView().findViewById(R.id.circleList);
             circleList.setAdapter(newCircleAdapter);
+            circleList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position,
+                                        long id) {
+                    Intent intent = new Intent(getActivity().getApplicationContext(), CircleResult.class);
+                    Bundle mBundle = new Bundle();
+                    try {
+                        mBundle.putString("owner",newCircleAdapter.getItem(position).getCircle().getString("owner"));
+                        mBundle.putString("circleName", newCircleAdapter.getItem(position).getCircle().getString("name"));
+                        mBundle.putString("joinVisibility", "none");
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    intent.putExtras(mBundle);
+                    startActivity(intent);
+                }
+            });
 
         } catch (NullPointerException n) {
             System.out.println("NO DATA YET!");
@@ -205,13 +223,10 @@ public class Circles extends Fragment {
                     Circle circle_data[] = new Circle[y.length()];
                     for (int x = 0; x < y.length(); x++) {
 
-                        circle_data[x] = new Circle(new JSONObject(y.get(x).toString()).getString("name"),
-                                                    new JSONObject(y.get(x).toString()).getString("owner"),
-                                                    processDate(new JSONObject(y.get(x).toString()).getString("created")),
-                                                    new JSONObject(y.get(x).toString()).getString("visibility"));
+                        circle_data[x] = new Circle(new JSONObject(y.get(x).toString()));
                     }
 
-                    CircleAdapter adapter = new CircleAdapter(getActivity(),
+                    final CircleAdapter adapter = new CircleAdapter(getActivity(),
                             R.layout.circle_item_row, circle_data);
                     Circles.this.setCircleAdapter(adapter);
                     circleList = (ListView) view2.findViewById(R.id.circleList);

@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
+import org.json.JSONException;
 import org.w3c.dom.Text;
 
 public class CircleAdapter extends ArrayAdapter<Circle> {
@@ -44,9 +45,13 @@ public class CircleAdapter extends ArrayAdapter<Circle> {
         }
 
         Circle circle = data[position];
-        holder.txtName.setText(circle.name);
-        holder.txtOwner.setText(circle.owner);
-        holder.txtDate.setText(circle.date);
+        try {
+            holder.txtName.setText(circle.circle.getString("name"));
+            holder.txtOwner.setText(circle.circle.getString("owner"));
+            holder.txtDate.setText(circle.circle.getString("created"));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
 
         return row;
     }
@@ -55,6 +60,11 @@ public class CircleAdapter extends ArrayAdapter<Circle> {
         TextView txtName;
         TextView txtOwner;
         TextView txtDate;
+    }
+
+    @Override
+    public Circle getItem(int position){
+        return data[position];
     }
 
     public Circle [] getData () {
