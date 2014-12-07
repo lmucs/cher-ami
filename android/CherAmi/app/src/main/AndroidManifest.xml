@@ -58,7 +58,11 @@
         <activity
             android:name=".LoadingBarActivity"
             android:label="@string/title_activity_loading_bar"
-            android:theme="@android:style/Theme.Holo.Dialog">
+            android:theme="@android:style/Theme.Holo.Dialog" >
+        </activity>
+        <activity
+            android:name=".CircleResult"
+            android:label="@string/title_activity_circle_result" >
         </activity>
     </application>
     <!-- To access Google+ APIs: -->

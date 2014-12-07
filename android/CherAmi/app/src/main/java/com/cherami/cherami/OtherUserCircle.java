@@ -1,16 +1,18 @@
 package com.cherami.cherami;
 
+import org.json.JSONObject;
+
 /**
  * Created by Geoff on 11/30/2014.
  */
 public class OtherUserCircle {
-    public String name;
-    public String owner;
-    public String date;
+    public JSONObject circle;
 
-    public OtherUserCircle(String name, String owner, String date) {
-        this.name = name;
-        this.owner = owner;
-        this.date = date;
+    public OtherUserCircle(JSONObject circle) {
+        this.circle = circle;
+    }
+
+    public JSONObject getCircle(){
+        return this.circle;
     }
 }
