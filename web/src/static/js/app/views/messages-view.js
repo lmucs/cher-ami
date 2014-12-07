@@ -15,6 +15,7 @@ define(function(require, exports, module) {
             postArea: '#postArea',
             messageArea: '#messages',
             messageBox: '#message-box',
+            handle: '#handle'
         },
 
         events: {
@@ -23,9 +24,11 @@ define(function(require, exports, module) {
 
         onSubmit: function() {
             //alert(this.ui.postArea.val());
+            console.log("kajsdh: ", this.collection.models[0].attributes.author)
             if(this.ui.postArea.val()) {
                 var message = new Message({
-                    content: this.ui.postArea.val()
+                    content: this.ui.postArea.val(),
+                    handle: "this.collection.models[0].attributes.author"
                 })
                 message.save();
                 this.collection.add(message);
