@@ -1,8 +1,10 @@
 package com.cherami.cherami;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
@@ -14,6 +16,7 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
@@ -105,7 +108,23 @@ public class SearchActivity extends Activity {
                 String responseText = null;
 
                 try {
-                    responseText = new JSONObject(new String(errorResponse)).getString("reason");
+                    if (!NetworkCheck.isConnected(errorResponse)) {
+                        new AlertDialog.Builder(SearchActivity.this)
+                                .setTitle("Network Error")
+                                .setMessage("You're not connected to the network :(")
+                                .setNegativeButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        // do nothing
+                                    }
+                                })
+                                .setIcon(android.R.drawable.ic_dialog_alert)
+                                .show();
+
+                    } else {
+                        responseText = new JSONObject(new String(errorResponse)).getString("reason");
+                        Toast toast = Toast.makeText(getApplicationContext(), responseText, Toast.LENGTH_LONG);
+                        toast.show();
+                    }
                 } catch (JSONException j) {
 
                 }

@@ -153,12 +153,6 @@ public class LoginActivity extends Activity {
                                 new AlertDialog.Builder(LoginActivity.this)
                                         .setTitle("Network Error")
                                         .setMessage("You're not connected to the network :(")
-                                        .setPositiveButton(getResources().getString(R.string.retry), new DialogInterface.OnClickListener() {
-                                            public void onClick(DialogInterface dialog, int which) {
-                                                // retry connection
-                                                attemptLoginAccount();
-                                            }
-                                        })
                                         .setNegativeButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                                             public void onClick(DialogInterface dialog, int which) {
                                                 // do nothing

@@ -1,8 +1,10 @@
 package com.cherami.cherami;
 
+import android.app.AlertDialog;
 import android.app.DialogFragment;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -101,11 +103,29 @@ public class CircleForMessageModal extends DialogFragment {
             @Override
             public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable error) {
                 String responseText = null;
+
                 try {
-                    responseText = new JSONObject(new String(errorResponse)).getString("reason");
+                    if (!NetworkCheck.isConnected(errorResponse)) {
+                        new AlertDialog.Builder(getActivity())
+                                .setTitle("Network Error")
+                                .setMessage("You're not connected to the network :(")
+                                .setNegativeButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        // do nothing
+                                    }
+                                })
+                                .setIcon(android.R.drawable.ic_dialog_alert)
+                                .show();
+
+                    } else {
+                        responseText = new JSONObject(new String(errorResponse)).getString("reason");
+                        Toast toast = Toast.makeText(getActivity().getApplicationContext(), responseText, Toast.LENGTH_LONG);
+                        toast.show();
+                    }
                 } catch (JSONException j) {
 
                 }
+                dismissModal();
 
             }
         });
@@ -184,15 +204,26 @@ public class CircleForMessageModal extends DialogFragment {
                         String responseText = null;
 
                         try {
-                            responseText = new JSONObject(new String(errorResponse)).getString("reason");
+                            if (!NetworkCheck.isConnected(errorResponse)) {
+                                new AlertDialog.Builder(getActivity())
+                                        .setTitle("Network Error")
+                                        .setMessage("You're not connected to the network :(")
+                                        .setNegativeButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                // do nothing
+                                            }
+                                        })
+                                        .setIcon(android.R.drawable.ic_dialog_alert)
+                                        .show();
 
+                            } else {
+                                responseText = new JSONObject(new String(errorResponse)).getString("reason");
+                                Toast toast = Toast.makeText(getActivity().getApplicationContext(), responseText, Toast.LENGTH_LONG);
+                                toast.show();
+                            }
                         } catch (JSONException j) {
 
                         }
-
-                        Toast toast = Toast.makeText(CircleForMessageModal.this.context, responseText, Toast.LENGTH_LONG);
-                        toast.show();
-                        e.printStackTrace();
                         dismissModal();
                     }
 

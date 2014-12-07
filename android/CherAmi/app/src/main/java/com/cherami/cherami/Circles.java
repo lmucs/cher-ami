@@ -1,6 +1,7 @@
 package com.cherami.cherami;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.FragmentManager;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -224,7 +225,23 @@ public class Circles extends Fragment {
                 String responseText = null;
 
                 try {
-                    responseText = new JSONObject(new String(errorResponse)).getString("reason");
+                    if (!NetworkCheck.isConnected(errorResponse)) {
+                        new AlertDialog.Builder(getActivity())
+                                .setTitle("Network Error")
+                                .setMessage("You're not connected to the network :(")
+                                .setNegativeButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        // do nothing
+                                    }
+                                })
+                                .setIcon(android.R.drawable.ic_dialog_alert)
+                                .show();
+
+                    } else {
+                        responseText = new JSONObject(new String(errorResponse)).getString("reason");
+                        Toast toast = Toast.makeText(getActivity().getApplicationContext(), responseText, Toast.LENGTH_LONG);
+                        toast.show();
+                    }
                 } catch (JSONException j) {
 
                 }

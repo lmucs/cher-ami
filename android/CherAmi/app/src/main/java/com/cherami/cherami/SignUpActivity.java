@@ -203,16 +203,10 @@ public class SignUpActivity extends Activity {
                 String responseText = null;
 
                 try {
-                    if (errorResponse == null) {
+                    if (!NetworkCheck.isConnected(errorResponse)) {
                         new AlertDialog.Builder(SignUpActivity.this)
                                 .setTitle("Network Error")
                                 .setMessage("You're not connected to the network :(")
-                                .setPositiveButton(getResources().getString(R.string.retry), new DialogInterface.OnClickListener() {
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        // retry connection
-                                        attemptCreateAccount();
-                                    }
-                                })
                                 .setNegativeButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface dialog, int which) {
                                         // do nothing
@@ -220,12 +214,12 @@ public class SignUpActivity extends Activity {
                                 })
                                 .setIcon(android.R.drawable.ic_dialog_alert)
                                 .show();
+
                     } else {
                         responseText = new JSONObject(new String(errorResponse)).getString("reason");
-                        Toast toast = Toast.makeText(SignUpActivity.this.context, responseText, Toast.LENGTH_LONG);
+                        Toast toast = Toast.makeText(getApplicationContext(), responseText, Toast.LENGTH_LONG);
                         toast.show();
                     }
-
                 } catch (JSONException j) {
 
                 }
