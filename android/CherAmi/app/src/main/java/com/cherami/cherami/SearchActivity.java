@@ -42,9 +42,9 @@ public class SearchActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         this.context = this.getApplicationContext();
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_search);
         ActionBar actionBar = getActionBar();
         actionBar.setDisplayHomeAsUpEnabled(true);
+        setContentView(R.layout.activity_search);
     }
 
     public void getUsers(View view) {

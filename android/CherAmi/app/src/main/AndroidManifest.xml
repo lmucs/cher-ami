@@ -47,7 +47,7 @@
         </activity>
         <activity
             android:name=".SearchActivity"
-            android:label="@string/title_activity_search"
+            android:label="CherAmi"
             android:screenOrientation="portrait" >
         </activity>
         <activity
@@ -62,7 +62,7 @@
         </activity>
         <activity
             android:name=".CircleResult"
-            android:label="@string/title_activity_circle_result" >
+            android:label="CherAmi" >
         </activity>
     </application>
     <!-- To access Google+ APIs: -->
