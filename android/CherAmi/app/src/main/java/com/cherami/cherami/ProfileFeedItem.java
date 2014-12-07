@@ -4,8 +4,6 @@ package com.cherami.cherami;
  * Created by Geoff on 11/28/2014.
  */
 public class ProfileFeedItem {
-
-
         public String message;
         public String title;
         public String date;
@@ -15,5 +13,4 @@ public class ProfileFeedItem {
             this.message = message;
             this.date = date;
         }
-
 }

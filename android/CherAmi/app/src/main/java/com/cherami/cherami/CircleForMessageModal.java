@@ -27,7 +27,7 @@ import java.io.UnsupportedEncodingException;
 public class CircleForMessageModal extends DialogFragment {
 
     CircleForMessagesItem circle_data[];
-    SharedPreferences prefs;
+    Context context;
     Button createCircleButton;
     private ListView circleList;
     String messageValue;
@@ -38,8 +38,7 @@ public class CircleForMessageModal extends DialogFragment {
     public void onCreate(Bundle savedInstanceState) {
         Bundle mArgs = getArguments();
         messageValue = mArgs.getString("messageValue");
-        Context context = getActivity().getApplicationContext();
-        prefs = context.getSharedPreferences("com.cherami.cherami", Context.MODE_PRIVATE);
+        this.context = getActivity().getApplicationContext();
         super.onCreate(savedInstanceState);
     }
 
@@ -62,18 +61,18 @@ public class CircleForMessageModal extends DialogFragment {
 
     public void getCircles(final View view) {
         AsyncHttpClient client = new AsyncHttpClient();
-        String token = ApiHelper.getSessionToken(prefs);
+        String token = ApiHelper.getSessionToken(context);
+        String username = ApiHelper.getUsername(context);
 
-        String userKey = "com.cherami.cherami.username";
-        String username = prefs.getString(userKey, null);
         RequestParams params = new RequestParams();
         params.put("user", username);
 
         client.addHeader("Authorization", token);
-        client.get(getActivity().getApplicationContext(), ApiHelper.getLocalUrlForApi(getResources()) + "circles", params, new AsyncHttpResponseHandler() {
+        client.get(context, ApiHelper.getLocalUrlForApi(getResources()) + "circles", params, new AsyncHttpResponseHandler() {
 
             @Override
             public void onStart() {
+
             }
 
             @Override
@@ -130,7 +129,7 @@ public class CircleForMessageModal extends DialogFragment {
             jsonParams.put("content", messageValue);
             jsonParams.put("circles", circleIds);
         } catch (JSONException j) {
-            System.out.println(j);
+
         }
 
         return jsonParams;
@@ -143,7 +142,7 @@ public class CircleForMessageModal extends DialogFragment {
         } catch (UnsupportedEncodingException i) {
             System.out.println(i);
         }
-        System.out.println("entity " + entity);
+
         return entity;
     }
 
@@ -153,10 +152,10 @@ public class CircleForMessageModal extends DialogFragment {
 
     public void attemptPostMessage() {
         AsyncHttpClient client = new AsyncHttpClient();
-        String token = ApiHelper.getSessionToken(prefs);
+        String token = ApiHelper.getSessionToken(context);
 
         client.addHeader("Authorization", token);
-        client.post(getActivity().getApplicationContext(), ApiHelper.getLocalUrlForApi(getResources()) + "messages",
+        client.post(context, ApiHelper.getLocalUrlForApi(getResources()) + "messages",
                 convertJsonUserToStringEntity(getMessageObjectRequestAsJson()), "application/json",
                 new AsyncHttpResponseHandler() {
 
@@ -174,10 +173,10 @@ public class CircleForMessageModal extends DialogFragment {
                         try {
                             responseText = new JSONObject(new String(response)).getString("response");
                         } catch (JSONException j) {
-                            System.out.println(j);
+
                         }
 
-                        Toast toast = Toast.makeText(getActivity().getApplicationContext(), responseText, Toast.LENGTH_LONG);
+                        Toast toast = Toast.makeText(CircleForMessageModal.this.context, responseText, Toast.LENGTH_LONG);
                         toast.show();
                         dismissModal();
                         dialog.dismiss();
@@ -186,8 +185,8 @@ public class CircleForMessageModal extends DialogFragment {
                     @Override
                     public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
                         dialog.dismiss();
-                        // called when response HTTP status is "4XX" (eg. 401, 403, 404)
                         String responseText = null;
+
                         try {
                             responseText = new JSONObject(new String(errorResponse)).getString("reason");
 
@@ -195,7 +194,7 @@ public class CircleForMessageModal extends DialogFragment {
 
                         }
 
-                        Toast toast = Toast.makeText(getActivity().getApplicationContext(), responseText, Toast.LENGTH_LONG);
+                        Toast toast = Toast.makeText(CircleForMessageModal.this.context, responseText, Toast.LENGTH_LONG);
                         toast.show();
                         e.printStackTrace();
                         dismissModal();
@@ -207,6 +206,4 @@ public class CircleForMessageModal extends DialogFragment {
                     }
                 });
     }
-
-
 }

@@ -25,20 +25,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
-/**
- * Created by Geoff on 11/29/2014.
- */
 public class OtherUserProfileActivity extends Activity{
 
     private ListView circleList;
-    SharedPreferences prefs;
     TextView textElement;
     String myVal;
+    Context context;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Context context = this.getApplicationContext();
-        prefs = context.getSharedPreferences(
-                "com.cherami.cherami", Context.MODE_PRIVATE);
+        this.context = this.getApplicationContext();
         super.onCreate(savedInstanceState);
         ActionBar actionBar = getActionBar();
         actionBar.setDisplayHomeAsUpEnabled(true);
@@ -49,7 +45,6 @@ public class OtherUserProfileActivity extends Activity{
         myVal = recdData.getString("handle");
         textElement.setText(myVal);
         getOtherUserCircles(this.findViewById(R.id.otherCircleFeed).getRootView());
-        System.out.println(myVal);
     }
 
 
@@ -65,8 +60,7 @@ public class OtherUserProfileActivity extends Activity{
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        switch (item.getItemId())
-        {
+        switch (item.getItemId()) {
             case android.R.id.home:
                 Intent intent = new Intent(this, MainActivity.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
@@ -81,34 +75,14 @@ public class OtherUserProfileActivity extends Activity{
         return date.substring(0, date.lastIndexOf("T"));
     }
 
-    public String getLocalUrlForApi () {
-        AssetManager assetManager = getResources().getAssets();
-        InputStream inputStream = null;
-        try {
-            inputStream = assetManager.open("config.properties");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        Properties properties = new Properties();
-        try {
-            properties.load(inputStream);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return properties.getProperty("myUrl");
-    }
-
     public void getOtherUserCircles(final View view) {
         AsyncHttpClient client = new AsyncHttpClient();
-        String token = ApiHelper.getSessionToken(prefs);
+        client.addHeader("Authorization", ApiHelper.getSessionToken(context));
 
-        client.addHeader("Authorization", token);
-        client.get(this.getApplicationContext(), ApiHelper.getLocalUrlForApi(getResources()) + "circles?user=" + myVal, new AsyncHttpResponseHandler() {
+        client.get(context, ApiHelper.getLocalUrlForApi(getResources()) + "circles?user=" + myVal, new AsyncHttpResponseHandler() {
 
             @Override
             public void onStart() {
-                // called before request is started
-                System.out.println("STARTING GET REQUEST");
 
             }
 
@@ -126,26 +100,22 @@ public class OtherUserProfileActivity extends Activity{
                     OtherUserProfileAdapter adapter = new OtherUserProfileAdapter(OtherUserProfileActivity.this,
                             R.layout.other_user_circle_row, circle_data);
 
-
                     circleList = (ListView) view.findViewById(R.id.otherCircleFeed);
-
                     circleList.setAdapter(adapter);
-                } catch (JSONException j) {
-                    System.out.println(j);
-                }
 
+                } catch (JSONException j) {
+
+                }
             }
 
             @Override
             public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable error) {
-                // called when response HTTP status is "4XX" (eg. 401, 403, 404)
-
                 String responseText = null;
+
                 try {
                     responseText = new JSONObject(new String(errorResponse)).getString("reason");
-
                 } catch (JSONException j) {
-                    System.out.println(j);
+
                 }
 
             }

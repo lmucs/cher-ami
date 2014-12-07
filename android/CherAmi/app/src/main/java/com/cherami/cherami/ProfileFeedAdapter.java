@@ -14,8 +14,6 @@ import android.widget.Toast;
  * Created by Geoff on 11/28/2014.
  */
 public class ProfileFeedAdapter extends ArrayAdapter<ProfileFeedItem> {
-
-
     Context context;
     int layoutResourceId;
     ProfileFeedItem[] data = null;

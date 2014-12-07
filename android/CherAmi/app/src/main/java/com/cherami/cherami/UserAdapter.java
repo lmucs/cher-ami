@@ -43,6 +43,7 @@ public class UserAdapter extends ArrayAdapter<User> {
         }
 
         User user = data[position];
+
         try {
             holder.txtTitle.setText(user.userName.getString("u.handle"));
         } catch (JSONException e) {
@@ -51,12 +52,11 @@ public class UserAdapter extends ArrayAdapter<User> {
 
         return row;
     }
+
     @Override
     public User getItem(int position){
      return data[position];
     }
-
-
 
     static class UserHolder {
         TextView txtTitle;

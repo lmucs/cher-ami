@@ -7,12 +7,11 @@ import org.json.JSONObject;
  */
 public class User {
     public JSONObject userName;
-    //public String displayName;
 
     public User(JSONObject userName) {
         this.userName = userName;
-        //this.displayName = displayName;
     }
+
     public JSONObject getUserName(){
         return this.userName;
     }

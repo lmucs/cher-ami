@@ -41,15 +41,14 @@ import static com.cherami.cherami.R.id.circleName;
 
 public class CreateCircleModal extends DialogFragment {
 
-    SharedPreferences prefs;
+    Context context;
     Button createCircleButton;
     Button dismissModalButton;
     View root;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        Context context = getActivity().getApplicationContext();
-        prefs = context.getSharedPreferences("com.cherami.cherami", Context.MODE_PRIVATE);
+        this.context = getActivity().getApplicationContext();
         super.onCreate(savedInstanceState);
     }
 
@@ -82,16 +81,15 @@ public class CreateCircleModal extends DialogFragment {
         EditText circleName = (EditText) root.findViewById(R.id.circleName);
         RadioButton publicRadioButton = (RadioButton) root.findViewById(R.id.publicRadioButton);
         Boolean isCirclePublic = publicRadioButton.isChecked();
-        System.out.println(publicRadioButton.isChecked());
         String visibilitySetting = publicRadioButton.isChecked() ? "public" : "private";
 
         try {
             jsonParams.put("CircleName", circleName.getText().toString());
             jsonParams.put("Public", isCirclePublic);
         } catch (JSONException j) {
-            System.out.println("DONT LIKE JSON!");
+
         }
-        System.out.println(jsonParams.toString());
+
         return jsonParams;
     }
 
@@ -100,17 +98,17 @@ public class CreateCircleModal extends DialogFragment {
         try {
             entity = new StringEntity(jsonParams.toString());
         } catch (UnsupportedEncodingException i) {
-            System.out.println("DONT LIKE TO STRING!");
+
         }
         return entity;
     }
 
     public void attemptCreateCircle() {
         AsyncHttpClient client = new AsyncHttpClient();
-        String token = ApiHelper.getSessionToken(prefs);
+        String token = ApiHelper.getSessionToken(context);
 
         client.addHeader("Authorization", token);
-        client.post(getActivity().getApplicationContext(), ApiHelper.getLocalUrlForApi(getResources()) + "circles",
+        client.post(context, ApiHelper.getLocalUrlForApi(getResources()) + "circles",
                 convertJsonUserToStringEntity(getCreateCircleParamsAsJson()), "application/json",
                 new AsyncHttpResponseHandler() {
 
@@ -155,8 +153,7 @@ public class CreateCircleModal extends DialogFragment {
 
                     @Override
                     public void onRetry(int retryNo) {
-                        // called when request is retried
-                        System.out.println("RETRYING?!?!");
+
                     }
                 });
     }

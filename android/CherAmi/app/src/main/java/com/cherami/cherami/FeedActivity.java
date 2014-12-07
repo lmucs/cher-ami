@@ -16,10 +16,8 @@ public class FeedActivity extends Activity {
         setContentView(R.layout.activity_feed);
     }
 
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-
         return true;
     }
 

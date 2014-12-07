@@ -31,14 +31,12 @@ import java.util.Properties;
 
 public class SearchActivity extends Activity {
     private ListView userList;
-    SharedPreferences prefs;
+    Context context;
     ProgressDialog dialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Context context = this.getApplicationContext();
-        prefs = context.getSharedPreferences(
-                "com.cherami.cherami", Context.MODE_PRIVATE);
+        this.context = this.getApplicationContext();
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search);
         getActionBar().hide();
@@ -46,16 +44,14 @@ public class SearchActivity extends Activity {
 
     public void getUsers(View view) {
         AsyncHttpClient client = new AsyncHttpClient();
-        String token = ApiHelper.getSessionToken(prefs);
-
+        String token = ApiHelper.getSessionToken(context);
         String searchInput = ((EditText)findViewById(R.id.search_bar)).getText().toString();
-        System.out.println("Searching: " + searchInput);
         RequestParams params = new RequestParams();
         params.put("nameprefix", searchInput);
         params.put("sort", "joined");
 
         client.addHeader("Authorization", token);
-        client.get(this.getApplicationContext(), ApiHelper.getLocalUrlForApi(getResources()) + "users", params, new AsyncHttpResponseHandler() {
+        client.get(context, ApiHelper.getLocalUrlForApi(getResources()) + "users", params, new AsyncHttpResponseHandler() {
 
             @Override
             public void onStart() {
@@ -67,26 +63,21 @@ public class SearchActivity extends Activity {
             public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
                 dialog.dismiss();
                 String responseText = null;
+
                 try {
                     responseText = new JSONObject(new String(responseBody)).getString("results");
-                    System.out.println(responseText);
                     JSONArray y = new JSONArray(responseText);
                     User user_data[] = new User[y.length()];
+
                     for (int x = 0; x < y.length(); x++) {
                         user_data[x] = new User(new JSONObject(y.get(x).toString()));
                     }
 
                     final UserAdapter adapter = new UserAdapter(SearchActivity.this,
                             R.layout.user_item_row, user_data);
-
-                    System.out.println("adatper " + adapter);
-
-
                     userList = (ListView) findViewById(R.id.searchList);
-
-                    System.out.println("userlist: " + userList);
-
                     userList.setAdapter(adapter);
+
                     userList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                         @Override
                         public void onItemClick(AdapterView<?> parent, View view, int position,
@@ -139,9 +130,11 @@ public class SearchActivity extends Activity {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
+
         if (id == R.id.action_settings) {
             return true;
         }
+
         return super.onOptionsItemSelected(item);
     }
 }

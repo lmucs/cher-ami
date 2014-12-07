@@ -15,15 +15,12 @@ import android.widget.EditText;
  */
 public class CreateMessageModal extends DialogFragment {
 
-    SharedPreferences prefs;
     Button createMessageButton;
     Button dismissModalButton;
     View root;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        Context context = getActivity().getApplicationContext();
-        prefs = context.getSharedPreferences("com.cherami.cherami", Context.MODE_PRIVATE);
         super.onCreate(savedInstanceState);
     }
 

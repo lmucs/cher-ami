@@ -60,41 +60,16 @@ public class Circles extends Fragment {
     CircleAdapter adapter;
     Button createNewCircleButton;
     Button refreshButton;
-
-    private OnFragmentInteractionListener mListener;
-
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment Circles.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static Circles newInstance(String param1, String param2) {
-        Circles fragment = new Circles();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
+    Context context;
 
     public Circles() {
-        // Required empty public constructor
+
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        Context context = getActivity().getApplicationContext();
-        prefs = context.getSharedPreferences(
-                "com.cherami.cherami", Context.MODE_PRIVATE);
+        this.context = getActivity().getApplicationContext();
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
     }
 
     public void filterCircles () {
@@ -109,6 +84,7 @@ public class Circles extends Fragment {
                         R.layout.circle_item_row, circleData);
             } else {
                 ArrayList<Circle> filteredCircles = new ArrayList<Circle>();
+
                 for (int i = 0; i < circleData.length; i++) {
                     if (circleData[i].visibility.equals(value.toLowerCase())) {
                         filteredCircles.add(circleData[i]);
@@ -124,7 +100,7 @@ public class Circles extends Fragment {
             circleList.setAdapter(newCircleAdapter);
 
         } catch (NullPointerException n) {
-            System.out.println("NO DATA YET!");
+
         }
 
     }
@@ -178,31 +154,30 @@ public class Circles extends Fragment {
 
     public void getCircles(View view) {
         AsyncHttpClient client = new AsyncHttpClient();
-        String token = ApiHelper.getSessionToken(prefs);
-
-        String userKey = "com.cherami.cherami.username";
-        String username = prefs.getString(userKey, null);
+        String token = ApiHelper.getSessionToken(context);
+        String username = ApiHelper.getUsername(context);
         RequestParams params = new RequestParams();
         params.put("user", username);
         final View view2 = view;
 
         client.addHeader("Authorization", token);
-        client.get(getActivity().getApplicationContext(), ApiHelper.getLocalUrlForApi(getResources()) + "circles",
+        client.get(context, ApiHelper.getLocalUrlForApi(getResources()) + "circles",
                    params, new AsyncHttpResponseHandler() {
 
             @Override
             public void onStart() {
-                System.out.println("Starting GET Circles Request");
+
             }
 
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
                 String responseText = null;
+
                 try {
                     responseText = new JSONObject(new String(responseBody)).getString("results");
                     JSONArray y = new JSONArray(responseText);
-                    System.out.println(y.toString());
                     Circle circle_data[] = new Circle[y.length()];
+
                     for (int x = 0; x < y.length(); x++) {
 
                         circle_data[x] = new Circle(new JSONObject(y.get(x).toString()).getString("name"),
@@ -215,61 +190,30 @@ public class Circles extends Fragment {
                             R.layout.circle_item_row, circle_data);
                     Circles.this.setCircleAdapter(adapter);
                     circleList = (ListView) view2.findViewById(R.id.circleList);
-
                     circleList.setAdapter(adapter);
+
                 } catch (JSONException j) {
-                    System.out.println(j);
+
                 }
+
                 filterCircles();
             }
 
             @Override
             public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable error) {
-                // called when response HTTP status is "4XX" (eg. 401, 403, 404)
-
                 String responseText = null;
+
                 try {
                     responseText = new JSONObject(new String(errorResponse)).getString("reason");
-
                 } catch (JSONException j) {
-                    System.out.println(j);
+
                 }
 
             }
         });
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
-        }
-    }
-
     public String processDate(String date){
         return date.substring(0, date.lastIndexOf("T"));
     }
-
-    @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        try {
-            mListener = (OnFragmentInteractionListener) activity;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
-    }
-
-    public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        public void onFragmentInteraction(Uri uri);
-    }
-
 }

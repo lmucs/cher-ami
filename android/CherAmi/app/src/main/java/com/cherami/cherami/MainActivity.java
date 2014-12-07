@@ -58,31 +58,14 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class MainActivity extends Activity implements ActionBar.TabListener, Feed.OnFragmentInteractionListener, Circles.OnFragmentInteractionListener, Profile.OnFragmentInteractionListener {
-
-    /**
-     * The {@link android.support.v4.view.PagerAdapter} that will provide
-     * fragments for each of the sections. We use a
-     * {@link FragmentPagerAdapter} derivative, which will keep every
-     * loaded fragment in memory. If this becomes too memory intensive, it
-     * may be best to switch to a
-     * {@link android.support.v13.app.FragmentStatePagerAdapter}.
-     */
+public class MainActivity extends Activity implements ActionBar.TabListener {
     SectionsPagerAdapter mSectionsPagerAdapter;
-
-    /**
-     * The {@link ViewPager} that will host the section contents.
-     */
     ViewPager mViewPager;
-    SharedPreferences prefs;
+    Context context;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Context context = getApplicationContext();
-        System.out.println(context);
-
-        prefs = context.getSharedPreferences(
-                "com.cherami.cherami", Context.MODE_PRIVATE);
+        this.context = getApplicationContext();
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -131,8 +114,6 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.main_activity_actions, menu);
         return super.onCreateOptionsMenu(menu);
@@ -143,7 +124,7 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
         try {
             entity = new StringEntity(jsonParams.toString());
         } catch (UnsupportedEncodingException i) {
-            System.out.println("DONT LIKE TO STRING!");
+
         }
         return entity;
     }
@@ -154,7 +135,6 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
     }
 
     public boolean attemptCreateMessage(MenuItem menuItem) {
-        // Create and show the dialog.
         CreateMessageModal newFragment = new CreateMessageModal();
         newFragment.show(getFragmentManager(), "dialog");
         return true;
@@ -183,7 +163,7 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
 
     public void logoutUser () {
         AsyncHttpClient client = new AsyncHttpClient();
-        String token = ApiHelper.getSessionToken(prefs);
+        String token = ApiHelper.getSessionToken(context);
         client.addHeader("Authorization", token);
 
         client.delete(this.getApplicationContext(), ApiHelper.getLocalUrlForApi(getResources()) + "sessions",
@@ -191,17 +171,16 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
 
                     @Override
                     public void onStart() {
-                        // called before request is started
-                        System.out.println("STARTING DELETE TOKEN REQUEST");
+
                     }
 
                     @Override
                     public void onSuccess(int statusCode, Header[] headers, byte[] response) {
-                        Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+                        Intent intent = new Intent(MainActivity.this.context, LoginActivity.class);
                         startActivity(intent);
                         finish();
 
-                        Toast toast = Toast.makeText(getApplicationContext(), "Goodbye.", Toast.LENGTH_LONG);
+                        Toast toast = Toast.makeText(MainActivity.this.context, "Goodbye.", Toast.LENGTH_LONG);
                         toast.show();
                     }
 
@@ -214,10 +193,10 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
                             responseText = new JSONObject(new String(errorResponse)).getString("Reason");
 
                         } catch (JSONException j) {
-                            System.out.println("Dont like JSON");
+
                         }
 
-                        Toast toast = Toast.makeText(getApplicationContext(), responseText, Toast.LENGTH_LONG);
+                        Toast toast = Toast.makeText(context, responseText, Toast.LENGTH_LONG);
                         toast.show();
                         e.printStackTrace();
                     }
@@ -244,15 +223,6 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
     public void onTabReselected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction) {
     }
 
-    @Override
-    public void onFragmentInteraction(Uri uri) {
-
-    }
-
-    /**
-     * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
-     * one of the sections/tabs/pages.
-     */
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
         public SectionsPagerAdapter(FragmentManager fm) {
@@ -319,18 +289,11 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Fee
         private final String mTag;
         private final Class<T> mClass;
 
-        /** Constructor used each time a new tab is created.
-         * @param activity  The host Activity, used to instantiate the fragment
-         * @param tag  The identifier tag for the fragment
-         * @param clz  The fragment's Class, used to instantiate the fragment
-         */
         public TabListener(Activity activity, String tag, Class<T> clz) {
             mActivity = activity;
             mTag = tag;
             mClass = clz;
         }
-
-    /* The following are each of the ActionBar.TabListener callbacks */
 
         public void onTabSelected(ActionBar.Tab tab, FragmentTransaction ft) {
             // Check if the fragment is already initialized

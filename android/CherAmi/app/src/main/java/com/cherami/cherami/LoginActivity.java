@@ -47,30 +47,15 @@ import java.util.Properties;
  * Created by goalsman on 10/7/14.
  */
 public class LoginActivity extends Activity {
-    /**
-     * The {@link android.support.v4.view.PagerAdapter} that will provide
-     * fragments for each of the sections. We use a
-     * {@link android.support.v13.app.FragmentPagerAdapter} derivative, which will keep every
-     * loaded fragment in memory. If this becomes too memory intensive, it
-     * may be best to switch to a
-     * {@link android.support.v13.app.FragmentStatePagerAdapter}.
-     */
-
-    /**
-     * The {@link android.support.v4.view.ViewPager} that will host the section contents.
-     */
     EditText mUsername;
     EditText mPassword;
     ProgressDialog dialog;
+    Context context;
 
-    SharedPreferences prefs;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Context context = getApplicationContext();
-        System.out.println(context);
+        this.context = getApplicationContext();
 
-        prefs = context.getSharedPreferences(
-                "com.cherami.cherami", Context.MODE_PRIVATE);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         getActionBar().hide();
@@ -88,22 +73,25 @@ public class LoginActivity extends Activity {
 
     public JSONObject getUserObjectRequestAsJson () {
         JSONObject jsonParams = new JSONObject();
+
         try {
             jsonParams.put("handle", mUsername.getText().toString());
             jsonParams.put("password", mPassword.getText().toString());
         } catch (JSONException j) {
-            System.out.println("DONT LIKE JSON!");
+
         }
         return jsonParams;
     }
 
     public StringEntity convertJsonUserToStringEntity (JSONObject jsonParams) {
         StringEntity entity = null;
+
         try {
             entity = new StringEntity(jsonParams.toString());
         } catch (UnsupportedEncodingException i) {
-            System.out.println("DONT LIKE TO STRING!");
+
         }
+
         return entity;
     }
 
@@ -116,8 +104,6 @@ public class LoginActivity extends Activity {
 
                     @Override
                     public void onStart() {
-                        // called before request is started
-                        System.out.println("STARTING POST REQUEST");
                         dialog = ProgressDialog.show(LoginActivity.this, "",
                                 "Loading. Please wait...", true);
                     }
@@ -133,17 +119,15 @@ public class LoginActivity extends Activity {
                             e.printStackTrace();
                         }
                         try {
-                            String sessionKey = "com.cherami.cherami.token";
-                            String userKey = "com.cherami.cherami.username";
+                            ApiHelper.saveAuthorizationToken(context, mUsername.getText().toString(),
+                                    returnVal.getString("token"));
 
-                            prefs.edit().putString(sessionKey, returnVal.getString("token")).apply();
-                            prefs.edit().putString(userKey, mUsername.getText().toString()).apply();
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
-                        // called when response HTTP status is "200 OK"
 
                         String responseText = null;
+
                         try {
                             responseText = new JSONObject(new String(response)).getString("response");
                         } catch (JSONException j) {
@@ -161,9 +145,8 @@ public class LoginActivity extends Activity {
                     @Override
                     public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
                         dialog.dismiss();
-                        // called when response HTTP status is "4XX" (eg. 401, 403, 404)
-
                         String responseText = null;
+
                         try {
                             if (errorResponse == null) {
                                 new AlertDialog.Builder(LoginActivity.this)
@@ -189,14 +172,13 @@ public class LoginActivity extends Activity {
                                 toast.show();
                             }
                         } catch (JSONException j) {
-                            System.out.println("Dont like JSON");
+
                         }
                     }
 
                     @Override
                     public void onRetry(int retryNo) {
-                        // called when request is retried
-                        System.out.println("RETRYING?!?!");
+
                     }
                 });
     }
@@ -210,7 +192,6 @@ public class LoginActivity extends Activity {
     public void loginClicked(View view) {
         View focusView = null;
         Boolean cancel = false;
-
         String username = mUsername.getText().toString();
         String password = mPassword.getText().toString();
 
@@ -236,16 +217,13 @@ public class LoginActivity extends Activity {
         } else {
             // Sign them up; for now, redirect to Main
             attemptLoginAccount();
-
         }
 
     }
 
     private boolean isPasswordValid(String password) {
-        //TODO: Replace this with your own logic
         return password.length() >= 8;
     }
-
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
