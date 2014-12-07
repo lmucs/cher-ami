@@ -9,17 +9,16 @@
 			@include span-columns(4)
 
 			#profile-container
-				background-color: white
+				background-color: ghostwhite
 				border-radius: 10px
 				border: 1px solid steelblue
-				padding: 20px
 				margin-top: 10px
 				min-width: 300px
 				max-width: 600px
 				width: 100%
 				.row
 					#feed-area
-						background-color: white
+						background-color: ghostwhite
 						padding: 20px
 						border-radius: 10px
 						border: 1px solid steelblue
@@ -74,7 +73,7 @@
 			border-bottom: 2px solid steelblue
 			.container
 				@include outer-container
-				.row
+				.rowTwo
 					.img-responsive
 						max-height: 150px
 						max-width: auto
@@ -86,6 +85,11 @@
 						position: relative
 						left: 18%
 						@include span-columns(4)
+						display: flex
+
+						#glass
+							width: 56px
+							height: 34px
 						#search-form
 							max-width: 350px
 						#seach-button:
