@@ -30,7 +30,6 @@ public class CircleForMessageAdapter extends ArrayAdapter<CircleForMessagesItem>
         this.data = data;
     }
 
-
     @Override
     public View getView(final int position, View convertView, ViewGroup parent) {
         View row = convertView;
@@ -51,11 +50,6 @@ public class CircleForMessageAdapter extends ArrayAdapter<CircleForMessagesItem>
                     CheckBox cb = (CheckBox) v ;
                     CircleForMessagesItem circle = data[position];
                     circle.setSelected(cb.isChecked());
-
-                    Toast.makeText(context,
-                            "Clicked on Checkbox: " + cb.getText() +
-                                    " is " + cb.isChecked(),
-                            Toast.LENGTH_LONG).show();
                     circle.setSelected(cb.isChecked());
                 }
 
@@ -75,7 +69,7 @@ public class CircleForMessageAdapter extends ArrayAdapter<CircleForMessagesItem>
             }
             holder.txtTitle.setText(circleForMessage.circleName.getString("owner")+"'s "+circleForMessage.circleName.getString("name"));
         } catch (Exception e){
-            System.out.print(e);
+
         }
 
 
