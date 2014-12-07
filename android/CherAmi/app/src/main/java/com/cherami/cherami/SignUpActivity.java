@@ -2,6 +2,7 @@ package com.cherami.cherami;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -35,6 +36,7 @@ public class SignUpActivity extends Activity {
     EditText mPassword;
     EditText mConfirmPassword;
     SharedPreferences prefs;
+    ProgressDialog dialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,7 +74,6 @@ public class SignUpActivity extends Activity {
         } catch (JSONException j) {
             System.out.println(j);
         }
-        System.out.println(jsonParams);
         return jsonParams;
     }
     public JSONObject getLoginObjectRequestAsJson () {
@@ -112,6 +113,7 @@ public class SignUpActivity extends Activity {
 
                     @Override
                     public void onSuccess(int statusCode, Header[] headers, byte[] response) {
+                        dialog.dismiss();
                         String s = new String(response);
                         System.out.println("HERES " + s);
                         JSONObject returnVal = new JSONObject();
@@ -149,6 +151,7 @@ public class SignUpActivity extends Activity {
                     @Override
                     public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
                         // called when response HTTP status is "4XX" (eg. 401, 403, 404)
+                        dialog.dismiss();
                         System.out.println("AWE RATS");
 
                         String responseText = null;
@@ -179,6 +182,8 @@ public class SignUpActivity extends Activity {
 
             @Override
             public void onStart() {
+                dialog = ProgressDialog.show(SignUpActivity.this, "",
+                        "Loading. Please wait...", true);
                 // called before request is started
                 System.out.println("STARTING POST REQUEST");
             }
@@ -204,6 +209,7 @@ public class SignUpActivity extends Activity {
 
             @Override
             public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
+                dialog.dismiss();
                 // called when response HTTP status is "4XX" (eg. 401, 403, 404)
 
                 String responseText = null;
