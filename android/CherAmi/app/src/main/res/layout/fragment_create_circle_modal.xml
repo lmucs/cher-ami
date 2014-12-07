@@ -1,6 +1,8 @@
 <RelativeLayout
+    xmlns:fbutton="http://schemas.android.com/apk/res-auto"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
+    android:padding="16dp"
     xmlns:android="http://schemas.android.com/apk/res/android">
 
     <EditText
@@ -35,28 +37,30 @@
             android:layout_gravity="right" />
     </RadioGroup>
 
-    <Button
+    <info.hoang8f.widget.FButton
+        android:id="@+id/createCircleButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Create Circle"
-        android:id="@+id/createCircleButton"
+        android:text="Create"
+        android:textColor="@android:color/white"
+        fbutton:buttonColor="#4cc1f0"
+        fbutton:shadowEnabled="false"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp"
         android:layout_below="@+id/createCircleRadioGroup"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:clickable="true" />
+        android:layout_alignParentStart="true" />
 
-    <Button
+    <info.hoang8f.widget.FButton
+        android:id="@+id/dismissModalButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Cancel"
-        android:id="@+id/dismissModalButton"
-        android:layout_below="@+id/createCircleButton"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:singleLine="false"/>
+        android:textColor="@android:color/white"
+        fbutton:buttonColor="#ff0000"
+        fbutton:shadowEnabled="false"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp"
+        android:layout_below="@+id/createCircleRadioGroup"
+        android:layout_alignParentRight="true" />
 
 </RelativeLayout>
