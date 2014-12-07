@@ -1,6 +1,7 @@
 package com.cherami.cherami;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -31,6 +32,7 @@ import java.util.Properties;
 public class SearchActivity extends Activity {
     private ListView userList;
     SharedPreferences prefs;
+    ProgressDialog dialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,11 +59,13 @@ public class SearchActivity extends Activity {
 
             @Override
             public void onStart() {
-
+                dialog = ProgressDialog.show(SearchActivity.this, "",
+                        "Loading. Please wait...", true);
             }
 
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                dialog.dismiss();
                 String responseText = null;
                 try {
                     responseText = new JSONObject(new String(responseBody)).getString("results");
@@ -106,6 +110,7 @@ public class SearchActivity extends Activity {
 
             @Override
             public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable error) {
+                dialog.dismiss();
                 // called when response HTTP status is "4XX" (eg. 401, 403, 404)
 
                 String responseText = null;

@@ -1,6 +1,7 @@
 package com.cherami.cherami;
 
 import android.app.DialogFragment;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -31,6 +32,7 @@ public class CircleForMessageModal extends DialogFragment {
     private ListView circleList;
     String messageValue;
     View root;
+    ProgressDialog dialog;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -93,9 +95,8 @@ public class CircleForMessageModal extends DialogFragment {
 
                     circleList.setAdapter(adapter);
                 } catch (JSONException j) {
-                    System.out.println(j);
-                }
 
+                }
             }
 
             @Override
@@ -106,7 +107,7 @@ public class CircleForMessageModal extends DialogFragment {
                 try {
                     responseText = new JSONObject(new String(errorResponse)).getString("reason");
                 } catch (JSONException j) {
-                    System.out.println(j);
+
                 }
 
             }
@@ -131,7 +132,7 @@ public class CircleForMessageModal extends DialogFragment {
         } catch (JSONException j) {
             System.out.println(j);
         }
-        System.out.println(jsonParams.toString());
+
         return jsonParams;
     }
 
@@ -161,7 +162,8 @@ public class CircleForMessageModal extends DialogFragment {
 
                     @Override
                     public void onStart() {
-
+                        dialog = ProgressDialog.show(getActivity(), "",
+                                "Loading. Please wait...", true);
                     }
 
                     @Override
@@ -178,10 +180,12 @@ public class CircleForMessageModal extends DialogFragment {
                         Toast toast = Toast.makeText(getActivity().getApplicationContext(), responseText, Toast.LENGTH_LONG);
                         toast.show();
                         dismissModal();
+                        dialog.dismiss();
                     }
 
                     @Override
                     public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
+                        dialog.dismiss();
                         // called when response HTTP status is "4XX" (eg. 401, 403, 404)
                         String responseText = null;
                         try {

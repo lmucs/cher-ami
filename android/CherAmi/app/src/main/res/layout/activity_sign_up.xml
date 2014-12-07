@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:fbutton="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="16dp">
@@ -36,21 +37,33 @@
         android:layout_below="@id/password"
         android:hint="@string/confirmPassword"
         android:text="password" />
-    <Button
-        android:layout_width="match_parent"
+    <info.hoang8f.widget.FButton
+        android:id="@+id/button"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
+        android:layout_margin="10dp"
         android:layout_below="@id/confirmPassword"
         android:text="Create Account"
-        android:onClick="signupButtonClicked"
-        android:id="@+id/button" />
-    <Button
-        android:id="@+id/login"
-        android:layout_width="200dp"
-        android:layout_height="wrap_content"
+        android:textColor="@android:color/white"
         android:layout_alignParentRight="true"
+        fbutton:buttonColor="#4cc1f0"
+        fbutton:shadowEnabled="false"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp"
+        android:onClick="signupButtonClicked"/>
+    <info.hoang8f.widget.FButton
+        android:id="@+id/login"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
         android:layout_alignParentBottom="true"
         android:text="Login"
+        android:textColor="@android:color/white"
+        android:layout_alignParentRight="true"
+        fbutton:buttonColor="#4cc1f0"
+        fbutton:shadowEnabled="false"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp"
         android:onClick="showLogin"/>
 
     <TextView
