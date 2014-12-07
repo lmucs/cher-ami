@@ -29,8 +29,9 @@ define(function(require, exports, module) {
                 })
                 message.save();
                 this.collection.add(message);
-
                 this.ui.postArea.val('');
+                console.log("message: ", message);
+                message.update(); //TODO: REMOVE THIS
                 console.log("Added");
             } else {
                 console.log("Unable to add");
