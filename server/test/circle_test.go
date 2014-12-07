@@ -230,6 +230,53 @@ func (s *TestSuite) TestSearchCirclesOfTargetOK(c *C) {
 	}
 }
 
+// Circles join by the user are from a variety of creators
+func (s *TestSuite) TestSearchCirclesOfTargetVarietyOK(c *C) {
+	req.PostSignup("Alpha", "testA@test.io", "password1", "password1")
+	req.PostSignup("Bravo", "testB@test.io", "password2", "password2")
+	req.PostSignup("Charlie", "testC@test.io", "password3", "password3")
+	req.PostSignup("Delta", "testD@test.io", "password4", "password4")
+	token_A := req.PostSessionGetAuthToken("Alpha", "password1")
+	token_B := req.PostSessionGetAuthToken("Bravo", "password2")
+
+	// Alpha will be the joiner. His joined circles will be tested from the perspective
+	// of himself and Bravo
+	if _, err := req.PostJoin(token_A, "Bravo", types.BROADCAST); err != nil {
+		c.Error(err)
+	}
+	if _, err := req.PostJoin(token_A, "Charlie", types.BROADCAST); err != nil {
+		c.Error(err)
+	}
+	if _, err := req.PostJoin(token_A, "Delta", types.BROADCAST); err != nil {
+		c.Error(err)
+	}
+
+	if res, err := req.GetCircles(types.Json{
+		"token": token_A,
+	}); err != nil {
+		c.Error(err)
+	} else {
+		body := types.SearchCirclesResponse{}
+		helper.Unmarshal(res, &body)
+		c.Check(res.StatusCode, Equals, 200)
+		c.Check(len(body.Results), Equals, 5)
+		c.Check(body.Count, Equals, 5)
+	}
+
+	if res, err := req.GetCircles(types.Json{
+		"token": token_B,
+		"user":  "Alpha",
+	}); err != nil {
+		c.Error(err)
+	} else {
+		body := types.SearchCirclesResponse{}
+		helper.Unmarshal(res, &body)
+		c.Check(res.StatusCode, Equals, 200)
+		c.Check(len(body.Results), Equals, 5)
+		c.Check(body.Count, Equals, 5)
+	}
+}
+
 // This is essentially getting the circles one is part of
 // without supplying an user parameter.
 func (s *TestSuite) TestSearchCirclesNoSpecificUserOK(c *C) {
