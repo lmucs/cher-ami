@@ -2,6 +2,7 @@ package com.cherami.cherami;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -49,6 +50,17 @@ public class OtherUserProfileAdapter extends ArrayAdapter<OtherUserCircle> {
 
         OtherUserCircle otherUserCircle = data[position];
         try {
+            if(otherUserCircle.circle.getString("visibility").equals("private")){
+                row.setBackgroundColor(Color.parseColor("#4cc1f0"));
+                holder.txtName.setTextColor(Color.parseColor("#ffffff"));
+                holder.txtOwner.setTextColor(Color.parseColor("#ffffff"));
+                holder.txtDate.setTextColor(Color.parseColor("#ffffff"));
+            } else {
+                row.setBackgroundColor(Color.parseColor("#f0f0f0f0"));
+                holder.txtName.setTextColor(Color.parseColor("#000000"));
+                holder.txtOwner.setTextColor(Color.parseColor("#000000"));
+                holder.txtDate.setTextColor(Color.parseColor("#000000"));
+            }
             holder.txtName.setText(otherUserCircle.circle.getString("name"));
             holder.txtOwner.setText(otherUserCircle.circle.getString("owner"));
             holder.txtDate.setText(otherUserCircle.circle.getString("created"));

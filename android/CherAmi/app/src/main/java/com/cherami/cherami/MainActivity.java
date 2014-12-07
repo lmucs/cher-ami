@@ -13,10 +13,12 @@ import java.util.Properties;
 
 import android.app.Activity;
 import android.app.ActionBar;
+import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
@@ -189,14 +191,26 @@ public class MainActivity extends Activity implements ActionBar.TabListener {
                         String responseText = null;
 
                         try {
-                            responseText = new JSONObject(new String(errorResponse)).getString("Reason");
+                            if (!NetworkCheck.isConnected(errorResponse)) {
+                                new AlertDialog.Builder(MainActivity.this)
+                                        .setTitle("Network Error")
+                                        .setMessage("You're not connected to the network :(")
+                                        .setNegativeButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                // do nothing
+                                            }
+                                        })
+                                        .setIcon(android.R.drawable.ic_dialog_alert)
+                                        .show();
+
+                            } else {
+                                responseText = new JSONObject(new String(errorResponse)).getString("reason");
+                                Toast toast = Toast.makeText(getApplicationContext(), responseText, Toast.LENGTH_LONG);
+                                toast.show();
+                            }
                         } catch (JSONException j) {
 
                         }
-
-                        Toast toast = Toast.makeText(context, responseText, Toast.LENGTH_LONG);
-                        toast.show();
-                        e.printStackTrace();
                     }
 
                     @Override

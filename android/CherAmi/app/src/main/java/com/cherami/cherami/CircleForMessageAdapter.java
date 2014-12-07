@@ -2,11 +2,13 @@ package com.cherami.cherami;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -58,7 +60,14 @@ public class CircleForMessageAdapter extends ArrayAdapter<CircleForMessagesItem>
 
         CircleForMessagesItem circleForMessage = data[position];
         try {
-            holder.txtTitle.setText(circleForMessage.circleName.getString("name"));
+            if(circleForMessage.circleName.getString("visibility").equals("private")){
+                row.setBackgroundColor(Color.parseColor("#4cc1f0"));
+                holder.txtTitle.setTextColor(Color.parseColor("#ffffff"));
+            } else {
+                row.setBackgroundColor(Color.parseColor("#f0f0f0f0"));
+                holder.txtTitle.setTextColor(Color.parseColor("#000000"));
+            }
+            holder.txtTitle.setText(circleForMessage.circleName.getString("owner")+"'s "+circleForMessage.circleName.getString("name"));
         } catch (Exception e){
 
         }
