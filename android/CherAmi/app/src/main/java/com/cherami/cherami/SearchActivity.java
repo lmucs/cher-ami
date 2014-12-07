@@ -102,12 +102,10 @@ public class SearchActivity extends Activity {
             @Override
             public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable error) {
                 dialog.dismiss();
-                // called when response HTTP status is "4XX" (eg. 401, 403, 404)
-
                 String responseText = null;
+                
                 try {
                     responseText = new JSONObject(new String(errorResponse)).getString("reason");
-
                 } catch (JSONException j) {
 
                 }

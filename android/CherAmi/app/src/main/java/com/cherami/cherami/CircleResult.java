@@ -76,9 +76,9 @@ public class CircleResult extends Activity {
             jsonParams.put("Circle", circleName);
             jsonParams.put("Target", owner);
         } catch (JSONException j) {
-            System.out.println("DONT LIKE JSON!");
+
         }
-        System.out.println(jsonParams.toString());
+
         return jsonParams;
     }
     public StringEntity convertJsonUserToStringEntity (JSONObject jsonParams) {
@@ -86,7 +86,7 @@ public class CircleResult extends Activity {
         try {
             entity = new StringEntity(jsonParams.toString());
         } catch (UnsupportedEncodingException i) {
-            System.out.println("DONT LIKE TO STRING!");
+
         }
         return entity;
     }
@@ -104,24 +104,19 @@ public class CircleResult extends Activity {
 
                         @Override
                         public void onStart() {
-                            // called before request is started
-                            System.out.println("STARTING JOIN REQUEST");
 
                         }
 
                         @Override
                         public void onSuccess(int statusCode, Header[] headers, byte[] response) {
-                            // called when response HTTP status is "200 OK"
-
                             String responseText = null;
+
                             try {
                                 responseText = new JSONObject(new String(response)).getString("response");
-                                System.out.println(new JSONObject(new String(response)).toString());
                             } catch (JSONException j) {
-                                System.out.println("Dont like JSON");
-                            }
 
-                            Log.d("Status Code: ", Integer.toString(statusCode));
+                            }
+                            
                             Toast toast = Toast.makeText(CircleResult.this.getApplicationContext(), responseText, Toast.LENGTH_LONG);
                             toast.show();
 
@@ -129,13 +124,12 @@ public class CircleResult extends Activity {
 
                         @Override
                         public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
-                            // called when response HTTP status is "4XX" (eg. 401, 403, 404)
-
                             String responseText = null;
+
                             try {
                                 responseText = new JSONObject(new String(errorResponse)).getString("Reason");
                             } catch (JSONException j) {
-                                System.out.println("Dont like JSON");
+
                             }
 
                             Toast toast = Toast.makeText(CircleResult.this.getApplicationContext(), responseText, Toast.LENGTH_LONG);
@@ -145,10 +139,8 @@ public class CircleResult extends Activity {
 
                         @Override
                         public void onRetry(int retryNo) {
-                            // called when request is retried
-                            System.out.println("RETRYING?!?!");
+
                         }
                     });
-
     }
 }

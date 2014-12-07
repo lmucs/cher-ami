@@ -100,8 +100,6 @@ public class CircleForMessageModal extends DialogFragment {
 
             @Override
             public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable error) {
-                // called when response HTTP status is "4XX" (eg. 401, 403, 404)
-
                 String responseText = null;
                 try {
                     responseText = new JSONObject(new String(errorResponse)).getString("reason");
@@ -167,8 +165,6 @@ public class CircleForMessageModal extends DialogFragment {
 
                     @Override
                     public void onSuccess(int statusCode, Header[] headers, byte[] response) {
-                        // called when response HTTP status is "200 OK"
-
                         String responseText = null;
                         try {
                             responseText = new JSONObject(new String(response)).getString("response");

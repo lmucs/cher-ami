@@ -120,9 +120,8 @@ public class CreateCircleModal extends DialogFragment {
                     @Override
                     public void onSuccess(int statusCode, Header[] headers, byte[] response) {
                         String s = new String(response);
-                        // called when response HTTP status is "200 OK"
-
                         String responseText = null;
+
                         try {
                             responseText = new JSONObject(new String(response)).getString("response");
                         } catch (JSONException j) {
@@ -137,13 +136,12 @@ public class CreateCircleModal extends DialogFragment {
 
                     @Override
                     public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
-                        // called when response HTTP status is "4XX" (eg. 401, 403, 404)
-
                         String responseText = null;
+
                         try {
                             responseText = new JSONObject(new String(errorResponse)).getString("Reason");
                         } catch (JSONException j) {
-                            System.out.println("Dont like JSON");
+
                         }
 
                         Toast toast = Toast.makeText(getActivity().getApplicationContext(), responseText, Toast.LENGTH_LONG);

@@ -186,9 +186,8 @@ public class MainActivity extends Activity implements ActionBar.TabListener {
 
                     @Override
                     public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
-                        // called when response HTTP status is "4XX" (eg. 401, 403, 404)
-
                         String responseText = null;
+
                         try {
                             responseText = new JSONObject(new String(errorResponse)).getString("Reason");
 
