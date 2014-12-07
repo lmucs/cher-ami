@@ -801,8 +801,8 @@ func (q Query) GetJoinedCirclesByHandle(handle string, before time.Time, limit i
 	q.cypherOrPanic(&neoism.CypherQuery{
 		Statement: `
             MATCH           (u:User)-[:MEMBER_OF|OWNS]->(c:Circle)
-            WHERE           u.handle = {handle}
-            AND             c.created < {before}
+            WHERE           u.handle      = {handle}
+            AND             c.created     < {before}
             MATCH           (c)<-[:OWNS]-(owner:User)
             OPTIONAL MATCH  (c)-[partOf:PART_OF]->(pd:PublicDomain)
             RETURN          c.name        AS name

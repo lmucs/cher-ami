@@ -455,11 +455,6 @@ func (a Api) SearchCircles(w rest.ResponseWriter, r *rest.Request) {
 // Messages
 //
 
-func makeMessageUrl(m *types.MessageView) {
-	// [TODO] hard-coded url/port...
-	m.Url = "<url>:<port>/api/messages/" + m.Id
-}
-
 /**
  * Create a new, unpublished message
  */
@@ -508,29 +503,30 @@ func (a Api) NewMessage(w rest.ResponseWriter, r *rest.Request) {
 	}
 }
 
-/**
- * Get messages authored by user
- */
-func (a Api) GetAuthoredMessages(w rest.ResponseWriter, r *rest.Request) {
+func (a Api) GetMessages(w rest.ResponseWriter, r *rest.Request) {
 	if !a.authenticate(r) {
 		a.Util.FailedToAuthenticate(w)
 		return
 	}
 
-	if author, success := a.Svc.GetHandleFromAuthorization(a.getTokenFromHeader(r)); !success {
+	querymap := r.URL.Query()
+
+	var target string
+	var circleid string
+
+	if handle, ok := a.Svc.GetHandleFromAuthorization(a.getTokenFromHeader(r)); !ok {
 		a.Util.FailedToDetermineHandleFromAuthToken(w)
 		return
 	} else {
-		messages := a.Svc.GetMessagesByHandle(author)
-		for i := 0; i < len(messages); i++ {
-			makeMessageUrl(&messages[i])
+		if target, targetOk, circleid, circleOk := querymap["handle"], querymap["circleid"]; targetOk && circleOk {
+			a.Svc.GetMessageByHandleInCircle(target, circle)
+		} else if targetOk && !circleOk {
+			a.Svc.GetVisibleMessagesByHandle(target)
+		} else if !targetOk && circleOk {
+			a.Svc.GetMessagesInCircle(circleid)
+		} else {
+			a.Svc.GetAllMessagesVisibleTo(handle)
 		}
-
-		w.WriteHeader(200)
-		w.WriteJson(types.MessageResponseView{
-			Objects: messages,
-			Count:   len(messages),
-		})
 	}
 }
 
@@ -557,10 +553,6 @@ func (a Api) GetMessageById(w rest.ResponseWriter, r *rest.Request) {
 		a.Util.SimpleJsonReason(w, 404, "No such message with id "+id+" could be found")
 		return
 	}
-}
-
-func (a Api) GetMessagesByHandle(w rest.ResponseWriter, r *rest.Request) {
-	a.Util.SimpleJsonReason(w, 405, "Unimplemented")
 }
 
 func (a Api) EditMessage(w rest.ResponseWriter, r *rest.Request) {
