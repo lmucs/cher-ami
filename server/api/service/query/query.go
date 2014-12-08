@@ -831,6 +831,40 @@ func (q Query) GetAllMessagesByHandle(target string) []types.MessageView {
 	return messages
 }
 
+func (q Query) GetPublicPublishedMessagesByAuthor(target string) []types.PublishedMessageView {
+	messages := make([]types.PublishedMessageView, 0)
+	q.cypherOrPanic(&neoism.CypherQuery{
+		Statement: `
+			MATCH (t:User)-[:WROTE]->(m:Message)-[p:PUB_TO]->(c:Circle)-[]->(pd:PublicDomain)
+			WHERE     t.handle       =  {target}
+			RETURN    m.id           AS id
+                 ,    t.handle       AS author
+                 ,    m.content      AS content
+                 ,    m.created      AS created
+                 ,    c.id           AS circleid
+                 ,    p.published_at AS published_at
+            ORDER BY  p.published_at
+		`,
+		Parameters: neoism.Props{
+			"target": target,
+		},
+		Result: &messages,
+	})
+	return messages
+}
+
+func (q Query) GetMessagesByHandleInCircle(target, circleid string) []types.PublishedMessageView {
+	return []types.PublishedMessageView{}
+}
+
+func (q Query) GetMessageFeedOfCircle(circleid string) []types.PublishedMessageView {
+	return []types.PublishedMessageView{}
+}
+
+func (q Query) GetMessageFeedOfHandle(handle string) []types.PublishedMessageView {
+	return []types.PublishedMessageView{}
+}
+
 func (q Query) GetVisibleMessageById(handle, messageid string) (message types.MessageView, ok bool) {
 	messages := make([]types.MessageView, 0)
 	q.cypherOrPanic(&neoism.CypherQuery{
