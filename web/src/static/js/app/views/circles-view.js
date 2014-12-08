@@ -21,7 +21,6 @@ define(function(require, exports, module) {
 
         onRender: function() {
             console.log(this.collection.length)
-
         },
 
         initialize: function(options) {            

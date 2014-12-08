@@ -716,7 +716,7 @@ func (q Query) SearchCircles(user string, before time.Time, limit int) (found []
 	query = query + `
         OPTIONAL MATCH (c)-[partOf:PART_OF]->(pd:PublicDomain)
 		RETURN    c.name, c.id, c.description, c.created, owner.handle as ownerName, partOf
-        ORDER BY  c.created
+        ORDER BY  c.created DESC
         LIMIT     {limit}
     `
 
@@ -828,7 +828,7 @@ func (q Query) GetAllMessagesByHandle(target string) []types.MessageView {
                  ,    t.handle  AS author
                  ,    m.content AS content
                  ,    m.created AS created
-            ORDER BY  m.created
+            ORDER BY  m.created DESC
         `,
 		Parameters: neoism.Props{
 			"target": target,

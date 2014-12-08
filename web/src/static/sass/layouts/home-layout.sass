@@ -9,14 +9,16 @@
 			@include span-columns(4)
 
 			#profile-container
+				background-color: white
+				border-radius: 10px
+				border: 1px solid steelblue
 				margin-top: 10px
 				min-width: 300px
 				max-width: 600px
 				width: 100%
-
 				.row
 					#feed-area
-						background-color: aliceblue
+						background-color: ghostwhite
 						padding: 20px
 						border-radius: 10px
 						border: 1px solid steelblue
@@ -25,7 +27,10 @@
 						padding: 10px
 						border-radius: 3px
 						border: 1px solid lightblue
-						margin-top: 20px
+					#userInfo
+						#handle
+							margin-top: 10px
+							color: #2F4352
 
 	@media (min-width: 500px)					
 		#theBadColumn
@@ -37,7 +42,7 @@
 
 
 		.sidebar-nav
-			background-color: aliceblue
+			background-color: white
 			padding: 10px
 			border-radius: 10px
 			border: 1px solid steelblue
@@ -51,7 +56,7 @@
 
 	@media (max-width: 500px)
 		.sidebar-nav
-			background-color: aliceblue
+			background-color: white
 			padding: 10px
 			border-radius: 10px
 			border: 1px solid steelblue
@@ -63,13 +68,15 @@
 			@include omega()
 
 	#headerRow
+		background-color: lightblue
+		width: 100%
 		#header
 			margin-top: 10px
 			padding: 10px
 			border-bottom: 2px solid steelblue
 			.container
 				@include outer-container
-				.row
+				.rowTwo
 					.img-responsive
 						max-height: 150px
 						max-width: auto
@@ -77,17 +84,23 @@
 						@inlcude span-columns(4)
 
 					#search
+						margin-top: 20px
 						position: relative
 						left: 18%
-						right: 10px
 						@include span-columns(4)
+						display: flex
+
+						#glass
+							width: 56px
+							height: 34px
 						#search-form
 							max-width: 350px
 						#seach-button:
 							position: relative
 					#logout
 						position: relative
-						left: 20%
+						margin-top: 20px
+						left: 30%
 						max-width: 108px
 						float: right
 						@include span-columns(4)

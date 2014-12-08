@@ -12,7 +12,6 @@ define(function(require, exports, module) {
 
     var CircleLayout = marionette.LayoutView.extend({
         template: template,
-        circles: new Circles(),
         regions: {
             circle: '#circle-container'
         },
@@ -41,7 +40,7 @@ define(function(require, exports, module) {
         },
 
         initialize: function(options) {
-
+            this.circles = new Circles()
         }
 
     });
