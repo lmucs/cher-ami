@@ -3,78 +3,82 @@
     <div id="profileFieldsContainer">
 		<div id="profileForm" class="row">
 		<div class="page-header">
-		  <h3>Change your profile</h3>
+		  <h4>General</h4>
 		</div>
-		  <div>
-		    <label>First Name</label>
-		    <div>
-		        <input id="first-name" type="text" name="Location"
-		           placeholder="First Name" data-role="tagsinput"/>
-		    </div>
-		  </div>
+		<div class="edit-profile-containers">
+			<div>
+			    <label>First Name</label>
+			    <div>
+			        <input id="first-name" type="text" name="Location"
+			           placeholder="First Name" data-role="tagsinput"/>
+			    </div>
+		  	</div>
 
-		  <div>
-		    <label>Last Name</label>
-		    <div>
-		        <input id="last-name" type="text" name="Location"
-		           placeholder="Last Name" data-role="tagsinput"/>
-		    </div>
-		  </div>
+		  	<div>
+			    <label>Last Name</label>
+			    <div>
+			        <input id="last-name" type="text" name="Location"
+			           placeholder="Last Name" data-role="tagsinput"/>
+			    </div>
+		  	</div>
 
-		  <div id="gender">
-		      <label for="gender-selector">Gender</label>
-			  <div>
-				<select id="gender-selector">
-				  <option>Male</option>
-				  <option>Female</option>
-				</select>
-			  </div>
-	      </div>
+		  	<div id="gender">
+		      	<label for="gender-selector">Gender</label>
+			  	<div>
+					<select id="gender-selector">
+					  <option>Male</option>
+					  <option>Female</option>
+					</select>
+			  	</div>
+	      	</div>
 
-		  <div>
-		  	<label>Your Age</label>
-		    <div>
-		      <form>
-			    <input id="birthday" type="date" name="bday" min="1900-01-02">
-		      </form>
-		    </div>
-		  </div>
-		  <div class="page-header">
-		    <h3>About</h3>
-		  </div>
-		  <div>
-		    <label>Location</label>
-		    <div class="profileInput">
-		        <input id="location" type="text" name="Location"
-		           placeholder="Los Angeles" data-role="tagsinput"/>
-		    </div>
-		  </div>
+		  	<div>
+			  	<label>Your Age</label>
+			    <div>
+			      <form>
+				    <input id="birthday" type="date" name="bday" min="1900-01-02">
+			      </form>
+			    </div>
+		  	</div>
+		</div>
 
-		  <div>
-		    <label>Bio</label>
-		    <div>
-		        <input id="bio" type="text" name="Bio"
-		           placeholder="Life is Good" data-role="tagsinput"/>
-		    </div>
-		  </div>
+		<div class="page-header">
+			<h3>About</h3>
+		</div>
+		<div class="edit-profile-containers">
+			<div>
+				<label>Location</label>
+				<div class="profileInput">
+				    <input id="location" type="text" name="Location"
+				       placeholder="Los Angeles" data-role="tagsinput"/>
+				</div>
+			</div>
 
-		  <div>
-		    <label>Interests</label>
-		    <div>
-		        <input id="interests" type="text" name="Interests"
-		           placeholder="Watching TV, Playing Soccer" data-role="tagsinput"/>
-		    </div>
-		  </div>
+			<div>
+				<label>Bio</label>
+				<div>
+				    <input id="bio" type="text" name="Bio"
+				       placeholder="Life is Good" data-role="tagsinput"/>
+				</div>
+			</div>
 
-		  <div>
-		    <label>Languages Spoken</label>
-		    <div>
-		        <input id="languages" type="text" name="Languages"
-		           placeholder="English, Arabic" data-role="tagsinput"/>
-		    </div>
-		  </div>
+			<div>
+				<label>Interests</label>
+				<div>
+				    <input id="interests" type="text" name="Interests"
+				       placeholder="Watching TV, Playing Soccer" data-role="tagsinput"/>
+				</div>
+			</div>
 
-  		  <button id="submitChanges" type="button" class="btn btn-default">Save</button>
+			<div>
+				<label>Languages Spoken</label>
+				<div>
+				    <input id="languages" type="text" name="Languages"
+				       placeholder="English, Arabic" data-role="tagsinput"/>
+				</div>
+			</div>
+			<button id="submitChanges" type="button" class="btn btn-default">Save</button>
+  		  </div>
 		</div>
     </div>
 </div>

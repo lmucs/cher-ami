@@ -19,7 +19,7 @@ define(function(require, exports, module) {
 
         events: {
             'click #editProfile': 'showEditProfile',
-            'click #profileSaveButton': 'onRender'
+            'click #submitChanges': 'onRender'
         },
 
         initialize: function(options) {

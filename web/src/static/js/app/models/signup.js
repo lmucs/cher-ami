@@ -20,6 +20,7 @@ define(function(require, exports, module) {
             this.save({}, {
                 success: function(model, response) {
                     window.location.replace('/#Home');
+                    window.location.reload()
                 }
             })
         },
