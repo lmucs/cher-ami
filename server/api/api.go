@@ -523,11 +523,11 @@ func (a Api) GetMessages(w rest.ResponseWriter, r *rest.Request) {
 		if t && c {
 			a.Svc.GetMessagesByTargetInCircle(self, target, circleid)
 		} else if t && !c && target != self {
-			a.Svc.GetVisibleMessagesByHandle(target)
+			a.Svc.GetPublicMessagesByHandle(target)
 		} else if !t && c {
 			a.Svc.GetMessagesInCircle(self, circleid)
 		} else {
-			a.Svc.GetMessageFeedOfHandle(self)
+			a.Svc.GetMessageFeedOfSelf(self)
 		}
 	}
 }

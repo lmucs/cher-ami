@@ -75,6 +75,25 @@ func (s *TestSuite) TestGetMessagesInvalidAuth(c *C) {
 	c.Check(res.StatusCode, Equals, 401)
 }
 
+func (s *TestSuite) TestGetMessagesByTargetInCircle(c *C) {
+	// stub
+}
+
+func (s *TestSuite) GetPublicMessagesByHandleOK(c *C) {
+	// stub
+}
+
+func (s *TestSuite) GetMessagesInCircleOK(c *C) {
+	// stub
+	// own circle
+	// other users circle
+}
+
+func (s *TestSuite) GetMessageFeedOfSelfOK(c *C) {
+	// stub
+	// case when target is self
+}
+
 //
 // Get Message By ID Tests
 //

@@ -227,9 +227,9 @@ func (s Svc) GetCircleId(handle, circleName string) (circleid string) {
 	return s.Query.GetCircleIdByName(handle, circleName)
 }
 
-func (s Svc) GetVisibleMessagesByHandle(target string) ([]types.MessageView, bool) {
+func (s Svc) GetPublicMessagesByHandle(target string) ([]types.MessageView, bool) {
 	if ok := s.UserExists(target); ok {
-		return s.Query.GetPublishedMessagesByAuthor(target), ok
+		return s.Query.GetPublicPublishedMessagesByAuthor(target), ok
 	} else {
 		return []types.MessageView{}, ok
 	}
@@ -253,7 +253,7 @@ func (s Svc) GetMessagesInCircle(self, circleid string) ([]types.MessageView, bo
 
 // Should only be used on the logged-in user
 // retrieves the personalized feed of the user
-func (s Svc) GetMessageFeedOfHandle(handle string) ([]types.MessageView, bool) {
+func (s Svc) GetMessageFeedOfSelf(handle string) ([]types.MessageView, bool) {
 	if ok := s.UserExists(handle); ok {
 		return s.Query.GetMessageFeedOfHandle(handle), ok
 	} else {
