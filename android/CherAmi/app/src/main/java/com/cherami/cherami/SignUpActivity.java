@@ -168,7 +168,14 @@ public class SignUpActivity extends Activity {
                         String responseText = null;
 
                         try {
-                            responseText = new JSONObject(new String(errorResponse)).getString("reason");
+                            if (!NetworkCheck.isConnected(errorResponse)) {
+                                NetworkCheck.displayNetworkErrorModal(SignUpActivity.this);
+
+                            } else {
+                                responseText = new JSONObject(new String(errorResponse)).getString("reason");
+                                Toast toast = Toast.makeText(getApplicationContext(), responseText, Toast.LENGTH_LONG);
+                                toast.show();
+                            }
                         } catch (JSONException j) {
 
                         }

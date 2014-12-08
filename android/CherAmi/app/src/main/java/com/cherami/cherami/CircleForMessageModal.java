@@ -201,7 +201,7 @@ public class CircleForMessageModal extends DialogFragment {
                         } catch (JSONException j) {
 
                         }
-                        
+
                         dismissModal();
                         dialog.dismiss();
                     }
