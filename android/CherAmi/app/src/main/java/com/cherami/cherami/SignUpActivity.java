@@ -144,9 +144,6 @@ public class SignUpActivity extends Activity {
 
                         }
 
-                        Toast toast = Toast.makeText(SignUpActivity.this.context, responseText, Toast.LENGTH_LONG);
-                        toast.show();
-
                         Intent intent = new Intent(SignUpActivity.this.context, MainActivity.class);
                         startActivity(intent);
                         finish();
