@@ -74,11 +74,7 @@ func (req Requester) DeleteSessions(token string) (*http.Response, error) {
 	return helper.Execute("DELETE", req.Routes.sessionsURL, payload)
 }
 
-func (req Requester) GetAuthoredMessages(token string) (*http.Response, error) {
-	payload := types.Json{
-		"token": token,
-	}
-
+func (req Requester) GetMessages(payload types.Json) (*http.Response, error) {
 	return helper.GetWithQueryParams(req.Routes.messagesURL, payload)
 }
 

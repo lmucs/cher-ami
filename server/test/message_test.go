@@ -67,36 +67,12 @@ func (s *TestSuite) TestPostMessageContentCirclesOK(c *C) {
 //
 // Get Authored Messages Tests
 //
-func (s *TestSuite) TestGetAuthoredMessagesInvalidAuth(c *C) {
+func (s *TestSuite) TestGetMessagesInvalidAuth(c *C) {
 	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
-	res, _ := req.GetAuthoredMessages("")
+	res, _ := req.GetMessages(types.Json{
+		"token": "",
+	})
 	c.Check(res.StatusCode, Equals, 401)
-}
-
-func (s *TestSuite) TestGetAuthoredMessagesOK(c *C) {
-	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
-
-	sessionid := req.PostSessionGetAuthToken("handleA", "password1")
-
-	req.PostMessage("Go is going gophers!", sessionid)
-	req.PostMessage("Hypothesize about stuff", sessionid)
-	req.PostMessage("The nearest exit may be behind you", sessionid)
-	req.PostMessage("I make soap.", sessionid)
-
-	res, _ := req.GetAuthoredMessages(sessionid)
-
-	data := types.MessageResponseView{}
-
-	helper.Unmarshal(res, &data)
-	o := data.Objects
-
-	c.Check(res.StatusCode, Equals, 200)
-	c.Check(data.Count, Equals, 4)
-	c.Check(o[0].Author, Equals, "handleA")
-	c.Check(o[0].Content, Equals, "Go is going gophers!")
-	c.Check(o[1].Content, Equals, "Hypothesize about stuff")
-	c.Check(o[2].Content, Equals, "The nearest exit may be behind you")
-	c.Check(o[3].Content, Equals, "I make soap.")
 }
 
 //
