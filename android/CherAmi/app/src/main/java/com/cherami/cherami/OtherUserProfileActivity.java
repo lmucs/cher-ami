@@ -108,6 +108,7 @@ public class OtherUserProfileActivity extends Activity{
                             try {
                                 mBundle.putString("owner",adapter.getItem(position).getCircle().getString("owner"));
                                 mBundle.putString("circleName", adapter.getItem(position).getCircle().getString("name"));
+                                mBundle.putString("circleid", adapter.getItem(position).getCircle().getString("url"));
                                 if(adapter.getItem(position).getCircle().getString("visibility").equals("public")){
                                     mBundle.putString("joinVisibility", "visible");
                                 }

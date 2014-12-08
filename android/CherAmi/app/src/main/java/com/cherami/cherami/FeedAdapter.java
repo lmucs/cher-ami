@@ -77,9 +77,11 @@ public class FeedAdapter extends ArrayAdapter<FeedItem> {
             String content = feedItem.msg.getString("content");
             holder.txtOwner.setText(feedItem.msg.getString("author"));
             if(imageUrlChecker(content)) {
+                holder.imgLoad.setVisibility(View.VISIBLE);
                 Picasso.with(context).load(getImageUrl(content)).into(holder.imgLoad);
                 holder.txtContent.setText(getContentWithoutImageUrl(content));
             } else {
+                holder.imgLoad.setVisibility(View.GONE);
                 holder.txtContent.setText(content);
             }
             holder.txtDate.setText(processDate(feedItem.msg.getString("created")));

@@ -10,14 +10,19 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.EditText;
+import android.widget.ListView;
+import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
+import com.loopj.android.http.RequestParams;
 
 import org.apache.http.Header;
 import org.apache.http.entity.StringEntity;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -25,31 +30,34 @@ import java.io.UnsupportedEncodingException;
 
 
 public class CircleResult extends Activity {
-
-    SharedPreferences prefs;
+    private ListView feedList;
     TextView textElement;
     String circleName;
     String owner;
     ProgressDialog dialog;
+    Context context;
+    FeedAdapter adapter;
+    Bundle recdData;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Context context = this.getApplicationContext();
-        prefs = context.getSharedPreferences(
-                "com.cherami.cherami", Context.MODE_PRIVATE);
+        this.context = this.getApplicationContext();
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_circle_result);
         ActionBar actionBar = getActionBar();
         actionBar.setDisplayHomeAsUpEnabled(true);
 
         textElement=(TextView)findViewById(R.id.circleName);
-        Bundle recdData = getIntent().getExtras();
+        this.recdData = getIntent().getExtras();
         circleName = recdData.getString("circleName");
+
         owner = recdData.getString("owner");
         View joinButton = findViewById(R.id.joinCircle);
         if(recdData.getString("joinVisibility").equals("none")){
             joinButton.setVisibility(View.GONE);
         }
         textElement.setText(circleName);
+        getFeed(this.findViewById(R.id.feedList).getRootView());
     }
 
 
@@ -90,71 +98,139 @@ public class CircleResult extends Activity {
     }
     public StringEntity convertJsonUserToStringEntity (JSONObject jsonParams) {
         StringEntity entity = null;
+
         try {
             entity = new StringEntity(jsonParams.toString());
         } catch (UnsupportedEncodingException i) {
 
         }
+
         return entity;
     }
 
-    public void joinCircle(View view){
+    public void setFeedAdapter (FeedAdapter adapter) {
+        this.adapter = adapter;
+    }
 
-            AsyncHttpClient client = new AsyncHttpClient();
-            String sessionKey = "com.cherami.cherami.token";
-            String token = prefs.getString(sessionKey, null);
+    public void getFeed(final View view) {
+        AsyncHttpClient client = new AsyncHttpClient();
+        String token = ApiHelper.getSessionToken(context);
+        RequestParams params = new RequestParams();
+        String circleURL = this.recdData.getString("circleid");
+        params.put("circleid", circleURL.substring(circleURL.lastIndexOf("/") + 1));
 
-            client.addHeader("Authorization", token);
-            client.post(this.getApplicationContext(), ApiHelper.getLocalUrlForApi(getResources()) + "join",
-                    convertJsonUserToStringEntity(getJoinParamsAsJson()), "application/json",
-                    new AsyncHttpResponseHandler() {
+        client.addHeader("Authorization", token);
+        client.get(context, ApiHelper.getLocalUrlForApi(getResources()) + "messages", params,
+                new AsyncHttpResponseHandler() {
 
-                        @Override
-                        public void onStart() {
-                            dialog = ProgressDialog.show(CircleResult.this, "",
-                                    "Loading. Please wait...", true);
-                        }
+                    @Override
+                    public void onStart() {
+                        dialog = ProgressDialog.show(CircleResult.this, "",
+                                "Loading. Please wait...", true);
+                    }
 
-                        @Override
-                        public void onSuccess(int statusCode, Header[] headers, byte[] response) {
-                            dialog.dismiss();
-                            String responseText = null;
+                    @Override
+                    public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                        JSONArray responseText;
 
-                            try {
-                                responseText = new JSONObject(new String(response)).getString("response");
-                            } catch (JSONException j) {
+                        try {
+                            responseText = new JSONArray(new String(responseBody));
+                            FeedItem feed_data[] = new FeedItem[responseText.length()];
 
+                            for (int x = 0; x < responseText.length(); x++) {
+                                feed_data[x] = new FeedItem(new JSONObject(responseText.get(x).toString()));
                             }
-                            
-                            Toast toast = Toast.makeText(CircleResult.this.getApplicationContext(), responseText, Toast.LENGTH_LONG);
-                            toast.show();
 
+                            final FeedAdapter adapter = new FeedAdapter(CircleResult.this,
+                                    R.layout.feed_item_row, feed_data);
+                            CircleResult.this.setFeedAdapter(adapter);
+                            feedList = (ListView) view.findViewById(R.id.feedList);
+                            feedList.setAdapter(adapter);
+
+                        } catch (JSONException j) {
+                            System.out.println(j);
                         }
+                        dialog.dismiss();
+                    }
 
-                        @Override
-                        public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
-                            dialog.dismiss();
-                            String responseText = null;
+                    @Override
+                    public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable error) {
+                        dialog.dismiss();
+                        String responseText = null;
 
-                            try {
-                                if (!ErrorHandle.isNetworkConnected(errorResponse)) {
-                                    ErrorHandle.displayNetworkErrorModal(CircleResult.this);
+                        try {
+                            if (!ErrorHandle.isNetworkConnected(errorResponse)) {
+                                ErrorHandle.displayNetworkErrorModal(CircleResult.this);
 
-                                } else {
-                                    responseText = new JSONObject(new String(errorResponse)).getString("reason");
-                                    if (ErrorHandle.isTokenExpired(responseText)) {
-                                        ErrorHandle.displayTokenModal(CircleResult.this);
-                                    }
+                            } else {
+                                responseText = new JSONObject(new String(errorResponse)).getString("reason");
+                                if (ErrorHandle.isTokenExpired(responseText)) {
+                                    ErrorHandle.displayTokenModal(CircleResult.this);
                                 }
-                            } catch (JSONException j) {
-
                             }
-                        }
-
-                        @Override
-                        public void onRetry(int retryNo) {
+                        } catch (JSONException j) {
 
                         }
-                    });
+
+                    }
+                });
+    }
+
+    public void joinCircle(View view){
+        AsyncHttpClient client = new AsyncHttpClient();
+        String token = ApiHelper.getSessionToken(this.context);
+
+        client.addHeader("Authorization", token);
+        client.post(this.getApplicationContext(), ApiHelper.getLocalUrlForApi(getResources()) + "join",
+                convertJsonUserToStringEntity(getJoinParamsAsJson()), "application/json",
+                new AsyncHttpResponseHandler() {
+
+                    @Override
+                    public void onStart() {
+                        dialog = ProgressDialog.show(CircleResult.this, "",
+                                "Loading. Please wait...", true);
+                    }
+
+                    @Override
+                    public void onSuccess(int statusCode, Header[] headers, byte[] response) {
+                        dialog.dismiss();
+                        String responseText = null;
+
+                        try {
+                            responseText = new JSONObject(new String(response)).getString("response");
+                        } catch (JSONException j) {
+
+                        }
+
+                        Toast toast = Toast.makeText(CircleResult.this.getApplicationContext(), responseText, Toast.LENGTH_LONG);
+                        toast.show();
+
+                    }
+
+                    @Override
+                    public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
+                        dialog.dismiss();
+                        String responseText = null;
+
+                        try {
+                            if (!ErrorHandle.isNetworkConnected(errorResponse)) {
+                                ErrorHandle.displayNetworkErrorModal(CircleResult.this);
+
+                            } else {
+                                responseText = new JSONObject(new String(errorResponse)).getString("reason");
+                                if (ErrorHandle.isTokenExpired(responseText)) {
+                                    ErrorHandle.displayTokenModal(CircleResult.this);
+                                }
+                            }
+                        } catch (JSONException j) {
+
+                        }
+                    }
+
+                    @Override
+                    public void onRetry(int retryNo) {
+
+                    }
+                });
     }
 }

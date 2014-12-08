@@ -99,6 +99,7 @@ public class Circles extends Fragment {
                         mBundle.putString("owner",newCircleAdapter.getItem(position).getCircle().getString("owner"));
                         mBundle.putString("circleName", newCircleAdapter.getItem(position).getCircle().getString("name"));
                         mBundle.putString("joinVisibility", "none");
+                        mBundle.putString("circleid", newCircleAdapter.getItem(position).getCircle().getString("url"));
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
