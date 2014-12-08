@@ -23,8 +23,6 @@ define(function(require, exports, module) {
         },
 
         onSubmit: function() {
-            //alert(this.ui.postArea.val());
-            console.log("kajsdh: ", this.collection)
             if(this.ui.postArea.val()) {
                 var message = new Message({
                     content: this.ui.postArea.val(),
@@ -36,7 +34,7 @@ define(function(require, exports, module) {
             } else {
                 console.log("Unable to add");
             }
-
+            message.update();
         },
 
         initialize: function(options) {

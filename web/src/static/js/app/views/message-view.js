@@ -17,6 +17,7 @@ define(function(require, exports, module) {
 
         initialize: function(options) {
             this.model = options.model
+            this.session = options.session;
         }
 
     });
