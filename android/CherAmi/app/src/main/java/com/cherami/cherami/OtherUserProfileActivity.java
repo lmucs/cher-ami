@@ -94,12 +94,12 @@ public class OtherUserProfileActivity extends Activity{
                 try {
                     responseText = new JSONObject(new String(responseBody)).getString("results");
                     JSONArray y = new JSONArray(responseText);
-                    OtherUserCircle circle_data[] = new OtherUserCircle[y.length()];
+                    Circle circle_data[] = new Circle[y.length()];
                     for (int x = 0; x < y.length(); x++) {
 
-                        circle_data[x] = new OtherUserCircle(new JSONObject(y.get(x).toString()));                    }
+                        circle_data[x] = new Circle(new JSONObject(y.get(x).toString()));                    }
 
-                    final OtherUserProfileAdapter adapter = new OtherUserProfileAdapter(OtherUserProfileActivity.this,
+                    final CircleAdapter adapter = new CircleAdapter(OtherUserProfileActivity.this,
                             R.layout.other_user_circle_row, circle_data);
 
                     circleList = (ListView) view.findViewById(R.id.otherCircleFeed);
