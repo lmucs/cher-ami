@@ -43,7 +43,8 @@ define(function(require, exports, module) {
             this.collection.fetch({
                 success: function(res) {
                     console.log(res);
-                }
+                },
+                data: $.param({ all: true})
             });
         }
 
