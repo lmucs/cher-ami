@@ -24,16 +24,14 @@ define(function(require, exports, module) {
 
         onSubmit: function() {
             //alert(this.ui.postArea.val());
-            console.log("kajsdh: ", this.collection.models[0].attributes.author)
+            console.log("kajsdh: ", this.collection)
             if(this.ui.postArea.val()) {
                 var message = new Message({
                     content: this.ui.postArea.val(),
-                    handle: "this.collection.models[0].attributes.author"
                 })
                 message.save();
                 this.collection.add(message);
                 this.ui.postArea.val('');
-                console.log("message: ", message);
                 message.update(); //TODO: REMOVE THIS
                 console.log("Added");
             } else {
