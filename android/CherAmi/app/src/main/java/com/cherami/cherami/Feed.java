@@ -1,7 +1,5 @@
 package com.cherami.cherami;
 
-import android.app.Activity;
-import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.view.LayoutInflater;
@@ -10,9 +8,6 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Spinner;
-
-import java.net.MalformedURLException;
-import java.net.URL;
 
 public class Feed extends Fragment {
     private ListView feedList;
