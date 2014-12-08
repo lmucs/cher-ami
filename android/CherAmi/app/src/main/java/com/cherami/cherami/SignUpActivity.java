@@ -268,7 +268,7 @@ public class SignUpActivity extends Activity {
             focusView = mEmail;
             cancel = true;
         } else if (!isEmailValid(email)) {
-            mEmail.setError(getString(R.string.error_invalid_email));
+            mEmail.setError("This email is not properly formatted");
             focusView = mEmail;
             cancel = true;
         }
@@ -293,6 +293,10 @@ public class SignUpActivity extends Activity {
             mUsername.setError(getString(R.string.error_field_required));
             focusView = mUsername;
             cancel = true;
+        } else if (!isUsernameValid(username)) {
+            mUsername.setError(getString(R.string.error_invalid_email));
+            focusView = mUsername;
+            cancel = true;
         }
 
         if (cancel) {
@@ -304,9 +308,13 @@ public class SignUpActivity extends Activity {
         }
     }
 
+    private boolean isUsernameValid (String username) {
+        return username.matches("^[\\p{L}\\p{M}][\\d\\p{L}\\p{M}]*$");
+    }
+
     private boolean isEmailValid(String email) {
-        //TODO: Replace this with your own logic
-        return email.contains("@");
+
+        return email.matches("^\\w+([-+.']\\w+)*@\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*$");
     }
 
     private boolean isPasswordValid(String password) {

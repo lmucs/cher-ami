@@ -89,11 +89,13 @@ public class MainActivity extends Activity implements ActionBar.TabListener {
 
     public StringEntity convertJsonUserToStringEntity (JSONObject jsonParams) {
         StringEntity entity = null;
+
         try {
             entity = new StringEntity(jsonParams.toString());
         } catch (UnsupportedEncodingException i) {
 
         }
+
         return entity;
     }
 
