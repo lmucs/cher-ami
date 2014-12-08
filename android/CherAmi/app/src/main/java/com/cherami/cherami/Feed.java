@@ -33,7 +33,6 @@ public class Feed extends Fragment {
     FeedAdapter adapter;
     ProgressDialog dialog;
 
-
     public Feed() {
 
     }
@@ -106,7 +105,7 @@ public class Feed extends Fragment {
                             feedList.setAdapter(adapter);
 
                         } catch (JSONException j) {
-                            System.out.println(j);
+
                         }
                         dialog.dismiss();
                     }
