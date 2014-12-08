@@ -12,7 +12,7 @@
     tools:context="com.cherami.cherami.LoginActivity">
 
 
-                w<AutoCompleteTextView
+                <AutoCompleteTextView
                     android:id="@+id/username"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

@@ -28,6 +28,9 @@ public class OtherUserProfileAdapter extends ArrayAdapter<OtherUserCircle> {
         this.data = data;
     }
 
+    public String processDate(String date){
+        return date.substring(0, date.lastIndexOf("T"));
+    }
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
@@ -63,7 +66,7 @@ public class OtherUserProfileAdapter extends ArrayAdapter<OtherUserCircle> {
             }
             holder.txtName.setText(otherUserCircle.circle.getString("name"));
             holder.txtOwner.setText(otherUserCircle.circle.getString("owner"));
-            holder.txtDate.setText(otherUserCircle.circle.getString("created"));
+            holder.txtDate.setText(processDate(otherUserCircle.circle.getString("created")));
         } catch (JSONException e) {
             e.printStackTrace();
         }

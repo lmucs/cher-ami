@@ -25,6 +25,9 @@ public class CircleAdapter extends ArrayAdapter<Circle> {
         this.data = data;
     }
 
+    public String processDate(String date){
+        return date.substring(0, date.lastIndexOf("T"));
+    }
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
@@ -61,7 +64,7 @@ public class CircleAdapter extends ArrayAdapter<Circle> {
             }
             holder.txtName.setText(circle.circle.getString("name"));
             holder.txtOwner.setText(circle.circle.getString("owner"));
-            holder.txtDate.setText(circle.circle.getString("created"));
+            holder.txtDate.setText(processDate(circle.circle.getString("created")));
         } catch (JSONException e) {
             e.printStackTrace();
         }
