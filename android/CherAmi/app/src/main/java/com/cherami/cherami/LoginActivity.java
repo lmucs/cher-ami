@@ -12,6 +12,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v13.app.FragmentPagerAdapter;
@@ -27,6 +28,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.loopj.android.http.AsyncHttpClient;
@@ -51,6 +53,7 @@ public class LoginActivity extends Activity {
     EditText mPassword;
     ProgressDialog dialog;
     Context context;
+    TextView signUpButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,6 +62,16 @@ public class LoginActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         getActionBar().hide();
+
+        signUpButton = (TextView) findViewById(R.id.signUp);
+        signUpButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                signUpButton.setTextColor(Color.parseColor("#4cc1ff"));
+                showSignUp();
+            }
+
+        });
 
         mUsername = (EditText) findViewById(R.id.username);
         mPassword = (EditText) findViewById(R.id.password);
@@ -165,7 +178,7 @@ public class LoginActivity extends Activity {
                 });
     }
 
-    public void goBackToSignUp (View view){
+    public void showSignUp (){
         Intent intent = new Intent(this, SignUpActivity.class);
         startActivity(intent);
         finish();

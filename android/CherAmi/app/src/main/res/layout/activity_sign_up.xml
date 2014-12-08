@@ -49,38 +49,35 @@
         android:layout_below="@id/confirmPassword"
         android:text="Create Account"
         android:textColor="@android:color/white"
-        android:layout_alignParentRight="true"
+        android:layout_alignParentLeft="true"
         fbutton:buttonColor="#4cc1f0"
         fbutton:shadowEnabled="false"
         android:paddingLeft="20dp"
         android:paddingRight="20dp"
         android:onClick="signupButtonClicked"/>
-    <info.hoang8f.widget.FButton
-        android:id="@+id/login"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="10dp"
-        android:layout_alignParentBottom="true"
-        android:text="Login"
-        android:textColor="@android:color/white"
-        android:layout_alignParentRight="true"
-        fbutton:buttonColor="#4cc1f0"
-        fbutton:shadowEnabled="false"
-        android:paddingLeft="20dp"
-        android:paddingRight="20dp"
-        android:onClick="showLogin"/>
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="Have an Account?"
+        android:id="@+id/question"
+        android:singleLine="false"
+        android:gravity="right"
+        android:layout_alignParentRight="true"
+        android:layout_marginBottom="0dp"
+        android:layout_above="@+id/login" />
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="Have an Account?"
-        android:id="@+id/filter"
+        android:text="Login"
+        android:id="@+id/login"
         android:singleLine="false"
         android:gravity="center"
         android:layout_marginBottom="10dp"
-        android:layout_above="@+id/login"
-        android:layout_alignLeft="@+id/login"
-        android:layout_alignStart="@+id/login" />
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:textColor="#4cc1f0"/>
 
 </RelativeLayout>
