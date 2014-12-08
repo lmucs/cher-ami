@@ -7,6 +7,12 @@ public class FeedItem {
         super();
     }
 
+    public FeedItem(String title) {
+        super();
+        this.title = title;
+        this.img = "";
+    }
+
     public FeedItem(String title, String img) {
         super();
         this.title = title;

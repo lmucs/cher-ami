@@ -12,7 +12,7 @@
     tools:context="com.cherami.cherami.LoginActivity">
 
 
-                w<AutoCompleteTextView
+                <AutoCompleteTextView
                     android:id="@+id/username"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -42,39 +42,36 @@
                     android:layout_below="@id/password"
                     android:text="Login"
                     android:textColor="@android:color/white"
-                    android:layout_alignParentRight="true"
+                    android:layout_alignParentLeft="true"
                     fbutton:buttonColor="#4cc1f0"
                     fbutton:shadowEnabled="false"
                     android:paddingLeft="20dp"
                     android:paddingRight="20dp"
                     android:onClick="loginClicked"/>
 
-                <info.hoang8f.widget.FButton
-                    android:id="@+id/back_to_signup_button"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="10dp"
-                    android:layout_alignParentBottom="true"
-                    android:text="Sign Up"
-                    android:textColor="@android:color/white"
-                    android:layout_alignParentRight="true"
-                    fbutton:buttonColor="#4cc1f0"
-                    fbutton:shadowEnabled="false"
-                    android:paddingLeft="20dp"
-                    android:paddingRight="20dp"
-                    android:onClick="goBackToSignUp"/>
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="Don't Have an Account?"
+        android:text="Don't have an account?"
         android:id="@+id/filter"
+        android:gravity="right"
+        android:layout_marginBottom="0dp"
+        android:layout_alignParentRight="true"
+        android:layout_above="@+id/signUp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="Sign Up"
+        android:id="@+id/signUp"
         android:singleLine="false"
         android:gravity="center"
         android:layout_marginBottom="10dp"
-        android:layout_above="@+id/back_to_signup_button"
-        android:layout_alignLeft="@+id/back_to_signup_button"
-        android:layout_alignStart="@+id/back_to_signup_button" />
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:textColor="#4cc1f0" />
 
 </RelativeLayout>
 

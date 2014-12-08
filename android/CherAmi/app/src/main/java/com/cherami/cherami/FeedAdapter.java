@@ -11,6 +11,9 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+
 public class FeedAdapter extends ArrayAdapter<FeedItem> {
 
     Context context;
@@ -23,7 +26,6 @@ public class FeedAdapter extends ArrayAdapter<FeedItem> {
         this.context = context;
         this.data = data;
     }
-
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {

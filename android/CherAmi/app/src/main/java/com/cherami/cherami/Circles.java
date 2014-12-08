@@ -173,13 +173,12 @@ public class Circles extends Fragment {
         this.adapter = circleAdapter;
     }
 
-    public void getCircles(View view) {
+    public void getCircles(final View view) {
         AsyncHttpClient client = new AsyncHttpClient();
         String token = ApiHelper.getSessionToken(context);
         String username = ApiHelper.getUsername(context);
         RequestParams params = new RequestParams();
         params.put("user", username);
-        final View view2 = view;
 
         client.addHeader("Authorization", token);
         client.get(context, ApiHelper.getLocalUrlForApi(getResources()) + "circles",
@@ -208,7 +207,7 @@ public class Circles extends Fragment {
                     final CircleAdapter adapter = new CircleAdapter(getActivity(),
                             R.layout.circle_item_row, circle_data);
                     Circles.this.setCircleAdapter(adapter);
-                    circleList = (ListView) view2.findViewById(R.id.circleList);
+                    circleList = (ListView) view.findViewById(R.id.circleList);
                     circleList.setAdapter(adapter);
 
                 } catch (JSONException j) {
@@ -241,7 +240,4 @@ public class Circles extends Fragment {
         });
     }
 
-    public String processDate(String date){
-        return date.substring(0, date.lastIndexOf("T"));
-    }
 }

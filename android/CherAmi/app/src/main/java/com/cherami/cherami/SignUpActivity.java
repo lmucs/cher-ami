@@ -8,13 +8,16 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.apache.http.Header;
@@ -37,6 +40,7 @@ public class SignUpActivity extends Activity {
     EditText mConfirmPassword;
     ProgressDialog dialog;
     Context context;
+    TextView loginButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +50,18 @@ public class SignUpActivity extends Activity {
         setContentView(R.layout.activity_sign_up);
         getActionBar().hide();
 
+        loginButton = (TextView) findViewById(R.id.login);
+        loginButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                loginButton.setTextColor(Color.parseColor("#4cc1ff"));
+                showLogin();
+            }
+
+        });
+
+
+
         //Get handle, email, password, and confirm fields
         mUsername = (EditText) findViewById(R.id.username);
         mEmail = (EditText) findViewById(R.id.email);
@@ -54,7 +70,7 @@ public class SignUpActivity extends Activity {
 
     }
 
-    public void showLogin(View view) {
+    public void showLogin() {
         Intent intent = new Intent(this, LoginActivity.class);
         startActivity(intent);
         finish();
@@ -152,7 +168,14 @@ public class SignUpActivity extends Activity {
                         String responseText = null;
 
                         try {
-                            responseText = new JSONObject(new String(errorResponse)).getString("reason");
+                            if (!NetworkCheck.isConnected(errorResponse)) {
+                                NetworkCheck.displayNetworkErrorModal(SignUpActivity.this);
+
+                            } else {
+                                responseText = new JSONObject(new String(errorResponse)).getString("reason");
+                                Toast toast = Toast.makeText(getApplicationContext(), responseText, Toast.LENGTH_LONG);
+                                toast.show();
+                            }
                         } catch (JSONException j) {
 
                         }

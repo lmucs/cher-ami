@@ -202,8 +202,6 @@ public class CircleForMessageModal extends DialogFragment {
 
                         }
 
-                        Toast toast = Toast.makeText(CircleForMessageModal.this.context, responseText, Toast.LENGTH_LONG);
-                        toast.show();
                         dismissModal();
                         dialog.dismiss();
                     }

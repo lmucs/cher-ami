@@ -94,12 +94,12 @@ public class OtherUserProfileActivity extends Activity{
                 try {
                     responseText = new JSONObject(new String(responseBody)).getString("results");
                     JSONArray y = new JSONArray(responseText);
-                    OtherUserCircle circle_data[] = new OtherUserCircle[y.length()];
+                    Circle circle_data[] = new Circle[y.length()];
                     for (int x = 0; x < y.length(); x++) {
 
-                        circle_data[x] = new OtherUserCircle(new JSONObject(y.get(x).toString()));                    }
+                        circle_data[x] = new Circle(new JSONObject(y.get(x).toString()));                    }
 
-                    final OtherUserProfileAdapter adapter = new OtherUserProfileAdapter(OtherUserProfileActivity.this,
+                    final CircleAdapter adapter = new CircleAdapter(OtherUserProfileActivity.this,
                             R.layout.other_user_circle_row, circle_data);
 
                     circleList = (ListView) view.findViewById(R.id.otherCircleFeed);
@@ -114,7 +114,13 @@ public class OtherUserProfileActivity extends Activity{
                             try {
                                 mBundle.putString("owner",adapter.getItem(position).getCircle().getString("owner"));
                                 mBundle.putString("circleName", adapter.getItem(position).getCircle().getString("name"));
-                                mBundle.putString("joinVisibility", "visible");
+                                if(adapter.getItem(position).getCircle().getString("visibility").equals("public")){
+                                    mBundle.putString("joinVisibility", "visible");
+                                }
+                                else{
+                                    mBundle.putString("joinVisibility", "none");
+                                }
+
                             } catch (JSONException e) {
                                 e.printStackTrace();
                             }
