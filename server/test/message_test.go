@@ -59,44 +59,104 @@ func (s *TestSuite) TestPostMessageContentCirclesOK(c *C) {
 		c.Check(m.Url, Not(Equals), "")
 		c.Check(m.Author, Equals, "handleA")
 		c.Check(m.Content, Equals, "Go is going gophers!")
-		// [TODO] ensure that the message was published successfully, we know it was successful because
-		// there was as 201 not a 400
+		// [TODO] ensure that the message was published successfully, we only know
+		// it was successful because there was as 201 not a 400
 	}
 }
 
 //
 // Get Authored Messages Tests
 //
-func (s *TestSuite) TestGetAuthoredMessagesInvalidAuth(c *C) {
+func (s *TestSuite) TestGetMessagesInvalidAuth(c *C) {
 	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
-	res, _ := req.GetAuthoredMessages("")
+	res, _ := req.GetMessages(types.Json{
+		"token": "",
+	})
 	c.Check(res.StatusCode, Equals, 401)
 }
 
-func (s *TestSuite) TestGetAuthoredMessagesOK(c *C) {
-	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
+func (s *TestSuite) TestGetMessagesByTargetInCircle(c *C) {
+	// stub
+}
 
-	sessionid := req.PostSessionGetAuthToken("handleA", "password1")
+func (s *TestSuite) TestGetPublicMessagesByHandleOK(c *C) {
+	// stub
+}
 
-	req.PostMessage("Go is going gophers!", sessionid)
-	req.PostMessage("Hypothesize about stuff", sessionid)
-	req.PostMessage("The nearest exit may be behind you", sessionid)
-	req.PostMessage("I make soap.", sessionid)
+func (s *TestSuite) TestGetMessagesInCircleOK(c *C) {
+	// stub
+	// own circle
+	// other users circle
+}
 
-	res, _ := req.GetAuthoredMessages(sessionid)
+func (s *TestSuite) TestGetMessageFeedOfSelfOK(c *C) {
+	req.PostSignup("Alpha", "testA@test.io", "password1", "password1")
+	req.PostSignup("Bravo", "testB@test.io", "password2", "password2")
+	req.PostSignup("Charlie", "testC@test.io", "password3", "password3")
 
-	data := types.MessageResponseView{}
+	sessionid_A := req.PostSessionGetAuthToken("Alpha", "password1")
+	sessionid_B := req.PostSessionGetAuthToken("Bravo", "password2")
+	sessionid_C := req.PostSessionGetAuthToken("Charlie", "password3")
 
-	helper.Unmarshal(res, &data)
-	o := data.Objects
+	circleid_baja := req.PostCircleGetCircleId(sessionid_B, "Baja", true)
+	circleid_cabo := req.PostCircleGetCircleId(sessionid_C, "Cabo", true)
 
-	c.Check(res.StatusCode, Equals, 200)
-	c.Check(data.Count, Equals, 4)
-	c.Check(o[0].Author, Equals, "handleA")
-	c.Check(o[0].Content, Equals, "Go is going gophers!")
-	c.Check(o[1].Content, Equals, "Hypothesize about stuff")
-	c.Check(o[2].Content, Equals, "The nearest exit may be behind you")
-	c.Check(o[3].Content, Equals, "I make soap.")
+	circleid_baja, circleid_cabo = circleid_cabo, circleid_baja
+
+	// Alpha joins the two circles
+	if _, err := req.PostJoin(sessionid_A, "Bravo", "Baja"); err != nil {
+		c.Error(err)
+	}
+	if _, err := req.PostJoin(sessionid_A, "Charlie", "Cabo"); err != nil {
+		c.Error(err)
+	}
+
+	// No messages posted yet
+	if res, err := req.GetMessages(types.Json{
+		"token": sessionid_A,
+	}); err != nil {
+		c.Error(err)
+	} else {
+		c.Check(res.StatusCode, Equals, 200)
+		mrv := []types.MessageResponseView{}
+		helper.Unmarshal(res, &mrv)
+		c.Check(len(mrv), Equals, 0)
+	}
+
+	// Post some messages
+	if res, _ := req.PostMessageWithCircles("Yo, sup", sessionid_A, []string{circleid_baja, circleid_cabo}); true {
+		c.Check(res.StatusCode, Equals, 201)
+	}
+	if res, _ := req.PostMessageWithCircles("Yo, dawg", sessionid_B, []string{circleid_baja}); true {
+		c.Check(res.StatusCode, Equals, 201)
+	}
+	if res, _ := req.PostMessageWithCircles("Yo, dude", sessionid_C, []string{circleid_cabo}); true {
+		c.Check(res.StatusCode, Equals, 201)
+	}
+
+	if res, err := req.GetMessages(types.Json{
+		"token": sessionid_A,
+	}); err != nil {
+		c.Error(err)
+	} else {
+		c.Check(res.StatusCode, Equals, 200)
+		mrv := []types.MessageResponseView{}
+		helper.Unmarshal(res, &mrv)
+		c.Check(len(mrv), Equals, 4)
+	}
+
+	// case when target is self (same response expected)
+	if res, err := req.GetMessages(types.Json{
+		"token": sessionid_A,
+		"user":  "Alpha",
+	}); err != nil {
+		c.Error(err)
+	} else {
+		c.Check(res.StatusCode, Equals, 200)
+		mrv := []types.MessageResponseView{}
+		helper.Unmarshal(res, &mrv)
+		c.Check(len(mrv), Equals, 4)
+	}
 }
 
 //

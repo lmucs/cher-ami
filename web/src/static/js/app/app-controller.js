@@ -45,7 +45,6 @@ define(function(require, exports, module) {
     var AppController = marionette.Controller.extend({
         initialize: function() {
             this.app = app;
-<<<<<<< HEAD
             this.app.session = new Session({}, {
                 remote: false
             });
@@ -63,8 +62,8 @@ define(function(require, exports, module) {
                     session: this.app.session
                 }));
                 // Initialize header view after logged in
-=======
             this.app.session = app.session;
+            };
         },
         // Needed for AppRouter to initialize index route.
         index: function() {
@@ -81,7 +80,6 @@ define(function(require, exports, module) {
         showHomeLayout: function(options) {
             if (!this.app.session.hasAuth()) {
                 this.index();
->>>>>>> master
             } else {
                 this.app.sidebarRegion.show(new SidebarView())
                 this.app.headerRegion.show(new HeaderView({

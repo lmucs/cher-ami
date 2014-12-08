@@ -455,11 +455,6 @@ func (a Api) SearchCircles(w rest.ResponseWriter, r *rest.Request) {
 // Messages
 //
 
-func makeMessageUrl(m *types.MessageView) {
-	// [TODO] hard-coded url/port...
-	m.Url = "<url>:<port>/api/messages/" + m.Id
-}
-
 /**
  * Create a new, unpublished message
  */
@@ -508,29 +503,56 @@ func (a Api) NewMessage(w rest.ResponseWriter, r *rest.Request) {
 	}
 }
 
-/**
- * Get messages authored by user
- */
-func (a Api) GetAuthoredMessages(w rest.ResponseWriter, r *rest.Request) {
+func (a Api) GetMessages(w rest.ResponseWriter, r *rest.Request) {
 	if !a.authenticate(r) {
 		a.Util.FailedToAuthenticate(w)
 		return
 	}
 
-	if author, success := a.Svc.GetHandleFromAuthorization(a.getTokenFromHeader(r)); !success {
+	querymap := r.URL.Query()
+	var target, circleid string
+	var t, c bool
+
+	if self, ok := a.Svc.GetHandleFromAuthorization(a.getTokenFromHeader(r)); !ok {
 		a.Util.FailedToDetermineHandleFromAuthToken(w)
 		return
 	} else {
-		messages := a.Svc.GetMessagesByHandle(author)
-		for i := 0; i < len(messages); i++ {
-			makeMessageUrl(&messages[i])
+		if targetUses, ok := querymap["handle"]; ok {
+			target, t = targetUses[0], ok
+		}
+		if circleidUses, ok := querymap["circleid"]; ok {
+			circleid, c = circleidUses[0], ok
 		}
 
-		w.WriteHeader(200)
-		w.WriteJson(types.MessageResponseView{
-			Objects: messages,
-			Count:   len(messages),
-		})
+		if t && c {
+			if messagesView, ok := a.Svc.GetMessagesByTargetInCircle(self, target, circleid); !ok {
+				a.Util.SimpleJsonReason(w, 400, "Could not find circle or you lack access rights")
+			} else {
+				w.WriteHeader(200)
+				w.WriteJson(messagesView)
+			}
+		} else if t && !c && target != self {
+			if messagesView, ok := a.Svc.GetPublicMessagesByHandle(self, target); !ok {
+				a.Util.SimpleJsonReason(w, 400, "Could not find circle or you lack access rights")
+			} else {
+				w.WriteHeader(200)
+				w.WriteJson(messagesView)
+			}
+		} else if !t && c {
+			if messagesView, ok := a.Svc.GetMessagesInCircle(self, circleid); !ok {
+				a.Util.SimpleJsonReason(w, 400, "Could not find circle or you lack access rights")
+			} else {
+				w.WriteHeader(200)
+				w.WriteJson(messagesView)
+			}
+		} else {
+			if messagesView, ok := a.Svc.GetMessageFeedOfSelf(self); !ok {
+				a.Util.SimpleJsonReason(w, 500, "Unexpected failure to get feed")
+			} else {
+				w.WriteHeader(200)
+				w.WriteJson(messagesView)
+			}
+		}
 	}
 }
 
@@ -549,18 +571,12 @@ func (a Api) GetMessageById(w rest.ResponseWriter, r *rest.Request) {
 	}
 
 	if message, ok := a.Svc.GetVisibleMessageById(handle, id); ok {
-		makeMessageUrl(&message)
-
 		w.WriteHeader(200)
 		w.WriteJson(message)
 	} else {
 		a.Util.SimpleJsonReason(w, 404, "No such message with id "+id+" could be found")
 		return
 	}
-}
-
-func (a Api) GetMessagesByHandle(w rest.ResponseWriter, r *rest.Request) {
-	a.Util.SimpleJsonReason(w, 405, "Unimplemented")
 }
 
 func (a Api) EditMessage(w rest.ResponseWriter, r *rest.Request) {

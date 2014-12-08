@@ -1,16 +1,17 @@
 <div id="loginContainer">
-  <form method="post" action="/signup" id="signupform" role="form">
+  <form method="post" action="/login" id="loginForm" role="form" novalidate="novalidate">
     <h3 id="containerHeader">Log in</h3>
-    <div>
+    <div class="fieldgroup">
+      <p id="response" style="color: red;"></p>
       <label for="handle">Handle</label>
-      <div>
-          <input type="text" id="handle" placeholder="Enter handle">
+      <div class="fieldgroup">
+          <input type="text" name="handle" id="handle" placeholder="Enter handle">
       </div>
     </div>
-    <div>
+    <div class="fieldgroup">
       <label for="inputName">Password</label>
-      <div>
-        <input type="password" id="pass1" class="form-control" name="Password" placeholder="Enter your password">
+      <div class="fieldgroup">
+        <input type="password" id="pass1" class="form-control" name="password" placeholder="Enter your password">
       </div>
     </div>
     <div>
@@ -26,7 +27,6 @@
       <div id="makeNewAccount">  
         <p id="existingUserForm">New to cherAmi?</p>
         <a type="button" id="goToSignup">Sign up</a>
-
       </div>
     </div>
   </form>

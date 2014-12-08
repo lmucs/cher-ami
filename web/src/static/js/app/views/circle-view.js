@@ -2,10 +2,10 @@ define(function(require, exports, module) {
 
     var marionette = require('marionette');
     var template = require('hbs!../templates/circle-view')
-    var CreateCircle = require('app/models/create-circle').CreateCircle;
+    var Circle = require('app/models/circle').Circle;
 
     var CircleView = marionette.ItemView.extend({
-        model: CreateCircle,
+        model: Circle,
         template: template,
 
         ui: {

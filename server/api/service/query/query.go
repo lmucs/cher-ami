@@ -447,21 +447,7 @@ func (q Query) GetMessageById(messageid string) bool {
 }
 
 func (q Query) HandleExists(handle string) bool {
-	found := []struct {
-		Handle string `json:"u.handle"`
-	}{}
-	q.cypherOrPanic(&neoism.CypherQuery{
-		Statement: `
-            MATCH   (u:User)
-            WHERE   u.handle = {handle}
-            RETURN  u.handle
-        `,
-		Parameters: neoism.Props{
-			"handle": handle,
-		},
-		Result: &found,
-	})
-	return len(found) > 0
+	return q.UserExistsByHandle(handle)
 }
 
 func (q Query) EmailExists(email string) bool {
@@ -523,7 +509,28 @@ func (q Query) BlockExistsFromTo(handle, target string) bool {
 	return len(found) > 0
 }
 
-// Get Data //
+func (q Query) NoBlockingRelationshipBetween(handle, target string) bool {
+	found := []struct {
+		Relation neoism.Relationship `json:"r"`
+	}{}
+	q.cypherOrPanic(&neoism.CypherQuery{
+		// use of bi-directional match here
+		Statement: `
+			MATCH   (u:User)-[r:BLOCKED]-(t:User)
+            WHERE   u.handle = {handle}
+            AND     t.handle = {target}
+            RETURN  r
+		`,
+		Parameters: neoism.Props{
+			"handle": handle,
+			"target": target,
+		},
+		Result: &found,
+	})
+	return len(found) > 0
+}
+
+// Users //
 
 func (q Query) SearchForUsers(circle, namePrefix string, skip, limit int, sortBy string,
 ) (results string, count int) {
@@ -583,48 +590,6 @@ func (q Query) SearchForUsers(circle, namePrefix string, skip, limit int, sortBy
 	}
 }
 
-func (q Query) SearchCircles(user string, before time.Time, limit int) (found []RawCircleView) {
-	found = make([]RawCircleView, 0)
-
-	props := neoism.Props{
-		"limit":  limit,
-		"before": before,
-	}
-	query := `
-        MATCH     (u:User)-[]->(c:Circle)
-        MATCH     (c)<-[:OWNS]-(owner:User)
-		WHERE     c.created < {before}
-	`
-	if user != "" {
-		query = query + `
-		AND       owner.handle  = {user}
-		`
-		props = neoism.Props{
-			"user":   user,
-			"limit":  limit,
-			"before": before,
-		}
-	}
-	query = query + `
-        OPTIONAL MATCH (c)-[partOf:PART_OF]->(pd:PublicDomain)
-		RETURN    c.name, c.id, c.description, c.created, owner.handle as ownerName, partOf
-        ORDER BY  c.created
-        LIMIT     {limit}
-    `
-
-	q.cypherOrPanic(&neoism.CypherQuery{
-		Statement:  query,
-		Parameters: props,
-		Result:     &found,
-	})
-
-	if len(found) == 0 {
-		return []RawCircleView{}
-	} else {
-		return found
-	}
-}
-
 func (q Query) GetPasswordHash(handle string) (passwordHash []byte, ok bool) {
 	found := []struct {
 		PasswordHash string `json:"u.password"`
@@ -645,102 +610,6 @@ func (q Query) GetPasswordHash(handle string) (passwordHash []byte, ok bool) {
 		return []byte{}, ok
 	} else {
 		return []byte(found[0].PasswordHash), ok
-	}
-}
-
-func (q Query) GetCircleIdByName(handle, circleName string) (circleid string) {
-	found := []struct {
-		Id string `json:"c.id"`
-	}{}
-	q.cypherOrPanic(&neoism.CypherQuery{
-		Statement: `
-			MATCH   (u:User)-[:OWNS]->(c:Circle)
-			WHERE   u.handle = {handle}
-			AND     c.name   = {circle}
-			RETURN  c.id
-		`,
-		Parameters: neoism.Props{
-			"handle": handle,
-			"circle": circleName,
-		},
-		Result: &found,
-	})
-	if len(found) > 0 {
-		return found[0].Id
-	} else {
-		return ""
-	}
-}
-
-func (q Query) GetPublicCirclesByHandle(handle string) (circles []RawCircleView, count int) {
-	circles = make([]RawCircleView, 0)
-	q.cypherOrPanic(&neoism.CypherQuery{
-		Statement: `
-            MATCH (t:User)-[:OWNS]-(c:Circle)-[partOf:PART_OF]->(pd:PublicDomain)
-            WHERE pd.iam = "PublicDomain"
-            AND   t.handle = {handle}
-            RETURN c.name AS name
-                 , c.id AS id
-                 , c.description AS description
-                 , t.handle AS owner
-                 , c.created AS created
-                 , partOf AS public
-
-        `,
-		Parameters: neoism.Props{
-			"handle": handle,
-		},
-		Result: &circles,
-	})
-	if len(circles) > 0 {
-		return circles, len(circles)
-	} else {
-		return []RawCircleView{}, len(circles)
-	}
-}
-
-func (q Query) GetAllMessagesByHandle(target string) []types.MessageView {
-	messages := make([]types.MessageView, 0)
-	q.cypherOrPanic(&neoism.CypherQuery{
-		Statement: `
-            MATCH     (t:User)-[:WROTE]->(m:Message)
-            WHERE     t.handle = {target}
-            RETURN    m.id      AS id
-                 ,    t.handle  AS author
-                 ,    m.content AS content
-                 ,    m.created AS created
-            ORDER BY  m.created
-        `,
-		Parameters: neoism.Props{
-			"target": target,
-		},
-		Result: &messages,
-	})
-	return messages
-}
-
-func (q Query) GetVisibleMessageById(handle, messageid string) (message types.MessageView, ok bool) {
-	messages := make([]types.MessageView, 0)
-	q.cypherOrPanic(&neoism.CypherQuery{
-		Statement: `
-			MATCH   (t:User)-[:WROTE]->(m:Message)-[:PUB_TO]->(c:Circle)<-[:MEMBER_OF|OWNS]-(u:User)
-			WHERE   u.handle = {handle}
-            AND     m.id     = {messageid}
-			RETURN  m.id      AS id
-                 ,  t.handle  AS author
-                 ,  m.content AS content
-                 ,  m.created AS created
-		`,
-		Parameters: neoism.Props{
-			"handle":    handle,
-			"messageid": messageid,
-		},
-		Result: &messages,
-	})
-	if ok = len(messages) > 0; ok {
-		return messages[0], ok
-	} else {
-		return types.MessageView{}, ok
 	}
 }
 
@@ -796,13 +665,132 @@ func (q Query) GetBlockedUsers(handle string) (users []types.UserView, count int
 	}
 }
 
+func (q Query) DeriveHandleFromAuthToken(token string) (handle string, ok bool) {
+	found := []struct {
+		Handle string `json:"u.handle"`
+	}{}
+	q.cypherOrPanic(&neoism.CypherQuery{
+		Statement: `
+			MATCH   (u:User)<-[:SESSION_OF]-(a:AuthToken)
+			WHERE   a.value  = {token}
+			AND     {now}    < a.expires
+			RETURN  u.handle
+		`,
+		Parameters: neoism.Props{
+			"token": token,
+			"now":   Now(),
+		},
+		Result: &found,
+	})
+	if ok = len(found) > 0; ok {
+		return found[0].Handle, ok
+	} else {
+		return "", ok
+	}
+}
+
+// Circles //
+
+func (q Query) SearchCircles(user string, before time.Time, limit int) (found []RawCircleView) {
+	found = make([]RawCircleView, 0)
+
+	props := neoism.Props{
+		"limit":  limit,
+		"before": before,
+	}
+	query := `
+        MATCH     (u:User)-[]->(c:Circle)
+        MATCH     (c)<-[:OWNS]-(owner:User)
+		WHERE     c.created < {before}
+	`
+	if user != "" {
+		query = query + `
+		AND       owner.handle  = {user}
+		`
+		props = neoism.Props{
+			"user":   user,
+			"limit":  limit,
+			"before": before,
+		}
+	}
+	query = query + `
+        OPTIONAL MATCH (c)-[partOf:PART_OF]->(pd:PublicDomain)
+		RETURN    c.name, c.id, c.description, c.created, owner.handle as ownerName, partOf
+        ORDER BY  c.created DESC
+        LIMIT     {limit}
+    `
+
+	q.cypherOrPanic(&neoism.CypherQuery{
+		Statement:  query,
+		Parameters: props,
+		Result:     &found,
+	})
+
+	if len(found) == 0 {
+		return []RawCircleView{}
+	} else {
+		return found
+	}
+}
+
+func (q Query) GetCircleIdByName(handle, circleName string) (circleid string) {
+	found := []struct {
+		Id string `json:"c.id"`
+	}{}
+	q.cypherOrPanic(&neoism.CypherQuery{
+		Statement: `
+			MATCH   (u:User)-[:OWNS]->(c:Circle)
+			WHERE   u.handle = {handle}
+			AND     c.name   = {circle}
+			RETURN  c.id
+		`,
+		Parameters: neoism.Props{
+			"handle": handle,
+			"circle": circleName,
+		},
+		Result: &found,
+	})
+	if len(found) > 0 {
+		return found[0].Id
+	} else {
+		return ""
+	}
+}
+
+func (q Query) GetPublicCirclesByHandle(handle string) (circles []RawCircleView, count int) {
+	circles = make([]RawCircleView, 0)
+	q.cypherOrPanic(&neoism.CypherQuery{
+		Statement: `
+            MATCH (t:User)-[:OWNS]-(c:Circle)-[partOf:PART_OF]->(pd:PublicDomain)
+            WHERE pd.iam = "PublicDomain"
+            AND   t.handle = {handle}
+            RETURN c.name AS name
+                 , c.id AS id
+                 , c.description AS description
+                 , t.handle AS owner
+                 , c.created AS created
+                 , partOf AS public
+
+        `,
+		Parameters: neoism.Props{
+			"handle": handle,
+		},
+		Result: &circles,
+	})
+	if len(circles) > 0 {
+		return circles, len(circles)
+	} else {
+		return []RawCircleView{}, len(circles)
+	}
+}
+
 func (q Query) GetJoinedCirclesByHandle(handle string, before time.Time, limit int) (circles []RawCircleView, count int) {
 	circles = make([]RawCircleView, 0)
 	q.cypherOrPanic(&neoism.CypherQuery{
 		Statement: `
             MATCH           (u:User)-[:MEMBER_OF|OWNS]->(c:Circle)
-            WHERE           u.handle = {handle}
-            AND             c.created < {before}
+            WHERE           u.handle      = {handle}
+            AND             c.created     < {before}
             MATCH           (c)<-[:OWNS]-(owner:User)
             OPTIONAL MATCH  (c)-[partOf:PART_OF]->(pd:PublicDomain)
             RETURN          c.name        AS name
@@ -828,27 +816,102 @@ func (q Query) GetJoinedCirclesByHandle(handle string, before time.Time, limit i
 	}
 }
 
-func (q Query) DeriveHandleFromAuthToken(token string) (handle string, ok bool) {
-	found := []struct {
-		Handle string `json:"u.handle"`
-	}{}
+// Messages //
+
+func (q Query) GetAllMessagesByHandle(target string) []types.MessageView {
+	messages := make([]types.MessageView, 0)
 	q.cypherOrPanic(&neoism.CypherQuery{
 		Statement: `
-			MATCH   (u:User)<-[:SESSION_OF]-(a:AuthToken)
-			WHERE   a.value  = {token}
-			AND     {now}    < a.expires
-			RETURN  u.handle
+            MATCH     (t:User)-[:WROTE]->(m:Message)
+            WHERE     t.handle  = {target}
+            RETURN    m.id      AS id
+                 ,    t.handle  AS author
+                 ,    m.content AS content
+                 ,    m.created AS created
+            ORDER BY  m.created DESC
+        `,
+		Parameters: neoism.Props{
+			"target": target,
+		},
+		Result: &messages,
+	})
+	return messages
+}
+
+func (q Query) GetPublicPublishedMessagesByAuthor(target string) []types.PublishedMessageView {
+	messages := make([]types.PublishedMessageView, 0)
+	q.cypherOrPanic(&neoism.CypherQuery{
+		Statement: `
+			MATCH (t:User)-[:WROTE]->(m:Message)-[p:PUB_TO]->(c:Circle)-[]->(pd:PublicDomain)
+			WHERE     t.handle       =  {target}
+			RETURN    m.id           AS id
+                 ,    t.handle       AS author
+                 ,    m.content      AS content
+                 ,    m.created      AS created
+                 ,    c.id           AS circleid
+                 ,    p.published_at AS published_at
+            ORDER BY  p.published_at
 		`,
 		Parameters: neoism.Props{
-			"token": token,
-			"now":   Now(),
+			"target": target,
 		},
-		Result: &found,
+		Result: &messages,
 	})
-	if ok = len(found) > 0; ok {
-		return found[0].Handle, ok
+	return messages
+}
+
+func (q Query) GetMessagesByHandleInCircle(target, circleid string) []types.PublishedMessageView {
+	return []types.PublishedMessageView{}
+}
+
+func (q Query) GetMessageFeedOfCircle(circleid string) []types.PublishedMessageView {
+	return []types.PublishedMessageView{}
+}
+
+func (q Query) GetMessageFeedOfHandle(handle string) []types.PublishedMessageView {
+	messages := []types.PublishedMessageView{}
+	q.cypherOrPanic(&neoism.CypherQuery{
+		Statement: `
+			MATCH (u:User)-[]->(c:Circle)<-[p:PUB_TO]-(m:Message)<-[:WROTE]-(a:User)
+			WHERE     u.handle       =  {handle}
+			RETURN    m.id           AS id
+                 ,    a.handle       AS author
+                 ,    m.content      AS content
+                 ,    m.created      AS created
+                 ,    c.id           AS circleid
+                 ,    p.published_at AS published_at
+            ORDER BY  p.published_at
+		`,
+		Parameters: neoism.Props{
+			"handle": handle,
+		},
+		Result: &messages,
+	})
+	return messages
+}
+
+func (q Query) GetVisibleMessageById(handle, messageid string) (message types.MessageView, ok bool) {
+	messages := make([]types.MessageView, 0)
+	q.cypherOrPanic(&neoism.CypherQuery{
+		Statement: `
+			MATCH   (t:User)-[:WROTE]->(m:Message)-[:PUB_TO]->(c:Circle)<-[:MEMBER_OF|OWNS]-(u:User)
+			WHERE   u.handle = {handle}
+            AND     m.id     = {messageid}
+			RETURN  m.id      AS id
+                 ,  t.handle  AS author
+                 ,  m.content AS content
+                 ,  m.created AS created
+		`,
+		Parameters: neoism.Props{
+			"handle":    handle,
+			"messageid": messageid,
+		},
+		Result: &messages,
+	})
+	if ok = len(messages) > 0; ok {
+		return messages[0], ok
 	} else {
-		return "", ok
+		return types.MessageView{}, ok
 	}
 }
 
