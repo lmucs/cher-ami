@@ -21,6 +21,7 @@ import android.widget.Toast;
 
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
+import com.loopj.android.http.RequestParams;
 
 import org.apache.http.Header;
 import org.apache.http.entity.StringEntity;
@@ -39,6 +40,7 @@ public class CircleResult extends Activity {
     ProgressDialog dialog;
     Context context;
     FeedAdapter adapter;
+    Bundle recdData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,17 +49,18 @@ public class CircleResult extends Activity {
         setContentView(R.layout.activity_circle_result);
         ActionBar actionBar = getActionBar();
         actionBar.setDisplayHomeAsUpEnabled(true);
-        getFeed(this.findViewById(R.id.feedList).getRootView());
 
         textElement=(TextView)findViewById(R.id.circleName);
-        Bundle recdData = getIntent().getExtras();
+        this.recdData = getIntent().getExtras();
         circleName = recdData.getString("circleName");
+
         owner = recdData.getString("owner");
         View joinButton = findViewById(R.id.joinCircle);
         if(recdData.getString("joinVisibility").equals("none")){
             joinButton.setVisibility(View.GONE);
         }
         textElement.setText(circleName);
+        getFeed(this.findViewById(R.id.feedList).getRootView());
     }
 
 
@@ -115,9 +118,12 @@ public class CircleResult extends Activity {
     public void getFeed(final View view) {
         AsyncHttpClient client = new AsyncHttpClient();
         String token = ApiHelper.getSessionToken(context);
+        RequestParams params = new RequestParams();
+        String circleURL = this.recdData.getString("circleid");
+        params.put("circleid", circleURL.substring(circleURL.lastIndexOf("/") + 1));
 
         client.addHeader("Authorization", token);
-        client.get(context, ApiHelper.getLocalUrlForApi(getResources()) + "messages",
+        client.get(context, ApiHelper.getLocalUrlForApi(getResources()) + "messages", params,
                 new AsyncHttpResponseHandler() {
 
                     @Override
