@@ -29,6 +29,7 @@
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
         android:text="Join Circle"
+        android:layout_below="@+id/circleName"
         android:onClick="joinCircle"
         android:textColor="@android:color/white"
         fbutton:buttonColor="#4cc1f0"
