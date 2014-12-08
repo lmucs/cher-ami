@@ -28,12 +28,27 @@ type LoginCredentials struct {
 // Message Types
 //
 
-type Message struct {
+type PublishedMessageView struct {
+	Id          string    `json:"id"`
+	Url         string    `json:"url"`
+	Author      string    `json:"author"`
+	Content     string    `json:"content"`
+	Created     time.Time `json:"created"`
+	Circleid    string    `json:"circleid"`
+	PublishedAt time.Time `json:"published_at"`
+}
+
+type MessageView struct {
 	Id      string    `json:"id"`
 	Url     string    `json:"url"`
 	Author  string    `json:"author"`
 	Content string    `json:"content"`
 	Created time.Time `json:"created"`
+}
+
+type MessageResponseView struct {
+	Objects []MessageView `json:"objects"`
+	Count   int           `json:"count"`
 }
 
 type NewMessage struct {
@@ -98,19 +113,6 @@ type CircleResponse struct {
 	Visibility  string    `json:"visibility"`
 	Members     string    `json:"members"`
 	Created     time.Time `json:"created"`
-}
-
-type MessageView struct {
-	Id      string    `json:"id"`
-	Url     string    `json:"url"`
-	Author  string    `json:"author"`
-	Content string    `json:"content"`
-	Created time.Time `json:"created"`
-}
-
-type MessageResponseView struct {
-	Objects []MessageView `json:"objects"`
-	Count   int           `json:"count"`
 }
 
 //
