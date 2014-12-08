@@ -28,7 +28,7 @@ public class Profile extends Fragment {
     Context context;
     ProgressDialog dialog;
     FeedAdapter adapter;
-
+    String username;
     public Profile() {
 
     }
@@ -41,7 +41,7 @@ public class Profile extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        String username = ApiHelper.getUsername(context);
+        this.username = ApiHelper.getUsername(context);
         View rootView = inflater.inflate(R.layout.fragment_profile, container, false);
         getProfileFeed(rootView);
         textElement = (TextView) rootView.findViewById(R.id.profileHandle);
@@ -71,14 +71,19 @@ public class Profile extends Fragment {
 
                 try {
                     responseText = new JSONArray(new String(responseBody));
+                    ArrayList<FeedItem> feedItemsList = new ArrayList<FeedItem>();
                     FeedItem feed_data[] = new FeedItem[responseText.length()];
 
                     for (int x = 0; x < responseText.length(); x++) {
-                        feed_data[x] = new FeedItem(new JSONObject(responseText.get(x).toString()));
+                        JSONObject feedItemToAdd = new JSONObject(responseText.get(x).toString());
+
+                        if (feedItemToAdd.get("author").equals(Profile.this.username)) {
+                            feedItemsList.add(new FeedItem(feedItemToAdd));
+                        }
                     }
 
                     final FeedAdapter adapter = new FeedAdapter(getActivity(),
-                            R.layout.feed_item_row, feed_data);
+                            R.layout.feed_item_row, feedItemsList.toArray(new FeedItem[feedItemsList.size()]));
 
                     messageList = (ListView) view.findViewById(R.id.profileFeed);
                     messageList.setAdapter(adapter);
@@ -86,8 +91,8 @@ public class Profile extends Fragment {
                 } catch (JSONException j) {
 
                 }
-                dialog.dismiss();
 
+                dialog.dismiss();
             }
 
             @Override
