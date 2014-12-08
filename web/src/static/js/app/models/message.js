@@ -6,18 +6,14 @@ define(function(require, exports, module) {
         url: 'api/messages',
         defaults: {
             content: null,
-            handle: null,
+            author: null,
             id: null
         },
 
         initialize: function() {
-
         },
 
         update: function() {
-            //TODO: REMOVE THIS
-            window.location.reload()
-
         }
     });
 

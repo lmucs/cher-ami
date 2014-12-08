@@ -27,7 +27,9 @@ define(function(require, exports, module) {
         },
         
         onRender: function() {
-            var profile = new ProfileView();
+            var profile = new ProfileView({
+                session: this.session
+            });
             this.profile.show(profile);
         },
 

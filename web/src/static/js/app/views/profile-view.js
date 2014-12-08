@@ -2,9 +2,10 @@ define(function(require, exports, module) {
 
     var marionette = require('marionette');
     var template = require('hbs!../templates/profile-view')
+    var Profile = require('app/models/profile').Profile;
 
     var ProfileView = marionette.ItemView.extend({
-
+        model: Profile,
         template: template,
 
         ui: {
@@ -17,7 +18,8 @@ define(function(require, exports, module) {
         },
 
         initialize: function(options) {
-            
+            this.model = options.model
+            this.session = options.session;
         },
 
     });

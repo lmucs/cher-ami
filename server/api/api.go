@@ -517,6 +517,15 @@ func (a Api) GetMessages(w rest.ResponseWriter, r *rest.Request) {
 		a.Util.FailedToDetermineHandleFromAuthToken(w)
 		return
 	} else {
+		if _, ok := querymap["all"]; ok {
+			if messagesView, ok := a.Svc.GetAllMessages(self); !ok {
+				a.Util.SimpleJsonReason(w, 400, "Something happened")
+			} else {
+				w.WriteHeader(200)
+				w.WriteJson(messagesView)
+				return
+			}
+		}
 		if targetUses, ok := querymap["handle"]; ok {
 			target, t = targetUses[0], ok
 		}

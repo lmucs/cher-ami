@@ -859,10 +859,10 @@ func (q Query) GetPublicPublishedMessagesByAuthor(target string) []types.Publish
 	})
 	return messages
 }
-
 func (q Query) GetMessagesByHandleInCircle(target, circleid string) []types.PublishedMessageView {
 	return []types.PublishedMessageView{}
 }
+
 
 func (q Query) GetMessageFeedOfCircle(circleid string) []types.PublishedMessageView {
 	messages := []types.PublishedMessageView{}

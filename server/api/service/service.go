@@ -289,6 +289,16 @@ func (s Svc) GetMessageFeedOfSelf(handle string) ([]types.PublishedMessageView, 
 	}
 }
 
+// THIS IS TEMPORARY (DEMO HACK)
+func (s Svc) GetAllMessages(handle string) ([]types.MessageView, bool) {
+	if ok := s.UserExists(handle); ok {
+		messages := s.Query.GetAllMessagesByHandle(handle)
+		return messages, ok
+	} else {
+		return []types.MessageView{}, ok
+	}
+}
+
 func (s Svc) GetVisibleMessageById(handle, messageid string) (message types.MessageView, ok bool) {
 	if message, ok := s.Query.GetVisibleMessageById(handle, messageid); ok {
 		return addMessageUrlDepracated(message), ok
