@@ -10,7 +10,6 @@ import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 import org.json.JSONException;
-import org.w3c.dom.Text;
 
 public class CircleAdapter extends ArrayAdapter<Circle> {
 
