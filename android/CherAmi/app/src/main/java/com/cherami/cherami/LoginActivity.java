@@ -136,8 +136,8 @@ public class LoginActivity extends Activity {
                         String responseText = null;
 
                         try {
-                            if (!NetworkCheck.isConnected(errorResponse)) {
-                                NetworkCheck.displayNetworkErrorModal(LoginActivity.this);
+                            if (!ErrorHandle.isNetworkConnected(errorResponse)) {
+                                ErrorHandle.displayNetworkErrorModal(LoginActivity.this);
 
                             } else {
                                 responseText = new JSONObject(new String(errorResponse)).getString("reason");

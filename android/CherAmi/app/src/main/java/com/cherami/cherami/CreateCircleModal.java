@@ -126,13 +126,14 @@ public class CreateCircleModal extends DialogFragment {
                         String responseText = null;
 
                         try {
-                            if (!NetworkCheck.isConnected(errorResponse)) {
-                                NetworkCheck.displayNetworkErrorModal(getActivity());
+                            if (!ErrorHandle.isNetworkConnected(errorResponse)) {
+                                ErrorHandle.displayNetworkErrorModal(getActivity());
 
                             } else {
                                 responseText = new JSONObject(new String(errorResponse)).getString("reason");
-                                Toast toast = Toast.makeText(getActivity().getApplicationContext(), responseText, Toast.LENGTH_LONG);
-                                toast.show();
+                                if (ErrorHandle.isTokenExpired(responseText)) {
+                                    ErrorHandle.displayTokenModal(getActivity());
+                                }
                             }
                         } catch (JSONException j) {
 

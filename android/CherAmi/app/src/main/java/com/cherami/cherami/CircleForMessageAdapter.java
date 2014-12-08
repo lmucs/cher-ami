@@ -56,7 +56,7 @@ public class CircleForMessageAdapter extends ArrayAdapter<CircleForMessagesItem>
 
         CircleForMessagesItem circleForMessage = data[position];
         try {
-            if(circleForMessage.circleName.getString("visibility").equals("private")){
+            if (circleForMessage.circleName.getString("visibility").equals("private")){
                 row.setBackgroundColor(Color.parseColor("#4cc1f0"));
                 holder.txtTitle.setTextColor(Color.parseColor("#ffffff"));
             } else {

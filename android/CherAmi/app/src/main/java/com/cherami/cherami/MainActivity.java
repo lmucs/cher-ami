@@ -5,10 +5,12 @@ import java.util.Locale;
 
 import android.app.Activity;
 import android.app.ActionBar;
+import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.v13.app.FragmentPagerAdapter;
 import android.os.Bundle;
@@ -159,13 +161,14 @@ public class MainActivity extends Activity implements ActionBar.TabListener {
                         String responseText = null;
 
                         try {
-                            if (!NetworkCheck.isConnected(errorResponse)) {
-                                NetworkCheck.displayNetworkErrorModal(MainActivity.this);
+                            if (!ErrorHandle.isNetworkConnected(errorResponse)) {
+                                ErrorHandle.displayNetworkErrorModal(MainActivity.this);
 
                             } else {
                                 responseText = new JSONObject(new String(errorResponse)).getString("reason");
-                                Toast toast = Toast.makeText(getApplicationContext(), responseText, Toast.LENGTH_LONG);
-                                toast.show();
+                                if (ErrorHandle.isTokenExpired(responseText)) {
+                                    ErrorHandle.displayTokenModal(MainActivity.this);
+                                }
                             }
                         } catch (JSONException j) {
 

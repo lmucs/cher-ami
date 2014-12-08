@@ -109,13 +109,14 @@ public class SearchActivity extends Activity {
                 String responseText = null;
 
                 try {
-                    if (!NetworkCheck.isConnected(errorResponse)) {
-                        NetworkCheck.displayNetworkErrorModal(SearchActivity.this);
+                    if (!ErrorHandle.isNetworkConnected(errorResponse)) {
+                        ErrorHandle.displayNetworkErrorModal(SearchActivity.this);
 
                     } else {
                         responseText = new JSONObject(new String(errorResponse)).getString("reason");
-                        Toast toast = Toast.makeText(getApplicationContext(), responseText, Toast.LENGTH_LONG);
-                        toast.show();
+                        if (ErrorHandle.isTokenExpired(responseText)) {
+                            ErrorHandle.displayTokenModal(SearchActivity.this);
+                        }
                     }
                 } catch (JSONException j) {
 

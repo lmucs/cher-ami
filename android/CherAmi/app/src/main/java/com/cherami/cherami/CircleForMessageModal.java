@@ -5,6 +5,7 @@ import android.app.DialogFragment;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -123,13 +124,14 @@ public class CircleForMessageModal extends DialogFragment {
                 String responseText = null;
 
                 try {
-                    if (!NetworkCheck.isConnected(errorResponse)) {
-                        NetworkCheck.displayNetworkErrorModal(getActivity());
+                    if (!ErrorHandle.isNetworkConnected(errorResponse)) {
+                        ErrorHandle.displayNetworkErrorModal(getActivity());
 
                     } else {
                         responseText = new JSONObject(new String(errorResponse)).getString("reason");
-                        Toast toast = Toast.makeText(getActivity().getApplicationContext(), responseText, Toast.LENGTH_LONG);
-                        toast.show();
+                        if (ErrorHandle.isTokenExpired(responseText)) {
+                            ErrorHandle.displayTokenModal(getActivity());
+                        }
                     }
                 } catch (JSONException j) {
 
@@ -211,13 +213,14 @@ public class CircleForMessageModal extends DialogFragment {
                         String responseText = null;
 
                         try {
-                            if (!NetworkCheck.isConnected(errorResponse)) {
-                                NetworkCheck.displayNetworkErrorModal(getActivity());
+                            if (!ErrorHandle.isNetworkConnected(errorResponse)) {
+                                ErrorHandle.displayNetworkErrorModal(getActivity());
 
                             } else {
                                 responseText = new JSONObject(new String(errorResponse)).getString("reason");
-                                Toast toast = Toast.makeText(getActivity().getApplicationContext(), responseText, Toast.LENGTH_LONG);
-                                toast.show();
+                                if (ErrorHandle.isTokenExpired(responseText)) {
+                                    ErrorHandle.displayTokenModal(getActivity());
+                                }
                             }
                         } catch (JSONException j) {
 

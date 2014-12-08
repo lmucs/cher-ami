@@ -159,8 +159,8 @@ public class SignUpActivity extends Activity {
                         String responseText = null;
 
                         try {
-                            if (!NetworkCheck.isConnected(errorResponse)) {
-                                NetworkCheck.displayNetworkErrorModal(SignUpActivity.this);
+                            if (!ErrorHandle.isNetworkConnected(errorResponse)) {
+                                ErrorHandle.displayNetworkErrorModal(SignUpActivity.this);
 
                             } else {
                                 responseText = new JSONObject(new String(errorResponse)).getString("reason");
@@ -217,8 +217,8 @@ public class SignUpActivity extends Activity {
                 String responseText = null;
 
                 try {
-                    if (!NetworkCheck.isConnected(errorResponse)) {
-                        NetworkCheck.displayNetworkErrorModal(SignUpActivity.this);
+                    if (!ErrorHandle.isNetworkConnected(errorResponse)) {
+                        ErrorHandle.displayNetworkErrorModal(SignUpActivity.this);
 
                     } else {
                         responseText = new JSONObject(new String(errorResponse)).getString("reason");

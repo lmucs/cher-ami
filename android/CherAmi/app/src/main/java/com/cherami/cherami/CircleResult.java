@@ -137,13 +137,14 @@ public class CircleResult extends Activity {
                             String responseText = null;
 
                             try {
-                                if (!NetworkCheck.isConnected(errorResponse)) {
-                                    NetworkCheck.displayNetworkErrorModal(CircleResult.this);
+                                if (!ErrorHandle.isNetworkConnected(errorResponse)) {
+                                    ErrorHandle.displayNetworkErrorModal(CircleResult.this);
 
                                 } else {
                                     responseText = new JSONObject(new String(errorResponse)).getString("reason");
-                                    Toast toast = Toast.makeText(getApplicationContext(), responseText, Toast.LENGTH_LONG);
-                                    toast.show();
+                                    if (ErrorHandle.isTokenExpired(responseText)) {
+                                        ErrorHandle.displayTokenModal(CircleResult.this);
+                                    }
                                 }
                             } catch (JSONException j) {
 
