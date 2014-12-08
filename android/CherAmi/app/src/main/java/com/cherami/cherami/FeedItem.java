@@ -1,21 +1,23 @@
 package com.cherami.cherami;
 
+import org.json.JSONObject;
+
 public class FeedItem {
-    public String title;
+    public JSONObject msg;
     public String img;
     public FeedItem(){
         super();
     }
 
-    public FeedItem(String title) {
+    public FeedItem(JSONObject msg) {
         super();
-        this.title = title;
+        this.msg = msg;
         this.img = "";
     }
 
-    public FeedItem(String title, String img) {
+    public FeedItem(JSONObject msg, String img) {
         super();
-        this.title = title;
+        this.msg = msg;
         this.img = img;
     }
 }

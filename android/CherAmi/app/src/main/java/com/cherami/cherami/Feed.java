@@ -1,5 +1,7 @@
 package com.cherami.cherami;
 
+import android.app.ProgressDialog;
+import android.content.Context;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.view.LayoutInflater;
@@ -8,10 +10,24 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Spinner;
+import android.widget.Toast;
+
+import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.AsyncHttpResponseHandler;
+import com.loopj.android.http.RequestParams;
+
+import org.apache.http.Header;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class Feed extends Fragment {
     private ListView feedList;
     private Spinner spinner;
+    Context context;
+    FeedAdapter adapter;
+    ProgressDialog dialog;
+
 
     public Feed() {
 
@@ -19,6 +35,7 @@ public class Feed extends Fragment {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        this.context = getActivity().getApplicationContext();
         super.onCreate(savedInstanceState);
     }
 
@@ -27,21 +44,7 @@ public class Feed extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_feed, container, false);
-
-        FeedItem feed_data[] = new FeedItem[]
-                {
-                        new FeedItem("This is an image posted by Willy Hugestud","http://www.amovieaweek.com/images/social1.png"),
-                        new FeedItem("Here's some text posted by ThatHalfKorean","http://s2.quickmeme.com/img/25/25418a62177a75a6b412ffcc6328ddd37bc8495df2442fc62f1b1fa5408b65a1.jpg"),
-                        new FeedItem("I just took a 25 minutes bathroom break posted by CrashProphet")
-                };
-
-        FeedAdapter adapter = new FeedAdapter(this.getActivity(),
-                R.layout.feed_item_row, feed_data);
-
-
-        feedList = (ListView)rootView.findViewById(R.id.feedList);
-
-        feedList.setAdapter(adapter);
+        getFeed(rootView);
 
         // Get the filter value
         spinner = (Spinner) rootView.findViewById(R.id.filter_spinner);
@@ -59,5 +62,70 @@ public class Feed extends Fragment {
 
         // Inflate the layout for this fragment
         return rootView;
+    }
+
+    public void setFeedAdapter (FeedAdapter feedAdapter) {
+        this.adapter = feedAdapter;
+    }
+
+    public void getFeed(final View view) {
+        AsyncHttpClient client = new AsyncHttpClient();
+        String token = ApiHelper.getSessionToken(context);
+
+        client.addHeader("Authorization", token);
+        client.get(context, ApiHelper.getLocalUrlForApi(getResources()) + "messages",
+                new AsyncHttpResponseHandler() {
+
+                    @Override
+                    public void onStart() {
+                        dialog = ProgressDialog.show(getActivity(), "",
+                                "Loading. Please wait...", true);
+                    }
+
+                    @Override
+                    public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                        JSONArray responseText;
+
+                        try {
+                            responseText = new JSONArray(new String(responseBody));
+                            FeedItem feed_data[] = new FeedItem[responseText.length()];
+
+                            for (int x = 0; x < responseText.length(); x++) {
+                                feed_data[x] = new FeedItem(new JSONObject(responseText.get(x).toString()));
+
+                            }
+
+                            final FeedAdapter adapter = new FeedAdapter(getActivity(),
+                                    R.layout.feed_item_row, feed_data);
+                            Feed.this.setFeedAdapter(adapter);
+                            feedList = (ListView) view.findViewById(R.id.feedList);
+                            feedList.setAdapter(adapter);
+
+                        } catch (JSONException j) {
+                            System.out.println(j);
+                        }
+                        dialog.dismiss();
+                    }
+
+                    @Override
+                    public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable error) {
+                        dialog.dismiss();
+                        String responseText = null;
+
+                        try {
+                            if (!NetworkCheck.isConnected(errorResponse)) {
+                                NetworkCheck.displayNetworkErrorModal(getActivity());
+
+                            } else {
+                                responseText = new JSONObject(new String(errorResponse)).getString("reason");
+                                Toast toast = Toast.makeText(getActivity().getApplicationContext(), responseText, Toast.LENGTH_LONG);
+                                toast.show();
+                            }
+                        } catch (JSONException j) {
+
+                        }
+
+                    }
+                });
     }
 }

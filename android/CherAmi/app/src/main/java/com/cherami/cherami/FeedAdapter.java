@@ -11,6 +11,8 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
+import org.json.JSONException;
+
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -37,7 +39,9 @@ public class FeedAdapter extends ArrayAdapter<FeedItem> {
             row = inflater.inflate(layoutResourceId, parent, false);
 
             holder = new FeedHolder();
-            holder.txtTitle = (TextView) row.findViewById(R.id.txtTitle);
+            holder.txtOwner = (TextView) row.findViewById(R.id.txtOwner);
+            holder.txtContent = (TextView) row.findViewById(R.id.txtContent);
+            holder.txtDate = (TextView) row.findViewById(R.id.txtDate);
             holder.imgLoad = (ImageView) row.findViewById(R.id.imgLoad);
 
             row.setTag(holder);
@@ -46,7 +50,13 @@ public class FeedAdapter extends ArrayAdapter<FeedItem> {
         }
 
         FeedItem feedItem = data[position];
-        holder.txtTitle.setText(feedItem.title);
+        try {
+            holder.txtOwner.setText(feedItem.msg.getString("author"));
+            holder.txtContent.setText(feedItem.msg.getString("content"));
+            holder.txtDate.setText(feedItem.msg.getString("created"));
+        } catch (JSONException e){
+            e.printStackTrace();
+        }
         if(!(feedItem.img.equals(""))){
             Picasso.with(context).load(feedItem.img).into(holder.imgLoad);
         }
@@ -55,7 +65,9 @@ public class FeedAdapter extends ArrayAdapter<FeedItem> {
     }
 
     static class FeedHolder {
-        TextView txtTitle;
+        TextView txtOwner;
+        TextView txtContent;
+        TextView txtDate;
         ImageView imgLoad;
     }
 }
