@@ -865,7 +865,25 @@ func (q Query) GetMessagesByHandleInCircle(target, circleid string) []types.Publ
 }
 
 func (q Query) GetMessageFeedOfCircle(circleid string) []types.PublishedMessageView {
-	return []types.PublishedMessageView{}
+	messages := []types.PublishedMessageView{}
+	q.cypherOrPanic(&neoism.CypherQuery{
+		Statement: `
+			MATCH     (c:Circle)<-[p:PUB_TO]-(m:Message)<-[:WROTE]-(a:User)
+			WHERE     c.id           =  {circleid}
+			RETURN    m.id           AS id
+                 ,    a.handle       AS author
+                 ,    m.content      AS content
+                 ,    m.created      AS created
+                 ,    c.id           AS circleid
+                 ,    p.published_at AS published_at
+            ORDER BY  p.published_at DESC
+		`,
+		Parameters: neoism.Props{
+			"circleid": circleid,
+		},
+		Result: &messages,
+	})
+	return messages
 }
 
 func (q Query) GetMessageFeedOfHandle(handle string) []types.PublishedMessageView {
