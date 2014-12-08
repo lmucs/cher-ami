@@ -53,14 +53,16 @@
         android:id="@+id/refreshButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Refresh"
         android:textColor="@android:color/white"
         fbutton:buttonColor="#ff14bb47"
         fbutton:shadowEnabled="false"
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:layout_above="@+id/circleList"/>
+        android:layout_above="@+id/circleList"
+        android:layout_gravity="center"
+        android:drawableTop="@drawable/ic_action_refresh"/>
+
 
 
 </RelativeLayout>
