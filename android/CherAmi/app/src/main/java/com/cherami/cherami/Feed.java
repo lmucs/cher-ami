@@ -21,6 +21,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+
 public class Feed extends Fragment {
     private ListView feedList;
     private Spinner spinner;
@@ -92,7 +97,6 @@ public class Feed extends Fragment {
 
                             for (int x = 0; x < responseText.length(); x++) {
                                 feed_data[x] = new FeedItem(new JSONObject(responseText.get(x).toString()));
-
                             }
 
                             final FeedAdapter adapter = new FeedAdapter(getActivity(),

@@ -54,8 +54,13 @@ public class CreateMessageModal extends DialogFragment {
 
     public void attemptCreateMessage() {
         EditText messageContent = (EditText) root.findViewById(R.id.messageContent);
+        EditText imageUrl = (EditText) root.findViewById(R.id.imageUrl);
         Bundle args = new Bundle();
-        args.putString("messageValue", messageContent.getText().toString());
+        String message = messageContent.getText().toString();
+        if(!imageUrl.getText().toString().equals("")) {
+            message = message + " " + imageUrl.getText().toString();
+        }
+        args.putString("messageValue", message);
         CircleForMessageModal newFragment = new CircleForMessageModal();
         newFragment.setArguments(args);
         newFragment.show(getFragmentManager(), "dialog");

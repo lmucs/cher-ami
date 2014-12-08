@@ -15,6 +15,14 @@ xmlns:android="http://schemas.android.com/apk/res/android">
     android:layout_alignParentTop="true"
     android:layout_alignParentLeft="true"
     android:layout_alignParentStart="true" />
+    <EditText
+        android:id="@+id/imageUrl"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Enter Image Url (Optional)"
+        android:layout_below="@+id/messageContent"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
 
 <info.hoang8f.widget.FButton
     android:id="@+id/createMessageButton"
@@ -24,9 +32,8 @@ xmlns:android="http://schemas.android.com/apk/res/android">
     android:textColor="@android:color/white"
     fbutton:buttonColor="#4cc1f0"
     fbutton:shadowEnabled="false"
-    android:paddingLeft="20dp"
-    android:paddingRight="20dp"
-    android:layout_below="@+id/messageContent"
+    android:padding="20dp"
+    android:layout_below="@+id/imageUrl"
     android:layout_alignParentStart="true" />
 
 <info.hoang8f.widget.FButton
@@ -39,7 +46,7 @@ xmlns:android="http://schemas.android.com/apk/res/android">
     fbutton:shadowEnabled="false"
     android:paddingLeft="20dp"
     android:paddingRight="20dp"
-    android:layout_below="@+id/messageContent"
+    android:layout_below="@+id/imageUrl"
     android:layout_alignParentRight="true" />
 
 </RelativeLayout>

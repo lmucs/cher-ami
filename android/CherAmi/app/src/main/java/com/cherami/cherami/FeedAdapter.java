@@ -13,8 +13,10 @@ import com.squareup.picasso.Picasso;
 
 import org.json.JSONException;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 
 public class FeedAdapter extends ArrayAdapter<FeedItem> {
 
@@ -27,6 +29,29 @@ public class FeedAdapter extends ArrayAdapter<FeedItem> {
         this.layoutResourceId = layoutResourceId;
         this.context = context;
         this.data = data;
+    }
+
+    public boolean imageUrlChecker(String s){
+        URL url;
+        try{
+            String possibleUrl = s.substring(s.lastIndexOf(' ')+1);
+            url = new URL(possibleUrl);
+        } catch(MalformedURLException e) {
+            return false;
+        }
+        return true;
+    }
+
+    public String getImageUrl(String s){
+        return s.substring(s.lastIndexOf(' ')+1);
+    }
+
+    public String getContentWithoutImageUrl(String s){
+        return s.substring(0,s.lastIndexOf(' '));
+    }
+
+    public String processDate(String date){
+        return date.substring(0, date.lastIndexOf("T"));
     }
 
     @Override
@@ -51,14 +76,17 @@ public class FeedAdapter extends ArrayAdapter<FeedItem> {
 
         FeedItem feedItem = data[position];
         try {
+            String content = feedItem.msg.getString("content");
             holder.txtOwner.setText(feedItem.msg.getString("author"));
-            holder.txtContent.setText(feedItem.msg.getString("content"));
-            holder.txtDate.setText(feedItem.msg.getString("created"));
+            if(imageUrlChecker(content)) {
+                Picasso.with(context).load(getImageUrl(content)).into(holder.imgLoad);
+                holder.txtContent.setText(getContentWithoutImageUrl(content));
+            } else {
+                holder.txtContent.setText(content);
+            }
+            holder.txtDate.setText(processDate(feedItem.msg.getString("created")));
         } catch (JSONException e){
             e.printStackTrace();
-        }
-        if(!(feedItem.img.equals(""))){
-            Picasso.with(context).load(feedItem.img).into(holder.imgLoad);
         }
 
         return row;
