@@ -60,7 +60,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="Have an Account?"
+        android:text="Have an account?"
         android:id="@+id/question"
         android:singleLine="false"
         android:gravity="right"
