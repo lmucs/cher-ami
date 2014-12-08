@@ -8,9 +8,6 @@ import android.widget.Toast;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-/**
- * Created by goalsman on 12/7/14.
- */
 public class NetworkCheck {
     public static Boolean isConnected (byte[] response) {
         if (response == null) {
