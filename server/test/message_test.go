@@ -59,8 +59,8 @@ func (s *TestSuite) TestPostMessageContentCirclesOK(c *C) {
 		c.Check(m.Url, Not(Equals), "")
 		c.Check(m.Author, Equals, "handleA")
 		c.Check(m.Content, Equals, "Go is going gophers!")
-		// [TODO] ensure that the message was published successfully, we know it was successful because
-		// there was as 201 not a 400
+		// [TODO] ensure that the message was published successfully, we only know
+		// it was successful because there was as 201 not a 400
 	}
 }
 

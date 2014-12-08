@@ -510,15 +510,19 @@ func (a Api) GetMessages(w rest.ResponseWriter, r *rest.Request) {
 	}
 
 	querymap := r.URL.Query()
-	var target string
-	var circleid string
+	var target, circleid string
+	var t, c bool
 
 	if self, ok := a.Svc.GetHandleFromAuthorization(a.getTokenFromHeader(r)); !ok {
 		a.Util.FailedToDetermineHandleFromAuthToken(w)
 		return
 	} else {
-		target, t := querymap["handle"]
-		circleid, c := querymap["circleid"]
+		if targetUses, ok := querymap["handle"]; ok {
+			target, t = targetUses[0], ok
+		}
+		if circleidUses, ok := querymap["circleid"]; ok {
+			circleid, c = circleidUses[0], ok
+		}
 
 		if t && c {
 			a.Svc.GetMessagesByTargetInCircle(self, target, circleid)
@@ -547,8 +551,6 @@ func (a Api) GetMessageById(w rest.ResponseWriter, r *rest.Request) {
 	}
 
 	if message, ok := a.Svc.GetVisibleMessageById(handle, id); ok {
-		makeMessageUrl(&message)
-
 		w.WriteHeader(200)
 		w.WriteJson(message)
 	} else {

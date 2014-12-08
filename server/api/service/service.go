@@ -60,6 +60,16 @@ func MakeMessageUrl(messageid string) string {
 	return API_URL + "/messages/" + messageid
 }
 
+func AddMessageUrl(m *types.MessageView) {
+	m.Url = MakeMessageUrl(m.Id)
+}
+
+func AddMessageUrlToArray(messages []types.PublishedMessageView) {
+	for _, m := range messages {
+		m.Url = MakeMessageUrl(m.Id)
+	}
+}
+
 func formatCircleView(c query.RawCircleView) types.CircleResponse {
 	var visibility string
 	if c.Public == nil {
@@ -147,7 +157,7 @@ func (s Svc) NewCircle(handle, circleName string, isPublic bool) (types.CircleRe
 func (s Svc) NewMessage(handle, content string) (message types.MessageView, ok bool) {
 	m, ok := s.Query.CreateMessage(handle, content)
 	if ok {
-		m.Url = MakeMessageUrl(m.Id)
+		AddMessageUrl(&m)
 		return m, ok
 	} else {
 		return types.MessageView{}, ok
@@ -227,42 +237,56 @@ func (s Svc) GetCircleId(handle, circleName string) (circleid string) {
 	return s.Query.GetCircleIdByName(handle, circleName)
 }
 
-func (s Svc) GetPublicMessagesByHandle(target string) ([]types.MessageView, bool) {
+func (s Svc) GetPublicMessagesByHandle(target string) ([]types.PublishedMessageView, bool) {
 	if ok := s.UserExists(target); ok {
-		return s.Query.GetPublicPublishedMessagesByAuthor(target), ok
+		messages := s.Query.GetPublicPublishedMessagesByAuthor(target)
+		AddMessageUrlToArray(messages)
+		return messages, ok
 	} else {
-		return []types.MessageView{}, ok
+		return []types.PublishedMessageView{}, ok
 	}
 }
 
-func (s Svc) GetMessagesByTargetInCircle(self, target, circleid string) ([]types.MessageView, bool) {
-	if ok := s.Query.CanSeeCircle(self, circleid); ok {
-		return s.Query.GetMessagesByHandleInCircle(target, circleid), ok
+func (s Svc) GetMessagesByTargetInCircle(self, target, circleid string) ([]types.PublishedMessageView, bool) {
+	if ok := s.CanSeeCircle(self, circleid); ok {
+		messages := s.Query.GetMessagesByHandleInCircle(target, circleid)
+		AddMessageUrlToArray(messages)
+		return messages, ok
 	} else {
-		return []types.MessageView{}, ok
+		return []types.PublishedMessageView{}, ok
 	}
 }
 
-func (s Svc) GetMessagesInCircle(self, circleid string) ([]types.MessageView, bool) {
-	if ok := s.Query.CanSeeCircle(self, circleid); ok {
-		return s.Query.GetMessageFeedOfCircle(circleid), ok
+func (s Svc) GetMessagesInCircle(self, circleid string) ([]types.PublishedMessageView, bool) {
+	if ok := s.CanSeeCircle(self, circleid); ok {
+		messages := s.Query.GetMessageFeedOfCircle(circleid)
+		AddMessageUrlToArray(messages)
+		return messages, ok
 	} else {
-		return []types.MessageView{}, ok
+		return []types.PublishedMessageView{}, ok
 	}
 }
 
 // Should only be used on the logged-in user
 // retrieves the personalized feed of the user
-func (s Svc) GetMessageFeedOfSelf(handle string) ([]types.MessageView, bool) {
+func (s Svc) GetMessageFeedOfSelf(handle string) ([]types.PublishedMessageView, bool) {
 	if ok := s.UserExists(handle); ok {
-		return s.Query.GetMessageFeedOfHandle(handle), ok
+		messages := s.Query.GetMessageFeedOfHandle(handle)
+		AddMessageUrlToArray(messages)
+		return messages, ok
 	} else {
-		return []types.MessageView{}, ok
+		return []types.PublishedMessageView{}, ok
 	}
 }
 
 func (s Svc) GetVisibleMessageById(handle, messageid string) (message types.MessageView, ok bool) {
-	return s.Query.GetVisibleMessageById(handle, messageid)
+	if message, ok := s.Query.GetVisibleMessageById(handle, messageid); ok {
+		AddMessageUrl(&message)
+		return message, ok
+	} else {
+		return types.MessageView{}, ok
+	}
+
 }
 
 func (s Svc) GetHandleFromAuthorization(token string) (handle string, ok bool) {
