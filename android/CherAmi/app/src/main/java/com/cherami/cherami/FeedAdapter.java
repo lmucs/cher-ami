@@ -13,10 +13,8 @@ import com.squareup.picasso.Picasso;
 
 import org.json.JSONException;
 
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLConnection;
 
 public class FeedAdapter extends ArrayAdapter<FeedItem> {
 
@@ -97,5 +95,8 @@ public class FeedAdapter extends ArrayAdapter<FeedItem> {
         TextView txtContent;
         TextView txtDate;
         ImageView imgLoad;
+    }
+    public FeedItem [] getData () {
+        return this.data;
     }
 }

@@ -2,19 +2,14 @@ package com.cherami.cherami;
 
 import android.app.ActionBar;
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -28,10 +23,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
-
 
 public class SearchActivity extends Activity {
     private ListView userList;
@@ -42,16 +33,22 @@ public class SearchActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         this.context = this.getApplicationContext();
         super.onCreate(savedInstanceState);
+
         ActionBar actionBar = getActionBar();
         actionBar.setDisplayHomeAsUpEnabled(true);
+
+        // Set view to XML file
         setContentView(R.layout.activity_search);
     }
 
     public void getUsers(View view) {
         AsyncHttpClient client = new AsyncHttpClient();
+
+        //Static call to get token
         String token = ApiHelper.getSessionToken(context);
         String searchInput = ((EditText)findViewById(R.id.search_bar)).getText().toString();
         RequestParams params = new RequestParams();
+        // Add search to HTTP call, sort by joined date in descending order
         params.put("nameprefix", searchInput);
         params.put("sort", "joined");
 
@@ -60,6 +57,7 @@ public class SearchActivity extends Activity {
 
             @Override
             public void onStart() {
+                // Display spinner
                 dialog = ProgressDialog.show(SearchActivity.this, "",
                         "Loading. Please wait...", true);
             }
@@ -83,6 +81,7 @@ public class SearchActivity extends Activity {
                     userList = (ListView) findViewById(R.id.searchList);
                     userList.setAdapter(adapter);
 
+                    // Prepare for click on username to nav to that user's profile
                     userList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                         @Override
                         public void onItemClick(AdapterView<?> parent, View view, int position,
