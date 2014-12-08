@@ -500,7 +500,7 @@ func (s *TestSuite) TestPostJoinUserNoSession(c *C) {
 
 	sessionid_B := req.PostSessionGetAuthToken("handleB", "password2")
 
-	req.PostCircles(sessionid_B, "handleB", true)
+	req.PostCircles(sessionid_B, "CircleOfB", true)
 
 	sessionid_A := req.PostSessionGetAuthToken("handleA", "password1")
 
@@ -569,17 +569,17 @@ func (s *TestSuite) TestPostJoinCircleNoExist(c *C) {
 	c.Check(response.StatusCode, Equals, 404)
 }
 
-func (s *TestSuite) TestPostJoinCreated(c *C) {
+func (s *TestSuite) TestPostJoinOK(c *C) {
 	req.PostSignup("handleA", "testA@test.io", "password1", "password1")
 	req.PostSignup("handleB", "testB@test.io", "password2", "password2")
 
 	sessionid_B := req.PostSessionGetAuthToken("handleB", "password2")
 
-	req.PostCircles(sessionid_B, "MyCircle", true)
+	req.PostCircles(sessionid_B, "CircleOfB", true)
 
 	sessionid_A := req.PostSessionGetAuthToken("handleA", "password1")
 
-	response, err := req.PostJoin(sessionid_A, "handleB", "MyCircle")
+	response, err := req.PostJoin(sessionid_A, "handleB", "CircleOfB")
 	if err != nil {
 		c.Error(err)
 	}
