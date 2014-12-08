@@ -525,13 +525,33 @@ func (a Api) GetMessages(w rest.ResponseWriter, r *rest.Request) {
 		}
 
 		if t && c {
-			a.Svc.GetMessagesByTargetInCircle(self, target, circleid)
+			if messagesView, ok := a.Svc.GetMessagesByTargetInCircle(self, target, circleid); !ok {
+				a.Util.SimpleJsonReason(w, 400, "Could not find circle or you lack access rights")
+			} else {
+				w.WriteHeader(200)
+				w.WriteJson(messagesView)
+			}
 		} else if t && !c && target != self {
-			a.Svc.GetPublicMessagesByHandle(target)
+			if messagesView, ok := a.Svc.GetPublicMessagesByHandle(self, target); !ok {
+				a.Util.SimpleJsonReason(w, 400, "Could not find circle or you lack access rights")
+			} else {
+				w.WriteHeader(200)
+				w.WriteJson(messagesView)
+			}
 		} else if !t && c {
-			a.Svc.GetMessagesInCircle(self, circleid)
+			if messagesView, ok := a.Svc.GetMessagesInCircle(self, circleid); !ok {
+				a.Util.SimpleJsonReason(w, 400, "Could not find circle or you lack access rights")
+			} else {
+				w.WriteHeader(200)
+				w.WriteJson(messagesView)
+			}
 		} else {
-			a.Svc.GetMessageFeedOfSelf(self)
+			if messagesView, ok := a.Svc.GetMessageFeedOfSelf(self); !ok {
+				a.Util.SimpleJsonReason(w, 500, "Unexpected failure to get feed")
+			} else {
+				w.WriteHeader(200)
+				w.WriteJson(messagesView)
+			}
 		}
 	}
 }

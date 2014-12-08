@@ -97,6 +97,12 @@ func (s Svc) UserExists(handle string) bool {
 	return s.Query.UserExistsByHandle(handle)
 }
 
+// Returned whether the target user exists and has not blocked handle
+func (s Svc) UserExistsAndNoBlocking(handle, target string) bool {
+	return s.Query.UserExistsByHandle(target) &&
+		s.Query.NoBlockingRealtionshipBetween(handle, target)
+}
+
 func (s Svc) CircleExistsInPublicDomain(circleid string) bool {
 	return s.Query.CircleLinkedToPublicDomain(circleid)
 }
@@ -237,8 +243,8 @@ func (s Svc) GetCircleId(handle, circleName string) (circleid string) {
 	return s.Query.GetCircleIdByName(handle, circleName)
 }
 
-func (s Svc) GetPublicMessagesByHandle(target string) ([]types.PublishedMessageView, bool) {
-	if ok := s.UserExists(target); ok {
+func (s Svc) GetPublicMessagesByHandle(self, target string) ([]types.PublishedMessageView, bool) {
+	if ok := s.UserExistsAndNoBlocking(target, self); ok {
 		messages := s.Query.GetPublicPublishedMessagesByAuthor(target)
 		AddMessageUrlToArray(messages)
 		return messages, ok
@@ -248,7 +254,7 @@ func (s Svc) GetPublicMessagesByHandle(target string) ([]types.PublishedMessageV
 }
 
 func (s Svc) GetMessagesByTargetInCircle(self, target, circleid string) ([]types.PublishedMessageView, bool) {
-	if ok := s.CanSeeCircle(self, circleid); ok {
+	if ok := s.CanSeeCircle(self, circleid) && s.UserExistsAndNoBlocking(target, self); ok {
 		messages := s.Query.GetMessagesByHandleInCircle(target, circleid)
 		AddMessageUrlToArray(messages)
 		return messages, ok

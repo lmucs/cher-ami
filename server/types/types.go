@@ -46,6 +46,10 @@ type MessageView struct {
 	Created time.Time `json:"created"`
 }
 
+type PublishedMessageResponseView struct {
+	Objects []PublishedMessageView `json:"objects"`
+}
+
 type MessageResponseView struct {
 	Objects []MessageView `json:"objects"`
 	Count   int           `json:"count"`
