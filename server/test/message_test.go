@@ -79,19 +79,84 @@ func (s *TestSuite) TestGetMessagesByTargetInCircle(c *C) {
 	// stub
 }
 
-func (s *TestSuite) GetPublicMessagesByHandleOK(c *C) {
+func (s *TestSuite) TestGetPublicMessagesByHandleOK(c *C) {
 	// stub
 }
 
-func (s *TestSuite) GetMessagesInCircleOK(c *C) {
+func (s *TestSuite) TestGetMessagesInCircleOK(c *C) {
 	// stub
 	// own circle
 	// other users circle
 }
 
-func (s *TestSuite) GetMessageFeedOfSelfOK(c *C) {
-	// stub
-	// case when target is self
+func (s *TestSuite) TestGetMessageFeedOfSelfOK(c *C) {
+	req.PostSignup("Alpha", "testA@test.io", "password1", "password1")
+	req.PostSignup("Bravo", "testB@test.io", "password2", "password2")
+	req.PostSignup("Charlie", "testC@test.io", "password3", "password3")
+
+	sessionid_A := req.PostSessionGetAuthToken("Alpha", "password1")
+	sessionid_B := req.PostSessionGetAuthToken("Bravo", "password2")
+	sessionid_C := req.PostSessionGetAuthToken("Charlie", "password3")
+
+	circleid_baja := req.PostCircleGetCircleId(sessionid_B, "Baja", true)
+	circleid_cabo := req.PostCircleGetCircleId(sessionid_C, "Cabo", true)
+
+	circleid_baja, circleid_cabo = circleid_cabo, circleid_baja
+
+	// Alpha joins the two circles
+	if _, err := req.PostJoin(sessionid_A, "Bravo", "Baja"); err != nil {
+		c.Error(err)
+	}
+	if _, err := req.PostJoin(sessionid_A, "Charlie", "Cabo"); err != nil {
+		c.Error(err)
+	}
+
+	// No messages posted yet
+	if res, err := req.GetMessages(types.Json{
+		"token": sessionid_A,
+	}); err != nil {
+		c.Error(err)
+	} else {
+		c.Check(res.StatusCode, Equals, 200)
+		mrv := []types.MessageResponseView{}
+		helper.Unmarshal(res, &mrv)
+		c.Check(len(mrv), Equals, 0)
+	}
+
+	// Post some messages
+	if res, _ := req.PostMessageWithCircles("Yo, sup", sessionid_A, []string{circleid_baja, circleid_cabo}); true {
+		c.Check(res.StatusCode, Equals, 201)
+	}
+	if res, _ := req.PostMessageWithCircles("Yo, dawg", sessionid_B, []string{circleid_baja}); true {
+		c.Check(res.StatusCode, Equals, 201)
+	}
+	if res, _ := req.PostMessageWithCircles("Yo, dude", sessionid_C, []string{circleid_cabo}); true {
+		c.Check(res.StatusCode, Equals, 201)
+	}
+
+	if res, err := req.GetMessages(types.Json{
+		"token": sessionid_A,
+	}); err != nil {
+		c.Error(err)
+	} else {
+		c.Check(res.StatusCode, Equals, 200)
+		mrv := []types.MessageResponseView{}
+		helper.Unmarshal(res, &mrv)
+		c.Check(len(mrv), Equals, 4)
+	}
+
+	// case when target is self (same response expected)
+	if res, err := req.GetMessages(types.Json{
+		"token": sessionid_A,
+		"user":  "Alpha",
+	}); err != nil {
+		c.Error(err)
+	} else {
+		c.Check(res.StatusCode, Equals, 200)
+		mrv := []types.MessageResponseView{}
+		helper.Unmarshal(res, &mrv)
+		c.Check(len(mrv), Equals, 4)
+	}
 }
 
 //

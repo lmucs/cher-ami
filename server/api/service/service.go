@@ -100,7 +100,7 @@ func (s Svc) UserExists(handle string) bool {
 // Returned whether the target user exists and has not blocked handle
 func (s Svc) UserExistsAndNoBlocking(handle, target string) bool {
 	return s.Query.UserExistsByHandle(target) &&
-		s.Query.NoBlockingRealtionshipBetween(handle, target)
+		s.Query.NoBlockingRelationshipBetween(handle, target)
 }
 
 func (s Svc) CircleExistsInPublicDomain(circleid string) bool {

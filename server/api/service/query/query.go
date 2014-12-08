@@ -447,21 +447,7 @@ func (q Query) GetMessageById(messageid string) bool {
 }
 
 func (q Query) HandleExists(handle string) bool {
-	found := []struct {
-		Handle string `json:"u.handle"`
-	}{}
-	q.cypherOrPanic(&neoism.CypherQuery{
-		Statement: `
-            MATCH   (u:User)
-            WHERE   u.handle = {handle}
-            RETURN  u.handle
-        `,
-		Parameters: neoism.Props{
-			"handle": handle,
-		},
-		Result: &found,
-	})
-	return len(found) > 0
+	return q.UserExistsByHandle(handle)
 }
 
 func (q Query) EmailExists(email string) bool {
@@ -514,6 +500,27 @@ func (q Query) BlockExistsFromTo(handle, target string) bool {
             MATCH   (u)-[r:BLOCKED]->(t)
             RETURN  r
         `,
+		Parameters: neoism.Props{
+			"handle": handle,
+			"target": target,
+		},
+		Result: &found,
+	})
+	return len(found) > 0
+}
+
+func (q Query) NoBlockingRelationshipBetween(handle, target string) bool {
+	found := []struct {
+		Relation neoism.Relationship `json:"r"`
+	}{}
+	q.cypherOrPanic(&neoism.CypherQuery{
+		// use of bi-directional match here
+		Statement: `
+			MATCH   (u:User)-[r:BLOCKED]-(t:User)
+            WHERE   u.handle = {handle}
+            AND     t.handle = {target}
+            RETURN  r
+		`,
 		Parameters: neoism.Props{
 			"handle": handle,
 			"target": target,
@@ -862,7 +869,25 @@ func (q Query) GetMessageFeedOfCircle(circleid string) []types.PublishedMessageV
 }
 
 func (q Query) GetMessageFeedOfHandle(handle string) []types.PublishedMessageView {
-	return []types.PublishedMessageView{}
+	messages := []types.PublishedMessageView{}
+	q.cypherOrPanic(&neoism.CypherQuery{
+		Statement: `
+			MATCH (u:User)-[]->(c:Circle)<-[p:PUB_TO]-(m:Message)<-[:WROTE]-(a:User)
+			WHERE     u.handle       =  {handle}
+			RETURN    m.id           AS id
+                 ,    a.handle       AS author
+                 ,    m.content      AS content
+                 ,    m.created      AS created
+                 ,    c.id           AS circleid
+                 ,    p.published_at AS published_at
+            ORDER BY  p.published_at
+		`,
+		Parameters: neoism.Props{
+			"handle": handle,
+		},
+		Result: &messages,
+	})
+	return messages
 }
 
 func (q Query) GetVisibleMessageById(handle, messageid string) (message types.MessageView, ok bool) {
