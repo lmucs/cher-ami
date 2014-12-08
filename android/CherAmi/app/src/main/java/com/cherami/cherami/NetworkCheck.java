@@ -3,10 +3,6 @@ package com.cherami.cherami;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-import android.widget.Toast;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 public class NetworkCheck {
     public static Boolean isConnected (byte[] response) {
