@@ -11,13 +11,9 @@ define(function(require, exports, module) {
         },
 
         initialize: function() {
-
         },
 
         update: function() {
-            //TODO: REMOVE THIS
-            window.location.reload()
-
         }
     });
 
