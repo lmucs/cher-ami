@@ -96,4 +96,7 @@ public class FeedAdapter extends ArrayAdapter<FeedItem> {
         TextView txtDate;
         ImageView imgLoad;
     }
+    public FeedItem [] getData () {
+        return this.data;
+    }
 }

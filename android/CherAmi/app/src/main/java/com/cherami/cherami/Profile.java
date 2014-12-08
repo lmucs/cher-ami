@@ -20,11 +20,14 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+
 public class Profile extends Fragment {
     private ListView messageList;
     TextView textElement;
     Context context;
     ProgressDialog dialog;
+    FeedAdapter adapter;
 
     public Profile() {
 
@@ -64,19 +67,18 @@ public class Profile extends Fragment {
 
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-                String responseText = null;
+                JSONArray responseText;
 
                 try {
-                    responseText = new JSONObject(new String(responseBody)).getString("objects");
-                    JSONArray y = new JSONArray(responseText);
-                    ProfileFeedItem message_data[] = new ProfileFeedItem[y.length()];
+                    responseText = new JSONArray(new String(responseBody));
+                    FeedItem feed_data[] = new FeedItem[responseText.length()];
 
-                    for (int x = 0; x < y.length(); x++){
-                        message_data[x] = new ProfileFeedItem(new JSONObject(y.get((y.length()-1)-x).toString()).getString("author"),new JSONObject(y.get((y.length()-1)-x).toString()).getString("content"), processDate(new JSONObject(y.get((y.length()-1)-x).toString()).getString("created")));
+                    for (int x = 0; x < responseText.length(); x++) {
+                        feed_data[x] = new FeedItem(new JSONObject(responseText.get(x).toString()));
                     }
 
-                    ProfileFeedAdapter adapter = new ProfileFeedAdapter(getActivity(),
-                            R.layout.profile_feed_row, message_data);
+                    final FeedAdapter adapter = new FeedAdapter(getActivity(),
+                            R.layout.feed_item_row, feed_data);
 
                     messageList = (ListView) view.findViewById(R.id.profileFeed);
                     messageList.setAdapter(adapter);
