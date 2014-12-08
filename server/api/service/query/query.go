@@ -880,7 +880,7 @@ func (q Query) GetMessageFeedOfHandle(handle string) []types.PublishedMessageVie
                  ,    m.created      AS created
                  ,    c.id           AS circleid
                  ,    p.published_at AS published_at
-            ORDER BY  p.published_at
+            ORDER BY  p.published_at DESC
 		`,
 		Parameters: neoism.Props{
 			"handle": handle,
