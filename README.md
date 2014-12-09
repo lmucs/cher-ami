@@ -5,3 +5,5 @@ CherAmi is a social sharing application with a number of features to control sha
 This project was developed as part of the Software Engineering Laboratory course at Loyola Marymount University during the 2014 fall semester.
 
 For more information about the project, see the [wiki](https://github.com/rtoal/cher-ami/wiki).
+
+Also checkout the [Prezi of the final presentation](https://prezi.com/vmttq7qaurc1/cherami/).
