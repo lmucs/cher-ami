@@ -5,25 +5,29 @@ import android.app.DialogFragment;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ListView;
-import android.widget.Toast;
+
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
+
 import org.apache.http.Header;
 import org.apache.http.entity.StringEntity;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import java.io.UnsupportedEncodingException;
 
 /**
+ * Creates a checklist of circles that a user can post to.
+ * Posting the message is also handled here.
  * Created by Geoff on 11/22/2014.
  */
 public class CircleForMessageModal extends DialogFragment {
@@ -55,12 +59,12 @@ public class CircleForMessageModal extends DialogFragment {
             @Override
             public void onClick(View v) {
                 boolean postMessage = false;
-                for(int i = 0; i < circle_data.length; i++){
-                    if(circle_data[i].isSelected()){
+                for (int i = 0; i < circle_data.length; i++) {
+                    if (circle_data[i].isSelected()) {
                         postMessage = true;
                     }
                 }
-                if(postMessage) {
+                if (postMessage) {
                     attemptPostMessage();
                 } else {
                     new AlertDialog.Builder(getActivity())
@@ -98,13 +102,13 @@ public class CircleForMessageModal extends DialogFragment {
 
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-                String responseText = null;
+                String responseText;
                 try {
                     responseText = new JSONObject(new String(responseBody)).getString("results");
-                    JSONArray y = new JSONArray(responseText);
-                    circle_data = new CircleForMessagesItem[y.length()];
-                    for (int x = 0; x < y.length(); x++) {
-                        circle_data[x] = new CircleForMessagesItem(new JSONObject(y.get(x).toString()), false);
+                    JSONArray circleArray = new JSONArray(responseText);
+                    circle_data = new CircleForMessagesItem[circleArray.length()];
+                    for (int x = 0; x < circleArray.length(); x++) {
+                        circle_data[x] = new CircleForMessagesItem(new JSONObject(circleArray.get(x).toString()), false);
                     }
 
                     CircleForMessageAdapter adapter = new CircleForMessageAdapter(getActivity(),
@@ -121,7 +125,7 @@ public class CircleForMessageModal extends DialogFragment {
 
             @Override
             public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable error) {
-                String responseText = null;
+                String responseText;
 
                 try {
                     if (!ErrorHandle.isNetworkConnected(errorResponse)) {
@@ -196,13 +200,6 @@ public class CircleForMessageModal extends DialogFragment {
 
                     @Override
                     public void onSuccess(int statusCode, Header[] headers, byte[] response) {
-                        String responseText = null;
-                        try {
-                            responseText = new JSONObject(new String(response)).getString("response");
-                        } catch (JSONException j) {
-
-                        }
-
                         dismissModal();
                         dialog.dismiss();
                     }
@@ -210,7 +207,7 @@ public class CircleForMessageModal extends DialogFragment {
                     @Override
                     public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
                         dialog.dismiss();
-                        String responseText = null;
+                        String responseText;
 
                         try {
                             if (!ErrorHandle.isNetworkConnected(errorResponse)) {
